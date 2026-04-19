@@ -52,6 +52,18 @@ When you add a **derived graph layer** (typed edges, provenance paths) alongside
 
 Child of `knowledge_graph` in the scaffolded template. Tunes which memories become edges (for example minimum confidence and allowed `memory_type` values). Full design discussion: [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md).
 
+### `query_pipeline` (optional)
+
+Declares the **default** retrieval pattern when both vectors and a knowledge graph exist. This is a **hint** for your application; the CLI does not execute retrieval.
+
+| Value | Meaning |
+|-------|---------|
+| **`vector_then_graph`** | **Graph behind vectors**: embedding ANN first, then graph filter/rerank/path attach (recommended default for broad RAG). |
+| **`graph_then_vector`** | **Graph in front of vectors**: expand seeds in the graph, then score with vectors inside that set (good for milestone- or decision-scoped questions). |
+| **`parallel`** | Both contribute ranked lists; your ranker fuses them. |
+
+See [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md) § “Behind vs in front”. For how this repo is built, see [BUILD-PHILOSOPHY.md](BUILD-PHILOSOPHY.md).
+
 ## Parsing in Python (optional)
 
 ```bash

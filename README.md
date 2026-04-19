@@ -4,6 +4,8 @@
 
 **Package version:** `0.2.0` · **Python:** 3.10+
 
+**How we build this:** [docs/BUILD-PHILOSOPHY.md](docs/BUILD-PHILOSOPHY.md) (specs first, graph **on top of** vectors, engineering ontology over vendor lock-in).
+
 ---
 
 ## Quick start (recommended)
@@ -56,7 +58,8 @@ When this package hits **PyPI**, install becomes:
 | [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) | Archive layer and MCP hints |
 | [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) | Claude Mem + Cursor |
 | [docs/PACKAGING.md](docs/PACKAGING.md) | Releases and vendoring specs |
-| [docs/memory/graph-ontology-and-customization.md](docs/memory/graph-ontology-and-customization.md) | Graph vs vectors, ontology, optional customization |
+| [docs/BUILD-PHILOSOPHY.md](docs/BUILD-PHILOSOPHY.md) | Build habits, layering, contribution flow |
+| [docs/memory/graph-ontology-and-customization.md](docs/memory/graph-ontology-and-customization.md) | Graph on vectors, engineering ontology, behind/in-front pipelines |
 
 ---
 

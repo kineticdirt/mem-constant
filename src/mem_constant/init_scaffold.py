@@ -28,6 +28,9 @@ boundaries:
     - new_agent
     - end_milestone
 
+# Default retrieval pattern when both vectors and a graph exist (hint for your app; see docs/CONFIGURATION.md)
+# query_pipeline: vector_then_graph   # vector_then_graph | graph_then_vector | parallel
+
 # --- Optional: graph + ontology (see docs/mem-constant/graph-ontology-and-customization.md)
 # knowledge_graph:
 #   enabled: false

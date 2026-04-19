@@ -77,6 +77,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-04-19 (UTC)** — [PC] **Intent:** Docs — **engineering-first** graph/ontology spec, **graph on top of vectors**, **behind vs in front** retrieval order, new **`docs/BUILD-PHILOSOPHY.md`**, README + INSTALL + CONFIGURATION + scaffold `query_pipeline` comment; vendor + **`git push origin master`**.
+- **2026-04-19 (UTC)** — [PC] **Result:** Pushed — engineering-led **graph** doc rewrite, **`query_pipeline`** in CONFIGURATION, **BUILD-PHILOSOPHY**, README/INSTALL links, scaffold comment, vendored `spec/`; **`pytest`** OK.
 - **2026-04-19 (UTC)** — [PC] **Intent:** Spec **graph + ontology + customization** — new `docs/memory/graph-ontology-and-customization.md`, architecture pointer, README + CONFIGURATION + `mem-constant.yaml` scaffold comments; `scripts/vendor_specs.py` sync.
 - **2026-04-19 (UTC)** — [PC] **Result:** Added **graph/ontology/customization** spec + vendored `spec/`; scaffold YAML comments; README + CONFIGURATION links; **`pytest`** OK.
 - **2026-04-19 (UTC)** — [PC] **Intent:** Polish GitHub **README** + **docs/INSTALL.md** for clarity; **`git push origin master`** so `https://github.com/kineticdirt/mem-constant` shows updated instructions.

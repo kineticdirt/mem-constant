@@ -87,6 +87,8 @@ pip install -e ".[dev]"
 pytest
 ```
 
+Read **[BUILD-PHILOSOPHY.md](BUILD-PHILOSOPHY.md)** before larger changes (specs → vendor → scaffold → docs → tests).
+
 ---
 
 ## Next steps

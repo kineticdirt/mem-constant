@@ -32,3 +32,5 @@ That writes **`mem-constant.yaml`** and copies this set into **`docs/mem-constan
 ## Maintainer note
 
 Repo **source of truth** for spec text is this directory. Before publishing a **PyPI** release, run **`python scripts/vendor_specs.py`** so `src/mem_constant/spec/` matches this tree. See [../PACKAGING.md](../PACKAGING.md).
+
+How this repository is built (specs vs CLI, layering, contribution flow): [../BUILD-PHILOSOPHY.md](../BUILD-PHILOSOPHY.md).

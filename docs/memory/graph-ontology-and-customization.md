@@ -1,6 +1,66 @@
 # Graph layer, ontology, and customization
 
-This document extends the autonomous-memory model beyond **vector-first** retrieval. It is **optional**: v1 can stay cache + archive + vectors. The goal is clearer **structure** (how parts relate) and **shared meaning** (what labels denote), without forcing a single database vendor.
+This document extends the autonomous-memory model with an **optional graph** and an **engineering ontology** (controlled classes and relations). **Vectors stay the substrate** for similarity and broad recall; the **graph sits on top** as structure you derive or query for explanation, constraints, and audits.
+
+The design stays **vendor-neutral**: no required graph database, no replacement for MemPalace or your vector index.
+
+---
+
+## Stack position: graph on top of vectors
+
+**“On top”** means two things (both can be true):
+
+1. **Data dependency** — embeddings and archived text exist first; graph **nodes and edges are projected** from promoted memories (and optional manual curation). The graph is not the source of raw evidence; it **indexes** what you already trust enough to route.
+2. **Semantic layering** — vectors answer **similarity**; the graph answers **typed relationships** (depends on, supersedes, evidence for, scoped to). The ontology names those predicates so tools agree.
+
+Vectors are **not removed**; the graph **adds** a relational view.
+
+---
+
+## “Behind” vs “in front” of vectors (query pipeline)
+
+These phrases describe **order in a retrieval or synthesis pipeline**, not moral priority.
+
+| Pattern | Order (informal) | When it helps |
+|---------|------------------|---------------|
+| **Graph behind vectors** (post-filter / rerank) | **Vector first** → candidate set → **graph** prunes, reranks, or attaches paths | Default **RAG-style** flow: cast a wide embedding net, then use the graph to drop nonsense, enforce scope, or boost items linked to verified decisions. |
+| **Graph in front of vectors** (pre-expand) | **Graph first** → seed neighborhood or path → **vectors** score within that set | “Everything tied to **this milestone** or **this decision node**,” then rank by semantic fit inside the subgraph. |
+| **Parallel merge** | Both produce ranked lists → **fusion** (learned or hand-weighted) | When you want neither pure similarity nor pure navigation to dominate. |
+
+**Recommendation:** start with **graph behind vectors** for general recall; add **graph in front** for operator dashboards, standup “how we got here,” and scoped audits. Your `mem-constant.yaml` can record a declared default (see [../CONFIGURATION.md](../CONFIGURATION.md) optional `query_pipeline`).
+
+There is no universal winner: **behind** preserves recall breadth; **in front** preserves structural truth when the question is inherently relational.
+
+---
+
+## Engineering ontology (primary)
+
+This is what you **implement and version**: a machine-readable contract so agents, jobs, and UIs use the **same relation names** and **class boundaries**.
+
+### Contents
+
+- **Classes (types)** — e.g. `Decision`, `Task`, `Repository`, `Milestone`, `Evidence`, aligned where possible with [memory-schema-and-scoring.md](memory-schema-and-scoring.md) memory types.
+- **Relations (predicates)** — e.g. `depends_on`, `supersedes`, `evidence_for`, `contradicts`, `scoped_to`, `authored_by`.
+- **Constraints (optional)** — domain/range, cardinality, disjointness between classes.
+
+### Representation
+
+Choose what fits your stack: **JSON-LD** `@context`, **RDF/OWL**, **SKOS** for lightweight taxonomies, or a narrow internal JSON schema. The mem-constant contract is: **publish an `ontology_profile` URI or path** (see `mem-constant.yaml`) so projection and query code share one definition.
+
+### Why it matters more than raw graph edges
+
+Without an ontology, every agent invents edge labels (`related_to`, `links_to`, `about`) and the graph becomes **unqueryable soup**. Engineering ontology is how the graph stays **inspectable** across sessions and tools.
+
+---
+
+## Philosophical ontology (supporting, not driving)
+
+Philosophical ontology asks what **exists** and how **identity** and **dependence** work across time. For this stack, it matters as **design hygiene**, not as implementation text:
+
+- It reminds you to define when a **fact** is the **same** fact across sessions vs a **revision**.
+- It backs the distinction between **ephemeral** noise and **durable** commitments already in your routing model.
+
+Spec and code should follow the **engineering** ontology; philosophy informs **edge cases** (identity, supersession) you encode in predicates and constraints.
 
 ---
 
@@ -8,44 +68,21 @@ This document extends the autonomous-memory model beyond **vector-first** retrie
 
 | Mechanism | Strength | Blind spot |
 |-----------|----------|------------|
-| **Vectors** | Similarity, paraphrase, “near this embedding” | Symmetry of similarity hides **direction** (A caused B, B refutes A). |
-| **Graph** | Typed edges, paths, scopes, provenance chains | Cold start and schema discipline; not a drop-in for fuzzy recall alone. |
+| **Vectors** | Similarity, paraphrase, “near this embedding” | Similarity is weak on **directed** structure (A caused B, B refutes A). |
+| **Graph** | Typed edges, paths, scopes, provenance | Cold start; needs schema discipline; weak alone for fuzzy paraphrase. |
 
-**Practical split:** keep vectors for **recall** (“what looks like this?”) and add a graph for **explanation** (“how does this connect to that decision, person, repo, and milestone?”). A nightly or boundary job can **project** high-confidence `fact` / `decision` records into nodes and edges without replacing MemPalace.
-
----
-
-## Ontology: two senses, one pipeline
-
-### 1. Philosophical ontology (brief)
-
-In philosophy, **ontology** asks what kinds of things exist and how they hang together (categories, dependence, identity over time). For agent memory, the useful import is **discipline about categories**:
-
-- What **counts** as a `decision` vs a `context-note`?
-- When is a “fact” the **same** fact across sessions (identity), vs a revised belief?
-
-Your existing **memory types** and **routing policy** already encode a minimal ontology of *kinds of memory*. A graph layer makes that explicit as **classes** and **relations**.
-
-### 2. Engineering ontology (what you implement)
-
-In knowledge engineering, an **ontology** is a **controlled vocabulary** plus **axioms**:
-
-- **Classes** (types): `Decision`, `Task`, `Concept`, `Person`, `Repository`, …
-- **Relations**: `depends_on`, `supersedes`, `evidence_for`, `contradicts`, `scoped_to`
-- **Constraints** (optional): disjointness, cardinality, domain/range
-
-Formats like **RDF/OWL**, **SKOS** for taxonomies, or lighter **JSON-LD** `@context` blocks are implementation choices. The mem-constant contract is: **declare a profile** (URI or file) so different agents map extracted text to the **same** relation names.
+**Practical split:** vectors for **recall breadth**; graph for **structure, explanation, and policy**. Projection jobs (see phasing below) lift high-confidence records into the graph without replacing the archive.
 
 ---
 
 ## Customization axes (pluggable, not monolithic)
 
-1. **Storage profile** — archive (MemPalace), cache (Claude Mem), vector index, **graph store** as separate adapters behind a small interface.
-2. **Ontology profile** — versioned document: allowed classes, edges, and mapping rules from `memory_type` + `tags` into graph predicates.
-3. **Projection policy** — which routed records become graph edges (e.g. only `confidence >= mempalace_min_confidence` decisions and durable facts).
-4. **Query surface** — optional “explain path” API for UI or standup: shortest path, neighborhood, or SPARQL/Cypher depending on backend.
+1. **Storage profile** — archive (MemPalace), cache, vector index, graph store: **separate adapters**, one interface per concern.
+2. **Ontology profile** — versioned document mapping `memory_type`, `tags`, and fields to graph classes and predicates.
+3. **Projection policy** — which routed rows become nodes/edges (thresholds, allowed types).
+4. **Query surface** — “explain path,” neighborhood, or declarative queries over your chosen backend.
 
-Nothing here requires replacing **MemPalace** internals; the graph can be a **derived** layer for insight and audits.
+The graph remains **derived** unless you explicitly adopt a dual-write pattern (not required here).
 
 ---
 
@@ -53,19 +90,19 @@ Nothing here requires replacing **MemPalace** internals; the graph can be a **de
 
 Extend the mental model from [memory-schema-and-scoring.md](memory-schema-and-scoring.md):
 
-- **`graph_node_id`** (optional) — link a memory row to a canonical node.
-- **`relations_out` / `relations_in`** (optional) — small lists of `{predicate, target_id, confidence}` for working cache before projection.
-- **`ontology_version`** — which profile produced the edge set.
+- **`graph_node_id`** (optional) — canonical node for a memory row.
+- **`relations_out` / `relations_in`** (optional) — `{predicate, target_id, confidence}` in working cache before projection.
+- **`ontology_version`** — profile identifier used to mint edges.
 
-Scoring can reuse **confidence** and **contradiction** checks before an edge is promoted to the durable graph.
+Reuse **confidence** and **contradiction** checks before promoting edges to the durable graph.
 
 ---
 
 ## Research directions (non-blocking)
 
-- **Temporal graphs** — decisions valid in `[t0, t1)`; supersession as first-class edges.
-- **Open-world vs closed-world** — agents assume open world; human or nightly job **closes** a scope when a milestone completes.
-- **Alignment with upper ontologies** — when you need interoperability (e.g. Dublin Core for document metadata, PROV for provenance), map your local predicates to a small upper layer rather than importing all of BFO or SUMO on day one.
+- **Temporal graphs** — validity intervals; supersession as first-class edges.
+- **Open-world vs closed-world** — agents open-world; milestones or human review **close** a scope when appropriate.
+- **Upper ontology mapping** — small mappings (e.g. Dublin Core, PROV) instead of importing huge upper models wholesale.
 
 ---
 
@@ -73,24 +110,23 @@ Scoring can reuse **confidence** and **contradiction** checks before an edge is 
 
 | Phase | Outcome |
 |-------|---------|
-| **A** | Document-only: ontology profile file + manual graph edits for pilot projects. |
-| **B** | Automated **projection** from routed memories to a graph; vectors unchanged. |
-| **C** | **Biasing** router with graph signals (e.g. do not quarantine if node is hub of verified decisions). |
-
-Phase boundaries belong in your implementation backlog; this spec stays **advisory** until you add concrete adapters.
+| **A** | Ontology profile + manual or scripted graph edits. |
+| **B** | Automated **projection** from routed memories; vectors unchanged. |
+| **C** | Router or ranker **uses graph signals** (e.g. hub of verified decisions). |
 
 ---
 
 ## Non-goals (for this document)
 
-- Picking a single graph database or cloud vendor.
-- Replacing vector RAG; the design assumes **hybrid** where useful.
-- Full philosophical treatment; use citations in your own reading list for deeper logic and metaphysics.
+- Mandating a specific graph product.
+- Replacing vector RAG; this is a **hybrid** extension.
+- Treating philosophy as a substitute for an **engineering** ontology file.
 
 ---
 
 ## See also
 
+- [../BUILD-PHILOSOPHY.md](../BUILD-PHILOSOPHY.md) — how this repo is built and how specs relate to code
 - [autonomous-memory-architecture.md](autonomous-memory-architecture.md) — core components
 - [routing-policy.md](routing-policy.md) — promotion thresholds
 - [memory-schema-and-scoring.md](memory-schema-and-scoring.md) — record fields
