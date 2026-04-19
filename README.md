@@ -1,81 +1,77 @@
 # mem-constant
 
-**mem-constant** is a **design package** and **CLI** for pairing **MemPalace** (durable archive) with a **lightweight working-memory** layer (for example **Claude Mem** in Cursor): routing, pruning, a daily standup digest, and a global **`handoff`** template when chat context rolls over.
+**Autonomous memory for AI-assisted work** — specs plus a small CLI so you can wire **MemPalace** (long-term archive) and a **working cache** (for example **Claude Mem** in Cursor) without hunting through the repo.
 
-**Current package version: `0.2.0`** (see `pyproject.toml`). Git tags may still include **`v0.0.1`** for the docs-only era; prefer **`pip show mem-constant`** after install.
-
----
-
-## Fast path (MemPalace-style)
-
-Install the CLI, then scaffold any project in one shot:
-
-```bash
-pip install "git+https://github.com/kineticdirt/mem-constant.git"
-mem-constant doctor
-cd /your/project/root
-mem-constant init --with-cursor-rules
-```
-
-You get:
-
-- **`mem-constant.yaml`** — project knobs (thresholds, boundary hints)
-- **`docs/mem-constant/*.md`** — full spec set, version-matched to the wheel
-- **`.cursor/rules/mem-constant.mdc`** — optional Cursor rule (with **`--with-cursor-rules`**)
-
-When the package is on **PyPI**, replace the `git+https://…` line with:
-
-```bash
-pip install mem-constant
-```
+**Package version:** `0.2.0` · **Python:** 3.10+
 
 ---
 
-## Clone only (no Python)
+## Quick start (recommended)
 
-If you only want Markdown in git:
+| Step | Command |
+|------|---------|
+| 1. Install CLI | `pip install "git+https://github.com/kineticdirt/mem-constant.git"` |
+| 2. Sanity check | `mem-constant doctor` |
+| 3. Go to your app | `cd /path/to/your/project` |
+| 4. Scaffold | `mem-constant init --with-cursor-rules` |
 
-```bash
-git clone https://github.com/kineticdirt/mem-constant.git
-```
+**On Windows**, if `pip` is not on your PATH, try:
 
-Specs: [`docs/memory/`](docs/memory/) (see [`docs/memory/README.md`](docs/memory/README.md)).
+`py -m pip install "git+https://github.com/kineticdirt/mem-constant.git"`
+
+After step 4 you have:
+
+| Path | What it is |
+|------|------------|
+| `mem-constant.yaml` | Project thresholds and boundary hints (edit as you like) |
+| `docs/mem-constant/*.md` | Full design specs, matched to the package version you installed |
+| `.cursor/rules/mem-constant.mdc` | Cursor rule (only with `--with-cursor-rules`) |
+
+**Then:** open `docs/mem-constant/autonomous-memory-architecture.md` in that project and follow [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) / [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) as needed.
+
+When this package hits **PyPI**, install becomes:
+
+`pip install mem-constant`
 
 ---
 
-## Documentation map
+## Other ways to use this repo
 
-| Doc | Audience |
+| Goal | What to do |
+|------|------------|
+| **Browse Markdown only** | `git clone https://github.com/kineticdirt/mem-constant.git` — specs live in [`docs/memory/`](docs/memory/) ([index](docs/memory/README.md)) |
+| **SSH clone** | `git clone git@github.com:kineticdirt/mem-constant.git` |
+| **Develop the package** | Clone, then `pip install -e ".[dev]"` and `pytest` ([details](docs/INSTALL.md)) |
+| **Export specs to a folder** | `mem-constant specs ./path/to/output` |
+
+---
+
+## Documentation
+
+| Doc | Contents |
 |-----|----------|
-| [**docs/INSTALL.md**](docs/INSTALL.md) | Install from PyPI, git, editable mode |
-| [**docs/CLI.md**](docs/CLI.md) | `init`, `doctor`, `specs` |
-| [**docs/CONFIGURATION.md**](docs/CONFIGURATION.md) | `mem-constant.yaml` |
-| [**docs/INTEGRATION-MEMPALACE.md**](docs/INTEGRATION-MEMPALACE.md) | Archive layer + MCP hints |
-| [**docs/INTEGRATION-CLAUDE-MEM.md**](docs/INTEGRATION-CLAUDE-MEM.md) | Working cache + Cursor |
-| [**docs/PACKAGING.md**](docs/PACKAGING.md) | Maintainers: vendor specs, release |
-
-Architecture and policies (canonical prose): **`docs/memory/*.md`**.
+| [docs/INSTALL.md](docs/INSTALL.md) | Install paths (PyPI, git, editable), verify, scaffold |
+| [docs/CLI.md](docs/CLI.md) | All `mem-constant` commands and flags |
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | `mem-constant.yaml` reference |
+| [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) | Archive layer and MCP hints |
+| [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) | Claude Mem + Cursor |
+| [docs/PACKAGING.md](docs/PACKAGING.md) | Releases and vendoring specs |
 
 ---
 
-## Optional: exact git tag
+## Optional: pin an old **git** tag
 
-For reproducible **git** checkouts only:
+Docs-only history:
 
 ```bash
 cd mem-constant
 git checkout v0.0.1
 ```
 
-For **pip** installs, use **`pip install mem-constant==0.2.0`** once published.
+For **pip**, pin with `pip install mem-constant==0.2.0` once published to PyPI.
 
 ---
 
-## Related files in this repo
-
-- [`AGENTS.md`](AGENTS.md) — durable workspace notes for agents (when this tree is used as a wider workspace).
-- [`AI_GROUPCHAT.md`](AI_GROUPCHAT.md) — coordination ledger (optional).
-
 ## License
 
-[LICENSE](LICENSE) (MIT).
+[MIT](LICENSE)

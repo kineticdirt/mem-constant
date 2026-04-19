@@ -1,73 +1,99 @@
 # Installing mem-constant
 
-**mem-constant** is a small Python package with a **`mem-constant`** CLI. It ships the autonomous-memory Markdown specs inside the wheel so you get a **MemPalace-style** flow: install once, then **`init`** in any project.
+**TL;DR:** install the Python package, run **`mem-constant doctor`**, then **`mem-constant init --with-cursor-rules`** in your project root. Full specs land in **`docs/mem-constant/`**.
 
-## Requirements
+---
 
-- **Python 3.10+** on your `PATH`
-- **pip** (or **uv pip**)
+## What you need
 
-Optional (see [INTEGRATION-MEMPALACE.md](INTEGRATION-MEMPALACE.md) and [INTEGRATION-CLAUDE-MEM.md](INTEGRATION-CLAUDE-MEM.md)):
+| Requirement | Notes |
+|-------------|--------|
+| **Python 3.10+** | Must be on your PATH as `python` / `python3` / Windows **`py`** |
+| **pip** | Or **`uv pip`** — same commands, swap the prefix if you use `uv` |
 
-- **MemPalace** (`pip install mempalace`) for archival MCP
-- **Node.js 18+** if you use **Claude Mem** with Cursor
+**Optional** (integrations):
 
-## Install from PyPI (when published)
+- **MemPalace** — `pip install mempalace` ([integration guide](INTEGRATION-MEMPALACE.md))
+- **Node.js 18+** — for **Claude Mem** + Cursor ([integration guide](INTEGRATION-CLAUDE-MEM.md))
+
+---
+
+## Install the CLI
+
+### From GitHub (works today)
+
+Stable URL for the default branch:
+
+```bash
+pip install "git+https://github.com/kineticdirt/mem-constant.git"
+```
+
+**Windows:** if `pip` fails, use:
+
+```bash
+py -m pip install "git+https://github.com/kineticdirt/mem-constant.git"
+```
+
+### From PyPI (when published)
 
 ```bash
 pip install mem-constant
 ```
 
-Verify:
+---
+
+## Verify
 
 ```bash
 mem-constant --version
 mem-constant doctor
 ```
 
-## Install from Git (always works)
+You should see the package version, your Python path, and optional notes for **mempalace** / **pyyaml**.
 
-Use this until a release is on PyPI, or to track `main`:
+---
 
-```bash
-pip install "git+https://github.com/kineticdirt/mem-constant.git"
-```
+## Scaffold a project
 
-Editable clone (for contributors):
-
-```bash
-git clone https://github.com/kineticdirt/mem-constant.git
-cd mem-constant
-pip install -e .
-```
-
-## Scaffold a project (recommended first step)
-
-From your **project root** (where you keep source and `docs/`):
+Run from the **root of the project** you want to configure (where you keep `docs/` or your app tree):
 
 ```bash
 mem-constant init --with-cursor-rules
 ```
 
-- Writes **`mem-constant.yaml`** (routing thresholds and boundary hints).
-- Copies bundled specs to **`docs/mem-constant/`** (same content as `docs/memory/` in the upstream repo).
-- With **`--with-cursor-rules`**, adds **`.cursor/rules/mem-constant.mdc`** for Cursor.
+| Flag | Effect |
+|------|--------|
+| *(none)* | Creates `mem-constant.yaml` and `docs/mem-constant/*.md` |
+| **`--with-cursor-rules`** | Also writes `.cursor/rules/mem-constant.mdc` |
+| **`--yes`** | Overwrites existing scaffold files (safe for CI) |
+| **`--skip-specs`** | Only writes `mem-constant.yaml` |
 
-Non-interactive overwrite (CI or repeat runs):
-
-```bash
-mem-constant init --with-cursor-rules --yes
-```
-
-Specs only, custom output directory:
+**Examples:**
 
 ```bash
-mem-constant specs ./out/specs
+mem-constant init
+mem-constant init --path ~/code/my-app --with-cursor-rules --yes
+mem-constant specs ./vendor/mem-constant-md
 ```
+
+---
+
+## Editable install (contributors)
+
+```bash
+git clone https://github.com/kineticdirt/mem-constant.git
+cd mem-constant
+pip install -e ".[dev]"
+pytest
+```
+
+---
 
 ## Next steps
 
 1. Read **`docs/mem-constant/autonomous-memory-architecture.md`** in your project.
-2. Wire **MemPalace**: [INTEGRATION-MEMPALACE.md](INTEGRATION-MEMPALACE.md)
-3. Optional **Claude Mem**: [INTEGRATION-CLAUDE-MEM.md](INTEGRATION-CLAUDE-MEM.md)
-4. Tune **`mem-constant.yaml`**: [CONFIGURATION.md](CONFIGURATION.md)
+2. Wire **MemPalace** — [INTEGRATION-MEMPALACE.md](INTEGRATION-MEMPALACE.md)
+3. Optional **Claude Mem** — [INTEGRATION-CLAUDE-MEM.md](INTEGRATION-CLAUDE-MEM.md)
+4. Tune **`mem-constant.yaml`** — [CONFIGURATION.md](CONFIGURATION.md)
+
+More command detail: [CLI.md](CLI.md).
