@@ -1,0 +1,17 @@
+## Learned User Preferences
+
+- Prefers the agent to run connectivity, installs, and setup steps directly in the terminal when asked, not only to describe commands to run manually.
+- Wants the Claude Mem integration for Cursor maintained on a recurring upgrade schedule rather than set-and-forget.
+- When instructions could apply to more than one machine, state clearly whether they target this Windows desktop or the remote home linuxbox.
+- Prefers not to chain shell commands with `&&` when diagnosing problems; run commands separately so each failure is visible.
+
+## Learned Workspace Facts
+
+- This repository is used as a workshop-style workspace with multiple small experiments (including AI article tooling and persistent-memory setups such as MemPalace and Claude Mem).
+- A low-power Debian-based ARM single-board computer is used as an always-on home linuxbox, administered remotely over Tailscale; Pi-hole, a self-hosted ebook-style library, and optional Docker services (e.g. Uptime Kuma, Gitea) are part of the intended stack.
+- Storage intent for that device: keep the small fixed boot volume for the OS, light services, and Docker/container data; use a larger removable USB volume for bulk ebook libraries and large files that should be easy to detach. Policy treats roughly the first ~40 GB of that volume as the ebook library; the remainder is mixed (automation exports, archives, etc.). Run `bootstrap.sh` from the **USB mount** so `ebooks/` is created on the removable volume—not from a copy under `$HOME` on internal storage.
+- The `linuxbox-usb-bundle` is deployed with `scripts/copy_linuxbox_usb_bundle.ps1`, which normalizes LF line endings for `*.sh` / `bootstrap.sh` after copy so bash on Linux is not broken by CRLF on vfat.
+- The user is converging on a two-layer memory model: MemPalace as durable archival or source-of-truth memory and Claude Mem as a lightweight session cache, with periodic promotion or sync (for example when a new conversation starts); optional encryption or hardware-backed protection for a vault tier is of interest.
+- This home-stack plan does not prioritize large-scale personal cloud file and photo sync (e.g. Nextcloud/Immich-style) in the near term; the public personal site stays separate from a private library (Tailscale/LAN for book stacks, not a public reverse proxy).
+- The v1 **autonomous memory** design (combined MemPalace-as-archive, model-agnostic working-cache layer, routing, pruning/GC, daily standup, and the global `handoff` template for chat rollover) lives under **`docs/memory/`** in this repo.
+- On the home linuxbox, when the lightweight **Docker** homelab stack is used, **Gitea** and **Uptime Kuma** are typically reached on host ports **13000** and **13001** respectively (other services on that host may already occupy **3000**/**3001**).
