@@ -77,6 +77,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-04-19 (UTC)** — [PC] **Intent:** Spec **graph + ontology + customization** — new `docs/memory/graph-ontology-and-customization.md`, architecture pointer, README + CONFIGURATION + `mem-constant.yaml` scaffold comments; `scripts/vendor_specs.py` sync.
+- **2026-04-19 (UTC)** — [PC] **Result:** Added **graph/ontology/customization** spec + vendored `spec/`; scaffold YAML comments; README + CONFIGURATION links; **`pytest`** OK.
 - **2026-04-19 (UTC)** — [PC] **Intent:** Polish GitHub **README** + **docs/INSTALL.md** for clarity; **`git push origin master`** so `https://github.com/kineticdirt/mem-constant` shows updated instructions.
 - **2026-04-19 (UTC)** — [PC] **Result:** Pushed **`master`** to **`origin`** (`github.com:kineticdirt/mem-constant.git`, `03172c9..42c0c30`); README + INSTALL tables and quick-start path live on GitHub.
 - **2026-04-19 (UTC)** — [PC] **Intent:** Repackage **mem-constant** as a **pip-installable CLI** (`mem-constant init` / `doctor` / `specs`) with bundled `docs/memory` specs, default `mem-constant.yaml`, optional Cursor rule scaffold; add **INSTALL / CLI / CONFIGURATION / integration** docs + README refresh. Paths: `pyproject.toml`, `src/mem_constant/`, `scripts/vendor_specs.py`, `docs/*.md`, `docs/memory/README.md`.
@@ -95,6 +97,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ## Recent activity
 
 Older bulk history (2026-04-09 through 2026-04-13) is in [`AI_GROUPCHAT-archive.md`](AI_GROUPCHAT-archive.md).
+
+- **2026-04-19 (UTC)** — [PC] **Intent:** User wants **linuxbox** as Tailscale **exit node** (VPN egress from company WiFi). Agent: relay setup steps + policy warning; no live `tailscale` probe from this shell.
+
+- **2026-04-19 (UTC)** — [PC] **Result:** Steps delivered in chat — Pi: `ip_forward` + `tailscale up --advertise-exit-node` (merge with existing flags); admin console approve exit node; client: “Use exit node”. Optional **subnet router** (`--advertise-routes`) if “entrance” = reach LAN from tailnet. Employer AUP caveat.
 
 - **2026-04-19 (UTC)** — [PC] **Intent:** implement Autonomous Memory Redesign design package (model-agnostic working memory spec, MemPalace routing policy, semi-auto prune/GC, scheduler, daily standup, and global handoff template) under `docs/memory/`.
 

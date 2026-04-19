@@ -37,6 +37,21 @@ List of named boundaries when you should **reconcile** archive vs working cache 
 
 These are **policy hints** for humans and agents, not scheduled jobs by themselves.
 
+### `knowledge_graph` (optional)
+
+When you add a **derived graph layer** (typed edges, provenance paths) alongside vectors, declare it here. The CLI does not connect to a database; this block is for **your** adapters and jobs.
+
+| Key | Meaning |
+|-----|---------|
+| **`enabled`** | `true` / `false` — whether projection jobs run. |
+| **`backend`** | Opaque string your tooling understands (graph DB product or “rdf”, “jsonld-file”, …). |
+| **`connection`** | Connection string or path; keep secrets out of git (env substitution in your runner). |
+| **`ontology_profile`** | URI or path to a shared **ontology** (controlled classes + relations) so agents map text to the same predicates. |
+
+### `projection` (optional)
+
+Child of `knowledge_graph` in the scaffolded template. Tunes which memories become edges (for example minimum confidence and allowed `memory_type` values). Full design discussion: [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md).
+
 ## Parsing in Python (optional)
 
 ```bash

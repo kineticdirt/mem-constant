@@ -75,3 +75,7 @@ This document defines a model-agnostic memory architecture where `MemPalace` is 
 - Full host-specific deployment wiring.
 - Replacing MemPalace storage engine internals.
 - Building a UI dashboard beyond the daily standup artifact.
+
+## Optional extensions (customization)
+
+Some deployments will want **hybrid retrieval**: vectors for similarity plus a **knowledge graph** for typed relations, provenance paths, and standup “how it fits together” views. **Ontology** (philosophical discipline about categories; engineering ontologies as controlled vocabularies + axioms) helps keep graph projections consistent across agents. That layer is **not required** for v1 autonomy; when you adopt it, start from [graph-ontology-and-customization.md](graph-ontology-and-customization.md).

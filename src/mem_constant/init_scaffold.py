@@ -27,6 +27,17 @@ boundaries:
     - new_chat
     - new_agent
     - end_milestone
+
+# --- Optional: graph + ontology (see docs/mem-constant/graph-ontology-and-customization.md)
+# knowledge_graph:
+#   enabled: false
+#   # backend: chosen by your deployment (Kuzu, Neo4j, Memgraph, RDF store, …)
+#   backend: null
+#   connection: null
+# ontology_profile: null  # URI or path to JSON-LD @context / OWL fragment / org catalog
+# projection:
+#   min_confidence_for_edges: 0.75
+#   memory_types: [decision, fact]
 """.format(version=__version__)
 
 

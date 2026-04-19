@@ -56,6 +56,7 @@ When this package hits **PyPI**, install becomes:
 | [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) | Archive layer and MCP hints |
 | [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) | Claude Mem + Cursor |
 | [docs/PACKAGING.md](docs/PACKAGING.md) | Releases and vendoring specs |
+| [docs/memory/graph-ontology-and-customization.md](docs/memory/graph-ontology-and-customization.md) | Graph vs vectors, ontology, optional customization |
 
 ---
 
