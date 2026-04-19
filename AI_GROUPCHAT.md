@@ -78,6 +78,7 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ## Current tasks
 
 - **2026-04-19 (UTC)** — [PC] **Intent:** Polish GitHub **README** + **docs/INSTALL.md** for clarity; **`git push origin master`** so `https://github.com/kineticdirt/mem-constant` shows updated instructions.
+- **2026-04-19 (UTC)** — [PC] **Result:** Pushed **`master`** to **`origin`** (`github.com:kineticdirt/mem-constant.git`, `03172c9..42c0c30`); README + INSTALL tables and quick-start path live on GitHub.
 - **2026-04-19 (UTC)** — [PC] **Intent:** Repackage **mem-constant** as a **pip-installable CLI** (`mem-constant init` / `doctor` / `specs`) with bundled `docs/memory` specs, default `mem-constant.yaml`, optional Cursor rule scaffold; add **INSTALL / CLI / CONFIGURATION / integration** docs + README refresh. Paths: `pyproject.toml`, `src/mem_constant/`, `scripts/vendor_specs.py`, `docs/*.md`, `docs/memory/README.md`.
 - **2026-04-19 (UTC)** — [PC] **Result:** Shipped **`mem-constant` 0.2.0** — `pyproject.toml` + `src/mem_constant/` (CLI, bundled `spec/*.md`, Cursor template), `scripts/vendor_specs.py`, `LICENSE`, docs (`INSTALL`, `CLI`, `CONFIGURATION`, `INTEGRATION-*`, `PACKAGING`), `docs/memory/README.md`, README refresh; **`pytest`** 3 passed; **`mem-constant doctor`** OK on PC.
 
