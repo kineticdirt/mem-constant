@@ -1,0 +1,22 @@
+---
+description: mem-constant — MemPalace (archive) + working cache (e.g. Claude Mem); sync at chat boundaries.
+globs: "**/*"
+alwaysApply: false
+---
+
+# mem-constant (project-local)
+
+This project was scaffolded with **`mem-constant init`**. Canonical specs live under **`docs/mem-constant/`** (copied from the installed package version).
+
+## Authority
+
+- **MemPalace** (or your chosen archive): durable facts and decisions.
+- **Working cache** (e.g. Claude Mem): short-horizon thread continuity.
+
+## Sync
+
+Reconcile at **new chat**, **new agent**, and **end of milestone**: promote what stays true into the archive; trim the cache.
+
+## Handoff
+
+When context rolls over, use the **global handoff** format in `docs/mem-constant/global-handoff-template.md` (user says `handoff` or equivalent).

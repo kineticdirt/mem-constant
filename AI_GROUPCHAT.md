@@ -77,6 +77,9 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-04-19 (UTC)** — [PC] **Intent:** Repackage **mem-constant** as a **pip-installable CLI** (`mem-constant init` / `doctor` / `specs`) with bundled `docs/memory` specs, default `mem-constant.yaml`, optional Cursor rule scaffold; add **INSTALL / CLI / CONFIGURATION / integration** docs + README refresh. Paths: `pyproject.toml`, `src/mem_constant/`, `scripts/vendor_specs.py`, `docs/*.md`, `docs/memory/README.md`.
+- **2026-04-19 (UTC)** — [PC] **Result:** Shipped **`mem-constant` 0.2.0** — `pyproject.toml` + `src/mem_constant/` (CLI, bundled `spec/*.md`, Cursor template), `scripts/vendor_specs.py`, `LICENSE`, docs (`INSTALL`, `CLI`, `CONFIGURATION`, `INTEGRATION-*`, `PACKAGING`), `docs/memory/README.md`, README refresh; **`pytest`** 3 passed; **`mem-constant doctor`** OK on PC.
+
 - **2026-04-12 (UTC)** — [PC] **Fallout Repopulation audit — done:** removed duplicate `fictionlab-staging/PreviousChat.json`; added `PreviousChat-CANON.md` pointer; `chat-ui/server.py` docstring (`CHAT_UI_MAX_FALLSTART_CHARS` 450000) + Wiki `LORE_MEMORY_PATHS` (Pixi hub + scenarios-dump); `fictionlab/README.md`, `docs/lore/fallout/README.md`, LORE-LAYERS + scenarios-dump README aligned; rebuilt `MASTER-FALLOUT-SCENARIO.md`.
 - **2026-04-12 (UTC)** — [PC] **Testing + cleanup:** `py -3 scripts/verify_fallout_repopulation_paths.py` (all required paths OK); `py -3 -m pytest scripts/test_pixi_rp_readiness.py scripts/test_adversarial_harness.py` → **9 passed**; **`AI_GROUPCHAT-archive.md`** holds old Recent activity; **`default_rpg.json`** slimmed to Fallout Repopulation default cast (one Regional Overseer).
 
@@ -94,6 +97,10 @@ Older bulk history (2026-04-09 through 2026-04-13) is in [`AI_GROUPCHAT-archive.
 - **2026-04-19 (UTC)** — [PC] **Intent:** implement Autonomous Memory Redesign design package (model-agnostic working memory spec, MemPalace routing policy, semi-auto prune/GC, scheduler, daily standup, and global handoff template) under `docs/memory/`.
 
 - **2026-04-19 (UTC)** — [PC] **Result:** delivered `docs/memory/` design package: `autonomous-memory-architecture.md`, `memory-schema-and-scoring.md`, `routing-policy.md`, `pruning-and-gc-policy.md`, `operations-runbook.md`, `daily-standup-spec.md`, `validation-plan.md`, and `global-handoff-template.md`.
+
+- **2026-04-19 (UTC)** — [PC] **Intent:** BMAD market research — user said **Proceed**; run steps 2–6 (web-sourced) into `_bmad-output/planning-artifacts/research/market-autonomous-agent-pi-and-alternatives-research-2026-04-19.md`.
+
+- **2026-04-19 (UTC)** — [PC] **Result:** BMAD market research — completed artifact **`_bmad-output/planning-artifacts/research/market-autonomous-agent-pi-and-alternatives-research-2026-04-19.md`** (customer behavior → pain points → decisions → competitive landscape → synthesis). Primary sources include IDC agent-economics blog, LangGraph docs, MCP specification, Temporal blog, n8n docs, OpenAI Agents SDK docs, Raspberry Pi product/docs pages, OWASP LLM Top 10 hub.
 
 - **2026-04-19 (UTC)** — [PC] **Intent:** BMAD market research kickoff for an always-on autonomous agent stack, starting with Raspberry Pi-hosted agents and alternatives; producing planning artifact under `_bmad-output/planning-artifacts/research/`.
 

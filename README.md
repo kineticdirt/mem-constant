@@ -1,41 +1,81 @@
 # mem-constant
 
-**mem-constant** is a design package for using **MemPalace** (long-term archive / source of truth) together with a **lightweight working-memory** layer (the role filled by tools like **Claude Mem** in Cursor): routing, pruning, a daily standup digest, and a global **`handoff`** template when chat context rolls over.
+**mem-constant** is a **design package** and **CLI** for pairing **MemPalace** (durable archive) with a **lightweight working-memory** layer (for example **Claude Mem** in Cursor): routing, pruning, a daily standup digest, and a global **`handoff`** template when chat context rolls over.
 
-Current release: **`v0.0.1`**. Specs live under [`docs/memory/`](docs/memory/).
+**Current package version: `0.2.0`** (see `pyproject.toml`). Git tags may still include **`v0.0.1`** for the docs-only era; prefer **`pip show mem-constant`** after install.
 
-## Download (one command)
+---
 
-Pick **HTTPS** (works everywhere) or **SSH** (if your GitHub SSH key is set up).
+## Fast path (MemPalace-style)
 
-**HTTPS**
+Install the CLI, then scaffold any project in one shot:
+
+```bash
+pip install "git+https://github.com/kineticdirt/mem-constant.git"
+mem-constant doctor
+cd /your/project/root
+mem-constant init --with-cursor-rules
+```
+
+You get:
+
+- **`mem-constant.yaml`** — project knobs (thresholds, boundary hints)
+- **`docs/mem-constant/*.md`** — full spec set, version-matched to the wheel
+- **`.cursor/rules/mem-constant.mdc`** — optional Cursor rule (with **`--with-cursor-rules`**)
+
+When the package is on **PyPI**, replace the `git+https://…` line with:
+
+```bash
+pip install mem-constant
+```
+
+---
+
+## Clone only (no Python)
+
+If you only want Markdown in git:
 
 ```bash
 git clone https://github.com/kineticdirt/mem-constant.git
 ```
 
-**SSH**
+Specs: [`docs/memory/`](docs/memory/) (see [`docs/memory/README.md`](docs/memory/README.md)).
 
-```bash
-git clone git@github.com:kineticdirt/mem-constant.git
-```
+---
 
-That creates a folder named `mem-constant` with this repo. Open `docs/memory/` for the architecture and policies.
+## Documentation map
 
-## Optional: exact version
+| Doc | Audience |
+|-----|----------|
+| [**docs/INSTALL.md**](docs/INSTALL.md) | Install from PyPI, git, editable mode |
+| [**docs/CLI.md**](docs/CLI.md) | `init`, `doctor`, `specs` |
+| [**docs/CONFIGURATION.md**](docs/CONFIGURATION.md) | `mem-constant.yaml` |
+| [**docs/INTEGRATION-MEMPALACE.md**](docs/INTEGRATION-MEMPALACE.md) | Archive layer + MCP hints |
+| [**docs/INTEGRATION-CLAUDE-MEM.md**](docs/INTEGRATION-CLAUDE-MEM.md) | Working cache + Cursor |
+| [**docs/PACKAGING.md**](docs/PACKAGING.md) | Maintainers: vendor specs, release |
 
-After cloning, stay on the **`v0.0.1`** tag:
+Architecture and policies (canonical prose): **`docs/memory/*.md`**.
+
+---
+
+## Optional: exact git tag
+
+For reproducible **git** checkouts only:
 
 ```bash
 cd mem-constant
 git checkout v0.0.1
 ```
 
-## What you need
+For **pip** installs, use **`pip install mem-constant==0.2.0`** once published.
 
-- **Git** only (to clone). Reading the docs is plain Markdown.
+---
 
 ## Related files in this repo
 
-- [`AGENTS.md`](AGENTS.md) — durable workspace notes for agents (preferences and facts).
-- [`AI_GROUPCHAT.md`](AI_GROUPCHAT.md) — coordination ledger for this workspace (when present in your clone).
+- [`AGENTS.md`](AGENTS.md) — durable workspace notes for agents (when this tree is used as a wider workspace).
+- [`AI_GROUPCHAT.md`](AI_GROUPCHAT.md) — coordination ledger (optional).
+
+## License
+
+[LICENSE](LICENSE) (MIT).
