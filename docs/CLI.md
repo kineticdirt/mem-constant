@@ -13,11 +13,22 @@ Create project-local files for the autonomous memory stack.
 | Option | Meaning |
 |--------|---------|
 | **`--path DIR`** | Project root (default: **`.`**). |
-| **`--yes`** | Overwrite existing **`mem-constant.yaml`**, files under **`docs/mem-constant/`**, and **`.cursor/rules/mem-constant.mdc`** if present. |
-| **`--with-cursor-rules`** | Write **`.cursor/rules/mem-constant.mdc`** (Cursor). |
+| **`--yes`** | Overwrite existing **`mem-constant.yaml`**, files under **`docs/mem-constant/`**, and **`.cursor/rules/mem-constant.mdc`** if present; ensures **`.mem-constant/`** scaffold. |
+| **`--with-cursor-rules`** | Write **`.cursor/rules/mem-constant.mdc`**, **`.cursor/hooks/mem_constant_carryover_hooks.py`**, and merge **`.cursor/hooks.json`** (Cursor carryover automation). |
 | **`--skip-specs`** | Only write **`mem-constant.yaml`** (no spec copy). |
 
 **Exit codes:** `0` success, `1` on error (for example refusing to overwrite without **`--yes`**).
+
+### Cursor hooks (automated carryover)
+
+With **`--with-cursor-rules`**, **`init`** installs Composer hooks that:
+
+1. Record each user prompt (**`beforeSubmitPrompt`**, matcher **`UserPromptSubmit`**) and assistant reply (**`afterAgentResponse`**) into **`.mem-constant/.hook-buffer.jsonl`**.
+2. On **`sessionEnd`** (chat closed / session finished), write **`.mem-constant/last-session.md`** from that buffer and, when present, Cursor’s **`transcript_path`** payload.
+
+If **`.cursor/hooks.json`** already exists, use **`--yes`** so entries are **merged** without removing your other hooks. Restart Cursor after the first install if hooks do not load.
+
+Requires **`py -3`** on **`PATH`** (Windows) or adjust the **`command`** in **`hooks.json`** to your Python.
 
 ### Examples
 
@@ -38,6 +49,32 @@ Prints:
 - Whether **`pyyaml`** is importable (optional; useful if your own scripts parse **`mem-constant.yaml`**)
 
 Always exits **`0`**.
+
+## `mem-constant carryover`
+
+Cross-chat **continuity** via **`.mem-constant/last-session.md`** (gitignored by default). The Cursor rule **`mem-constant.mdc`** tells the agent to read this file at the start of a new thread.
+
+Global option for **`show`**, **`write`**, and **`path`**:
+
+| Option | Meaning |
+|--------|---------|
+| **`--path DIR`** | Directory to search **upward** from for **`mem-constant.yaml`** (default: **`.`**). |
+
+### `mem-constant carryover show`
+
+Print **`last-session.md`** to stdout. Prints nothing if the file is missing.
+
+### `mem-constant carryover write [FILE]`
+
+Write **stdin** (if **`FILE`** is omitted) or the contents of **`FILE`** to **`last-session.md`**. Creates **`.mem-constant/`** if needed.
+
+### `mem-constant carryover path`
+
+Print the absolute path to **`last-session.md`** for scripts and editors.
+
+### `mem-constant carryover bootstrap`
+
+Create **`.mem-constant/README.md`** and append a **`.gitignore`** rule for **`last-session.md`** without re-copying specs. Use on existing repos that already have **`mem-constant.yaml`**.
 
 ## `mem-constant specs DEST`
 

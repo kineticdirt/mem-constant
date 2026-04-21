@@ -1,12 +1,18 @@
 ---
 description: mem-constant — MemPalace (archive) + working cache (e.g. Claude Mem); sync at chat boundaries.
 globs: "**/*"
-alwaysApply: false
+alwaysApply: true
 ---
 
 # mem-constant (project-local)
 
 This project was scaffolded with **`mem-constant init`**. Canonical specs live under **`docs/mem-constant/`** (copied from the installed package version).
+
+## Session carryover (read first in a new chat)
+
+Before your **first substantive reply** in a **new** chat, **read** **`.mem-constant/last-session.md`** at the project root (next to **`mem-constant.yaml`**) if that file **exists** and is **non-empty**. Treat it as continuity from the prior session: goals, decisions, and pending work. **Do not skip it** because the user did not repeat it in their latest message.
+
+If the user asks for a **`handoff`** for the next session, follow **`docs/mem-constant/global-handoff-template.md`**, then remind them they can save it with **`mem-constant carryover write`** (stdin or a file path).
 
 ## Authority
 

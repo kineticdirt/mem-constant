@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mem-constant"
-version = "0.2.0"
+version = "0.2.2"
 description = "Autonomous memory design package: MemPalace + working cache, with an easy scaffold CLI."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -40,7 +40,7 @@ mem-constant = "mem_constant.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mem_constant = ["spec/*.md", "templates/*.mdc"]
+mem_constant = ["spec/*.md", "templates/*.mdc", "templates/hooks/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

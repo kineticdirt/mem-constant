@@ -2,7 +2,7 @@
 
 **Autonomous memory for AI-assisted work** — specs plus a small CLI so you can wire **MemPalace** (long-term archive) and a **working cache** (for example **Claude Mem** in Cursor) without hunting through the repo.
 
-**Package version:** `0.2.0` · **Python:** 3.10+
+**Package version:** `0.2.2` · **Python:** 3.10+
 
 **How we build this:** [docs/BUILD-PHILOSOPHY.md](docs/BUILD-PHILOSOPHY.md) (specs first, graph **on top of** vectors, engineering ontology over vendor lock-in).
 
@@ -27,7 +27,8 @@ After step 4 you have:
 |------|------------|
 | `mem-constant.yaml` | Project thresholds and boundary hints (edit as you like) |
 | `docs/mem-constant/*.md` | Full design specs, matched to the package version you installed |
-| `.cursor/rules/mem-constant.mdc` | Cursor rule (only with `--with-cursor-rules`) |
+| `.cursor/rules/mem-constant.mdc` | Cursor rule (only with `--with-cursor-rules`); **alwaysApply** so new chats read carryover |
+| `.mem-constant/` | Session carryover scaffold; **`last-session.md`** is gitignored — use **`mem-constant carryover write`** |
 
 **Then:** open `docs/mem-constant/autonomous-memory-architecture.md` in that project and follow [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) / [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) as needed.
 
