@@ -1,10 +1,8 @@
 # Remote PC setup (Apollo + Moonlight + RustDesk + Tailscale)
 
-**Repo copy:** synced from **`E:\RemotePC-Setup\`** on **2026-04-21** for portability in git. Prefer refreshing from that folder when you change winget IDs, IPs, or script paths on disk.
+**E:\RemotePC-Setup** (removable drive, **2026-04-22**): cleaned to **`CUSTOMER COPIES.pdf`** plus this folder; contains **`START-HERE-LAPTOP.txt`**, **`CONNECTION-SUMMARY.txt`**, **`SETUP-REFERENCE.md`**, and **`scripts\`** with the same PowerShell helpers as the repo plus **pre-filled `config.psd1`** for laptop-first use. Re-copy from **`scripts/remote-stream-companion/`** in git when scripts change.
 
 **Name check:** the streaming **client** is **[Moonlight](https://moonlight-stream.org/)** (open GameStream-style client). It is not “Midnight.”
-
-This folder on **E:\** is your **offline reference**: install steps, two-way streaming, backup remote control, and where automation scripts live in the **Linuxbox** repo.
 
 **Implemented in this repo (run these first):**
 

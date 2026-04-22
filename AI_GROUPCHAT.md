@@ -100,6 +100,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 Older bulk history (2026-04-09 through 2026-04-13) is in [`AI_GROUPCHAT-archive.md`](AI_GROUPCHAT-archive.md).
 
+- **2026-04-22 (UTC)** — [PC] **Intent:** Prepare **E:\\** removable drive for **laptop handoff**: keep **`CUSTOMER COPIES.pdf`** only at root besides **`RemotePC-Setup`**; remove macOS metadata folders; write connection summary + pre-filled **`config.psd1`** and full **`scripts\\`** bundle on the drive.
+
+- **2026-04-22 (UTC)** — [PC] **Result:** Deleted **`E:\\.fseventsd`**, **`E:\\.Spotlight-V100`**, and replaced **`E:\\RemotePC-Setup`** with **`START-HERE-LAPTOP.txt`**, **`CONNECTION-SUMMARY.txt`**, **`SETUP-REFERENCE.md`**, and **`scripts\\`** (PowerShell + laptop **`config.psd1`** + **`config.when-on-desktop.psd1`**). Left **`E:\\CUSTOMER COPIES.pdf`** and **`System Volume Information`** untouched.
+
 - **2026-04-21 (UTC)** — [PC] **Intent:** Implement the **remote PC companion** plan as runnable **`scripts/remote-stream-companion/`** (WoL + wait for Apollo port + Moonlight / RustDesk / Apollo UI), not docs-only.
 
 - **2026-04-21 (UTC)** — [PC] **Result:** Added **`RemoteStreamCommon.ps1`**, **`Connect-RemotePC.ps1`**, **`Open-ApolloWebUI.ps1`**, **`Connect-RustDesk.ps1`**, **`config.example.psd1`**, folder **`README.md`**; **`docs/remote-pc-setup`** updated to point at scripts; **`config.psd1`** gitignored under that folder.
