@@ -1,13 +1,13 @@
-Linuxbox repo (automation scripts live here):
+Primary (versioned in agent-dump git):
+
+  <repo>\scripts\remote-stream-companion\
+  Copy config.example.psd1 -> config.psd1 in that folder.
+
+Optional Linuxbox clone (legacy):
 
   D:\CS_and_Programming\Linuxbox
-
-Remote stream companion (PowerShell):
-
   D:\CS_and_Programming\Linuxbox\remote-stream-companion
 
-Copy E:\RemotePC-Setup\config.example.psd1 to:
+Offline mirror on removable drive:
 
-  D:\CS_and_Programming\Linuxbox\remote-stream-companion\config.psd1
-
-Then edit DefaultPeer, StreamHost, and WakeMac per machine.
+  E:\RemotePC-Setup\

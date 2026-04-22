@@ -100,6 +100,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 Older bulk history (2026-04-09 through 2026-04-13) is in [`AI_GROUPCHAT-archive.md`](AI_GROUPCHAT-archive.md).
 
+- **2026-04-21 (UTC)** — [PC] **Intent:** Implement the **remote PC companion** plan as runnable **`scripts/remote-stream-companion/`** (WoL + wait for Apollo port + Moonlight / RustDesk / Apollo UI), not docs-only.
+
+- **2026-04-21 (UTC)** — [PC] **Result:** Added **`RemoteStreamCommon.ps1`**, **`Connect-RemotePC.ps1`**, **`Open-ApolloWebUI.ps1`**, **`Connect-RustDesk.ps1`**, **`config.example.psd1`**, folder **`README.md`**; **`docs/remote-pc-setup`** updated to point at scripts; **`config.psd1`** gitignored under that folder.
+
 - **2026-04-21 (UTC)** — [PC] **Intent:** Update **mem-constant** from `origin/master` and bring **E:\RemotePC-Setup** (Apollo + Moonlight remote PC notes) into the repo for git-backed reference.
 
 - **2026-04-21 (UTC)** — [PC] **Result:** Fast-forward to **v0.2.2** (session carryover CLI, Cursor hooks, `mem_constant_carryover_hooks.py`); `python scripts/vendor_specs.py` (specs already aligned); **pytest** 10 passed; added **`docs/remote-pc-setup/`** (mirror of E:\ + note that the client is **Moonlight**, not “Midnight”).

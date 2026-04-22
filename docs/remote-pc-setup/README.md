@@ -6,9 +6,13 @@
 
 This folder on **E:\** is your **offline reference**: install steps, two-way streaming, backup remote control, and where automation scripts live in the **Linuxbox** repo.
 
-**Canonical scripts (update when the repo changes):**
+**Implemented in this repo (run these first):**
 
-`D:\CS_and_Programming\Linuxbox\remote-stream-companion\`
+`scripts/remote-stream-companion/` — **`Connect-RemotePC.ps1`**, **`Open-ApolloWebUI.ps1`**, **`Connect-RustDesk.ps1`**, **`config.example.psd1`** (copy → **`config.psd1`**). See that folder’s **`README.md`**.
+
+**Optional duplicate on disk (your older path):**
+
+`D:\CS_and_Programming\Linuxbox\remote-stream-companion\` — keep in sync with git if you still use it.
 
 ---
 
@@ -80,21 +84,19 @@ Confirm with `tailscale status` — offline peers cannot be streamed to until th
 
 ## Companion scripts (WoL + launch Moonlight / RustDesk)
 
-From repo root:
+**In-repo path** (clone root → `scripts\remote-stream-companion\`):
 
-`D:\CS_and_Programming\Linuxbox\remote-stream-companion`
-
-1. Copy **`config.example.psd1`** from **E:\RemotePC-Setup** (or from the repo) to **`config.psd1`** in `remote-stream-companion` (same folder as `scripts\`). Edit **`Peers`**, **`DefaultPeer`**, **`WakeMac`**.  
+1. Copy **`config.example.psd1`** → **`config.psd1`** in that same folder. Edit **`Peers`**, **`DefaultPeer`**, **`WakeMac`**.  
 2. **Laptop** (connect to desktop by default): `DefaultPeer = "Desktop"`.  
 3. **Desktop** (connect to laptop by default): `DefaultPeer = "Laptop"` and set each peer’s `StreamHost` / `WakeMac` accordingly.
 
-**Run (examples):**
+**Run (examples)** — adjust the drive/path to your **`agent-dump`** clone:
 
 ```text
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\CS_and_Programming\Linuxbox\remote-stream-companion\scripts\Connect-RemotePC.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\CS_and_Programming\Linuxbox\remote-stream-companion\scripts\Connect-RemotePC.ps1 -PeerName Desktop
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\CS_and_Programming\Linuxbox\remote-stream-companion\scripts\Connect-RustDesk.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:\CS_and_Programming\Linuxbox\remote-stream-companion\scripts\Open-ApolloWebUI.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump\scripts\remote-stream-companion\Connect-RemotePC.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump\scripts\remote-stream-companion\Connect-RemotePC.ps1 -PeerName Desktop
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump\scripts\remote-stream-companion\Connect-RustDesk.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump\scripts\remote-stream-companion\Open-ApolloWebUI.ps1
 ```
 
 **Wake-on-LAN:** `WakeMac` must be the **target** PC’s NIC MAC (`Get-NetAdapter -Physical`). Wi‑Fi WoL is often unreliable; Ethernet is better for WoL.
@@ -114,13 +116,14 @@ Moonlight does not auto-switch profiles by network. Common pattern: **two Moonli
 
 ---
 
-## Files in this E:\RemotePC-Setup folder
+## Files (E:\ mirror vs repo)
 
-| File | Purpose |
-|------|--------|
-| `README.md` | This document (master instructions). |
-| `config.example.psd1` | Template for `remote-stream-companion\config.psd1` (copy and edit per PC). |
-| `REPO-LOCATION.txt` | Path to Linuxbox `remote-stream-companion` on disk. |
+| Location | Purpose |
+|----------|--------|
+| **`docs/remote-pc-setup/README.md`** (this file) | Master instructions + links to scripts. |
+| **`scripts/remote-stream-companion/config.example.psd1`** | Template → copy to **`config.psd1`** next to the `.ps1` scripts. |
+| **`E:\RemotePC-Setup\`** | Offline copy on your thumb drive; refresh **`docs/remote-pc-setup`** / **`scripts/remote-stream-companion`** when you change winget steps or IPs. |
+| **`REPO-LOCATION.txt`** | Legacy path to Linuxbox clone on **D:\\** (optional). |
 
 ---
 

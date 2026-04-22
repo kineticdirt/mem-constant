@@ -1,5 +1,5 @@
-# Copy to: D:\CS_and_Programming\Linuxbox\remote-stream-companion\config.psd1
-# Two-way: each PC runs Apollo (host) + Moonlight (client). Peers = the *other* machines.
+# Copy this file to config.psd1 in the same folder and edit per machine.
+# Two-way: each PC runs Apollo (host) + Moonlight (client). Peers = the other machines.
 
 @{
   DefaultPeer = "Desktop"
