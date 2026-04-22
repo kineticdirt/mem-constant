@@ -100,6 +100,16 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 Older bulk history (2026-04-09 through 2026-04-13) is in [`AI_GROUPCHAT-archive.md`](AI_GROUPCHAT-archive.md).
 
+- **2026-04-21 (UTC)** — [PC] **Intent:** Update **mem-constant** from `origin/master` and bring **E:\RemotePC-Setup** (Apollo + Moonlight remote PC notes) into the repo for git-backed reference.
+
+- **2026-04-21 (UTC)** — [PC] **Result:** Fast-forward to **v0.2.2** (session carryover CLI, Cursor hooks, `mem_constant_carryover_hooks.py`); `python scripts/vendor_specs.py` (specs already aligned); **pytest** 10 passed; added **`docs/remote-pc-setup/`** (mirror of E:\ + note that the client is **Moonlight**, not “Midnight”).
+
+- **2026-04-19 (UTC)** — [PC] **Result:** **`docs/ssh-le-potato-reference.md`** — **Quick connect** (Git Bash helper, direct SSH, PowerShell, LAN) + **fix Tailscale SSH check** for automation (`sudo tailscale set --ssh=false`, then `tailscale up` without `--ssh`, merge exit-node flags as needed).
+
+- **2026-04-19 (UTC)** — [PC] **Intent:** SSH to **linuxbox** and configure Tailscale **exit node** (`ip_forward`, `tailscale up --advertise-exit-node`); quote terminal output; update doc if applied.
+
+- **2026-04-19 (UTC)** — [PC] **Result:** From this workspace shell — **`ssh` … `abhinav@100.122.108.94`** (`BatchMode`, key `~/.ssh/id_rsa_potato`): **`# Tailscale SSH requires an additional check`** + `https://login.tailscale.com/a/l3f64ccc335ef9` (non-interactive cannot finish). **`ssh` … `abhinav@192.168.1.191`**: **`Connection timed out`** (PC not on Pi LAN / wrong path). **Exit node commands not run on Pi** — human: interactive `ssh` / `bash scripts/tailscale-ssh-open-check-url.sh` then paste remote block from chat, **or** LAN `potato-lan` when home.
+
 - **2026-04-19 (UTC)** — [PC] **Intent:** User wants **linuxbox** as Tailscale **exit node** (VPN egress from company WiFi). Agent: relay setup steps + policy warning; no live `tailscale` probe from this shell.
 
 - **2026-04-19 (UTC)** — [PC] **Result:** Steps delivered in chat — Pi: `ip_forward` + `tailscale up --advertise-exit-node` (merge with existing flags); admin console approve exit node; client: “Use exit node”. Optional **subnet router** (`--advertise-routes`) if “entrance” = reach LAN from tailnet. Employer AUP caveat.

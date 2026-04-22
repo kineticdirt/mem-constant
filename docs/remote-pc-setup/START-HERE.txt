@@ -1,0 +1,7 @@
+Remote PC setup documentation (Apollo, Moonlight, RustDesk, Tailscale)
+
+  1. Open README.md in this folder (full instructions and commands).
+  2. Use config.example.psd1 as a template for companion automation (see README).
+  3. See REPO-LOCATION.txt for the Linuxbox path on D:\
+
+Location: E:\RemotePC-Setup\
