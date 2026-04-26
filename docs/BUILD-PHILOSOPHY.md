@@ -14,15 +14,16 @@ This document explains **how we build** the mem-constant project and **how the p
 
 ## Layering model (conceptual bottom → top)
 
-Think of memory capabilities as **layers**, not a single database:
+Think of memory capabilities as **layers**, not a single database. The numbering matches `L0…L5` used in [INTEGRATION-GRAPHIFY.md](INTEGRATION-GRAPHIFY.md) and [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md):
 
-1. **Raw evidence** — transcripts, tool logs, commits (your systems of record).
-2. **Archive** — MemPalace or equivalent: durable, high-trust **facts** and **decisions**.
-3. **Working cache** — short-horizon continuity (e.g. Claude Mem).
-4. **Vector index** — similarity and recall over text you choose to embed (from cache, archive, or both).
-5. **Graph (optional)** — **on top of** vectors in the sense of [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md): **derived** typed relations, ontology-governed predicates, query patterns **behind** or **in front of** vector hits depending on use case.
+- **L0 — Raw evidence** — transcripts, tool logs, commits, source code (your systems of record).
+- **L1 — Structural graph (optional)** — a code/repo graph derived from raw code (e.g. [Graphify](INTEGRATION-GRAPHIFY.md)). Regenerable, low-authority, with an implicit ontology of calls/imports/modules. **Not a memory store** — it is a structural index.
+- **L2 — Vector index** — similarity and recall over text you choose to embed (from cache, archive, or both).
+- **L3 — Working cache** — short-horizon continuity (e.g. Claude Mem).
+- **L4 — Archive** — MemPalace or equivalent: durable, high-trust **facts** and **decisions**. The authority layer.
+- **L5 — Curatorial graph (optional)** — **on top of** vectors in the sense of [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md): **derived from L4** as typed relations, ontology-governed predicates, query patterns **behind** or **in front of** vector hits depending on use case.
 
-Lower layers do not disappear when you add upper ones. The graph **interprets and constrains**; vectors **recall**.
+Lower layers do not disappear when you add upper ones. **L1 indexes code structure; L5 interprets durable knowledge.** The two graphs are distinct domains and are bridged only via the **evidence-anchor pattern** (L4 records may cite L1 node refs; the reverse is forbidden). Vectors **recall**; graphs **constrain and explain**.
 
 ---
 
@@ -53,7 +54,8 @@ Philosophy informs naming and supersession rules; **the ontology file** is what 
 | [INSTALL.md](INSTALL.md) | Install and scaffold |
 | [CLI.md](CLI.md) | Commands |
 | [CONFIGURATION.md](CONFIGURATION.md) | `mem-constant.yaml` |
-| [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md) | Graph on vectors, ontology, pipeline order |
+| [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md) | Curatorial graph (L5), ontology, pipeline order |
+| [INTEGRATION-GRAPHIFY.md](INTEGRATION-GRAPHIFY.md) | Structural graph (L1), evidence-anchor pattern |
 
 ---
 
@@ -67,4 +69,4 @@ Philosophy informs naming and supersession rules; **the ontology file** is what 
 
 ## Summary
 
-**Build philosophy:** specs and layering are explicit; the CLI is a **paperweight** that keeps repos aligned with those specs; **engineering ontology** is the interchange format for graphs; **vectors stay underneath**; graphs add **structure on top**; **behind vs in front** is a **pipeline order** choice, documented—not hard-coded—per deployment.
+**Build philosophy:** specs and layering are explicit; the CLI is a **paperweight** that keeps repos aligned with those specs; **engineering ontology** is the interchange format for the **curatorial graph (L5)**; **vectors stay underneath**; an optional **structural graph (L1)** indexes code; the curatorial graph adds **typed structure on top of L4**; **behind vs in front** is a **pipeline order** choice, documented—not hard-coded—per deployment.

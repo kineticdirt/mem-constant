@@ -37,6 +37,32 @@ List of named boundaries when you should **reconcile** archive vs working cache 
 
 These are **policy hints** for humans and agents, not scheduled jobs by themselves.
 
+### `pruning`
+
+Balanced-by-default knobs for how aggressively low-value memory is trimmed:
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| **`mode`** | `balanced` | `balanced` for safer retention, `aggressive` for faster cleanup and stricter save gating. |
+| **`cadence`** | `daily` | Scheduler hint for prune passes. |
+| **`max_items_per_run`** | `40` | Upper bound for irreversible actions per prune run. |
+| **`save_gate_min_confidence`** | `0.55` | Keep-by-default threshold; candidates below this are more likely to be compacted/quarantined. |
+| **`quarantine_days`** | `14` | Minimum quarantine retention before hard-delete eligibility. |
+
+Use `aggressive` mode only when your workflow prefers strong forgetting pressure over broad recall.
+
+### `recontextualization`
+
+Controls for refreshing active context when goals shift:
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| **`on_goal_change`** | `true` | Trigger recontext pass when current goals materially change. |
+| **`goal_change_threshold`** | `0.20` | Minimum goal-delta score to trigger automatic recontext pass. |
+| **`cadence`** | `weekly` | Time-based refresh hint even without explicit goal changes. |
+
+Recontextualization should prune stale thread-local context and keep only currently relevant work.
+
 ### `knowledge_graph` (optional)
 
 When you add a **derived graph layer** (typed edges, provenance paths) alongside vectors, declare it here. The CLI does not connect to a database; this block is for **your** adapters and jobs.
@@ -61,6 +87,18 @@ Declares the **default** retrieval pattern when both vectors and a knowledge gra
 | **`vector_then_graph`** | **Graph behind vectors**: embedding ANN first, then graph filter/rerank/path attach (recommended default for broad RAG). |
 | **`graph_then_vector`** | **Graph in front of vectors**: expand seeds in the graph, then score with vectors inside that set (good for milestone- or decision-scoped questions). |
 | **`parallel`** | Both contribute ranked lists; your ranker fuses them. |
+
+In `query_pipeline`, **"graph" defaults to the curatorial graph (L5)** — the typed-relation layer derived from promoted MemPalace records. If your stack also runs a **structural graph (L1)** like Graphify, declare it separately so retrieval code does not silently mix domains:
+
+#### `query_pipeline.structural_graph` (optional)
+
+| Value | Meaning |
+|-------|---------|
+| **`none`** (default) | No L1 structural graph participates in retrieval. |
+| **`graphify`** | A Graphify-built code graph is available for path/structural queries. Treat its results as candidates, not as memory writes. |
+| **`custom`** | Some other structural code graph adapter your tooling understands. |
+
+L1 results are **derived candidates**: they may seed retrieval or annotate paths, but promotion to MemPalace still requires the routing thresholds in [memory/routing-policy.md](memory/routing-policy.md). See [INTEGRATION-GRAPHIFY.md](INTEGRATION-GRAPHIFY.md) § Layer position and [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md) § Scope.
 
 See [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md) § “Behind vs in front”. For how this repo is built, see [BUILD-PHILOSOPHY.md](BUILD-PHILOSOPHY.md).
 
