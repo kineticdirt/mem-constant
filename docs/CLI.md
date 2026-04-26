@@ -16,6 +16,7 @@ Create project-local files for the autonomous memory stack.
 | **`--yes`** | Overwrite existing **`mem-constant.yaml`**, files under **`docs/mem-constant/`**, and **`.cursor/rules/mem-constant.mdc`** if present; ensures **`.mem-constant/`** scaffold. |
 | **`--with-cursor-rules`** | Write **`.cursor/rules/mem-constant.mdc`**, **`.cursor/hooks/mem_constant_carryover_hooks.py`**, and merge **`.cursor/hooks.json`** (Cursor carryover automation). |
 | **`--with-ide-scaffolds`** | Write/merge mem-constant blocks into project **`CLAUDE.md`** and **`.github/copilot-instructions.md`** (Claude Code + VS Code Copilot Chat guidance). |
+| **`--with-workflow-skills`** | Drop 34 bundled AI-coding workflow skills under **`.cursor/skills/`** (spec creation, code review, dev story execution, agent personas, research, retrospective, etc.). See [WORKFLOW-SKILLS.md](WORKFLOW-SKILLS.md). |
 | **`--skip-specs`** | Only write **`mem-constant.yaml`** (no spec copy). |
 
 **Exit codes:** `0` success, `1` on error (for example refusing to overwrite without **`--yes`**).
@@ -40,6 +41,7 @@ mem-constant init
 mem-constant init --path ~/repos/my-app
 mem-constant init --with-cursor-rules --yes
 mem-constant init --with-ide-scaffolds --yes
+mem-constant init --with-workflow-skills --yes
 mem-constant init --skip-specs
 ```
 

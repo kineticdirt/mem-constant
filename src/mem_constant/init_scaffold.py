@@ -168,6 +168,48 @@ def _write_or_merge_text_file(
     log.append(f"appended mem-constant block to {dest.relative_to(rel_from)}")
 
 
+def _install_workflow_skills(target: Path, yes: bool, log: list[str]) -> None:
+    """Copy bundled workflow-skills/<name>/ trees under ``<target>/.cursor/skills/<name>/``.
+
+    Re-uses the ``--yes`` semantics: existing skill folders are skipped unless ``yes``,
+    in which case they are overwritten file-by-file (additive, no top-level rmtree).
+    """
+    skills_root = ir.files("mem_constant.templates").joinpath("workflow-skills")
+    if not skills_root.is_dir():
+        log.append("skip workflow-skills: bundled templates/workflow-skills/ not found")
+        return
+    dest_root = target / ".cursor" / "skills"
+    dest_root.mkdir(parents=True, exist_ok=True)
+    written = 0
+    skipped = 0
+    for skill_dir in sorted(skills_root.iterdir(), key=lambda p: p.name):
+        if not skill_dir.is_dir():
+            continue
+        dest_skill = dest_root / skill_dir.name
+        if dest_skill.exists() and not yes:
+            skipped += 1
+            continue
+        for src_file in _iter_files(skill_dir):
+            rel = src_file.relative_to(skill_dir)
+            out = dest_skill / rel
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_bytes(src_file.read_bytes())
+        written += 1
+    log.append(
+        f"workflow-skills: wrote {written} skills under {dest_root.relative_to(target)} "
+        f"({skipped} existing skipped; use --yes to overwrite)"
+    )
+
+
+def _iter_files(traversable):
+    """Yield every file under a Traversable (recursive). Works for filesystem-backed resources."""
+    for item in traversable.iterdir():
+        if item.is_dir():
+            yield from _iter_files(item)
+        else:
+            yield item
+
+
 def _install_ide_scaffolds(target: Path, yes: bool, log: list[str]) -> None:
     claude_body = bundled_template("claude-mem-constant.md")
     vscode_body = bundled_template("vscode-copilot-instructions.md")
@@ -193,6 +235,7 @@ def run_init(
     yes: bool,
     with_cursor_rules: bool,
     with_ide_scaffolds: bool,
+    with_workflow_skills: bool = False,
     skip_specs: bool,
 ) -> list[str]:
     """Apply scaffold under ``target`` (usually cwd). Returns human-readable log lines."""
@@ -238,6 +281,9 @@ def run_init(
 
     if with_ide_scaffolds:
         _install_ide_scaffolds(target, yes, log)
+
+    if with_workflow_skills:
+        _install_workflow_skills(target, yes, log)
 
     ensure_carryover_scaffold(target, log)
 

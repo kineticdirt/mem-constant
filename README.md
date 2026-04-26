@@ -28,6 +28,7 @@ After step 4 you have:
 | `mem-constant.yaml` | Project thresholds and boundary hints (edit as you like) |
 | `docs/mem-constant/*.md` | Full design specs, matched to the package version you installed |
 | `.cursor/rules/mem-constant.mdc` | Cursor rule (only with `--with-cursor-rules`); **alwaysApply** so new chats read carryover |
+| `.cursor/skills/<34 skills>/` | AI-coding workflow skills (only with `--with-workflow-skills`); see [docs/WORKFLOW-SKILLS.md](docs/WORKFLOW-SKILLS.md) |
 | `.mem-constant/` | Session carryover scaffold; **`last-session.md`** is gitignored — use **`mem-constant carryover write`** |
 
 **Then:** open `docs/mem-constant/autonomous-memory-architecture.md` in that project and follow [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) / [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) as needed.

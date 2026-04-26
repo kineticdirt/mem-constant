@@ -97,6 +97,56 @@ def test_init_with_cursor_rules_writes_hooks(tmp_path: Path) -> None:
     assert "beforeSubmitPrompt" in data["hooks"]
 
 
+def test_init_with_workflow_skills_drops_34_skills(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+            "--with-workflow-skills",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    skills_dir = tmp_path / ".cursor" / "skills"
+    assert skills_dir.is_dir()
+    skills = sorted(p.name for p in skills_dir.iterdir() if p.is_dir())
+    assert len(skills) == 34, f"expected 34 published skills, got {len(skills)}: {skills}"
+    assert not any(s.startswith("bmad-") for s in skills), f"bmad- prefix leaked into: {skills}"
+    assert (skills_dir / "create-implementation-spec" / "SKILL.md").is_file()
+    assert (skills_dir / "agent-spec-author" / "SKILL.md").is_file()
+    skill_md = (skills_dir / "create-implementation-spec" / "SKILL.md").read_text(encoding="utf-8")
+    assert "name: create-implementation-spec" in skill_md
+
+
+def test_init_without_workflow_skills_writes_no_skills(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    skills_dir = tmp_path / ".cursor" / "skills"
+    assert not skills_dir.exists() or not any(skills_dir.iterdir())
+
+
 def test_init_with_ide_scaffolds_writes_claude_and_vscode_files(tmp_path: Path) -> None:
     subprocess.run(
         [

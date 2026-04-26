@@ -36,6 +36,7 @@ def cmd_init(ns: argparse.Namespace) -> int:
             yes=ns.yes,
             with_cursor_rules=ns.with_cursor_rules,
             with_ide_scaffolds=ns.with_ide_scaffolds,
+            with_workflow_skills=ns.with_workflow_skills,
             skip_specs=ns.skip_specs,
         ):
             print(line)
@@ -250,6 +251,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--with-ide-scaffolds",
         action="store_true",
         help="Write CLAUDE.md and .github/copilot-instructions.md mem-constant blocks (merge when --yes).",
+    )
+    p_init.add_argument(
+        "--with-workflow-skills",
+        action="store_true",
+        help="Drop bundled AI-coding workflow skills under .cursor/skills/ (34 skills; see docs/WORKFLOW-SKILLS.md).",
     )
     p_init.add_argument(
         "--skip-specs",
