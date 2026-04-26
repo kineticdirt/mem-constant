@@ -31,6 +31,9 @@ HOOKS_CARRYOVER: dict[str, list[dict[str, object]]] = {
     ],
 }
 
+IDE_SCAFFOLD_BLOCK_START = "<!-- mem-constant:start -->"
+IDE_SCAFFOLD_BLOCK_END = "<!-- mem-constant:end -->"
+
 DEFAULT_CONFIG = """# mem-constant — project memory policy (YAML)
 # Installed by: mem-constant init
 # Docs: https://github.com/kineticdirt/mem-constant/blob/master/docs/CONFIGURATION.md
@@ -51,6 +54,26 @@ boundaries:
     - new_chat
     - new_agent
     - end_milestone
+
+pruning:
+  # balanced (default) | aggressive
+  mode: balanced
+  # cadence hint for your scheduler
+  cadence: daily
+  # cap destructive/irreversible actions per run
+  max_items_per_run: 40
+  # minimum confidence to KEEP by default in prune passes
+  save_gate_min_confidence: 0.55
+  # retention window for quarantine before delete eligibility
+  quarantine_days: 14
+
+recontextualization:
+  # recontext pass when active goals change materially
+  on_goal_change: true
+  # minimal similarity delta (0.0-1.0) to trigger recontext pass
+  goal_change_threshold: 0.20
+  # time cadence hint even when goals are stable
+  cadence: weekly
 
 # Default retrieval pattern when both vectors and a graph exist (hint for your app; see docs/CONFIGURATION.md)
 # query_pipeline: vector_then_graph   # vector_then_graph | graph_then_vector | parallel
@@ -113,11 +136,63 @@ def _install_carryover_hooks(target: Path, yes: bool, log: list[str]) -> None:
     log.append(f"merged mem-constant carryover hooks into {dest.relative_to(target)}")
 
 
+def _write_or_merge_text_file(
+    dest: Path,
+    body: str,
+    *,
+    yes: bool,
+    log: list[str],
+    rel_from: Path,
+) -> None:
+    if not dest.exists():
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(body, encoding="utf-8")
+        log.append(f"wrote {dest.relative_to(rel_from)}")
+        return
+    existing = dest.read_text(encoding="utf-8")
+    if IDE_SCAFFOLD_BLOCK_START in existing and IDE_SCAFFOLD_BLOCK_END in existing:
+        if yes:
+            prefix, rest = existing.split(IDE_SCAFFOLD_BLOCK_START, 1)
+            _, suffix = rest.split(IDE_SCAFFOLD_BLOCK_END, 1)
+            updated = prefix.rstrip() + "\n\n" + body.rstrip() + "\n" + suffix.lstrip()
+            dest.write_text(updated, encoding="utf-8")
+            log.append(f"updated mem-constant block in {dest.relative_to(rel_from)}")
+        else:
+            log.append(f"skip {dest.relative_to(rel_from)} (mem-constant block already present)")
+        return
+    if not yes:
+        log.append(f"skip {dest.relative_to(rel_from)} (exists; use --yes to merge mem-constant block)")
+        return
+    sep = "\n\n" if existing and not existing.endswith("\n\n") else ""
+    dest.write_text(existing + sep + body, encoding="utf-8")
+    log.append(f"appended mem-constant block to {dest.relative_to(rel_from)}")
+
+
+def _install_ide_scaffolds(target: Path, yes: bool, log: list[str]) -> None:
+    claude_body = bundled_template("claude-mem-constant.md")
+    vscode_body = bundled_template("vscode-copilot-instructions.md")
+    _write_or_merge_text_file(
+        target / "CLAUDE.md",
+        claude_body,
+        yes=yes,
+        log=log,
+        rel_from=target,
+    )
+    _write_or_merge_text_file(
+        target / ".github" / "copilot-instructions.md",
+        vscode_body,
+        yes=yes,
+        log=log,
+        rel_from=target,
+    )
+
+
 def run_init(
     target: Path,
     *,
     yes: bool,
     with_cursor_rules: bool,
+    with_ide_scaffolds: bool,
     skip_specs: bool,
 ) -> list[str]:
     """Apply scaffold under ``target`` (usually cwd). Returns human-readable log lines."""
@@ -160,6 +235,9 @@ def run_init(
         rule_path.write_text(bundled_template("cursor-mem-constant.mdc"), encoding="utf-8")
         log.append(f"wrote {rule_path}")
         _install_carryover_hooks(target, yes, log)
+
+    if with_ide_scaffolds:
+        _install_ide_scaffolds(target, yes, log)
 
     ensure_carryover_scaffold(target, log)
 

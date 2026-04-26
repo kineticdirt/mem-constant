@@ -15,6 +15,7 @@ Create project-local files for the autonomous memory stack.
 | **`--path DIR`** | Project root (default: **`.`**). |
 | **`--yes`** | Overwrite existing **`mem-constant.yaml`**, files under **`docs/mem-constant/`**, and **`.cursor/rules/mem-constant.mdc`** if present; ensures **`.mem-constant/`** scaffold. |
 | **`--with-cursor-rules`** | Write **`.cursor/rules/mem-constant.mdc`**, **`.cursor/hooks/mem_constant_carryover_hooks.py`**, and merge **`.cursor/hooks.json`** (Cursor carryover automation). |
+| **`--with-ide-scaffolds`** | Write/merge mem-constant blocks into project **`CLAUDE.md`** and **`.github/copilot-instructions.md`** (Claude Code + VS Code Copilot Chat guidance). |
 | **`--skip-specs`** | Only write **`mem-constant.yaml`** (no spec copy). |
 
 **Exit codes:** `0` success, `1` on error (for example refusing to overwrite without **`--yes`**).
@@ -30,12 +31,15 @@ If **`.cursor/hooks.json`** already exists, use **`--yes`** so entries are **mer
 
 Requires **`py -3`** on **`PATH`** (Windows) or adjust the **`command`** in **`hooks.json`** to your Python.
 
+If you run `mem-constant init` from **`$HOME`** with default `--path .`, it now resolves to **`$HOME/.mem-constant/`** to avoid writing policy files directly into your home root.
+
 ### Examples
 
 ```bash
 mem-constant init
 mem-constant init --path ~/repos/my-app
 mem-constant init --with-cursor-rules --yes
+mem-constant init --with-ide-scaffolds --yes
 mem-constant init --skip-specs
 ```
 
@@ -47,8 +51,27 @@ Prints:
 - Python executable and version
 - Whether **`mempalace`** is importable (optional)
 - Whether **`pyyaml`** is importable (optional; useful if your own scripts parse **`mem-constant.yaml`**)
+- Whether **`node`** / **`npx`** are on PATH (needed for Claude Mem install/start)
+- Project-level IDE instruction scaffolds:
+  - **`CLAUDE.md`** (Claude Code)
+  - **`.github/copilot-instructions.md`** (VS Code Copilot Chat)
+- Optional integration signals from Cursor config files:
+  - workspace **`.cursor/hooks.json`** and whether mem-constant carryover hooks are present
+  - user **`~/.cursor/hooks.json`** and **`~/.cursor/mcp.json`**, plus whether they mention `claude-mem`
+
+Option:
+
+| Option | Meaning |
+|--------|---------|
+| **`--path DIR`** | Directory to search upward from for **`mem-constant.yaml`** (default: **`.`**). |
 
 Always exits **`0`**.
+
+Example:
+
+```bash
+mem-constant doctor --path .
+```
 
 ## `mem-constant carryover`
 

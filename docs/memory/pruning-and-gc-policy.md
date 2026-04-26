@@ -6,6 +6,24 @@ This policy keeps memory stores healthy while preserving durable knowledge and r
 
 - Mode: `semi-auto`
 - Principle: automate low-risk cleanup, quarantine uncertain candidates, preserve durable high-confidence memory.
+- Recommended default profile: `balanced`
+- Optional profile: `aggressive` (higher prune cadence, stricter save gates, lower tolerance for stale low-signal memory)
+
+## Tuning Profiles
+
+### Balanced (default)
+
+- cadence: daily
+- save gate: medium confidence floor
+- quarantine first, hard-delete only when stale + unreferenced + low confidence
+- prioritize retention of active tasks and medium-signal context
+
+### Aggressive (opt-in)
+
+- cadence: daily or faster
+- stronger save gate (fewer memories retained by default)
+- lower per-item tolerance for stale/unreferenced content
+- use when memory bloat is causing noisy recall or token pressure
 
 ## Prune Lifecycle
 
@@ -32,6 +50,15 @@ This policy keeps memory stores healthy while preserving durable knowledge and r
 - Near duplicates: semantic similarity above dedupe threshold
 
 Candidates must satisfy at least two of the above unless explicitly operator-marked.
+
+### Goal-change recontext trigger
+
+When goals materially change, force a recontext pass before normal prune selection:
+
+1. snapshot current working context
+2. keep only items directly linked to current goals
+3. downgrade or quarantine stale goal branches
+4. emit a handoff summary for what was dropped and why
 
 ## Action Rules
 

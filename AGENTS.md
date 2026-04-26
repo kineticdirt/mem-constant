@@ -5,6 +5,7 @@
 - When instructions could apply to more than one machine, state clearly whether they target this Windows desktop or the remote home linuxbox.
 - Prefers not to chain shell commands with `&&` when diagnosing problems; run commands separately so each failure is visible.
 - Expects published memory tooling to favor an explicit **install path plus CLI scaffold** (for example `pip install` then `mem-constant init`) rather than relying on `git clone` alone to provision runtimes or integrations.
+- Expects implementation tasks to be executed end-to-end (not left as plans), and treats an "implementation plan" as input to immediate implementation unless they explicitly ask to pause.
 
 ## Learned Workspace Facts
 
@@ -17,3 +18,4 @@
 - This home-stack plan does not prioritize large-scale personal cloud file and photo sync (e.g. Nextcloud/Immich-style) in the near term; the public personal site stays separate from a private library (Tailscale/LAN for book stacks, not a public reverse proxy).
 - The v1 **autonomous memory** design (MemPalace-as-archive, model-agnostic working-cache layer, routing, pruning/GC, daily standup, and the global **`handoff`** template) lives under **`docs/memory/`** here; the distributable **`mem-constant`** slice adds a **`pip install`-able CLI** (`mem-constant init`, `doctor`, `specs`) and is published from **https://github.com/kineticdirt/mem-constant** for consumers who should not rely on `git clone` alone to provision the stack.
 - On the home linuxbox, when the lightweight **Docker** homelab stack is used, **Gitea** and **Uptime Kuma** are typically reached on host ports **13000** and **13001** respectively (other services on that host may already occupy **3000**/**3001**).
+- Current `mem-constant` direction in this workspace emphasizes stronger pruning controls, goal-change recontextualization, safer init path defaults (avoid polluting `$HOME` root), and compatibility beyond Cursor (including Claude Code and VS Code).

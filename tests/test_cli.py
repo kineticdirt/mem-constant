@@ -5,8 +5,11 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from mem_constant import __version__
+from mem_constant.cli import _resolve_init_target
 
 _REPO = Path(__file__).resolve().parents[1]
 _SRC = str(_REPO / "src")
@@ -55,11 +58,16 @@ def test_init_creates_files(tmp_path: Path) -> None:
         text=True,
         env=_env(),
     )
-    assert (tmp_path / "mem-constant.yaml").is_file()
+    cfg = tmp_path / "mem-constant.yaml"
+    assert cfg.is_file()
     specs = tmp_path / "docs" / "mem-constant"
     assert specs.is_dir()
     assert (specs / "routing-policy.md").is_file()
     assert (tmp_path / ".mem-constant" / "README.md").is_file()
+    cfg_text = cfg.read_text(encoding="utf-8")
+    assert "pruning:" in cfg_text
+    assert "recontextualization:" in cfg_text
+    assert "mode: balanced" in cfg_text
     gi = (tmp_path / ".gitignore").read_text(encoding="utf-8")
     assert ".mem-constant/last-session.md" in gi
     assert ".mem-constant/.hook-buffer.jsonl" in gi
@@ -87,6 +95,48 @@ def test_init_with_cursor_rules_writes_hooks(tmp_path: Path) -> None:
     data = json.loads((tmp_path / ".cursor" / "hooks.json").read_text(encoding="utf-8"))
     assert "sessionEnd" in data["hooks"]
     assert "beforeSubmitPrompt" in data["hooks"]
+
+
+def test_init_with_ide_scaffolds_writes_claude_and_vscode_files(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+            "--with-ide-scaffolds",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    assert (tmp_path / "CLAUDE.md").is_file()
+    assert (tmp_path / ".github" / "copilot-instructions.md").is_file()
+
+
+def test_resolve_init_target_redirects_home_default_path(tmp_path: Path) -> None:
+    ns = SimpleNamespace(path=".")
+    fake_home = tmp_path / "home"
+    fake_home.mkdir(parents=True, exist_ok=True)
+    with patch("mem_constant.cli.Path.home", return_value=fake_home), patch(
+        "mem_constant.cli.Path.cwd", return_value=fake_home
+    ):
+        target, note = _resolve_init_target(ns)
+    assert target == fake_home / ".mem-constant"
+    assert note is not None and "~/.mem-constant" in note
+
+
+def test_resolve_init_target_keeps_explicit_path(tmp_path: Path) -> None:
+    explicit = tmp_path / "proj"
+    ns = SimpleNamespace(path=str(explicit))
+    target, note = _resolve_init_target(ns)
+    assert target == explicit.resolve()
+    assert note is None
 
 
 def test_init_merges_existing_hooks_json(tmp_path: Path) -> None:
@@ -193,3 +243,40 @@ def test_carryover_bootstrap(tmp_path: Path) -> None:
     )
     assert (tmp_path / ".mem-constant" / "README.md").is_file()
     assert ".mem-constant/last-session.md" in (tmp_path / ".gitignore").read_text(encoding="utf-8")
+
+
+def test_doctor_reports_project_ide_scaffold_signals(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+            "--with-ide-scaffolds",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    out = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "doctor",
+            "--path",
+            str(tmp_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    body = out.stdout + out.stderr
+    assert "claude.project_instructions: present" in body
+    assert "vscode.project_instructions: present" in body

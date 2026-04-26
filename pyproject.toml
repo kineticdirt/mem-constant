@@ -40,7 +40,7 @@ mem-constant = "mem_constant.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mem_constant = ["spec/*.md", "templates/*.mdc", "templates/hooks/*.py"]
+mem_constant = ["spec/*.md", "templates/*.md", "templates/*.mdc", "templates/hooks/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
