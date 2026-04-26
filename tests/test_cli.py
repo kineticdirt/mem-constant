@@ -245,6 +245,80 @@ def test_carryover_bootstrap(tmp_path: Path) -> None:
     assert ".mem-constant/last-session.md" in (tmp_path / ".gitignore").read_text(encoding="utf-8")
 
 
+def test_doctor_graphify_guardrail_when_graphify_out_present(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    (tmp_path / "graphify-out").mkdir()
+    out = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "doctor",
+            "--path",
+            str(tmp_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    body = out.stdout + out.stderr
+    assert "graphify: detected" in body
+    assert "graphify-out/ in project root" in body
+    assert "L1 structural graph is read-only" in body
+    assert "INTEGRATION-GRAPHIFY.md" in body
+
+
+def test_doctor_no_graphify_line_when_absent(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    out = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "doctor",
+            "--path",
+            str(tmp_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    body = out.stdout + out.stderr
+    assert "graphify-out/ in project root" not in body
+
+
 def test_doctor_reports_project_ide_scaffold_signals(tmp_path: Path) -> None:
     subprocess.run(
         [

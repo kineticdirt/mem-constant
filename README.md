@@ -13,7 +13,7 @@
 | Step | Command |
 |------|---------|
 | 1. Install CLI | `pip install "git+https://github.com/kineticdirt/mem-constant.git"` |
-| 2. Sanity check | `mem-constant doctor` |
+| 2. Sanity check | `mem-constant doctor --path .` |
 | 3. Go to your app | `cd /path/to/your/project` |
 | 4. Scaffold | `mem-constant init --with-cursor-rules` |
 
@@ -38,6 +38,23 @@ When this package hits **PyPI**, install becomes:
 
 ---
 
+## Layering at a glance
+
+mem-constant separates concerns into named layers (full detail in [docs/BUILD-PHILOSOPHY.md](docs/BUILD-PHILOSOPHY.md)):
+
+| Layer | What it is |
+|-------|------------|
+| **L0** | Raw evidence — transcripts, code, commits, logs |
+| **L1** | **Structural graph** — code/repo map (e.g. [Graphify](docs/INTEGRATION-GRAPHIFY.md)). Regenerable, read-only, low-authority. |
+| **L2** | Vector index over text you choose to embed |
+| **L3** | Working cache — short-horizon continuity (e.g. Claude Mem) |
+| **L4** | **Archive** — MemPalace: durable facts and decisions, the authority layer |
+| **L5** | **Curatorial graph** — typed relations *derived from L4* via [mem-constant ontology](docs/memory/graph-ontology-and-customization.md) |
+
+L1 and L5 are **two different graphs**: structural code/repo (L1) vs curated typed relations from MemPalace (L5). They bridge only through **evidence anchors** (L4 → L1, one-way). Details: [docs/INTEGRATION-GRAPHIFY.md](docs/INTEGRATION-GRAPHIFY.md) § Layer position.
+
+---
+
 ## Other ways to use this repo
 
 | Goal | What to do |
@@ -58,9 +75,12 @@ When this package hits **PyPI**, install becomes:
 | [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | `mem-constant.yaml` reference |
 | [docs/INTEGRATION-MEMPALACE.md](docs/INTEGRATION-MEMPALACE.md) | Archive layer and MCP hints |
 | [docs/INTEGRATION-CLAUDE-MEM.md](docs/INTEGRATION-CLAUDE-MEM.md) | Claude Mem + Cursor |
+| [docs/INTEGRATION-CLAUDE-CODE.md](docs/INTEGRATION-CLAUDE-CODE.md) | Claude Code project instructions scaffold |
+| [docs/INTEGRATION-VSCODE.md](docs/INTEGRATION-VSCODE.md) | VS Code Copilot Chat scaffold |
+| [docs/INTEGRATION-GRAPHIFY.md](docs/INTEGRATION-GRAPHIFY.md) | Graphify as the **structural graph (L1)**; layer position + evidence-anchor pattern |
 | [docs/PACKAGING.md](docs/PACKAGING.md) | Releases and vendoring specs |
-| [docs/BUILD-PHILOSOPHY.md](docs/BUILD-PHILOSOPHY.md) | Build habits, layering, contribution flow |
-| [docs/memory/graph-ontology-and-customization.md](docs/memory/graph-ontology-and-customization.md) | Graph on vectors, engineering ontology, behind/in-front pipelines |
+| [docs/BUILD-PHILOSOPHY.md](docs/BUILD-PHILOSOPHY.md) | Build habits, L0–L5 layering, contribution flow |
+| [docs/memory/graph-ontology-and-customization.md](docs/memory/graph-ontology-and-customization.md) | **Curatorial graph (L5)**: graph on vectors, engineering ontology, behind/in-front pipelines |
 
 ---
 

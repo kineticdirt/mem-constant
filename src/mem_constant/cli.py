@@ -148,6 +148,14 @@ def cmd_doctor(_ns: argparse.Namespace) -> int:
         else:
             print(f"cursor.workspace_hooks: missing ({ws_hooks})")
 
+    gf_signal = _detect_graphify(project_root)
+    if gf_signal:
+        print(f"graphify: detected ({gf_signal})")
+        print(
+            "  reminder: L1 structural graph is read-only; promotion to MemPalace (L4) "
+            "still requires routing thresholds. See docs/INTEGRATION-GRAPHIFY.md."
+        )
+
     home = Path.home()
     user_hooks = home / ".cursor" / "hooks.json"
     user_mcp = home / ".cursor" / "mcp.json"
@@ -174,6 +182,30 @@ def _json_contains_token(path: Path, token: str) -> bool:
     except (OSError, json.JSONDecodeError):
         return False
     return token.lower() in json.dumps(data, ensure_ascii=False).lower()
+
+
+def _detect_graphify(project_root: Path | None) -> str | None:
+    """Return a short signal string when Graphify integration markers exist, else ``None``.
+
+    Detection is intentionally cheap and read-only: a file/dir under the project root
+    or an importable ``graphifyy`` package. The doctor uses this to print a single
+    reminder that L1 (structural graph) is not authoritative — see
+    ``docs/INTEGRATION-GRAPHIFY.md``.
+    """
+
+    found: list[str] = []
+    try:
+        import importlib.util as _ilu
+
+        if _ilu.find_spec("graphifyy") is not None:
+            found.append("'graphifyy' importable")
+    except (ImportError, ValueError):
+        pass
+    if project_root is not None:
+        out_dir = project_root / "graphify-out"
+        if out_dir.is_dir():
+            found.append(f"{out_dir.name}/ in project root")
+    return ", ".join(found) if found else None
 
 
 def cmd_specs(ns: argparse.Namespace) -> int:
