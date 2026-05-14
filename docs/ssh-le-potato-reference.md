@@ -112,7 +112,9 @@ ssh potato-lan
 
 ## Exit node (internet egress via this Pi)
 
-Use the Pi as a **Tailscale exit node** so other tailnet devices can send **public internet** traffic out through the Pi’s uplink (home IP). Official background: [Exit nodes](https://tailscale.com/kb/1103/exit-nodes/).
+**linuxbox (this Pi)** is the machine that **offers** exit-node egress: it advertises default routes so *other* tailnet devices *may* send public internet traffic out through the Pi’s uplink. Your **desktop PC does not need to be** that exit node, and you do **not** need to turn on “Use exit node” on the PC unless you explicitly want this PC’s traffic to exit via home.
+
+Official background: [Exit nodes](https://tailscale.com/kb/1103/exit-nodes/).
 
 **On the Pi (linuxbox)** — one-time / idempotent:
 
@@ -131,17 +133,15 @@ Use the Pi as a **Tailscale exit node** so other tailnet devices can send **publ
 ```powershell
 $env:TAILSCALE_API_KEY = 'tskey-api-…'   # set in this shell only
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/approve_tailscale_linuxbox_exit_routes.ps1
-# optional: also route this PC through the Pi
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/approve_tailscale_linuxbox_exit_routes.ps1 -UseExitNodeOnThisPc
 ```
 
-**On a client (e.g. this Windows PC)** — after approval:
+**Using the exit node (optional, per device)** — after approval, only on clients where you **want** home egress (laptop, phone, etc.):
 
 - Tray: **Tailscale icon → Use exit node →** pick **`raspbian-bullseye-aml-s905x-cc`**, or  
-- CLI (run from an elevated shell if your install requires it):  
-  `tailscale set --exit-node=raspbian-bullseye-aml-s905x-cc`  
-  Clear with: `tailscale set --exit-node=`  
+- CLI on **that** device: `tailscale set --exit-node=raspbian-bullseye-aml-s905x-cc` — clear with `tailscale set --exit-node=`  
 - Optional LAN bypass while on exit: `tailscale set --exit-node-allow-lan-access=true` (see Tailscale docs for tradeoffs).
+
+Leave the **desktop build PC** without an exit node selected if it should stay a normal tailnet member only.
 
 **Employer / coffee-shop policy:** routing all traffic through your home is powerful; only use where policy allows.
 

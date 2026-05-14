@@ -1,25 +1,27 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Enable advertised exit-node routes (0.0.0.0/0, ::/0) for linuxbox on the tailnet control plane.
+  Approve advertised exit-node routes (0.0.0.0/0, ::/0) for linuxbox on the Tailscale control plane.
 
 .DESCRIPTION
+  Only **linuxbox** (the Pi) should act as the tailnet **exit node** — i.e. the machine that *offers*
+  default-route egress. This script does **not** change any client; it only enables the routes
+  Tailscale already sees advertised from that device (same as approving in the admin console).
+
   The Pi must already run: sudo tailscale set --advertise-exit-node
-  This script calls the Tailscale API to approve those routes (same effect as the admin console).
 
   Create an API key at https://login.tailscale.com/admin/settings/keys with permission to manage
-  devices / routes (Tailscale documents this under the Tailscale API).
+  device routes (see Tailscale API docs).
 
   Usage (do not paste the key into git or chat):
     $env:TAILSCALE_API_KEY = 'tskey-api-...'
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts/approve_tailscale_linuxbox_exit_routes.ps1
 
-  Optional: also route this PC through the exit node:
-    ... -File scripts/approve_tailscale_linuxbox_exit_routes.ps1 -UseExitNodeOnThisPc
+  To **use** the exit node from a specific device (phone, laptop, etc.), enable "Use exit node"
+  on that device only — not required on your desktop build box unless you want it.
 #>
 param(
-  [string] $DeviceId = "nWnqYHjsCB11CNTRL",
-  [switch] $UseExitNodeOnThisPc
+  [string] $DeviceId = "nWnqYHjsCB11CNTRL"
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,15 +44,10 @@ Write-Host "GET $base/routes (before)"
 $before = Invoke-RestMethod -Uri "$base/routes" -Headers $headers -Method Get
 $before | ConvertTo-Json -Depth 5
 
-Write-Host "`nPOST $base/routes (enable advertised defaults)"
+Write-Host "`nPOST $base/routes (enable advertised defaults on linuxbox only)"
 $after = Invoke-RestMethod -Uri "$base/routes" -Headers $headers -Method Post -ContentType "application/json" -Body $body
 $after | ConvertTo-Json -Depth 5
 
-Write-Host "`nVerify on this machine: tailscale exit-node list"
+Write-Host "`nFrom any tailnet client, verify linuxbox appears as an exit option:"
+Write-Host "  tailscale exit-node list"
 & tailscale exit-node list
-
-if ($UseExitNodeOnThisPc) {
-  Write-Host "`nSetting this PC to use exit node raspbian-bullseye-aml-s905x-cc ..."
-  & tailscale set --exit-node=raspbian-bullseye-aml-s905x-cc
-  & tailscale status | Select-Object -First 12
-}
