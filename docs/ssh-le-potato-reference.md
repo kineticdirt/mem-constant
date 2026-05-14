@@ -126,6 +126,15 @@ Use the Pi as a **Tailscale exit node** so other tailnet devices can send **publ
 1. Open **[Machines](https://login.tailscale.com/admin/machines)** → select **`raspbian-bullseye-aml-s905x-cc`**.
 2. Under **Exit node / subnet routes**, **review and approve** the advertised **`0.0.0.0/0`** (and **`::/0`** if shown). Until this is approved, `tailscale exit-node list` on Windows stays empty.
 
+**Tailnet admin (API, same effect)** — optional automation; needs a key from **[API keys](https://login.tailscale.com/admin/settings/keys)** (do **not** commit the key; do **not** paste it into chat). Device **`nodeId`** for this Pi (from `tailscale whois 100.122.108.94`): **`nWnqYHjsCB11CNTRL`**. Repo helper:
+
+```powershell
+$env:TAILSCALE_API_KEY = 'tskey-api-…'   # set in this shell only
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/approve_tailscale_linuxbox_exit_routes.ps1
+# optional: also route this PC through the Pi
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/approve_tailscale_linuxbox_exit_routes.ps1 -UseExitNodeOnThisPc
+```
+
 **On a client (e.g. this Windows PC)** — after approval:
 
 - Tray: **Tailscale icon → Use exit node →** pick **`raspbian-bullseye-aml-s905x-cc`**, or  
@@ -157,7 +166,7 @@ Tailscale version on device: **1.96.4** (control plane `https://controlplane.tai
 
 ## Last updated
 
-- **2026-05-14** — **Exit node** — `sudo tailscale set --advertise-exit-node` on Pi; doc § for **admin approval** + Windows client `tailscale set --exit-node=…`.
+- **2026-05-14** — **Exit node** — `sudo tailscale set --advertise-exit-node` on Pi; **admin approval** (UI or `scripts/approve_tailscale_linuxbox_exit_routes.ps1` + `TAILSCALE_API_KEY`); Windows `tailscale set --exit-node=…`.
 - **2026-04-19** — **Quick connect** (Git Bash / PowerShell / LAN) + **fix Tailscale SSH check** (`tailscale set --ssh=false`, `tailscale up` without `--ssh`).
 - **2026-04-16** — **`scripts/tailscale-ssh-open-check-url.sh`** — open check URL while keeping `ssh` alive (Git Bash + Windows `start`).
 - **2026-04-16** — Expanded § Unblocking Tailscale SSH (check vs accept, `tailscale set --ssh=false`, why keys differ on 100.x).
