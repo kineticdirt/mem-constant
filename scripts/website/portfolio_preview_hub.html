@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portfolio previews — Abhinav Allam</title>
+  <style>
+    :root { color-scheme: dark light; --bar: #111; --fg: #eee; --accent: #3b82f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0a0a0a; color: var(--fg); }
+    header {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1rem; background: var(--bar); border-bottom: 1px solid #333;
+      position: sticky; top: 0; z-index: 10;
+    }
+    header h1 { font-size: 0.95rem; font-weight: 600; margin: 0; flex: 1 1 auto; }
+    .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .tabs button {
+      border: 1px solid #444; background: #222; color: var(--fg);
+      padding: 0.45rem 0.85rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+    }
+    .tabs button[aria-selected="true"] { border-color: var(--accent); background: #1e3a5f; }
+    .tabs button:hover { border-color: #666; }
+    .meta { font-size: 0.75rem; opacity: 0.75; width: 100%; }
+    iframe { width: 100%; height: calc(100vh - 56px); border: 0; background: #fff; }
+    .open-full { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
+    .open-full:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Portfolio redesign — preview hub</h1>
+    <nav class="tabs" role="tablist" aria-label="Site versions">
+      <button type="button" role="tab" id="tab-v1" aria-selected="true" aria-controls="frame" data-src="v1-system/index.html">v1 · System</button>
+      <button type="button" role="tab" id="tab-v2" aria-selected="false" aria-controls="frame" data-src="v2-editorial/index.html">v2 · Editorial</button>
+      <button type="button" role="tab" id="tab-v3" aria-selected="false" aria-controls="frame" data-src="v3-kinetic/index.html">v3 · Kinetic</button>
+    </nav>
+    <a class="open-full" id="open-full" href="v1-system/index.html" target="_blank" rel="noopener">Open full page ↗</a>
+    <p class="meta">Three separate sites · toggle to compare · research notes in each folder (<code>research.md</code>)</p>
+  </header>
+  <iframe id="frame" title="Portfolio preview" src="v1-system/index.html"></iframe>
+  <script>
+    const tabs = document.querySelectorAll('.tabs button');
+    const frame = document.getElementById('frame');
+    const openFull = document.getElementById('open-full');
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tabs.forEach((b) => b.setAttribute('aria-selected', 'false'));
+        btn.setAttribute('aria-selected', 'true');
+        const src = btn.dataset.src;
+        frame.src = src;
+        openFull.href = src;
+      });
+    });
+  </script>
+</body>
+</html>

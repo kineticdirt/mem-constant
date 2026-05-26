@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "name": "Reuters World News",
+      "rss_url": "https://feeds.reuters.com/Reuters/worldNews",
+      "tags": ["geopolitics", "macro"]
+    },
+    {
+      "name": "Reuters Business News",
+      "rss_url": "https://feeds.reuters.com/reuters/businessNews",
+      "tags": ["markets", "macro"]
+    },
+    {
+      "name": "The Hacker News",
+      "rss_url": "https://feeds.feedburner.com/TheHackersNews",
+      "tags": ["cybersecurity"]
+    },
+    {
+      "name": "OpenAI Blog",
+      "rss_url": "https://openai.com/blog/rss.xml",
+      "tags": ["ai"]
+    }
+  ]
+}
