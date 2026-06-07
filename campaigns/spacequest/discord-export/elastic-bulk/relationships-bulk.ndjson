@@ -1,0 +1,37 @@
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-lore-concordium-party"}}
+{"relation": "frames", "source_id": "ent:concordium", "target_id": "ent:party_contractors", "evidence": {"channel": "loredoc", "line_start": 19, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/loredoc-1469876798614405274/messages.md"}, "note": "Shipboard explorers / handymen under feigned anarchy"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-lore-mission-blacksite"}}
+{"relation": "mission_objective", "source_id": "ent:remote_corporation", "target_id": "loc:blacksite_station", "evidence": {"channel": "loredoc", "line_start": 39, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/loredoc-1469876798614405274/messages.md"}, "note": "Salvage dataterms; disposable outside contractors"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-lore-plague-geli"}}
+{"relation": "demographic_pressure", "source_id": "plot:bioengineered_plague", "target_id": "pc:geli_pelsin", "evidence": {"channel": "loredoc", "line_start": 29, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/loredoc-1469876798614405274/messages.md"}, "note": "Rare futas; ties to Geli backstory in characters"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-cherish-dru-tyreen"}}
+{"relation": "kinship_hint", "source_id": "pc:cherish", "target_id": "xeno:dru_nkar", "evidence": {"channel": "characters", "line_start": 9, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/characters-1469873902208421997/messages.md"}, "note": "Ears, teeth, skin"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-cherish-tyreen"}}
+{"relation": "kinship_hint", "source_id": "pc:cherish", "target_id": "xeno:tyreen", "evidence": {"channel": "characters", "line_start": 9, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/characters-1469873902208421997/messages.md"}, "note": "Eyes, psionics"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-red-goo-cult"}}
+{"relation": "backstory_antagonist", "source_id": "pc:red_emilia", "target_id": "plot:ex_cult_murders", "evidence": {"channel": "characters", "line_start": 70, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/characters-1469873902208421997/messages.md"}, "note": "Lady in Purple / cult; Endo as prototype"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-red-endo"}}
+{"relation": "owns_construct", "source_id": "pc:red_emilia", "target_id": "item:endo", "evidence": {"channel": "characters", "line_start": 70, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/characters-1469873902208421997/messages.md"}, "note": "Steel Defender / bodyguard"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-geli-goo"}}
+{"relation": "class_patron", "source_id": "pc:geli_pelsin", "target_id": "patron:great_old_one", "evidence": {"channel": "characters", "line_start": 144, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/characters-1469873902208421997/messages.md"}, "note": "Warlock GOO; telepath"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-ship-nursery-pleasure"}}
+{"relation": "same_deck", "source_id": "ship:nursery", "target_id": "ship:pleasure_pod", "evidence": {"channel": "dm_screen", "line_start": 20, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/dm-screen-spbs-1472402938327728383/messages.md"}, "note": "Upper deck port vs starboard; RP Huatu thread also links medical–pleasure"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-dm-cockpit-armory"}}
+{"relation": "spatial", "source_id": "ship:cockpit", "target_id": "ship:armory_ready", "evidence": {"channel": "dm_screen", "line_start": 9, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/dm-screen-spbs-1472402938327728383/messages.md"}, "note": "Armory directly behind cockpit"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-rp-theta-lucky"}}
+{"relation": "navigation", "source_id": "loc:theta_h22", "target_id": "loc:lucky_gal", "evidence": {"channel": "rp", "line_start": 19, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/rp-1469873871036612855/messages.md"}, "note": "Smolder seeks bar after dock"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-rp-briefing-payment"}}
+{"relation": "contract", "source_id": "ent:corporate_employer", "target_id": "pc:smolder", "evidence": {"channel": "rp", "line_start": 204, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/rp-1469873871036612855/messages.md"}, "note": "1M credits each; month; jump point to captain"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-rp-aurora-smolder-tension"}}
+{"relation": "interpersonal", "source_id": "pc:aurora", "target_id": "pc:smolder", "evidence": {"channel": "rp", "line_start": 216, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/rp-1469873871036612855/messages.md"}, "note": "Authority challenge; mission focus"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-rp-red-aurora"}}
+{"relation": "interpersonal", "source_id": "pc:red_emilia", "target_id": "pc:aurora", "evidence": {"channel": "rp", "line_start": 118, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/rp-1469873871036612855/messages.md"}, "note": "Physical comedy; Endo shopping"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-corpo-smolder-geli"}}
+{"relation": "bonding", "source_id": "pc:smolder", "target_id": "pc:geli_pelsin", "evidence": {"channel": "corpo_station", "line_start": 29, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/corpo-station-1474987916701863936/messages.md"}, "note": "Negotiation / naming"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-corpo-smolder-vendor"}}
+{"relation": "purchase", "source_id": "pc:smolder", "target_id": "loc:corpo_market", "evidence": {"channel": "corpo_station", "line_start": 184, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/corpo-station-1474987916701863936/messages.md"}, "note": "~70292 cr; rubble/chem prep"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-corpo-magic-commodity"}}
+{"relation": "world_rule", "source_id": "loc:corpo_market", "target_id": "sys:magic_scroll_economy", "evidence": {"channel": "corpo_station", "line_start": 146, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/corpo-station-1474987916701863936/messages.md"}, "note": "Hyper-specific scrolls"}
+{"index": {"_index": "spacequest-discord-relations", "_id": "r-corpo-aurora-stealth"}}
+{"relation": "goal", "source_id": "pc:aurora", "target_id": "loc:restricted_tech", "evidence": {"channel": "corpo_station", "line_start": 216, "obsidian_uri": "discord-export/Space Base V2-1469873840703144060/corpo-station-1474987916701863936/messages.md"}, "note": "Staff-only theft beat"}
+

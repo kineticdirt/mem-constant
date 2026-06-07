@@ -1,0 +1,4 @@
+# Optional: local Gemma / llama.cpp (SpaceQuest analysis drafts)
+# Install may require a C++ toolchain on Windows unless a matching wheel exists.
+huggingface-hub>=0.23.0
+llama-cpp-python>=0.3.0
