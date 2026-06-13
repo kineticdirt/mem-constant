@@ -20,6 +20,8 @@ New-Item -ItemType Directory -Force -Path $Secrets | Out-Null
 
 # Root docs from kit
 $rootFiles = @(
+    'START-HERE.txt',
+    'LAPTOP-INSTRUCTIONS.txt',
     'README FIRST.txt',
     'FROM-SCRATCH-LAPTOP.md',
     'CONNECTION-SUMMARY.txt',
@@ -35,7 +37,7 @@ foreach ($f in $rootFiles) {
     Write-Host "root: $f"
 }
 
-'See README FIRST.txt' | Set-Content -Path (Join-Path $E 'START-HERE.txt') -Encoding UTF8
+# Root START-HERE comes from kit (points to LAPTOP-INSTRUCTIONS.txt)
 
 # Scripts from repo
 $copyScripts = @(
@@ -139,4 +141,4 @@ foreach ($old in @('LaptopCursor-Setup', 'RemotePC-Setup')) {
 }
 
 Write-Host ""
-Write-Host "Done. Give USB to laptop. Open E:\README FIRST.txt on laptop."
+Write-Host "Done. Give USB to laptop. Open E:\LAPTOP-INSTRUCTIONS.txt on laptop."

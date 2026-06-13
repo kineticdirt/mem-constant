@@ -1,0 +1,100 @@
+LAPTOP INSTRUCTIONS — read this first
+======================================
+(This USB was prepared on the desktop. Plug it into the LAPTOP and follow
+these steps in order. Replace E: with your USB drive letter if different.)
+
+GOAL: From anywhere in the country, control the home desktop over the internet
+(full screen, mouse/keyboard) via Moonlight + Tailscale.
+
+--------------------------------------------------------------
+STEP 1 — One-click setup
+--------------------------------------------------------------
+Double-click (drive root):
+
+  E:\SETUP-EVERYTHING-Admin.cmd
+
+Click Yes when Windows asks for Administrator.
+
+It will:
+  - Install Tailscale, Moonlight, and Git (if missing)
+  - Copy the SSH key to your laptop
+  - Set up SSH config for linuxbox
+  - Start Tailscale login (sign in: abhinavall0123@gmail.com)
+  - Open Moonlight for pairing
+
+Read the [OK] / [WARN] / [FAIL] summary when it finishes.
+Safe to run again if something failed.
+
+If PowerShell says "scripts disabled": use the .cmd files in E:\scripts\
+(or read E:\POWERSHELL-SCRIPTS.txt). Do NOT change Windows system policy.
+
+--------------------------------------------------------------
+STEP 2 — Pair Moonlight (once, at home, desktop awake)
+--------------------------------------------------------------
+You need BOTH laptop and desktop on at home for this one-time step.
+
+On the LAPTOP:
+  1. Open Moonlight
+  2. Add PC manually -> enter:  desktop-igqesd4
+     (or 100.118.226.87 if the name fails)
+  3. Moonlight shows a 4-digit PIN
+
+On the DESKTOP (at home):
+  1. Open browser -> https://127.0.0.1:47990
+  2. Log in: user  apollo   password in  E:\secrets\apollo-credentials.txt
+  3. Click PIN tab -> type Moonlight's PIN -> Send
+
+Back on the LAPTOP:
+  4. Click the desktop in Moonlight -> Desktop
+  5. You should see the full desktop screen. That means pairing worked.
+
+More detail: E:\APOLLO-LOGIN.txt
+
+--------------------------------------------------------------
+STEP 3 — Test before you travel (phone hotspot)
+--------------------------------------------------------------
+This proves it works over the internet, not just home Wi-Fi.
+
+  1. Disconnect laptop from home Wi-Fi
+  2. Connect laptop to PHONE HOTSPOT only
+  3. Open Tailscale -> Connected
+  4. Double-click:  E:\scripts\Test-RemoteTailnet.cmd
+  5. All lines should say [PASS]
+
+Optional wake test (desktop at home in Sleep, not Shutdown):
+  - Double-click:  E:\scripts\Run-From-Laptop.cmd
+  - Wait ~30-60 seconds, then connect in Moonlight
+
+Checklist file: E:\TEST-NOW-BEFORE-TRAVEL.txt
+
+--------------------------------------------------------------
+STEP 4 — Every day while traveling
+--------------------------------------------------------------
+  1. Tailscale -> Connected
+  2. To use the full desktop:
+       Double-click  E:\scripts\Run-From-Laptop.cmd
+       then open Moonlight -> desktop -> Desktop
+     OR if desktop is already awake:
+       open Moonlight directly
+  3. Terminal on linuxbox only:  ssh potato
+
+--------------------------------------------------------------
+QUICK REFERENCE
+--------------------------------------------------------------
+Tailscale account:  abhinavall0123@gmail.com
+linuxbox (SSH):     ssh potato   (100.122.108.94)
+desktop (Moonlight): desktop-igqesd4   (100.118.226.87)
+Apollo login:       E:\secrets\apollo-credentials.txt
+
+Ignore old folders on this USB if you see them:
+  LaptopCursor-Setup\   RemotePC-Setup\   (superseded — use E:\scripts\)
+
+Full manual (if stuck):  E:\FROM-SCRATCH-LAPTOP.md
+
+--------------------------------------------------------------
+DESKTOP OWNER REMINDER (when you leave home)
+--------------------------------------------------------------
+  - Desktop: SLEEP (Win+X, U, S) — NOT Shutdown
+  - linuxbox: stay powered on
+
+Prepared 2026-06-12 on desktop-igqesd4
