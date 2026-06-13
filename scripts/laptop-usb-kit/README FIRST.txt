@@ -9,6 +9,7 @@ That one file has the full step-by-step (setup, Moonlight pairing, hotspot
 test, daily use). Follow it in order.
 
 Other files (only if you need more detail):
+  FOR-CURSOR-ON-LAPTOP.txt  Agent handoff for Cursor IDE on this laptop
   APOLLO-LOGIN.txt          Moonlight + Apollo pairing help
   FROM-SCRATCH-LAPTOP.md    Long manual version
   TEST-NOW-BEFORE-TRAVEL.txt  Checkbox list before travel

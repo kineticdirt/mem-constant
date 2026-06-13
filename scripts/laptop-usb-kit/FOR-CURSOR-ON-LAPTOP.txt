@@ -1,0 +1,128 @@
+FOR CURSOR IDE ON THE LAPTOP
+============================
+(Agent handoff — read this when the user plugs in the USB on abhi-m15-laptop)
+
+YOU ARE ON: the **laptop** (travel machine). The **desktop** (Apollo host) was
+prepared at home. This USB is the only physical channel between them.
+
+Human-facing steps:  E:\LAPTOP-INSTRUCTIONS.txt  (user follows that first)
+
+--------------------------------------------------------------
+CONTEXT (already done on desktop — do not redo on laptop)
+--------------------------------------------------------------
+- Tailscale account: abhinavall0123@gmail.com
+- desktop:  desktop-igqesd4  (100.118.226.87)  — Moonlight/Apollo host
+- linuxbox: 100.122.108.94  — ssh potato, WoL relay, exit node
+- laptop:   abhi-m15-laptop (100.77.115.62)
+- Apollo:   ApolloService auto-start, ports 47984/47989/47990/48010
+- Apollo web login: apollo / password in E:\secrets\apollo-credentials.txt
+- Desktop Tailscale key expiry: DISABLED (2026-06-12)
+- Wi-Fi WoL armed on desktop (Realtek 8852CE)
+- linuxbox: ~/bin/wake-desktop.sh deployed
+
+NOT done yet (laptop must complete):
+  [ ] Moonlight paired to desktop-igqesd4 (needs PIN on desktop Apollo UI)
+  [ ] Hotspot test (Test-RemoteTailnet.cmd off home Wi-Fi)
+  [ ] Optional: sleep/wake test via Run-From-Laptop.cmd
+
+--------------------------------------------------------------
+WHAT YOU (CURSOR AGENT) SHOULD RUN — in order
+--------------------------------------------------------------
+Use PowerShell with -ExecutionPolicy Bypass. Do NOT chain with && — run each
+command separately so failures are visible. Do NOT claim reachability without
+running these checks in THIS workspace terminal on the laptop.
+
+1. Find USB drive letter (often E:):
+     Get-PSDrive -PSProvider FileSystem | Where-Object { Test-Path ($_.Root + 'LAPTOP-INSTRUCTIONS.txt') }
+
+2. One-shot setup (Admin — user must click Yes, or run elevated):
+     powershell -NoProfile -ExecutionPolicy Bypass -File E:\scripts\Setup-Everything.ps1
+   (Or user double-clicks E:\SETUP-EVERYTHING-Admin.cmd)
+
+3. Verify tailnet from laptop:
+     powershell -NoProfile -ExecutionPolicy Bypass -File E:\scripts\Test-RemoteTailnet.ps1 -SkipMoonlight
+
+4. SSH to linuxbox:
+     ssh -i $env:USERPROFILE\.ssh\id_rsa_potato -o IdentitiesOnly=yes abhinav@100.122.108.94 "hostname"
+
+5. Tailscale status (quote output in your reply):
+     & "$env:ProgramFiles\Tailscale\tailscale.exe" status
+
+Expected: linuxbox online; desktop visible (online or offline if asleep).
+
+--------------------------------------------------------------
+TAILSCALE LOGIN ON LAPTOP — important
+--------------------------------------------------------------
+Prefer the Tailscale **system tray / GUI** for login on the laptop.
+Do NOT run repeated `tailscale login` from Cursor terminals if the user reports
+logout loops. Sign in as abhinavall0123@gmail.com.
+
+If Tailscale broken on Windows: E:\scripts\Fix-Tailscale-Windows-Admin.cmd
+(Never run `tailscale up --reset` — it corrupts node keys.)
+
+--------------------------------------------------------------
+MOONLIGHT PAIRING — needs the human + desktop
+--------------------------------------------------------------
+You cannot complete pairing without the desktop awake at home.
+
+Ask the user to:
+  - Laptop: Moonlight -> Add PC -> desktop-igqesd4
+  - Desktop: https://127.0.0.1:47990 -> PIN tab -> enter Moonlight PIN
+  - Credentials: E:\secrets\apollo-credentials.txt
+
+After pairing, verify Apollo credentials folder on desktop would have client
+certs (agent on desktop can check). From laptop: Moonlight should list the PC.
+
+Remote stream (after pairing):
+  powershell -NoProfile -ExecutionPolicy Bypass -File E:\scripts\Run-From-Laptop.ps1
+
+--------------------------------------------------------------
+HOTSPOT TEST (required before travel)
+--------------------------------------------------------------
+User must disconnect home Wi-Fi and use phone hotspot only, then:
+
+  E:\scripts\Test-RemoteTailnet.cmd
+
+All [PASS] required. Report any [FAIL] with full script output.
+
+Optional wake test: desktop at home in Sleep -> Run-From-Laptop.cmd -> Moonlight.
+
+--------------------------------------------------------------
+GIT / CURSOR WORKSPACE ON LAPTOP
+--------------------------------------------------------------
+Clone path (if not present):
+  C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump
+
+  git clone https://github.com/kineticdirt/mem-constant.git agent-dump
+  (or pull if clone exists)
+
+Coordination ledger (append [LAPTOP] lines before/after work):
+  AI_GROUPCHAT.md  in repo root — pull before edit if using git remote.
+
+Do not commit E:\secrets\ or apollo password to git.
+
+--------------------------------------------------------------
+FILES ON THIS USB (authoritative paths)
+--------------------------------------------------------------
+  E:\LAPTOP-INSTRUCTIONS.txt     — human steps
+  E:\FOR-CURSOR-ON-LAPTOP.txt    — this file
+  E:\SETUP-EVERYTHING-Admin.cmd  — one-click setup
+  E:\scripts\                    — all .ps1 + .cmd helpers
+  E:\secrets\id_rsa_potato       — copy to %USERPROFILE%\.ssh\
+  E:\secrets\apollo-credentials.txt
+
+Ignore superseded: LaptopCursor-Setup\  RemotePC-Setup\
+
+Repack USB from desktop: scripts\pack-laptop-usb.ps1 on desktop repo.
+
+--------------------------------------------------------------
+REPORT BACK TO USER (checklist)
+--------------------------------------------------------------
+When done, tell the user clearly:
+  - tailscale status output (linuxbox + desktop visible?)
+  - Test-RemoteTailnet.ps1: all PASS or which FAIL
+  - Moonlight paired: yes/no
+  - Hotspot test: done/pending
+  - Anything still blocked before travel
+
+Prepared 2026-06-12 on desktop-igqesd4

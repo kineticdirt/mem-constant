@@ -22,6 +22,7 @@ New-Item -ItemType Directory -Force -Path $Secrets | Out-Null
 $rootFiles = @(
     'START-HERE.txt',
     'LAPTOP-INSTRUCTIONS.txt',
+    'FOR-CURSOR-ON-LAPTOP.txt',
     'README FIRST.txt',
     'FROM-SCRATCH-LAPTOP.md',
     'CONNECTION-SUMMARY.txt',

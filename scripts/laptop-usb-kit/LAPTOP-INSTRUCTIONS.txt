@@ -91,6 +91,10 @@ Ignore old folders on this USB if you see them:
 
 Full manual (if stuck):  E:\FROM-SCRATCH-LAPTOP.md
 
+Using Cursor IDE on this laptop?
+  Open  E:\FOR-CURSOR-ON-LAPTOP.txt  — tells the agent exactly what to run,
+  verify, and report back (terminal commands, pairing blockers, hotspot test).
+
 --------------------------------------------------------------
 DESKTOP OWNER REMINDER (when you leave home)
 --------------------------------------------------------------
