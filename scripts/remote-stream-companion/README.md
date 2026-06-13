@@ -22,4 +22,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Connect-RustDesk.ps1
 
 **Laptop** usually sets `DefaultPeer = "Desktop"`. **Desktop** sets `DefaultPeer = "Laptop"`.
 
+### Wake desktop from sleep (remote)
+
+1. On **desktop**: `Enable-DesktopWake.ps1` (admin) — arms Wi‑Fi/Ethernet for magic-packet wake.
+2. In `config.psd1`: `WakeRelay` points at **linuxbox** (`100.122.108.94`) for away-from-home WoL.
+3. On **laptop**: `Connect-RemotePC.ps1` — SSH → linuxbox WoL → wait for Apollo → Moonlight.
+
 `config.psd1` is gitignored so machine-specific IPs/MACs stay local.

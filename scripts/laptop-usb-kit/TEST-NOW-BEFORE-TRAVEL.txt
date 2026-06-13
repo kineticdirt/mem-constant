@@ -1,0 +1,12 @@
+PRE-TRAVEL CHECKLIST
+==================
+
+[ ] FROM-SCRATCH-LAPTOP.md steps 1-4 done on laptop
+[ ] secrets\id_rsa_potato copied to laptop .ssh\
+[ ] Hotspot test: double-click scripts\Test-RemoteTailnet.cmd (or use -ExecutionPolicy Bypass)
+[ ] If "scripts disabled" error: read POWERSHELL-SCRIPTS.txt
+[ ] Moonlight paired to 100.118.226.87 at home once
+[ ] linuxbox powered on at home
+[ ] Desktop left in SLEEP (not Shutdown) when leaving
+
+Optional: delete secrets\ from USB after key is on laptop

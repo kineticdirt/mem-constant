@@ -1,0 +1,50 @@
+POWERSHELL SCRIPTS — how to run (Windows)
+=========================================
+
+If you see this error:
+
+  "running scripts is disabled on this system"
+  "UnauthorizedAccess" / Execution_Policies
+
+That is NORMAL on Windows. The scripts are fine. Do NOT change
+global execution policy unless you know you want to.
+
+OPTION A — Double-click .cmd files (recommended)
+------------------------------------------------
+In scripts\ on this USB:
+
+  Verify-Tailnet.cmd       test tailnet + SSH
+  Run-From-Laptop.cmd      wake desktop + open Moonlight
+  Test-RemoteTailnet.cmd   full pre-travel check
+  Fix-Tailscale-Windows-Admin.cmd  (desktop Admin: repair logout loop)
+
+Pixi RP (browser): ObsidianWriterStack\scripts\
+  Open-PixiRP.cmd          laptop — wake + open http://desktop-igqesd4:8767
+
+OPTION B — PowerShell one-liner (replace E: with your drive letter)
+-------------------------------------------------------------------
+Verify:
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File E:\scripts\Verify-Tailnet.ps1
+
+Wake + desktop:
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File E:\scripts\Run-From-Laptop.ps1
+
+Pre-travel test:
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File E:\scripts\Test-RemoteTailnet.ps1 -SkipMoonlight
+
+OPTION C — Repack USB from desktop (desktop only)
+-------------------------------------------------
+  Double-click on this USB (when plugged into desktop):
+    REPACK-USB-FROM-DESKTOP.cmd
+
+  Or from the git repo on desktop:
+    scripts\pack-laptop-usb.cmd
+
+Why Bypass?
+  -ExecutionPolicy Bypass applies ONLY to that one command.
+  It does not permanently loosen security on the machine.
+
+Git Bash / ssh commands do NOT need Bypass — only .ps1 scripts.

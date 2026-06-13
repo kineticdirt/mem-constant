@@ -23,6 +23,59 @@ function Test-IsPlaceholderMac {
     return ($hex -match '^0+$')
 }
 
+function Get-WakeRelaySettings {
+    param($Config)
+    $relay = $Config.WakeRelay
+    if (-not $relay) { return $null }
+    $enabled = $true
+    if ($null -ne $relay.Enabled) { $enabled = [bool]$relay.Enabled }
+    if (-not $enabled) { return $null }
+    $defaultKey = Join-Path $env:USERPROFILE '.ssh\id_rsa_potato'
+    return @{
+        SshHost   = if ($relay.SshHost) { [string]$relay.SshHost } else { '100.122.108.94' }
+        SshUser   = if ($relay.SshUser) { [string]$relay.SshUser } else { 'abhinav' }
+        SshKey    = if ($relay.SshKey) { [string]$relay.SshKey } elseif (Test-Path -LiteralPath $defaultKey) { $defaultKey } else { $null }
+        Broadcast = if ($relay.Broadcast) { [string]$relay.Broadcast } else { '192.168.7.255' }
+        Script    = if ($relay.Script) { [string]$relay.Script } else { $null }
+    }
+}
+
+function Send-WakeOnLanViaLinuxbox {
+    param(
+        [Parameter(Mandatory)][string]$MacAddress,
+        [hashtable]$Relay
+    )
+    if (-not $Relay) {
+        Write-Warning '[remote-stream] WakeRelay not configured; cannot wake via linuxbox.'
+        return $false
+    }
+    $target = '{0}@{1}' -f $Relay.SshUser, $Relay.SshHost
+    $sshArgs = @('-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15')
+    if ($Relay.SshKey -and (Test-Path -LiteralPath $Relay.SshKey)) {
+        $sshArgs += @('-i', $Relay.SshKey, '-o', 'IdentitiesOnly=yes')
+    }
+    $macForPy = ($MacAddress -replace '-', ':').ToUpper()
+    $bc = $Relay.Broadcast
+    $remoteCmd = $null
+    if ($Relay.Script) {
+        $remoteCmd = "bash '$($Relay.Script)' '$macForPy' '$bc'"
+    } else {
+        $macHex = ($MacAddress -replace '[:-]', '').ToLower()
+        $remoteCmd = @"
+python3 -c "import socket; mac=bytes.fromhex('$macHex'); p=b'\xff'*6+mac*16; s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1); [s.sendto(p,(t,9)) for t in ('$bc','255.255.255.255')]; print('WoL sent for $macForPy via $bc')"
+"@
+    }
+    Write-Host "[remote-stream] WoL via linuxbox ($target) for $macForPy broadcast $bc"
+    try {
+        $out = & ssh @sshArgs $target $remoteCmd 2>&1 | Out-String
+        Write-Host $out.TrimEnd()
+        return ($LASTEXITCODE -eq 0)
+    } catch {
+        Write-Warning "linuxbox WoL failed: $_"
+        return $false
+    }
+}
+
 function Send-WakeOnLan {
     param(
         [Parameter(Mandatory)][string]$MacAddress

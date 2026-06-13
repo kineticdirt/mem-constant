@@ -1,0 +1,25 @@
+TAILNET QUICK REFERENCE
+=====================
+
+Account: abhinavall0123@gmail.com
+
+Prefer MagicDNS NAMES below over 100.x IPs (IPs change on re-auth).
+
+linuxbox (always on)     raspbian-bullseye-aml-s905x-cc   100.122.108.94   ssh potato
+desktop (Moonlight)      desktop-igqesd4                  (re-auth: IP changes; name stable)
+laptop (after join)      abhi-m15-laptop                  100.77.115.62
+desktop FQDN             desktop-igqesd4.tail666f7c.ts.net
+
+Wake MAC (desktop)       58-10-31-EA-9A-2D
+LAN broadcast (WoL)      192.168.7.255
+
+Scripts: E:\scripts\
+  Verify-Tailnet.ps1
+  Test-RemoteTailnet.ps1
+  Run-From-Laptop.ps1
+  Fix-Tailscale-Windows-Admin.cmd  (Admin: repair logout loop)
+
+Pixi RP (browser, no KVM): E:\ObsidianWriterStack\scripts\
+  Open-PixiRP.cmd           (laptop)
+  Start-PixiStack.cmd       (desktop)
+  Enable-PixiTailnetServe.cmd (desktop)

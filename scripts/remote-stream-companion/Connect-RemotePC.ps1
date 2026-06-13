@@ -10,7 +10,9 @@
   Key in config Peers (e.g. Desktop, Laptop). Defaults to config DefaultPeer.
 #>
 param(
-    [string]$PeerName
+    [string]$PeerName,
+    [switch]$LocalWakeOnly,
+    [switch]$SkipWake
 )
 
 $ErrorActionPreference = 'Stop'
@@ -47,8 +49,15 @@ if (-not $retrySec) { $retrySec = 10 }
 
 Write-Host "[remote-stream] Target peer: $name  StreamHost: $hostName  Port: $port"
 
-if (-not (Test-IsPlaceholderMac -Mac $wakeMac)) {
-    [void](Send-WakeOnLan -MacAddress $wakeMac)
+if (-not $SkipWake -and -not (Test-IsPlaceholderMac -Mac $wakeMac)) {
+    $woke = $false
+    $relay = Get-WakeRelaySettings -Config $config
+    if ($relay -and -not $LocalWakeOnly) {
+        $woke = Send-WakeOnLanViaLinuxbox -MacAddress $wakeMac -Relay $relay
+    }
+    if (-not $woke) {
+        [void](Send-WakeOnLan -MacAddress $wakeMac)
+    }
     Write-Host "[remote-stream] Waiting ${wakeWait}s after WoL before probing port..."
     Start-Sleep -Seconds $wakeWait
 }

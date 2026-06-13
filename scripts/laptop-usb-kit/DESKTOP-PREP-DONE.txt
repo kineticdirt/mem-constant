@@ -1,0 +1,18 @@
+DESKTOP PREP (done at home before handoff)
+==========================================
+
+Date: 2026-06-12
+Machine: desktop-igqesd4 (100.118.226.87)
+
+Already configured on desktop:
+  [x] ApolloService running
+  [x] Wi-Fi wake armed (Realtek 8852CE WiFi 6E PCI-E NIC)
+  [x] linuxbox WoL relay (~/bin/wake-desktop.sh)
+  [x] Tailscale on desktop + linuxbox online
+  [x] SSH key placed on this USB (secrets\id_rsa_potato)
+
+When leaving home:
+  - Put desktop to SLEEP (Win+X, U, S) — NOT Shutdown
+  - Leave linuxbox powered on
+
+Laptop owner: follow README FIRST.txt only. Ignore old LaptopCursor-Setup\ and RemotePC-Setup\ subfolders if present — use E:\scripts\ instead.

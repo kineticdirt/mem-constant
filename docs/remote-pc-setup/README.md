@@ -74,7 +74,7 @@ Service: **ApolloService** (process may show as **sunshinesvc**). Listening port
 | Machine | Tailscale IPv4 |
 |---------|----------------|
 | abhi-m15-laptop | 100.77.115.62 |
-| desktop-igqesd4 | 100.96.132.49 |
+| desktop-igqesd4 | 100.118.226.87 |
 
 Confirm with `tailscale status` — offline peers cannot be streamed to until they are online.
 
@@ -98,6 +98,28 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\abhinav\Desktop
 ```
 
 **Wake-on-LAN:** `WakeMac` must be the **target** PC’s NIC MAC (`Get-NetAdapter -Physical`). Wi‑Fi WoL is often unreliable; Ethernet is better for WoL.
+
+### Wake desktop from sleep while away (no smart plug)
+
+Laptop WoL broadcasts only work on the **same LAN**. When you are remote, **`WakeRelay`** in `config.psd1` SSHes to **linuxbox** (`100.122.108.94`) and sends the magic packet on the home subnet (`192.168.7.255` for `192.168.4.0/22`).
+
+**One-time on the desktop (Apollo host):**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\remote-stream-companion\Enable-DesktopWake.ps1
+```
+
+Run as **Administrator** so `powercfg -deviceenablewake` can arm the Wi‑Fi NIC. Leave the PC in **Sleep** (not full shutdown) when you go away.
+
+**From the laptop:**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File E:\RemotePC-Setup\scripts\Run-From-Laptop.ps1
+```
+
+Flow: Tailscale → SSH to linuxbox → WoL → wait for Apollo port **47984** on `100.118.226.87` → Moonlight.
+
+Manual WoL test on linuxbox: `scripts/linuxbox/wake-desktop.sh 58:10:31:EA:9A:2D 192.168.7.255`
 
 ---
 
