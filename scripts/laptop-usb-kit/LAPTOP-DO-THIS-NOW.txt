@@ -1,0 +1,53 @@
+LAPTOP — DO THIS NOW
+====================
+(USB from desktop. Open in Cursor on abhi-m15-laptop.)
+
+DESKTOP IS READY (verified 2026-06-13). You finish the last 3 steps.
+
+--------------------------------------------------------------
+FOR CURSOR AGENT ON LAPTOP — execute in order, report each result
+--------------------------------------------------------------
+
+Say to the user: "Reading E:\FOR-CURSOR-ON-LAPTOP.txt and running setup."
+
+STEP A — Find USB letter (if not E:):
+  Get-PSDrive -PSProvider FileSystem | Where-Object { Test-Path ($_.Root + 'LAPTOP-DO-THIS-NOW.txt') }
+
+STEP B — Run setup (Admin; user clicks Yes):
+  Double-click:  <USB>\SETUP-EVERYTHING-Admin.cmd
+  OR:
+  powershell -NoProfile -ExecutionPolicy Bypass -File <USB>\scripts\Setup-Everything.ps1
+
+STEP C — Verify tailnet (run in terminal, paste full output):
+  powershell -NoProfile -ExecutionPolicy Bypass -File <USB>\scripts\Test-RemoteTailnet.ps1 -SkipMoonlight
+
+STEP D — Pair Moonlight (NEEDS USER + DESKTOP AWAKE):
+  Tell user:
+    1. Open Moonlight -> Add PC -> desktop-igqesd4
+    2. Tell desktop owner the 4-digit PIN
+    3. Desktop enters PIN at https://127.0.0.1:47990 (login: E:\secrets\apollo-credentials.txt)
+    4. In Moonlight click Desktop — confirm full screen works
+
+STEP E — Hotspot test BEFORE TRAVEL (NEEDS USER on phone hotspot):
+  User disconnects home Wi-Fi, uses hotspot only.
+  Run:  <USB>\scripts\Test-RemoteTailnet.cmd
+  All [PASS] required. Report failures.
+
+STEP F — Report back:
+  - tailscale status
+  - Test-RemoteTailnet results
+  - Moonlight paired: yes/no
+  - Hotspot test: done/pending
+
+Full agent spec:  <USB>\FOR-CURSOR-ON-LAPTOP.txt
+Human steps:      <USB>\LAPTOP-INSTRUCTIONS.txt
+
+Do NOT use && between commands. Do NOT run tailscale up --reset.
+
+--------------------------------------------------------------
+USER: paste this into Cursor on the laptop
+--------------------------------------------------------------
+
+Read E:\LAPTOP-DO-THIS-NOW.txt and E:\FOR-CURSOR-ON-LAPTOP.txt.
+You are on the laptop. Run SETUP-EVERYTHING-Admin.cmd, then Test-RemoteTailnet,
+then walk me through Moonlight pairing to desktop-igqesd4. Desktop is awake at home.

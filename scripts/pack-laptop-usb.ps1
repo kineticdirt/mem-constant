@@ -21,6 +21,7 @@ New-Item -ItemType Directory -Force -Path $Secrets | Out-Null
 # Root docs from kit
 $rootFiles = @(
     'START-HERE.txt',
+    'LAPTOP-DO-THIS-NOW.txt',
     'LAPTOP-INSTRUCTIONS.txt',
     'FOR-CURSOR-ON-LAPTOP.txt',
     'README FIRST.txt',
@@ -142,4 +143,4 @@ foreach ($old in @('LaptopCursor-Setup', 'RemotePC-Setup')) {
 }
 
 Write-Host ""
-Write-Host "Done. Give USB to laptop. Open E:\LAPTOP-INSTRUCTIONS.txt on laptop."
+Write-Host "Done. Give USB to laptop. Open E:\LAPTOP-DO-THIS-NOW.txt on laptop."

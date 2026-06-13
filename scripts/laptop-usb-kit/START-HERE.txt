@@ -1,5 +1,5 @@
 OPEN THIS FILE FIRST ON THE LAPTOP:
 
-  LAPTOP-INSTRUCTIONS.txt
+  LAPTOP-DO-THIS-NOW.txt
 
-(Everything you need is in that one file.)
+(Cursor agent: read that file and execute every step.)
