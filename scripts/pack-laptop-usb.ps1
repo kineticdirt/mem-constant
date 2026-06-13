@@ -27,6 +27,7 @@ $rootFiles = @(
     'DESKTOP-PREP-DONE.txt',
     'POWERSHELL-SCRIPTS.txt',
     'APOLLO-LOGIN.txt',
+    'TRANSFER-TO-LAPTOP.txt',
     'SETUP-EVERYTHING-Admin.cmd'
 )
 foreach ($f in $rootFiles) {
@@ -115,8 +116,17 @@ Copy-Item -Force $keySrc (Join-Path $Secrets 'id_rsa_potato')
 Copy to laptop:
   copy E:\secrets\id_rsa_potato %USERPROFILE%\.ssh\
 Git Bash: chmod 600 ~/.ssh/id_rsa_potato
+Apollo login: see apollo-credentials.txt in this folder.
 Delete this secrets folder from USB after copy if you want.
 '@ | Set-Content -Path (Join-Path $Secrets 'README.txt') -Encoding UTF8
+
+$apolloLocal = Join-Path $Kit 'secrets-local\apollo-credentials.txt'
+if (Test-Path -LiteralPath $apolloLocal) {
+    Copy-Item -Force $apolloLocal (Join-Path $Secrets 'apollo-credentials.txt')
+    Write-Host 'secrets: id_rsa_potato + apollo-credentials.txt'
+} else {
+    Write-Host 'secrets: id_rsa_potato (no apollo-credentials.txt - add secrets-local\apollo-credentials.txt)'
+}
 
 # Mark old subfolders superseded
 foreach ($old in @('LaptopCursor-Setup', 'RemotePC-Setup')) {

@@ -5,6 +5,12 @@ id_rsa_potato
 # Machine-specific remote streaming config (Tailscale IPs, MACs)
 scripts/remote-stream-companion/config.psd1
 
+# USB kit local secrets (Apollo password etc.) - copied to E: only, never commit
+scripts/laptop-usb-kit/secrets-local/
+
+# Hermes external continuity checkpoint (local machine state)
+hermes/state.json
+
 # Python packaging / test
 *.egg-info/
 dist/

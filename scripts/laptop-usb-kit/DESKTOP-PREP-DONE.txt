@@ -6,10 +6,16 @@ Machine: desktop-igqesd4 (100.118.226.87)
 
 Already configured on desktop:
   [x] ApolloService running
+  [x] Apollo web login working (user apollo; password on USB secrets\apollo-credentials.txt)
+  [x] Tailscale online; desktop key expiry DISABLED
   [x] Wi-Fi wake armed (Realtek 8852CE WiFi 6E PCI-E NIC)
   [x] linuxbox WoL relay (~/bin/wake-desktop.sh)
-  [x] Tailscale on desktop + linuxbox online
-  [x] SSH key placed on this USB (secrets\id_rsa_potato)
+  [x] Tailscale on desktop + linuxbox + laptop online
+  [x] SSH key on this USB (secrets\id_rsa_potato)
+
+Still do ONCE at home (needs laptop present):
+  [ ] Moonlight paired to desktop-igqesd4 (see APOLLO-LOGIN.txt)
+  [ ] Hotspot test from laptop (scripts\Test-RemoteTailnet.cmd)
 
 When leaving home:
   - Put desktop to SLEEP (Win+X, U, S) — NOT Shutdown
