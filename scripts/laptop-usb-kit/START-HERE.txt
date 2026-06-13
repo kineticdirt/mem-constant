@@ -1,5 +1,5 @@
 OPEN THIS FILE FIRST ON THE LAPTOP:
 
-  LAPTOP-DO-THIS-NOW.txt
+  USB-READ-THIS-FIRST.txt
 
-(Cursor agent: read that file and execute every step.)
+(If you see NOTE-FROM-LAPTOP.txt or RemotePC-Setup\ — ignore them; superseded.)

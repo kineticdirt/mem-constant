@@ -1,0 +1,54 @@
+USB HANDOFF — READ THIS (desktop + laptop reconciled)
+=====================================================
+Updated on desktop after USB returned from laptop. 2026-06-13
+
+IGNORE THESE (old / wrong — caused confusion):
+  E:\NOTE-FROM-LAPTOP.txt          -> says run RemotePC-Setup IMPLEMENT (WRONG)
+  E:\DESKTOP-DO-THIS-NOW.txt       -> admin / TempApollo2026! (WRONG)
+  E:\RemotePC-Setup\               -> SUPERSEDED old kit
+  E:\LaptopCursor-Setup\           -> SUPERSEDED old kit
+  E:\secrets\CREDENTIALS-IMPORTANT.txt -> admin login (WRONG)
+
+USE THESE (canonical):
+  E:\LAPTOP-DO-THIS-NOW.txt
+  E:\LAPTOP-INSTRUCTIONS.txt
+  E:\FOR-CURSOR-ON-LAPTOP.txt
+  E:\secrets\apollo-credentials.txt   -> apollo / stream4620
+
+--------------------------------------------------------------
+DESKTOP STATUS (verified on desktop-igqesd4 just now)
+--------------------------------------------------------------
+  [x] Tailscale online (100.118.226.87), key expiry disabled
+  [x] linuxbox online (100.122.108.94), SSH + wake script OK
+  [x] Laptop reachable on tailnet (pong ~11ms)
+  [x] ApolloService RUNNING, auto-start, ports 47984/47990
+  [x] Apollo login: apollo / stream4620
+  [x] Test-RemoteTailnet.ps1 -SkipMoonlight: ALL PASS
+
+  [ ] Moonlight NOT paired yet (no client certs in Apollo)
+  [ ] Hotspot test from laptop (phone hotspot, not home Wi-Fi)
+
+DO NOT run E:\RemotePC-Setup\IMPLEMENT-DESKTOP-ADMIN.bat
+  It would reset Apollo to a different login and fight the working setup.
+
+--------------------------------------------------------------
+ONLY STEP LEFT — Moonlight pairing (both machines at home now)
+--------------------------------------------------------------
+LAPTOP:
+  1. Open Moonlight
+  2. Add PC -> desktop-igqesd4  (or 100.118.226.87)
+  3. Note the 4-digit PIN
+
+DESKTOP (this PC):
+  4. Browser -> https://127.0.0.1:47990
+  5. Login apollo / stream4620  (see apollo-credentials.txt)
+  6. PIN tab -> enter Moonlight PIN -> Send
+
+LAPTOP:
+  7. Click desktop in Moonlight -> Desktop
+  8. Full screen = SUCCESS
+
+Then on laptop (hotspot test before travel):
+  E:\scripts\Test-RemoteTailnet.cmd  -> all [PASS]
+
+When leaving: desktop SLEEP (not Shutdown), linuxbox stays on.

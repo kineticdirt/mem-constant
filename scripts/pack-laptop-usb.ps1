@@ -21,6 +21,7 @@ New-Item -ItemType Directory -Force -Path $Secrets | Out-Null
 # Root docs from kit
 $rootFiles = @(
     'START-HERE.txt',
+    'USB-READ-THIS-FIRST.txt',
     'LAPTOP-DO-THIS-NOW.txt',
     'LAPTOP-INSTRUCTIONS.txt',
     'FOR-CURSOR-ON-LAPTOP.txt',
@@ -136,11 +137,13 @@ if (Test-Path -LiteralPath $apolloLocal) {
 foreach ($old in @('LaptopCursor-Setup', 'RemotePC-Setup')) {
     $p = Join-Path $E $old
     if (Test-Path $p) {
-        'SUPERSEDED — use drive root README FIRST.txt and E:\scripts\' |
+        'SUPERSEDED — DO NOT USE. Wrong paths/credentials. Use drive root USB-READ-THIS-FIRST.txt and E:\scripts\' |
             Set-Content -Path (Join-Path $p 'START-HERE.txt') -Encoding UTF8
+        'DO NOT RUN IMPLEMENT-DESKTOP-ADMIN.bat — desktop already configured. See E:\USB-READ-THIS-FIRST.txt' |
+            Set-Content -Path (Join-Path $p 'DO-NOT-USE-OLD-KIT.txt') -Encoding UTF8
         Write-Host "marked superseded: $old"
     }
 }
 
 Write-Host ""
-Write-Host "Done. Give USB to laptop. Open E:\LAPTOP-DO-THIS-NOW.txt on laptop."
+Write-Host "Done. Give USB to laptop. Open E:\USB-READ-THIS-FIRST.txt on laptop."
