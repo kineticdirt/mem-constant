@@ -10,6 +10,11 @@ Replace `E:` below with your USB drive letter from File Explorer.
 | linuxbox | 100.122.108.94 (`ssh potato`) |
 | desktop | 100.118.226.87 (Moonlight) |
 
+> **DO THIS ONCE, FROM ANY BROWSER (before you leave):** disable Tailscale **key expiry** so the
+> desktop never silently drops off the tailnet mid-trip. Go to
+> <https://login.tailscale.com/admin/machines> → `desktop-igqesd4` → ⋯ → **Disable key expiry**.
+> Repeat for `raspbian-bullseye-aml-s905x-cc` (linuxbox). Without this you can get locked out.
+
 ---
 
 ## Step 1 — Install Tailscale
@@ -91,7 +96,15 @@ Install once:
 winget install -e --id MoonlightGameStreamingProject.Moonlight --accept-source-agreements --accept-package-agreements
 ```
 
-**Pair once at home:** Moonlight → Add PC → `100.118.226.87` → PIN from Apollo on desktop (`https://127.0.0.1:47990`).
+**Pair once (REQUIRED — do at home, desktop must be awake & on tailnet):**
+
+1. On the laptop, open **Moonlight** → **Add PC manually** → enter `100.118.226.87`.
+2. Moonlight shows a 4-digit **PIN**.
+3. On the **desktop**, open Apollo web UI `https://127.0.0.1:47990` (user `apollo`) → **PIN** tab → type the PIN → Send.
+4. Moonlight now lists the desktop. Click it → **Desktop** to stream the full screen.
+
+> Pairing is a one-time trust handshake; afterward it works from **any** network over Tailscale.
+> If Moonlight still shows the **old** IP `100.96.132.49`, delete that host first, then add the new one.
 
 **From anywhere (wakes desktop from sleep):**
 

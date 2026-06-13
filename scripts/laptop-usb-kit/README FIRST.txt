@@ -29,6 +29,17 @@ On the LAPTOP, in order:
   6. Pixi RP only (browser)  ->  ObsidianWriterStack\scripts\Open-PixiRP.cmd
   7. Hotspot test  ->  scripts\Test-RemoteTailnet.cmd
 
+ONE-TIME MUST-DO (for remote desktop viewing over the internet):
+  * Disable Tailscale KEY EXPIRY (any browser):
+      https://login.tailscale.com/admin/machines
+      -> desktop-igqesd4 -> ... -> Disable key expiry  (repeat for linuxbox)
+    Otherwise the desktop drops off the tailnet mid-trip = locked out.
+  * PAIR Moonlight to the desktop ONCE at home (desktop awake):
+      Moonlight -> Add PC -> desktop-igqesd4 (or 100.118.226.87)
+      -> enter PIN in Apollo web UI on desktop (https://127.0.0.1:47990)
+    After pairing, full-screen streaming works from ANY network.
+  Details in FROM-SCRATCH-LAPTOP.md (Step 5B).
+
 Home: linuxbox on (100.122.108.94)
 Desktop when you leave: SLEEP not Shutdown
 
