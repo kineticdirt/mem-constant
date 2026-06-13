@@ -1,0 +1,63 @@
+APOLLO LOGIN + MOONLIGHT PAIRING (full remote desktop control)
+==============================================================
+
+Apollo is the streaming HOST on the desktop. Moonlight (laptop) connects to it.
+You only touch the Apollo WEB UI to PAIR a new device (one-time) or change settings.
+
+--------------------------------------------------------------
+APOLLO WEB UI
+--------------------------------------------------------------
+Username: apollo
+Password: set on the desktop (see "If you don't know the password" below).
+          It is NOT stored in plaintext anywhere - only a salted hash, so it
+          cannot be looked up. If unknown, reset it (steps below).
+
+Open the web UI:
+  * On the DESKTOP itself:   https://127.0.0.1:47990
+  * From the LAPTOP (tailnet, Tailscale connected):
+        https://desktop-igqesd4:47990      (preferred - name is stable)
+        https://100.118.226.87:47990       (IP - changes if desktop re-keys)
+
+Browser shows "Not secure" / certificate warning - this is NORMAL (self-signed,
+local). Click Advanced -> Proceed / Continue.
+
+--------------------------------------------------------------
+PAIR MOONLIGHT (do ONCE at home, desktop awake)
+--------------------------------------------------------------
+1. Laptop: open Moonlight -> Add PC (manual) -> enter:
+       desktop-igqesd4        (or 100.118.226.87)
+2. Moonlight shows a 4-digit PIN.
+3. Open the Apollo web UI (URLs above), log in as apollo.
+4. Go to the PIN tab -> type Moonlight's PIN -> Send.
+5. Moonlight now lists the desktop. Click it -> "Desktop" = full screen,
+   full control as the logged-in user.
+
+After pairing you do NOT need the web UI again - streaming works from any
+network over Tailscale. Re-pair only if you reinstall Moonlight/Apollo or
+reset the desktop.
+
+--------------------------------------------------------------
+IF YOU DON'T KNOW THE PASSWORD (reset it - must be done ON THE DESKTOP)
+--------------------------------------------------------------
+The reset command runs the Apollo binary directly, so it has to happen on the
+desktop (an admin Command Prompt). You can't do this from the laptop unless you
+already have a remote session into the desktop.
+
+  net stop ApolloService
+  "C:\Program Files\Apollo\sunshine.exe" --creds apollo YOUR_NEW_PASSWORD
+  net start ApolloService
+
+Then log in with  apollo / YOUR_NEW_PASSWORD.
+
+RECOMMENDED: set the password at home BEFORE you travel, and write it down
+somewhere safe (e.g. your password manager, or E:\secrets\ on this USB - the
+secrets folder is kept out of git). Do not commit the password to the repo.
+
+--------------------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------------------
+Web UI won't open from laptop  -> Tailscale not Connected, or desktop asleep
+                                  (wake it first: scripts\Run-From-Laptop.cmd)
+Moonlight "host unreachable"   -> wake desktop, confirm Tailscale, then retry
+"Not secure" warning           -> expected; click Advanced -> Proceed
+Forgot password                -> reset on desktop (steps above)

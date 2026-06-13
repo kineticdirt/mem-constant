@@ -3,8 +3,20 @@ README FIRST — laptop tailnet + remote kit (500MB USB)
 
 Prepared on DESKTOP. Plug into the LAPTOP.
 
-OPEN NEXT:
-  FROM-SCRATCH-LAPTOP.md
+FASTEST PATH (one click, does everything):
+  Double-click  SETUP-EVERYTHING-Admin.cmd  (drive root).
+  - It asks for Administrator (click Yes), then auto-detects the machine:
+      * On the LAPTOP: installs Tailscale + Moonlight (+ Git), installs the SSH
+        key, writes SSH config, starts Tailscale login, opens Moonlight for
+        pairing, and verifies the path to the desktop.
+      * On the DESKTOP: ensures Apollo + Tailscale are up/auto-start, arms
+        wake-from-sleep, opens the key-expiry admin page.
+  - Safe to re-run. Read the [OK]/[WARN]/[FAIL] summary at the end.
+  - Still finish the two MANUAL one-time items below (pairing PIN + key expiry).
+
+OPEN NEXT (manual / reference):
+  FROM-SCRATCH-LAPTOP.md   (full step-by-step)
+  APOLLO-LOGIN.txt         (Apollo password + Moonlight pairing for full desktop control)
 
 IMPORTANT — PowerShell scripts on Windows:
   Windows often blocks .ps1 files ("running scripts is disabled").

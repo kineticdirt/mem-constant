@@ -61,7 +61,7 @@ Write-Host '       [x] Allow this device to wake the computer'
 Write-Host '       [x] Only allow a magic packet to wake the computer (if shown)'
 Write-Host '  2. BIOS: Wake on LAN / Wake on WLAN enabled; ErP/Eco off if WoL fails'
 Write-Host '  3. Use Sleep (S3), not Shutdown, when leaving the PC for remote access'
-Write-Host '  4. Wi-Fi WoL is less reliable than Ethernet — test before you travel'
+Write-Host '  4. Wi-Fi WoL is less reliable than Ethernet - test before you travel'
 
 $fast = (powercfg /a 2>&1 | Out-String)
 if ($fast -match 'Fast Startup') {

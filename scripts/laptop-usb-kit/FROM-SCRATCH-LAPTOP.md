@@ -105,6 +105,10 @@ winget install -e --id MoonlightGameStreamingProject.Moonlight --accept-source-a
 
 > Pairing is a one-time trust handshake; afterward it works from **any** network over Tailscale.
 > If Moonlight still shows the **old** IP `100.96.132.49`, delete that host first, then add the new one.
+>
+> Apollo login is `apollo` / your password. The password is **not stored in plaintext** — if you
+> don't know it, reset it on the desktop. Full details (incl. remote web-UI URL
+> `https://desktop-igqesd4:47990`): see **`APOLLO-LOGIN.txt`** on this USB.
 
 **From anywhere (wakes desktop from sleep):**
 

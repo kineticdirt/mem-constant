@@ -25,7 +25,9 @@ $rootFiles = @(
     'CONNECTION-SUMMARY.txt',
     'TEST-NOW-BEFORE-TRAVEL.txt',
     'DESKTOP-PREP-DONE.txt',
-    'POWERSHELL-SCRIPTS.txt'
+    'POWERSHELL-SCRIPTS.txt',
+    'APOLLO-LOGIN.txt',
+    'SETUP-EVERYTHING-Admin.cmd'
 )
 foreach ($f in $rootFiles) {
     Copy-Item -Force (Join-Path $Kit $f) (Join-Path $E $f)
@@ -40,6 +42,7 @@ $copyScripts = @(
     'RemoteStreamCommon.ps1',
     'Enable-DesktopWake.ps1',
     'Test-RemoteTailnet.ps1',
+    'Setup-Everything.ps1',
     'Connect-RustDesk.ps1',
     'Open-ApolloWebUI.ps1',
     'config.psd1'

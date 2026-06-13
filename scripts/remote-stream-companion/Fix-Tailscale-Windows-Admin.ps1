@@ -41,8 +41,8 @@ if (Test-Path -LiteralPath $pd) {
 }
 
 Write-Host ''
-Write-Host 'Opening Tailscale app — sign in ONCE with abhinavall0123@gmail.com in the GUI.' -ForegroundColor Yellow
-Write-Host 'Do NOT run: tailscale login  (from Cursor/terminals — it causes instant logout loops)' -ForegroundColor Yellow
+Write-Host 'Opening Tailscale app - sign in ONCE with abhinavall0123@gmail.com in the GUI.' -ForegroundColor Yellow
+Write-Host 'Do NOT run: tailscale login  (from Cursor/terminals - it causes instant logout loops)' -ForegroundColor Yellow
 Start-Process -FilePath $ipn
 
 Start-Sleep -Seconds 8
