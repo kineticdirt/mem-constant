@@ -40,14 +40,17 @@ If nothing is unchecked anywhere → reply `IDLE` only.
 
 Set by `scripts/linuxbox/install-hermes-profiles.sh`. Cost-aware on a small OpenRouter budget:
 
-| Profile | Use | Model (intended) |
+| Profile | Use | Model (current, 2026-06-27) |
 |---------|-----|------------------|
-| `fast`  | high-frequency ticks, git pull, IDLE | a **free** model (e.g. Qwen free) — never burn paid credit on 30s ticks |
-| `think` | campaign work, digests, chat | quality model (Hermes 4 / DeepSeek V4) |
-| `meta`  | dashboard self-improvement | same as think |
+| `fast`  | high-frequency ticks, git pull, IDLE | `qwen/qwen3-next-80b-a3b-instruct:free` — **free**; never burn paid credit on 30s ticks |
+| `think` | campaign work, digests, chat | `nousresearch/hermes-4-70b` (newest Nous; cheaper than 405b) |
+| `meta`  | dashboard self-improvement | `nousresearch/hermes-4-70b` |
 
-Fallbacks are configured per profile. **Do not** point the `fast` lane at a paid model without
+Fallback for think/meta: `deepseek/deepseek-v4-flash` (cheap MoE) → Qwen free.
+OpenRouter budget is small (**$5 cap**). **Do not** point the `fast` lane at a paid model without
 human sign-off — the fast tick runs every ~30s–1m and will drain credit.
+The literal Nous MoE (Mixtral 8x7B) is delisted from OpenRouter; `hermes-4-*` are dense.
+Change models via `scripts/linuxbox/install-hermes-profiles.sh` then re-run it on the box.
 
 ## Update gate (supply-chain "pwned" check before upgrading anything)
 
