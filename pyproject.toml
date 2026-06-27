@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mem-constant"
-version = "0.3.0"
+version = "0.4.0"
 description = "Autonomous memory design package: MemPalace + working cache, with an easy scaffold CLI."
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -36,6 +36,7 @@ def cmd_init(ns: argparse.Namespace) -> int:
             yes=ns.yes,
             with_cursor_rules=ns.with_cursor_rules,
             with_ide_scaffolds=ns.with_ide_scaffolds,
+            with_cli_scaffolds=ns.with_cli_scaffolds,
             with_workflow_skills=ns.with_workflow_skills,
             skip_specs=ns.skip_specs,
         ):
@@ -137,10 +138,16 @@ def cmd_doctor(_ns: argparse.Namespace) -> int:
         print(f"carryover.last_session: {'present' if ls.is_file() else 'missing'} ({ls})")
         claude_md = project_root / "CLAUDE.md"
         vscode_instr = project_root / ".github" / "copilot-instructions.md"
+        agents_md = project_root / "AGENTS.md"
+        gemini_md = project_root / "GEMINI.md"
         print(f"claude.project_instructions: {'present' if claude_md.is_file() else 'missing'} ({claude_md})")
         print(
             f"vscode.project_instructions: {'present' if vscode_instr.is_file() else 'missing'} ({vscode_instr})"
         )
+        print(
+            f"codex_opencode.project_instructions: {'present' if agents_md.is_file() else 'missing'} ({agents_md})"
+        )
+        print(f"gemini.project_instructions: {'present' if gemini_md.is_file() else 'missing'} ({gemini_md})")
         ws_hooks = project_root / ".cursor" / "hooks.json"
         if ws_hooks.is_file():
             has_mc = _json_contains_token(ws_hooks, "mem_constant_carryover_hooks.py")
@@ -251,6 +258,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--with-ide-scaffolds",
         action="store_true",
         help="Write CLAUDE.md and .github/copilot-instructions.md mem-constant blocks (merge when --yes).",
+    )
+    p_init.add_argument(
+        "--with-cli-scaffolds",
+        action="store_true",
+        help="Write AGENTS.md (Codex CLI + opencode) and GEMINI.md (Gemini CLI) mem-constant blocks (merge when --yes).",
     )
     p_init.add_argument(
         "--with-workflow-skills",

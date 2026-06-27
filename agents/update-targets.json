@@ -1,0 +1,64 @@
+{
+  "_doc": "Targets for the recurring supply-chain-gated update lane. gate=auto-upgrade-if-SAFE (human policy 2026-06-27). See scripts/linuxbox/safe-update-check.sh and CLAUDE.md > Update gate.",
+  "cadence_days": 3,
+  "gate": "auto_if_safe",
+  "targets": [
+    {
+      "name": "hermes",
+      "ecosystem": "custom",
+      "kind": "agent-framework",
+      "repo": "NousResearch/hermes-agent",
+      "version_cmd": "hermes --version",
+      "upgrade_cmd": "hermes update",
+      "advisory_lookup": "github:NousResearch/hermes-agent",
+      "notes": "Nous Hermes Agent. Snapshot version before upgrade; smoke `hermes chat -q ping` after."
+    },
+    {
+      "name": "mem-constant",
+      "ecosystem": "custom",
+      "kind": "library",
+      "package": "mem-constant",
+      "repo": "kineticdirt/mem-constant",
+      "version_cmd": "mem-constant --version",
+      "upgrade_cmd": "pip install -U git+https://github.com/kineticdirt/mem-constant.git",
+      "advisory_lookup": "github:kineticdirt/mem-constant",
+      "notes": "Own package, GitHub/source-installed (not on PyPI). Real supply-chain risk is its deps: run pip-audit in the env where it's installed (PC) after upgrade."
+    },
+    {
+      "name": "mempalace",
+      "ecosystem": "pip",
+      "kind": "library",
+      "package": "mempalace",
+      "version_cmd": "python3 -c 'import mempalace,sys; print(getattr(mempalace,\"__version__\",\"?\"))'",
+      "upgrade_cmd": "pip install -U mempalace",
+      "advisory_lookup": "osv:PyPI:mempalace"
+    },
+    {
+      "name": "claude-mem",
+      "ecosystem": "npm",
+      "kind": "tool",
+      "package": "claude-mem",
+      "upgrade_cmd": "npx claude-mem@latest install --ide cursor",
+      "advisory_lookup": "osv:npm:claude-mem",
+      "notes": "No version_cmd: npx @latest would download/hang on the 2GB box. Gate relies on npm-registry latest + OSV."
+    },
+    {
+      "name": "dashboard-node-deps",
+      "ecosystem": "npm",
+      "kind": "deps",
+      "path": "scripts/linuxbox",
+      "version_cmd": "node --version",
+      "upgrade_cmd": "npm audit fix",
+      "advisory_lookup": "npm-audit",
+      "notes": "Dashboard server uses Node stdlib only today; audit guards future deps."
+    },
+    {
+      "name": "situation-monitor-python",
+      "ecosystem": "pip",
+      "kind": "deps",
+      "path": "scripts/situation_monitor",
+      "advisory_lookup": "pip-audit",
+      "notes": "Dependency-free stdlib runner today; pip-audit guards future deps."
+    }
+  ]
+}

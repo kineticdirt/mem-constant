@@ -169,6 +169,56 @@ def test_init_with_ide_scaffolds_writes_claude_and_vscode_files(tmp_path: Path) 
     assert (tmp_path / ".github" / "copilot-instructions.md").is_file()
 
 
+def test_init_with_cli_scaffolds_writes_agents_and_gemini(tmp_path: Path) -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+            "--with-cli-scaffolds",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    agents = tmp_path / "AGENTS.md"
+    gemini = tmp_path / "GEMINI.md"
+    assert agents.is_file()
+    assert gemini.is_file()
+    assert "mem-constant:start" in agents.read_text(encoding="utf-8")
+    assert "mem-constant:start" in gemini.read_text(encoding="utf-8")
+
+
+def test_init_cli_scaffolds_merge_existing_agents_md(tmp_path: Path) -> None:
+    (tmp_path / "AGENTS.md").write_text("# Existing project agents\n\nKeep me.\n", encoding="utf-8")
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mem_constant.cli",
+            "init",
+            "--path",
+            str(tmp_path),
+            "--yes",
+            "--skip-specs",
+            "--with-cli-scaffolds",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=_env(),
+    )
+    body = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Keep me." in body
+    assert "mem-constant:start" in body
+
+
 def test_resolve_init_target_redirects_home_default_path(tmp_path: Path) -> None:
     ns = SimpleNamespace(path=".")
     fake_home = tmp_path / "home"

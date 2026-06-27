@@ -229,12 +229,36 @@ def _install_ide_scaffolds(target: Path, yes: bool, log: list[str]) -> None:
     )
 
 
+def _install_cli_scaffolds(target: Path, yes: bool, log: list[str]) -> None:
+    """Write agent-instruction files for terminal coding agents.
+
+    - ``AGENTS.md`` is read by both Codex CLI and opencode.
+    - ``GEMINI.md`` is read by Gemini CLI.
+    Both use the ``mem-constant:start/end`` block so an existing file is merged, not clobbered.
+    """
+    _write_or_merge_text_file(
+        target / "AGENTS.md",
+        bundled_template("agents-mem-constant.md"),
+        yes=yes,
+        log=log,
+        rel_from=target,
+    )
+    _write_or_merge_text_file(
+        target / "GEMINI.md",
+        bundled_template("gemini-mem-constant.md"),
+        yes=yes,
+        log=log,
+        rel_from=target,
+    )
+
+
 def run_init(
     target: Path,
     *,
     yes: bool,
     with_cursor_rules: bool,
     with_ide_scaffolds: bool,
+    with_cli_scaffolds: bool = False,
     with_workflow_skills: bool = False,
     skip_specs: bool,
 ) -> list[str]:
@@ -281,6 +305,9 @@ def run_init(
 
     if with_ide_scaffolds:
         _install_ide_scaffolds(target, yes, log)
+
+    if with_cli_scaffolds:
+        _install_cli_scaffolds(target, yes, log)
 
     if with_workflow_skills:
         _install_workflow_skills(target, yes, log)
