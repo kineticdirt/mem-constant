@@ -653,6 +653,15 @@ function viewerMayGet(pathname) {
   return false;
 }
 
+/** Map /viewer/* to inner paths; public POC at https://abhinavall.net/Intel/ (no CF Access). */
+function splitPublicViewerPath(pathname) {
+  if (pathname === "/viewer" || pathname.startsWith("/viewer/")) {
+    const inner = pathname.slice("/viewer".length) || "/";
+    return { publicViewer: true, pathname: inner.startsWith("/") ? inner : `/${inner}` };
+  }
+  return { publicViewer: false, pathname };
+}
+
 // DASHBOARD_OPEN: temporary public-access toggle (reversible without code changes).
 //   "off"/unset -> token required for public (default, secure)
 //   "read"      -> public GET/HEAD allowed; mutating methods (POST) still need token
@@ -702,8 +711,9 @@ function presentedToken(req) {
   return null;
 }
 
-/** @returns {{ role: 'admin'|'viewer'|'local', source: string } | null} */
-function resolveAuth(req) {
+/** @returns {{ role: 'admin'|'viewer'|'local', source: string, public?: boolean } | null} */
+function resolveAuth(req, publicViewer) {
+  if (publicViewer) return { role: "viewer", source: "public_intel", public: true };
   if (isTrustedLocal(req)) return { role: "admin", source: "loopback" };
   if (OPEN_ALL) return { role: "admin", source: "open_all" };
 
@@ -733,8 +743,12 @@ function resolveAuth(req) {
   return null;
 }
 
-function isAuthorized(req, pathname) {
-  const auth = resolveAuth(req);
+function isAuthorized(req, pathname, publicViewer) {
+  if (publicViewer) {
+    if (req.method !== "GET" && req.method !== "HEAD") return false;
+    return viewerMayGet(pathname);
+  }
+  const auth = resolveAuth(req, false);
   if (!auth) {
     if (!DASHBOARD_TOKEN && !DASHBOARD_VIEWER_TOKEN) return false;
     return false;
@@ -747,11 +761,28 @@ function isAuthorized(req, pathname) {
   return false;
 }
 
-function authForRequest(req) {
-  return resolveAuth(req);
+function authForRequest(req, publicViewer) {
+  return resolveAuth(req, publicViewer);
 }
 
-function send401(res) {
+function responseHeaders(publicViewer) {
+  if (publicViewer) {
+    return {
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    };
+  }
+  return SECURITY_HEADERS;
+}
+
+function send401(res, publicViewer) {
+  if (publicViewer) {
+    res.writeHead(403, { ...responseHeaders(true), "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ error: "forbidden" }));
+    return;
+  }
   res.writeHead(401, {
     ...SECURITY_HEADERS,
     "WWW-Authenticate": 'Basic realm="linuxbox dashboard", charset="UTF-8"',
@@ -760,90 +791,96 @@ function send401(res) {
   res.end(JSON.stringify({ error: "unauthorized" }));
 }
 
-function sendJson(res, statusCode, body) {
-  res.writeHead(statusCode, { ...SECURITY_HEADERS, "Content-Type": "application/json; charset=utf-8" });
+function sendJson(res, statusCode, body, publicViewer) {
+  res.writeHead(statusCode, { ...responseHeaders(publicViewer), "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(body, null, 2));
 }
 
-function sendFile(res, filePath, contentType) {
-  res.writeHead(200, { ...SECURITY_HEADERS, "Content-Type": contentType });
+function sendFile(res, filePath, contentType, publicViewer) {
+  res.writeHead(200, { ...responseHeaders(publicViewer), "Content-Type": contentType });
   fs.createReadStream(filePath).pipe(res);
 }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://127.0.0.1");
-  const pathname = url.pathname;
+  const { publicViewer, pathname } = splitPublicViewerPath(url.pathname);
 
-  if (!isAuthorized(req, pathname)) {
-    send401(res);
+  if (!isAuthorized(req, pathname, publicViewer)) {
+    send401(res, publicViewer);
     return;
   }
 
-  const auth = authForRequest(req);
+  const auth = authForRequest(req, publicViewer);
 
   try {
     if (req.method === "GET" && pathname === "/api/session") {
-      sendJson(res, 200, {
-        role: auth?.role || "viewer",
-        viewer: auth?.role === "viewer",
-        capabilities: {
-          news: true,
-          intel: true,
-          public_reports: true,
-          agent_control: auth?.role === "admin",
-          chat: auth?.role === "admin",
-          inbox: auth?.role === "admin",
+      sendJson(
+        res,
+        200,
+        {
+          role: auth?.role || "viewer",
+          viewer: auth?.role === "viewer",
+          public: !!publicViewer,
+          capabilities: {
+            news: true,
+            intel: true,
+            public_reports: true,
+            agent_control: auth?.role === "admin",
+            chat: auth?.role === "admin",
+            inbox: auth?.role === "admin",
+          },
         },
-      });
+        publicViewer
+      );
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/status") {
       const health = await collectHealth();
-      sendJson(res, 200, { updated_at: new Date().toISOString(), ...health });
+      sendJson(res, 200, { updated_at: new Date().toISOString(), ...health }, publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/agent") {
-      sendJson(res, 200, await collectAgentState());
+      sendJson(res, 200, await collectAgentState(), publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/inbox") {
-      sendJson(res, 200, { updated_at: new Date().toISOString(), ...readHumanInbox() });
+      sendJson(res, 200, { updated_at: new Date().toISOString(), ...readHumanInbox() }, publicViewer);
       return;
     }
 
     if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
-      sendFile(res, path.join(STATIC_DIR, "index.html"), "text/html; charset=utf-8");
+      sendFile(res, path.join(STATIC_DIR, "index.html"), "text/html; charset=utf-8", publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/intel") {
-      sendJson(res, 200, await collectIntelState());
+      sendJson(res, 200, await collectIntelState(), publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/news") {
-      sendJson(res, 200, collectNewsState());
+      sendJson(res, 200, collectNewsState(), publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/news/brief") {
       const file = url.searchParams.get("file");
-      sendJson(res, 200, readSituationBrief(file));
+      sendJson(res, 200, readSituationBrief(file), publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/reports/public") {
-      sendJson(res, 200, { updated_at: new Date().toISOString(), all_reports: listPublicReports() });
+      sendJson(res, 200, { updated_at: new Date().toISOString(), all_reports: listPublicReports() }, publicViewer);
       return;
     }
 
     if (req.method === "GET" && pathname.startsWith("/api/reports/")) {
       const campaignId = pathname.slice("/api/reports/".length);
       const file = url.searchParams.get("file");
-      sendJson(res, 200, readReport(campaignId, file));
+      sendJson(res, 200, readReport(campaignId, file), publicViewer);
       return;
     }
 
@@ -853,40 +890,40 @@ const server = http.createServer(async (req, res) => {
       try {
         body = raw ? JSON.parse(raw) : {};
       } catch {
-        sendJson(res, 400, { error: "invalid_json" });
+        sendJson(res, 400, { error: "invalid_json" }, publicViewer);
         return;
       }
 
-      if (url.pathname === "/api/tasks") {
-        sendJson(res, 200, await appendTask(body.campaign, body.text || ""));
+      if (pathname === "/api/tasks") {
+        sendJson(res, 200, await appendTask(body.campaign, body.text || ""), publicViewer);
         return;
       }
 
-      if (url.pathname === "/api/chat") {
-        sendJson(res, 200, await runHermesChat(body.message || "", body.profile || "think"));
+      if (pathname === "/api/chat") {
+        sendJson(res, 200, await runHermesChat(body.message || "", body.profile || "think"), publicViewer);
         return;
       }
 
-      if (url.pathname === "/api/dashboard/suggest") {
-        sendJson(res, 200, await suggestDashboardImprovement(body.text || ""));
+      if (pathname === "/api/dashboard/suggest") {
+        sendJson(res, 200, await suggestDashboardImprovement(body.text || ""), publicViewer);
         return;
       }
 
-      if (url.pathname === "/api/inbox/reply") {
-        sendJson(res, 200, replyHumanInbox(body.id, body.answer || ""));
+      if (pathname === "/api/inbox/reply") {
+        sendJson(res, 200, replyHumanInbox(body.id, body.answer || ""), publicViewer);
         return;
       }
     }
 
     if (req.method === "HEAD") {
-      res.writeHead(200, SECURITY_HEADERS);
+      res.writeHead(200, responseHeaders(publicViewer));
       res.end();
       return;
     }
 
-    sendJson(res, 404, { error: "not_found" });
+    sendJson(res, 404, { error: "not_found" }, publicViewer);
   } catch (err) {
-    sendJson(res, 500, { error: err.message || "internal_error" });
+    sendJson(res, 500, { error: err.message || "internal_error" }, publicViewer);
   }
 });
 
@@ -901,5 +938,5 @@ server.listen(LISTEN_PORT, LISTEN_HOST, () => {
     if (DASHBOARD_VIEWER_TOKEN) parts.push(`viewer Basic user=${DASHBOARD_VIEWER_USER}`);
     authMode = `${parts.join("; ")}; on-box loopback exempt`;
   } else authMode = `NO tokens configured -> public denied (set tokens in ${TOKEN_ENV_FILE})`;
-  console.log(`auth: ${authMode}`);
+  console.log(`auth: ${authMode}; public viewer at /viewer/* (https://abhinavall.net/Intel/)`);
 });

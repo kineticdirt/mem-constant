@@ -362,6 +362,7 @@
     .size-reset { width: 100%; margin-top: 0.35rem; font-size: 0.72rem; }
     body.role-viewer .admin-only { display: none !important; }
     body.role-viewer .rail .brand::after { content: " · viewer"; font-size: 0.55rem; color: var(--muted); margin-left: 0.35rem; font-weight: 400; }
+    body.role-public .rail .brand::after { content: " · live"; font-size: 0.55rem; color: var(--ok); margin-left: 0.35rem; font-weight: 400; }
   </style>
 </head>
 <body>
@@ -603,6 +604,11 @@
         sessionRole = j.role === "viewer" ? "viewer" : "admin";
         document.body.classList.toggle("role-viewer", sessionRole === "viewer");
         document.body.classList.toggle("role-admin", sessionRole === "admin");
+        document.body.classList.toggle("role-public", !!j.public);
+        if (j.public) {
+          const brand = document.querySelector(".rail .brand");
+          if (brand) brand.textContent = "intel";
+        }
       } catch {
         sessionRole = "admin";
       }
