@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>linuxbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0c; --surface: #111114; --line: #2a2a32; --line-bright: #3d3d48;
+      --text: #eeeef2; --muted: #888894; --accent: #6ec8ff; --lime: #b8e986;
+      --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+      --ui-scale: 1;
+      --rail-width: 56px;
+      --prose-size: 0.9rem;
+      --prose-max: 68ch;
+      --report-split: minmax(260px, 34%);
+    }
+    html { font-size: calc(14px * var(--ui-scale)); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      background: var(--bg);
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      color: var(--text);
+    }
+    .app { display: grid; grid-template-columns: var(--rail-width) 1fr; height: 100vh; }
+    .rail {
+      border-right: 1px solid var(--line-bright);
+      background: var(--surface);
+      display: flex; flex-direction: column; align-items: stretch; padding: 0.5rem 0;
+    }
+    .rail .brand {
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-family: "IBM Plex Mono", monospace; font-weight: 600;
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); padding: 1rem 0; text-align: center; flex-shrink: 0;
+    }
+    .rail button {
+      border: none; background: transparent; color: var(--muted);
+      padding: 0.65rem 0; font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.04em; cursor: pointer; border-left: 2px solid transparent;
+      font-family: inherit; text-transform: uppercase;
+    }
+    .rail button.active { color: var(--text); border-left-color: var(--lime); background: #151518; }
+    .rail button .dot {
+      display: block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--warn); margin: 0.25rem auto 0;
+    }
+    .rail button .dot.hidden { display: none; }
+    .workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--line-bright);
+      background: rgba(17,17,20,0.92); backdrop-filter: blur(8px);
+    }
+    .topbar h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+    .topbar .meta { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--muted); }
+    .topbar .lanes { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .lane-chip {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
+      padding: 0.25rem 0.5rem; border: 1px solid var(--line-bright);
+      background: var(--surface);
+    }
+    .lane-chip.ok { border-color: #1f4d32; color: var(--ok); }
+    .lane-chip.bad { border-color: #5c2828; color: var(--bad); }
+    .lane-chip.pending { border-color: #4a4a20; color: var(--warn); }
+    .content { flex: 1; overflow: hidden; padding: 0; min-height: 0; }
+    .panel { display: none; height: 100%; overflow: auto; padding: 1rem 1.25rem 1.5rem; }
+    .panel.active { display: block; }
+    .panel.fill { display: none; padding: 0; overflow: hidden; }
+    .panel.fill.active { display: grid; }
+
+    /* Hub — operational dashboard (Qlik: hierarchy, 80/20 KPIs, story, composition) */
+    #hub.panel.active { display: flex; flex-direction: column; gap: 1rem; padding: 1rem 1.25rem 1.5rem; overflow: auto; }
+    .ops-headline {
+      border: 1px solid var(--line-bright); background: var(--surface);
+      padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .ops-headline.ok { border-left: 3px solid var(--ok); }
+    .ops-headline.warn { border-left: 3px solid var(--warn); }
+    .ops-headline.bad { border-left: 3px solid var(--bad); }
+    .ops-headline .story { flex: 1; min-width: 200px; }
+    .ops-headline .story-title { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.2rem; }
+    .ops-headline .story-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+    .ops-headline .story-cta { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .kpi-primary {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--line-bright); border: 1px solid var(--line-bright);
+    }
+    @media (max-width: 900px) { .kpi-primary { grid-template-columns: repeat(2, 1fr); } }
+    .kpi-primary .kpi {
+      background: var(--surface); padding: 1rem 1.1rem; min-height: 88px;
+      cursor: default;
+    }
+    .kpi-primary .kpi.drill { cursor: pointer; }
+    .kpi-primary .kpi.drill:hover { background: #151820; outline: 1px solid var(--accent); outline-offset: -1px; }
+    .kpi-primary .kpi .label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .kpi-primary .kpi .value { font-size: 1.65rem; font-weight: 700; margin-top: 0.35rem; font-family: "IBM Plex Mono", monospace; letter-spacing: -0.03em; line-height: 1.1; }
+    .kpi-primary .kpi .hint { font-size: 0.68rem; color: var(--muted); margin-top: 0.35rem; }
+    .kpi-primary .kpi .value.ok { color: var(--ok); }
+    .kpi-primary .kpi .value.warn { color: var(--warn); }
+    .kpi-primary .kpi .value.bad { color: var(--bad); }
+    .kpi-secondary {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--line); border: 1px solid var(--line);
+    }
+    @media (max-width: 900px) { .kpi-secondary { grid-template-columns: repeat(2, 1fr); } }
+    .kpi-secondary .kpi { background: var(--bg); padding: 0.65rem 0.85rem; }
+    .kpi-secondary .kpi .label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+    .kpi-secondary .kpi .value { font-size: 0.88rem; font-weight: 600; margin-top: 0.2rem; font-family: "IBM Plex Mono", monospace; color: var(--text); }
+    .kpi-secondary .kpi .value.warn { color: var(--warn); }
+    .ops-grid {
+      display: grid; grid-template-columns: 1fr 1fr  minmax(220px, 0.85fr); gap: 1px;
+      background: var(--line-bright); border: 1px solid var(--line-bright); flex: 1; min-height: 180px;
+    }
+    @media (max-width: 1100px) { .ops-grid { grid-template-columns: 1fr 1fr; } .ops-actions { grid-column: 1 / -1; } }
+    @media (max-width: 700px) { .ops-grid { grid-template-columns: 1fr; } }
+    .ops-card { background: var(--surface); padding: 0.85rem 1rem; overflow: hidden; display: flex; flex-direction: column; }
+    .ops-card h2 { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
+    .comp-row { margin-bottom: 0.75rem; }
+    .comp-row:last-child { margin-bottom: 0; }
+    .comp-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.3rem; }
+    .comp-label .comp-meta { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); }
+    .comp-track { height: 8px; background: var(--line); display: flex; overflow: hidden; }
+    .comp-fill.done { background: var(--ok); }
+    .comp-fill.pending { background: var(--warn); flex: 1; }
+    .lane-row {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 0.5rem; align-items: center;
+      padding: 0.45rem 0; border-bottom: 1px solid var(--line); font-size: 0.75rem;
+    }
+    .lane-row:last-child { border-bottom: none; }
+    .lane-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .lane-dot.ok { background: var(--ok); }
+    .lane-dot.warn { background: var(--warn); }
+    .lane-dot.bad { background: var(--bad); }
+    .lane-row .lane-name { font-weight: 600; }
+    .lane-row .lane-time { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); }
+    .ops-actions .action-list { display: flex; flex-direction: column; gap: 0.45rem; }
+    .action-link {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+      background: var(--bg); border: 1px solid var(--line); padding: 0.55rem 0.75rem;
+      font-size: 0.78rem; color: var(--text); cursor: pointer; text-align: left; width: 100%;
+      font-family: inherit;
+    }
+    .action-link:hover { border-color: var(--accent); color: var(--accent); }
+    .action-link .arrow { color: var(--muted); font-size: 0.85rem; }
+    .action-link.emphasis { border-color: var(--warn); }
+    .hub-grid { display: none; }
+    .hub-banner { display: none; }
+
+    /* Reports split */
+    #reports.panel.fill.active { grid-template-columns: var(--report-split) 1fr; height: 100%; }
+    #news.panel.fill.active { display: flex; flex-direction: column; height: 100%; padding: 0; }
+    .intel-wrap { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    .intel-toolbar {
+      display: flex; gap: 0.35rem; padding: 0.55rem 1rem; flex-wrap: wrap;
+      border-bottom: 1px solid var(--line-bright); background: var(--surface);
+    }
+    .intel-toolbar button {
+      background: transparent; border: 1px solid var(--line); color: var(--muted);
+      padding: 0.35rem 0.7rem; font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.05em; cursor: pointer; font-family: inherit; font-weight: 600;
+    }
+    .intel-toolbar button.active { border-color: var(--accent); color: var(--accent); background: #151820; }
+    .intel-view { display: none; flex: 1; min-height: 0; overflow: hidden; }
+    .intel-view.active { display: flex; }
+    .intel-briefs-view.active { display: grid; grid-template-columns: var(--report-split) 1fr; }
+    .intel-panel { flex: 1; overflow-y: auto; padding: 1rem 1.25rem 1.5rem; }
+    .intel-panel h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
+    .stock-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 1rem; }
+    .stock-table th, .stock-table td { border-bottom: 1px solid var(--line); padding: 0.45rem 0.55rem; text-align: left; }
+    .stock-table th { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .stock-up { color: var(--ok); font-family: "IBM Plex Mono", monospace; }
+    .stock-down { color: var(--bad); font-family: "IBM Plex Mono", monospace; }
+    .stock-flat { color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem; }
+    .tool-link {
+      display: block; padding: 0.65rem 0.75rem; border: 1px solid var(--line-bright);
+      background: var(--surface); color: var(--text); text-decoration: none; font-size: 0.78rem;
+    }
+    .tool-link:hover { border-color: var(--accent); color: var(--accent); }
+    .tool-link .sub { display: block; font-size: 0.62rem; color: var(--muted); margin-top: 0.2rem; text-transform: uppercase; }
+    .social-block { border: 1px solid var(--line-bright); background: var(--surface); margin-bottom: 0.75rem; padding: 0.75rem; }
+    .social-block h3 { font-size: 0.82rem; margin-bottom: 0.35rem; }
+    .social-block .plat { font-size: 0.62rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+    .social-item { font-size: 0.76rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); line-height: 1.4; }
+    .social-item:last-child { border-bottom: none; }
+    .social-item a { color: var(--text); text-decoration: none; }
+    .social-item a:hover { color: var(--accent); }
+    .intel-inline-brief { margin-top: 1rem; border-top: 1px solid var(--line-bright); padding-top: 1rem; }
+    .tv-widget { min-height: 420px; border: 1px solid var(--line-bright); background: var(--surface); margin-bottom: 1rem; }
+    .symbol-link { color: var(--accent); text-decoration: none; font-family: "IBM Plex Mono", monospace; }
+    .symbol-link:hover { text-decoration: underline; }
+    .report-index {
+      border-right: 1px solid var(--line-bright); overflow-y: auto;
+      background: var(--surface); padding: 0.75rem;
+    }
+    .report-index h2 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
+    .report-index button {
+      display: block; width: 100%; text-align: left; background: transparent;
+      border: 1px solid transparent; border-bottom: 1px solid var(--line);
+      padding: 0.55rem 0.35rem; color: var(--text); cursor: pointer; font-size: 0.78rem;
+    }
+    .report-index button:hover, .report-index button.active { border-color: var(--accent); background: #151820; }
+    .report-index .kind-rss { color: var(--accent); }
+    .report-index .kind-digest { color: var(--lime); }
+    .report-index .kind-stock { color: var(--warn); }
+    .report-reader {
+      overflow-y: auto; padding: 1.25rem 1.75rem; background: var(--bg);
+    }
+    .report-reader .empty-state {
+      height: 100%; display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 0.85rem;
+    }
+    .report-reader .doc-title {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--accent); margin-bottom: 1rem; font-family: "IBM Plex Mono", monospace;
+    }
+
+    /* Prose */
+    .prose { font-size: var(--prose-size); line-height: 1.65; max-width: var(--prose-max); }
+    .prose.prose-full { max-width: none; }
+    .prose h1, .prose h2, .prose h3 { margin: 1.25rem 0 0.5rem; font-weight: 700; letter-spacing: -0.01em; }
+    .prose h1 { font-size: 1.35rem; border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; }
+    .prose h2 { font-size: 1.05rem; color: var(--accent); }
+    .prose p { margin: 0.65rem 0; }
+    .prose ul, .prose ol { padding-left: 1.25rem; margin: 0.5rem 0; }
+    .prose li { margin: 0.25rem 0; }
+    .prose code { font-family: "IBM Plex Mono", monospace; background: var(--surface); padding: 0.1rem 0.35rem; font-size: 0.85em; border: 1px solid var(--line); }
+    .prose pre { background: var(--surface); border: 1px solid var(--line); padding: 0.85rem; overflow-x: auto; margin: 0.75rem 0; }
+    .prose pre code { border: none; padding: 0; background: none; }
+    .prose blockquote { border-left: 3px solid var(--lime); padding-left: 0.85rem; color: var(--muted); margin: 0.75rem 0; }
+    .prose table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; font-size: 0.82rem; }
+    .prose th, .prose td { border: 1px solid var(--line-bright); padding: 0.4rem 0.55rem; text-align: left; }
+    .prose th { background: var(--surface); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Inbox */
+    .inbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: calc(100% - 2rem); }
+    @media (max-width: 900px) { .inbox-grid { grid-template-columns: 1fr; } }
+    .inbox-col { border: 1px solid var(--line-bright); background: var(--surface); padding: 1rem; overflow-y: auto; }
+    .inbox-col h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
+    .inbox-item { border-bottom: 1px solid var(--line); padding: 0.75rem 0; }
+    .inbox-item .q { font-size: 0.88rem; margin-bottom: 0.4rem; }
+    .inbox-item .from { font-size: 0.65rem; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 0.5rem; }
+    textarea, select, input { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line-bright); padding: 0.5rem; font: inherit; font-size: 0.85rem; }
+    textarea { resize: vertical; min-height: 64px; font-family: inherit; }
+    .btn {
+      background: var(--surface); border: 1px solid var(--line-bright); color: var(--text);
+      padding: 0.45rem 0.85rem; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: #1a2838; border-color: var(--accent); color: var(--accent); }
+    .btn:disabled { opacity: 0.4; cursor: wait; }
+
+    /* Campaigns */
+    .camp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line-bright); border: 1px solid var(--line-bright); }
+    @media (max-width: 800px) { .camp-grid { grid-template-columns: 1fr; } }
+    .camp-block { background: var(--surface); padding: 1rem; }
+    .camp-block h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
+    .list { list-style: none; }
+    .list li { font-size: 0.78rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .list li.done { text-decoration: line-through; opacity: 0.45; }
+    .list li.next { color: var(--text); border-left: 2px solid var(--lime); padding-left: 0.45rem; }
+
+    /* Chat */
+    #chat.panel.fill.active { grid-template-rows: auto 1fr auto; grid-template-columns: 1fr; height: 100%; padding: 0; }
+    .chat-toolbar { padding: 0.75rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.75rem; align-items: center; background: var(--surface); }
+    .chat-toolbar select { width: auto; min-width: 180px; }
+    .chat-log { overflow-y: auto; padding: 1rem 1.25rem; }
+    .chat-bubble { max-width: 85%; margin: 0.5rem 0; padding: 0.65rem 0.85rem; font-size: 0.85rem; border: 1px solid var(--line); }
+    .chat-bubble.user { margin-left: auto; background: #1a2838; border-color: var(--accent); }
+    .chat-bubble.bot { background: var(--surface); }
+    .chat-compose { padding: 0.75rem 1rem; border-top: 1px solid var(--line-bright); display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; background: var(--surface); }
+
+    .empty { color: var(--muted); font-size: 0.82rem; }
+    .field { margin-bottom: 0.65rem; }
+    .field label { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem; }
+
+    /* Tasks board */
+    #tasks.panel.fill.active {
+      grid-template-columns: minmax(240px, 26%) 1fr;
+      height: 100%; padding: 0;
+    }
+    .task-sidebar {
+      border-right: 1px solid var(--line-bright); background: var(--surface);
+      padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .task-sidebar h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+    }
+    .task-lane-banner {
+      border: 1px solid var(--line-bright); background: var(--bg); padding: 0.65rem 0.75rem;
+      font-size: 0.78rem; color: var(--muted); line-height: 1.45;
+    }
+    .task-lane-banner strong { color: var(--text); display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; }
+    .task-board-wrap { overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .task-board-toolbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+      padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); background: rgba(17,17,20,0.92);
+    }
+    .task-board-toolbar .filter select { width: auto; min-width: 160px; font-size: 0.78rem; }
+    .task-board {
+      flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1px; background: var(--line-bright); align-content: start;
+    }
+    .task-col { background: var(--bg); display: flex; flex-direction: column; min-height: 280px; }
+    .task-col-head {
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--line-bright); background: var(--surface);
+    }
+    .task-col-head h3 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+    .task-col-head .stats { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--muted); margin-top: 0.25rem; }
+    .task-col-head .next-up {
+      margin-top: 0.5rem; font-size: 0.72rem; color: var(--accent); border-left: 2px solid var(--lime);
+      padding-left: 0.45rem; line-height: 1.4;
+    }
+    .task-list { flex: 1; overflow-y: auto; padding: 0.35rem 0; }
+    .task-row {
+      display: grid; grid-template-columns: 1.4rem 1fr; gap: 0.5rem; align-items: start;
+      padding: 0.55rem 1rem; border-bottom: 1px solid var(--line); font-size: 0.8rem; line-height: 1.45;
+    }
+    .task-row.done { color: var(--muted); }
+    .task-row.done .task-body { text-decoration: line-through; opacity: 0.75; }
+    .task-row.next { background: #151820; border-left: 2px solid var(--lime); padding-left: calc(1rem - 2px); }
+    .task-row.user-added .task-code { color: var(--warn); }
+    .task-mark { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--muted); padding-top: 0.1rem; }
+    .task-row.done .task-mark { color: var(--ok); }
+    .task-code { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--accent); margin-bottom: 0.15rem; }
+    .task-empty { padding: 2rem 1rem; color: var(--muted); font-size: 0.82rem; text-align: center; }
+
+    details.debug { margin-top: 1rem; font-size: 0.68rem; color: var(--muted); }
+    details.debug pre { background: var(--surface); padding: 0.5rem; overflow: auto; max-height: 160px; font-family: "IBM Plex Mono", monospace; }
+
+    /* Sizing popover */
+    .topbar-actions { display: flex; align-items: center; gap: 0.5rem; position: relative; }
+    .size-toggle { min-width: 2.25rem; font-family: "IBM Plex Mono", monospace; letter-spacing: 0.02em; }
+    .size-popover {
+      display: none; position: absolute; top: calc(100% + 0.35rem); right: 0; z-index: 20;
+      width: min(280px, 90vw); padding: 0.85rem; background: var(--surface);
+      border: 1px solid var(--line-bright); box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+    .size-popover.open { display: block; }
+    .size-popover h3 {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.65rem;
+    }
+    .size-row { margin-bottom: 0.65rem; }
+    .size-row:last-child { margin-bottom: 0; }
+    .size-row label {
+      display: block; font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.3rem;
+    }
+    .size-row select { font-size: 0.78rem; padding: 0.35rem 0.45rem; }
+    .size-reset { width: 100%; margin-top: 0.35rem; font-size: 0.72rem; }
+    body.role-viewer .admin-only { display: none !important; }
+    body.role-viewer .rail .brand::after { content: " · viewer"; font-size: 0.55rem; color: var(--muted); margin-left: 0.35rem; font-weight: 400; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Sections">
+      <div class="brand">linuxbox</div>
+      <button type="button" class="active admin-only" data-tab="hub">Hub</button>
+      <button type="button" class="admin-only" data-tab="inbox">Inbox<span class="dot hidden" id="inbox-dot"></span></button>
+      <button type="button" data-tab="reports">Docs</button>
+      <button type="button" data-tab="news">News</button>
+      <button type="button" class="admin-only" data-tab="campaigns">Camp</button>
+      <button type="button" class="admin-only" data-tab="chat">Chat</button>
+      <button type="button" class="admin-only" data-tab="tasks">Tasks</button>
+      <button type="button" class="admin-only" data-tab="backlog">Meta</button>
+    </nav>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Hub</h1>
+          <span class="meta" id="clock">—</span>
+        </div>
+        <div class="lanes admin-only" id="lane-row"></div>
+        <div class="topbar-actions">
+          <button type="button" class="btn size-toggle" id="size-toggle" title="Display sizing" aria-expanded="false" aria-controls="size-popover">Aa</button>
+          <div class="size-popover" id="size-popover" role="dialog" aria-label="Display sizing">
+            <h3>Display</h3>
+            <div class="size-row">
+              <label for="size-ui">UI scale</label>
+              <select id="size-ui">
+                <option value="0.875">Compact (87%)</option>
+                <option value="1" selected>Default</option>
+                <option value="1.125">Large (112%)</option>
+                <option value="1.25">XL (125%)</option>
+              </select>
+            </div>
+            <div class="size-row">
+              <label for="size-text">Text</label>
+              <select id="size-text">
+                <option value="0.82">Small</option>
+                <option value="0.9" selected>Default</option>
+                <option value="1.05">Large</option>
+                <option value="1.2">XL</option>
+              </select>
+            </div>
+            <div class="size-row">
+              <label for="size-width">Content width</label>
+              <select id="size-width">
+                <option value="55">Narrow (55ch)</option>
+                <option value="68" selected>Default (68ch)</option>
+                <option value="90">Wide (90ch)</option>
+                <option value="full">Full width</option>
+              </select>
+            </div>
+            <div class="size-row">
+              <label for="size-split">Docs list pane</label>
+              <select id="size-split">
+                <option value="narrow">Narrow list</option>
+                <option value="balanced" selected>Balanced</option>
+                <option value="wide">Wide list</option>
+                <option value="reader">Max reader</option>
+              </select>
+            </div>
+            <button type="button" class="btn size-reset" id="size-reset">Reset defaults</button>
+          </div>
+          <button type="button" class="btn" id="refresh">↻</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <section id="hub" class="panel active admin-only">
+          <div class="ops-headline ok" id="ops-headline">
+            <div class="story">
+              <div class="story-title" id="ops-title">Loading…</div>
+              <div class="story-sub" id="ops-sub">—</div>
+            </div>
+            <div class="story-cta" id="ops-cta"></div>
+          </div>
+          <div class="kpi-primary" id="kpi-primary"></div>
+          <div class="kpi-secondary" id="kpi-secondary"></div>
+          <div class="ops-grid">
+            <div class="ops-card">
+              <h2>Campaign progress</h2>
+              <div id="campaign-bars"></div>
+            </div>
+            <div class="ops-card">
+              <h2>Agent lanes</h2>
+              <div id="lane-bars"></div>
+            </div>
+            <div class="ops-card ops-actions">
+              <h2>Quick actions</h2>
+              <div class="action-list" id="action-list"></div>
+            </div>
+          </div>
+          <details class="debug"><summary>Debug</summary><pre id="debug-json"></pre></details>
+        </section>
+
+        <section id="inbox" class="panel admin-only">
+          <div class="inbox-grid">
+            <div class="inbox-col">
+              <h2>Open questions</h2>
+              <div id="inbox-open"><p class="empty">None</p></div>
+            </div>
+            <div class="inbox-col">
+              <h2>Recent answers</h2>
+              <div id="inbox-answered"><p class="empty">None yet</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="reports" class="panel fill">
+          <aside class="report-index">
+            <h2>Reports</h2>
+            <div id="report-list"></div>
+          </aside>
+          <article class="report-reader" id="report-reader">
+            <div class="empty-state">Select a report</div>
+          </article>
+        </section>
+
+        <section id="news" class="panel fill">
+          <div class="intel-wrap">
+            <div class="intel-toolbar" role="tablist">
+              <button type="button" class="active" data-intel-mode="briefs">Briefs</button>
+              <button type="button" data-intel-mode="markets">Markets</button>
+              <button type="button" data-intel-mode="social">Social</button>
+              <button type="button" data-intel-mode="tools">Trackers</button>
+            </div>
+            <div class="intel-view intel-briefs-view active">
+              <aside class="report-index">
+                <h2>Situation monitor</h2>
+                <p class="meta" style="font-size:0.65rem;margin-bottom:0.65rem;color:var(--muted)">RSS 08:00 · Hermes 09:00 · Stock brief daily</p>
+                <div id="news-list"></div>
+              </aside>
+              <article class="report-reader" id="news-reader">
+                <div class="empty-state">Select a brief</div>
+              </article>
+            </div>
+            <div class="intel-view intel-markets-view">
+              <div class="intel-panel" id="markets-panel">
+                <p class="empty">Loading markets…</p>
+              </div>
+            </div>
+            <div class="intel-view intel-social-view">
+              <div class="intel-panel" id="social-panel">
+                <p class="empty">Loading social feeds…</p>
+              </div>
+            </div>
+            <div class="intel-view intel-tools-view">
+              <div class="intel-panel" id="tools-panel">
+                <p class="empty">Loading trackers…</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="campaigns" class="panel admin-only">
+          <div class="camp-grid" id="campaign-list"></div>
+        </section>
+
+        <section id="chat" class="panel fill admin-only">
+          <div class="chat-toolbar">
+            <label class="meta">Lane</label>
+            <select id="chat-profile">
+              <option value="think">think · owl-alpha</option>
+              <option value="fast">fast · Qwen</option>
+              <option value="meta">meta · dashboard</option>
+            </select>
+          </div>
+          <div class="chat-log" id="chat-log"></div>
+          <div class="chat-compose">
+            <textarea id="chat-input" rows="2" placeholder="Message…"></textarea>
+            <button type="button" class="btn primary" id="chat-send">Send</button>
+          </div>
+        </section>
+
+        <section id="tasks" class="panel fill admin-only">
+          <aside class="task-sidebar">
+            <h2>Add to queue</h2>
+            <div class="field"><label for="task-campaign">Campaign</label>
+              <select id="task-campaign">
+                <option value="spacequest">SpaceQuest</option>
+                <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
+              </select>
+            </div>
+            <div class="field"><label for="task-text">Task</label>
+              <textarea id="task-text" rows="4" placeholder="Add to queue…"></textarea>
+            </div>
+            <button type="button" class="btn primary" id="task-add">Add</button>
+            <p class="empty" id="task-result"></p>
+            <div class="task-lane-banner" id="task-lane-status">
+              <strong>Agent lane</strong>
+              <span id="task-lane-text">Loading…</span>
+            </div>
+          </aside>
+          <div class="task-board-wrap">
+            <div class="task-board-toolbar">
+              <span class="meta">Campaign queues from progress.md</span>
+              <div class="filter">
+                <select id="task-filter">
+                  <option value="all">All campaigns</option>
+                  <option value="spacequest">SpaceQuest</option>
+                  <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
+                </select>
+              </div>
+            </div>
+            <div class="task-board" id="task-board"></div>
+          </div>
+        </section>
+
+        <section id="backlog" class="panel admin-only">
+          <ul class="list" id="backlog-open"></ul>
+          <div class="field" style="margin-top:1rem;max-width:480px">
+            <textarea id="backlog-text" rows="2" placeholder="Dashboard idea…"></textarea>
+          </div>
+          <button type="button" class="btn" id="backlog-add">Add</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const base = window.location.pathname.replace(/\/?$/, "");
+    const titles = { hub: "Hub", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", chat: "Chat", tasks: "Tasks", backlog: "Meta" };
+    const SIZE_KEY = "linuxbox-dash-sizing";
+    const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
+    const SPLIT_MAP = {
+      narrow: "minmax(200px, 26%)",
+      balanced: "minmax(260px, 34%)",
+      wide: "minmax(320px, 42%)",
+      reader: "minmax(180px, 22%)",
+    };
+    let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
+
+    async function loadSession() {
+      try {
+        const res = await fetch(`${base}/api/session`, { cache: "no-store" });
+        const j = await res.json();
+        sessionRole = j.role === "viewer" ? "viewer" : "admin";
+        document.body.classList.toggle("role-viewer", sessionRole === "viewer");
+        document.body.classList.toggle("role-admin", sessionRole === "admin");
+      } catch {
+        sessionRole = "admin";
+      }
+    }
+
+    function applySizing(opts) {
+      const root = document.documentElement;
+      root.style.setProperty("--ui-scale", opts.ui);
+      root.style.setProperty("--prose-size", `${opts.text}rem`);
+      root.style.setProperty("--prose-max", opts.width === "full" ? "none" : `${opts.width}ch`);
+      root.style.setProperty("--report-split", SPLIT_MAP[opts.split] || SPLIT_MAP.balanced);
+      document.querySelectorAll(".prose").forEach((el) => el.classList.toggle("prose-full", opts.width === "full"));
+      ["size-ui", "size-text", "size-width", "size-split"].forEach((id) => {
+        const key = id.replace("size-", "");
+        const el = document.getElementById(id);
+        if (el) el.value = opts[key];
+      });
+    }
+
+    function loadSizing() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SIZE_KEY) || "null");
+        applySizing({ ...SIZE_DEFAULTS, ...(saved || {}) });
+      } catch {
+        applySizing({ ...SIZE_DEFAULTS });
+      }
+    }
+
+    function saveSizing() {
+      const opts = {
+        ui: document.getElementById("size-ui").value,
+        text: document.getElementById("size-text").value,
+        width: document.getElementById("size-width").value,
+        split: document.getElementById("size-split").value,
+      };
+      localStorage.setItem(SIZE_KEY, JSON.stringify(opts));
+      applySizing(opts);
+    }
+
+    loadSizing();
+
+    const sizeToggle = document.getElementById("size-toggle");
+    const sizePopover = document.getElementById("size-popover");
+    sizeToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = sizePopover.classList.toggle("open");
+      sizeToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.addEventListener("click", (e) => {
+      if (!sizePopover.contains(e.target) && e.target !== sizeToggle) {
+        sizePopover.classList.remove("open");
+        sizeToggle.setAttribute("aria-expanded", "false");
+      }
+    });
+    ["size-ui", "size-text", "size-width", "size-split"].forEach((id) => {
+      document.getElementById(id).addEventListener("change", saveSizing);
+    });
+    document.getElementById("size-reset").onclick = () => {
+      localStorage.removeItem(SIZE_KEY);
+      applySizing({ ...SIZE_DEFAULTS });
+    };
+
+    marked.setOptions({ breaks: true, gfm: true });
+
+    document.querySelectorAll(".rail button[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        activeTab = btn.dataset.tab;
+        document.querySelectorAll(".rail button[data-tab]").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        const panel = document.getElementById(activeTab);
+        panel.classList.add("active");
+        document.getElementById("page-title").textContent = titles[activeTab] || activeTab;
+        if (activeTab === "inbox") loadInbox();
+        if (activeTab === "reports") {
+          if (sessionRole === "viewer") loadPublicReports();
+          else renderReports(agentData);
+        }
+        if (activeTab === "news") loadNews();
+        if (activeTab === "tasks") renderTasks(agentData);
+      });
+    });
+
+    function parseTaskParts(text) {
+      const user = text.includes("**user**");
+      const m = text.match(/^\*\*([^*]+)\*\*\s*(.*)$/s);
+      return {
+        code: m ? m[1] : null,
+        body: m ? m[2].trim() : text,
+        user,
+      };
+    }
+
+    function renderTaskRow(p, isNext) {
+      const parts = parseTaskParts(p.text);
+      const cls = [p.done ? "done" : "", isNext ? "next" : "", parts.user ? "user-added" : ""].filter(Boolean).join(" ");
+      return `<div class="task-row ${cls}">
+        <span class="task-mark">${p.done ? "✓" : "○"}</span>
+        <div>
+          ${parts.code ? `<div class="task-code">${esc(parts.code)}</div>` : ""}
+          <div class="task-body">${esc(parts.body || p.text)}</div>
+        </div>
+      </div>`;
+    }
+
+    function renderTasks(data) {
+      const board = document.getElementById("task-board");
+      const filter = document.getElementById("task-filter")?.value || "all";
+      const campaigns = data?.campaigns || {};
+      const ids = Object.keys(campaigns).filter((id) => filter === "all" || filter === id);
+
+      document.getElementById("task-lane-text").textContent =
+        (data?.current_task_status || "—").replace(/\*\*/g, "");
+
+      if (!ids.length) {
+        board.innerHTML = '<div class="task-empty">No campaigns</div>';
+        return;
+      }
+
+      board.innerHTML = ids.map((id) => {
+        const c = campaigns[id];
+        const items = c.progress || [];
+        const pending = items.filter((p) => !p.done);
+        const rows = items.length
+          ? items.map((p) => renderTaskRow(p, !p.done && p.text === c.next_item)).join("")
+          : '<div class="task-empty">Empty queue</div>';
+        return `<div class="task-col" data-campaign="${esc(id)}">
+          <div class="task-col-head">
+            <h3>${esc(c.label)}</h3>
+            <div class="stats">${pending.length} pending · ${c.done_count || 0} done · ${items.length} total</div>
+            ${c.next_item ? `<div class="next-up">Next: ${esc(c.next_item.replace(/\*\*/g, ""))}</div>` : '<div class="next-up" style="color:var(--ok);border-color:var(--ok)">Queue clear</div>'}
+          </div>
+          <div class="task-list">${rows}</div>
+        </div>`;
+      }).join("");
+    }
+
+    function goTab(tab) {
+      const btn = document.querySelector(`.rail button[data-tab="${tab}"]`);
+      if (btn) btn.click();
+    }
+
+    function laneState(l) {
+      const st = l?.status || "pending";
+      if (st.startsWith("ok") || st === "active") return "ok";
+      if (st === "pending") return "warn";
+      return "bad";
+    }
+
+    function renderHub(data) {
+      const inboxN = data.inbox_open_count || 0;
+      const gwOk = data.gateway === "active";
+      const lanes = Object.values(data.lanes || {});
+      const laneBad = lanes.some((l) => laneState(l) === "bad");
+      const campaigns = Object.values(data.campaigns || {});
+      const totalPending = campaigns.reduce((s, c) => s + (c.pending_count || 0), 0);
+
+      let headlineClass = "ok";
+      let title = "All systems nominal";
+      let sub = (data.current_task_status || "Agent idle").replace(/\*\*/g, "");
+
+      if (!gwOk) {
+        headlineClass = "bad";
+        title = "Gateway offline";
+        sub = "Hermes gateway is not active — agent cycles may be failing.";
+      } else if (inboxN > 0) {
+        headlineClass = "warn";
+        title = `${inboxN} question${inboxN > 1 ? "s" : ""} need your answer`;
+        sub = "Operational hold — reply in Inbox so the agent can continue.";
+      } else if (laneBad) {
+        headlineClass = "warn";
+        title = "Lane issue detected";
+        sub = sub || "Check agent lane status below.";
+      } else if (totalPending > 0) {
+        sub = `${totalPending} campaign item${totalPending > 1 ? "s" : ""} queued · ${sub}`;
+      }
+
+      const headline = document.getElementById("ops-headline");
+      headline.className = `ops-headline ${headlineClass}`;
+      document.getElementById("ops-title").textContent = title;
+      document.getElementById("ops-sub").textContent = sub;
+
+      const fast = data.lanes?.["agent-cycle-fast"];
+      const think = data.lanes?.["agent-cycle-think"];
+      const fastSt = fast ? laneState(fast) : "warn";
+      const thinkSt = think ? laneState(think) : "warn";
+
+      document.getElementById("kpi-primary").innerHTML = [
+        { label: "Gateway", value: gwOk ? "UP" : "DOWN", hint: gwOk ? "hermes-gateway active" : "check systemd", cls: gwOk ? "ok" : "bad", drill: null },
+        { label: "Inbox", value: inboxN ? String(inboxN) : "0", hint: inboxN ? "needs response" : "clear", cls: inboxN ? "warn" : "ok", drill: "inbox" },
+        { label: "Fast lane", value: fast?.schedule?.replace(" (crontab)", "") || "~30s", hint: fast?.last_run ? `last ${fast.last_run.slice(11, 19)}` : "no recent run", cls: fastSt, drill: null },
+        { label: "Think lane", value: think?.schedule || "1m", hint: think?.last_run ? `last ${think.last_run.slice(11, 19)}` : "no recent run", cls: thinkSt, drill: null },
+      ].map((k) => `<div class="kpi${k.drill ? " drill" : ""}" ${k.drill ? `data-tab="${k.drill}"` : ""}>
+        <div class="label">${esc(k.label)}</div>
+        <div class="value ${k.cls}">${esc(k.value)}</div>
+        <div class="hint">${esc(k.hint)}</div>
+      </div>`).join("");
+
+      document.getElementById("kpi-primary").querySelectorAll(".kpi.drill").forEach((el) => {
+        el.onclick = () => goTab(el.dataset.tab);
+      });
+
+      document.getElementById("kpi-secondary").innerHTML = [
+        ["USB", data.usb_mounted === "yes" ? "mounted" : data.usb_mounted || "?", data.usb_mounted === "yes" ? "" : "warn"],
+        ["Memory free", `${data.mem_available || "?"} MiB`, ""],
+        ["Disk free", data.root_free || "?", ""],
+        ["API keys", data.openrouter_key === "set" ? "set" : "missing", data.openrouter_key === "set" ? "" : "warn"],
+      ].map(([l, v, c]) => `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(v)}</div></div>`).join("");
+
+      document.getElementById("campaign-bars").innerHTML = Object.entries(data.campaigns || {}).map(([id, c]) => {
+        const done = c.done_count || 0;
+        const pending = c.pending_count || 0;
+        const total = done + pending || 1;
+        const pct = Math.round((done / total) * 100);
+        return `<div class="comp-row drill" data-tab="tasks" title="Open Tasks">
+          <div class="comp-label"><span>${esc(c.label)}</span><span class="comp-meta">${pending} pending · ${done} done</span></div>
+          <div class="comp-track"><div class="comp-fill done" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join("") || '<p class="empty">No campaigns</p>';
+
+      document.getElementById("campaign-bars").querySelectorAll(".comp-row.drill").forEach((el) => {
+        el.style.cursor = "pointer";
+        el.onclick = () => goTab(el.dataset.tab);
+      });
+
+      document.getElementById("lane-bars").innerHTML = lanes.length ? lanes.map((l) => {
+        const st = laneState(l);
+        const name = l.name.replace("agent-cycle-", "");
+        return `<div class="lane-row">
+          <span class="lane-dot ${st}"></span>
+          <span class="lane-name">${esc(name)} · ${esc(l.schedule || "?")}</span>
+          <span class="lane-time">${l.last_run ? l.last_run.slice(11, 19) : "—"}</span>
+        </div>`;
+      }).join("") : '<p class="empty">No lanes</p>';
+
+      const actions = [];
+      if (inboxN) actions.push({ tab: "inbox", label: `Answer inbox (${inboxN})`, emphasis: true });
+      actions.push({ tab: "news", label: "Intel · markets & news", mode: "markets" });
+      actions.push({ tab: "reports", label: "Browse reports" });
+      actions.push({ tab: "tasks", label: "Campaign queues" });
+      actions.push({ tab: "chat", label: "Chat with agent" });
+      document.getElementById("action-list").innerHTML = actions.map((a) =>
+        `<button type="button" class="action-link${a.emphasis ? " emphasis" : ""}" data-tab="${a.tab}"${a.mode ? ` data-mode="${a.mode}"` : ""}>${esc(a.label)}<span class="arrow">→</span></button>`
+      ).join("");
+      document.getElementById("action-list").querySelectorAll(".action-link").forEach((el) => {
+        el.onclick = () => {
+          goTab(el.dataset.tab);
+          if (el.dataset.mode) setIntelMode(el.dataset.mode);
+        };
+      });
+
+      document.getElementById("ops-cta").innerHTML = inboxN
+        ? `<button type="button" class="btn primary" id="goto-inbox">Inbox →</button>`
+        : `<button type="button" class="btn" data-tab="news" id="goto-news">News →</button>`;
+      const gotoInbox = document.getElementById("goto-inbox");
+      if (gotoInbox) gotoInbox.onclick = () => goTab("inbox");
+      const gotoNews = document.getElementById("goto-news");
+      if (gotoNews) gotoNews.onclick = () => goTab("news");
+      const gotoDocs = document.getElementById("goto-docs");
+      if (gotoDocs) gotoDocs.onclick = () => goTab("reports");
+    }
+
+    const KIND_LABEL = { latest: "Latest", rss: "RSS", digest: "Digest", stock: "Markets" };
+
+    function setIntelMode(mode) {
+      intelMode = mode;
+      document.querySelectorAll(".intel-toolbar button[data-intel-mode]").forEach((b) => {
+        b.classList.toggle("active", b.dataset.intelMode === mode);
+      });
+      document.querySelectorAll(".intel-view").forEach((v) => v.classList.remove("active"));
+      const view = document.querySelector(`.intel-${mode}-view`);
+      if (view) view.classList.add("active");
+      if (mode === "briefs") renderNews(newsData);
+      if (mode === "markets") renderMarkets(newsData);
+      if (mode === "social") renderSocial(newsData);
+      if (mode === "tools") renderTools(newsData);
+    }
+
+    document.querySelectorAll(".intel-toolbar button[data-intel-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => setIntelMode(btn.dataset.intelMode));
+    });
+
+    function fmtPrice(n, currency) {
+      if (n == null || Number.isNaN(n)) return "—";
+      return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${currency || ""}`.trim();
+    }
+
+    function fmtChange(pct) {
+      if (pct == null || Number.isNaN(pct)) return "—";
+      const cls = pct > 0 ? "stock-up" : pct < 0 ? "stock-down" : "stock-flat";
+      const sign = pct > 0 ? "+" : "";
+      return `<span class="${cls}">${sign}${pct.toFixed(2)}%</span>`;
+    }
+
+    function tvSymbol(symbol) {
+      if (symbol === "BTC-USD") return "COINBASE:BTCUSD";
+      return `NASDAQ:${symbol}`;
+    }
+
+    function mountTradingViewWidget(watchlist) {
+      const host = document.getElementById("tv-widget-host");
+      if (!host) return;
+      host.innerHTML = "";
+      const symbols = (watchlist || []).slice(0, 8).map((w) => ({
+        s: tvSymbol(w.symbol),
+        d: w.label || w.symbol,
+      }));
+      if (!symbols.length) return;
+      const script = document.createElement("script");
+      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js";
+      script.async = true;
+      script.text = JSON.stringify({
+        colorTheme: "dark",
+        dateRange: "1D",
+        showChart: true,
+        locale: "en",
+        width: "100%",
+        height: "420",
+        tabs: [{ title: "Watchlist", symbols }],
+      });
+      host.appendChild(script);
+    }
+
+    function renderMarkets(data) {
+      const root = document.getElementById("markets-panel");
+      if (!data) {
+        root.innerHTML = '<p class="empty">No data</p>';
+        return;
+      }
+      const watch = data.watchlist || [];
+      const quotes = data.stocks || [];
+      const bySymbol = Object.fromEntries(quotes.map((q) => [q.symbol, q]));
+      const rows = watch.map((w) => {
+        const q = bySymbol[w.symbol] || {};
+        const yahoo = `https://finance.yahoo.com/quote/${encodeURIComponent(w.symbol)}`;
+        return `<tr>
+          <td><a class="symbol-link" href="${yahoo}" target="_blank" rel="noopener noreferrer"><strong>${esc(w.symbol)}</strong></a><br><span class="meta" style="font-size:0.65rem">${esc(w.label || q.label || "")}</span></td>
+          <td>${fmtPrice(q.price, q.currency)}</td>
+          <td>${fmtChange(q.changePct)}</td>
+          <td class="meta" style="font-size:0.65rem">${esc(q.marketState || (q.source === "stooq" ? "delayed" : "—"))}</td>
+        </tr>`;
+      }).join("");
+      const tools = (data.tools || []).filter((t) => t.category === "markets");
+      const toolLinks = tools.map((t) =>
+        `<a class="tool-link" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">${esc(t.name)}<span class="sub">Open ↗</span></a>`
+      ).join("");
+      const stockBriefBtn = data.latest_stock_brief
+        ? `<button type="button" class="btn" id="open-stock-brief">Open daily stock brief</button>`
+        : "";
+      const quoteNote = data.stocksError || (!quotes.length && watch.length)
+        ? `<p class="empty" style="margin-bottom:0.75rem">Server quotes unavailable (API blocks linuxbox). Use chart + links below.</p>`
+        : "";
+      root.innerHTML = `
+        <h2>Live watchlist</h2>
+        ${quoteNote}
+        <div class="tv-widget" id="tv-widget-host"></div>
+        <table class="stock-table"><thead><tr><th>Symbol</th><th>Price</th><th>Change</th><th>State</th></tr></thead><tbody>${rows || "<tr><td colspan='4'>Add symbols in agents/intel-trackers.json</td></tr>"}</tbody></table>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">${stockBriefBtn}</div>
+        <h2>Market trackers</h2>
+        <div class="tool-grid">${toolLinks || '<p class="empty">No tools configured</p>'}</div>
+        <div class="intel-inline-brief" id="markets-brief-inline"></div>`;
+      mountTradingViewWidget(watch);
+      const openBtn = document.getElementById("open-stock-brief");
+      if (openBtn && data.latest_stock_brief) {
+        openBtn.onclick = () => {
+          setIntelMode("briefs");
+          openNewsBrief(data.latest_stock_brief.name, data.latest_stock_brief.label, data.latest_stock_brief.kind);
+        };
+      }
+      if (data.latest_stock_brief) {
+        fetch(`${base}/api/news/brief?file=${encodeURIComponent(data.latest_stock_brief.name)}`)
+          .then((r) => r.json())
+          .then((j) => {
+            const el = document.getElementById("markets-brief-inline");
+            if (el && j.content) {
+              el.innerHTML = `<h2>Latest stock brief</h2><div class="prose">${marked.parse(j.content)}</div>`;
+            }
+          })
+          .catch(() => {});
+      }
+    }
+
+    function renderSocial(data) {
+      const root = document.getElementById("social-panel");
+      const feeds = data?.social || [];
+      const tools = (data?.tools || []).filter((t) => t.category === "social");
+      if (!feeds.length) {
+        root.innerHTML = '<p class="empty">No social feeds configured</p>';
+        return;
+      }
+      const blocks = feeds.map((f) => {
+        const items = f.items?.length
+          ? f.items.map((it) => `<div class="social-item">${it.link ? `<a href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>` : esc(it.title)}</div>`).join("")
+          : `<p class="empty">${f.error ? esc(f.error) : "No items"}</p>`;
+        return `<div class="social-block"><div class="plat">${esc(f.platform)}</div><h3>${esc(f.name)}</h3>${items}</div>`;
+      }).join("");
+      const toolLinks = tools.map((t) =>
+        `<a class="tool-link" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">${esc(t.name)}<span class="sub">Open ↗</span></a>`
+      ).join("");
+      root.innerHTML = `<h2>Social RSS (live)</h2>${blocks}<h2 style="margin-top:1rem">Social trackers</h2><div class="tool-grid">${toolLinks}</div>`;
+    }
+
+    function renderTools(data) {
+      const root = document.getElementById("tools-panel");
+      const tools = data?.tools || [];
+      if (!tools.length) {
+        root.innerHTML = '<p class="empty">Edit agents/intel-trackers.json to add links</p>';
+        return;
+      }
+      root.innerHTML = `<h2>External trackers</h2><div class="tool-grid">${tools.map((t) =>
+        `<a class="tool-link" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">${esc(t.name)}<span class="sub">${esc(t.category || "link")} ↗</span></a>`
+      ).join("")}</div>`;
+    }
+
+    async function openNewsBrief(file, label, kind) {
+      selectedNews = { file, kind };
+      document.querySelectorAll("#news-list button").forEach((b) => b.classList.toggle("active", b.dataset.f === file));
+      const reader = document.getElementById("news-reader");
+      reader.innerHTML = '<div class="empty-state">Loading…</div>';
+      const res = await fetch(`${base}/api/news/brief?file=${encodeURIComponent(file)}`);
+      const j = await res.json();
+      if (j.error) {
+        reader.innerHTML = `<div class="empty-state">${esc(j.error)}</div>`;
+        return;
+      }
+      const fullWidth = document.getElementById("size-width").value === "full";
+      reader.innerHTML = `<div class="doc-title">${esc(KIND_LABEL[kind] || kind)} · ${esc(label)} / ${esc(j.file)}</div><div class="prose${fullWidth ? " prose-full" : ""}">${marked.parse(j.content || "")}</div>`;
+    }
+
+    async function loadNews() {
+      try {
+        const res = await fetch(`${base}/api/intel`, { cache: "no-store" });
+        newsData = await res.json();
+        if (intelMode === "briefs") renderNews(newsData);
+        if (intelMode === "markets") renderMarkets(newsData);
+        if (intelMode === "social") renderSocial(newsData);
+        if (intelMode === "tools") renderTools(newsData);
+      } catch (e) {
+        document.getElementById("news-list").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
+    function renderNews(data) {
+      const root = document.getElementById("news-list");
+      const items = data?.briefs || [];
+      if (!items.length) {
+        root.innerHTML = '<p class="empty">No briefs yet — wait for situation-rss (08:00) or situation-hermes (09:00) UTC crons.</p>';
+        return;
+      }
+      const groups = [
+        { key: "stock", title: "Stock briefs" },
+        { key: "latest", title: "Latest" },
+        { key: "digest", title: "Hermes digests" },
+        { key: "rss", title: "RSS briefs" },
+      ];
+      let html = "";
+      for (const g of groups) {
+        const groupItems = items.filter((b) => b.kind === g.key);
+        if (!groupItems.length) continue;
+        html += `<h2 style="margin:0.75rem 0 0.35rem;font-size:0.58rem">${g.title}</h2>`;
+        html += groupItems.map((b) => `
+          <button type="button" data-f="${esc(b.name)}" data-l="${esc(b.label)}" data-k="${esc(b.kind)}">
+            <span class="kind-${esc(b.kind)}">${esc(KIND_LABEL[b.kind] || b.kind)}</span> · ${esc(b.label)}<br>
+            <span class="sub">${esc(b.name)}<br>${esc(b.mtime.slice(0, 16).replace("T", " "))}</span>
+          </button>`).join("");
+      }
+      root.innerHTML = html;
+      root.querySelectorAll("button").forEach((btn) => {
+        btn.onclick = () => openNewsBrief(btn.dataset.f, btn.dataset.l, btn.dataset.k);
+        if (selectedNews && selectedNews.file === btn.dataset.f) btn.classList.add("active");
+      });
+      if (!selectedNews) {
+        const pick = data.latest_stock_brief || data.latest_digest || data.latest_rss || items[0];
+        if (pick) openNewsBrief(pick.name, pick.label, pick.kind);
+      }
+    }
+
+    function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+    async function openReport(campaign, file, label) {
+      selectedReport = { campaign, file };
+      document.querySelectorAll(".report-index button").forEach((b) => b.classList.toggle("active", b.dataset.f === file && b.dataset.c === campaign));
+      const reader = document.getElementById("report-reader");
+      reader.innerHTML = '<div class="empty-state">Loading…</div>';
+      const res = await fetch(`${base}/api/reports/${campaign}?file=${encodeURIComponent(file)}`);
+      const j = await res.json();
+      reader.innerHTML = `<div class="doc-title">${esc(label)} / ${esc(j.file)}</div><div class="prose${document.getElementById("size-width").value === "full" ? " prose-full" : ""}">${marked.parse(j.content || "")}</div>`;
+    }
+
+    function renderReports(data) {
+      const root = document.getElementById("report-list");
+      const reports = data?.all_reports || [];
+      if (!reports.length) {
+        root.innerHTML = '<p class="empty">No reports</p>';
+        return;
+      }
+      root.innerHTML = reports.map((r) => `
+        <button type="button" data-c="${esc(r.campaign)}" data-f="${esc(r.name)}" data-l="${esc(r.label)}">
+          <strong>${esc(r.label)}</strong><br>${esc(r.name)}
+          <div class="sub">${esc(r.mtime.slice(0,16))}</div>
+        </button>`).join("");
+      root.querySelectorAll("button").forEach((b) => {
+        b.onclick = () => openReport(b.dataset.c, b.dataset.f, b.dataset.l);
+        if (selectedReport && selectedReport.file === b.dataset.f) b.classList.add("active");
+      });
+      if (!selectedReport && reports[0]) {
+        const r = reports[0];
+        openReport(r.campaign, r.name, r.label);
+      }
+    }
+
+    async function loadPublicReports() {
+      const res = await fetch(`${base}/api/reports/public`, { cache: "no-store" });
+      const data = await res.json();
+      renderReports(data);
+    }
+
+    async function loadInbox() {
+      const res = await fetch(`${base}/api/inbox`, { cache: "no-store" });
+      const data = await res.json();
+      const n = (data.open || []).length;
+      const dot = document.getElementById("inbox-dot");
+      dot.classList.toggle("hidden", n === 0);
+
+      document.getElementById("inbox-open").innerHTML = n ? (data.open || []).map((q) => `
+        <div class="inbox-item" data-id="${esc(q.id)}">
+          <div class="from">${esc(q.from||"agent")} · ${esc((q.at||"").slice(0,16))}</div>
+          <div class="q">${esc(q.question)}</div>
+          ${q.context ? `<div class="from">${esc(q.context)}</div>` : ""}
+          <textarea class="inbox-answer" rows="2" placeholder="Answer…"></textarea>
+          <button type="button" class="btn primary inbox-reply" style="margin-top:0.35rem">Reply</button>
+        </div>`).join("") : '<p class="empty">No open questions</p>';
+
+      document.getElementById("inbox-open").querySelectorAll(".inbox-reply").forEach((btn) => {
+        btn.onclick = async () => {
+          const item = btn.closest(".inbox-item");
+          const answer = item.querySelector(".inbox-answer").value.trim();
+          if (!answer) return;
+          btn.disabled = true;
+          await fetch(`${base}/api/inbox/reply`, { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: item.dataset.id, answer }) });
+          loadInbox(); load();
+        };
+      });
+
+      document.getElementById("inbox-answered").innerHTML = (data.answered || []).slice(0, 10).map((q) => `
+        <div class="inbox-item"><div class="q">${esc(q.question)}</div><div class="from">→ ${esc(q.answer)}</div></div>`
+      ).join("") || '<p class="empty">None yet</p>';
+    }
+
+    function renderCampaigns(data) {
+      const root = document.getElementById("campaign-list");
+      root.innerHTML = Object.entries(data?.campaigns || {}).map(([id, c]) => {
+        const prog = (c.progress || []).slice(0, 8).map((p) => {
+          const cls = [p.done ? "done" : "", !p.done && p.text === c.next_item ? "next" : ""].filter(Boolean).join(" ");
+          return `<li class="${cls}">${p.done ? "✓" : "○"} ${esc(p.text)}</li>`;
+        }).join("");
+        const reps = (c.latest_reports || []).slice(0, 4).map((r) =>
+          `<button type="button" class="btn" style="margin:0.2rem 0.2rem 0 0;font-size:0.65rem" data-c="${id}" data-f="${esc(r.name)}" data-l="${esc(c.label)}">${esc(r.name.replace(/\.md$/,""))}</button>`
+        ).join("");
+        return `<div class="camp-block"><h3>${esc(c.label)}</h3>
+          <div class="meta" style="margin-bottom:0.5rem;font-family:monospace;font-size:0.72rem">${c.pending_count} pending · ${c.done_count} done</div>
+          <ul class="list">${prog || "<li>(empty)</li>"}</ul>
+          <div style="margin-top:0.5rem">${reps}</div></div>`;
+      }).join("");
+      root.querySelectorAll("button[data-f]").forEach((b) => {
+        b.onclick = () => { activeTab = "reports"; document.querySelector('[data-tab="reports"]').click(); openReport(b.dataset.c, b.dataset.f, b.dataset.l); };
+      });
+    }
+
+    async function load() {
+      if (sessionRole === "viewer") return;
+      try {
+        const res = await fetch(`${base}/api/agent`, { cache: "no-store" });
+        agentData = await res.json();
+        document.getElementById("clock").textContent = (agentData.updated_at || "").replace("T"," ").slice(0,19);
+        document.getElementById("debug-json").textContent = JSON.stringify(agentData, null, 2);
+
+        renderHub(agentData);
+
+        const lanes = document.getElementById("lane-row");
+        lanes.innerHTML = Object.values(agentData.lanes || {}).map((l) => {
+          const st = (l.status || "pending").startsWith("ok") ? "ok" : (l.status === "pending" ? "pending" : "bad");
+          const t = l.last_run ? l.last_run.slice(11,19) : "—";
+          return `<span class="lane-chip ${st}">${esc(l.name.replace("agent-cycle-",""))} · ${esc(l.schedule||"?")} · ${t} · ${esc(l.status)}</span>`;
+        }).join("");
+
+        renderCampaigns(agentData);
+        if (activeTab === "reports") {
+          if (sessionRole === "viewer") loadPublicReports();
+          else renderReports(agentData);
+        }
+        if (activeTab === "tasks") renderTasks(agentData);
+        document.getElementById("backlog-open").innerHTML = (agentData.dashboard_backlog_open || [])
+          .map((t) => `<li>${esc(t)}</li>`).join("") || "<li class='empty'>Empty</li>";
+      } catch (e) {
+        document.getElementById("ops-title").textContent = "Load error";
+        document.getElementById("ops-sub").textContent = e.message;
+      }
+    }
+
+    async function boot() {
+      await loadSession();
+      if (sessionRole === "viewer") {
+        goTab("news");
+        loadNews();
+        loadPublicReports();
+        document.getElementById("clock").textContent = new Date().toISOString().slice(0, 19).replace("T", " ");
+      } else {
+        load();
+        loadInbox();
+      }
+    }
+
+    document.getElementById("refresh").onclick = () => {
+      if (sessionRole === "viewer") {
+        if (activeTab === "news") loadNews();
+        if (activeTab === "reports") loadPublicReports();
+        return;
+      }
+      load();
+    };
+
+    document.getElementById("chat-send").onclick = async () => {
+      const input = document.getElementById("chat-input");
+      const msg = input.value.trim();
+      if (!msg) return;
+      const log = document.getElementById("chat-log");
+      log.innerHTML += `<div class="chat-bubble user">${esc(msg)}</div>`;
+      input.value = "";
+      document.getElementById("chat-send").disabled = true;
+      chatWaiting = true;
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble bot";
+      bubble.textContent = "…";
+      log.appendChild(bubble);
+      try {
+        const res = await fetch(`${base}/api/chat`, { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg, profile: document.getElementById("chat-profile").value }) });
+        const j = await res.json();
+        bubble.innerHTML = `<div class="prose">${marked.parse(j.reply || j.error || "")}</div>`;
+      } catch (e) { bubble.textContent = e.message; }
+      document.getElementById("chat-send").disabled = false;
+      chatWaiting = false;
+      log.scrollTop = log.scrollHeight;
+    };
+
+    document.getElementById("task-filter")?.addEventListener("change", () => renderTasks(agentData));
+
+    document.getElementById("task-add").onclick = async () => {
+      const res = await fetch(`${base}/api/tasks`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaign: document.getElementById("task-campaign").value, text: document.getElementById("task-text").value }) });
+      const j = await res.json();
+      document.getElementById("task-result").textContent = j.ok ? `Added: ${j.added}` : (j.error || "Failed");
+      document.getElementById("task-text").value = "";
+      load();
+      if (activeTab === "tasks") renderTasks(agentData);
+    };
+
+    document.getElementById("backlog-add").onclick = async () => {
+      await fetch(`${base}/api/dashboard/suggest`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: document.getElementById("backlog-text").value }) });
+      document.getElementById("backlog-text").value = "";
+      load();
+    };
+
+    boot();
+    setInterval(() => {
+      if (chatWaiting) return;
+      if (sessionRole === "viewer") {
+        if (activeTab === "news") loadNews();
+        return;
+      }
+      load();
+    }, 20000);
+  </script>
+</body>
+</html>
