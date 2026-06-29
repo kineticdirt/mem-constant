@@ -284,6 +284,8 @@
     .empty { color: var(--muted); font-size: 0.82rem; }
     .field { margin-bottom: 0.65rem; }
     .field label { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem; }
+    .field input[type="text"], .field textarea, .field select { width: 100%; font: inherit; font-size: 0.82rem; padding: 0.45rem 0.55rem; border: 1px solid var(--line-bright); background: var(--bg); color: var(--text); }
+    .field input, .field textarea, .field select { width: 100%; background: var(--bg); border: 1px solid var(--line-bright); color: var(--text); padding: 0.45rem 0.55rem; font: inherit; font-size: 0.82rem; }
 
     /* Tasks board */
     #tasks.panel.fill.active {
@@ -335,6 +337,29 @@
     .task-row.done .task-mark { color: var(--ok); }
     .task-code { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--accent); margin-bottom: 0.15rem; }
     .task-empty { padding: 2rem 1rem; color: var(--muted); font-size: 0.82rem; text-align: center; }
+    .user-task-list { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; max-height: 220px; overflow-y: auto; }
+    .user-task-card {
+      border: 1px solid var(--line); background: var(--surface); padding: 0.55rem 0.65rem; font-size: 0.78rem;
+    }
+    .user-task-card.done { opacity: 0.65; }
+    .user-task-card .tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+    .user-task-card .tag { font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--accent); border: 1px solid var(--line); padding: 0.05rem 0.3rem; }
+    .user-task-card .actions { display: flex; gap: 0.35rem; margin-top: 0.35rem; flex-wrap: wrap; }
+    .user-task-card .project-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--lime); margin-bottom: 0.2rem; }
+    .project-card {
+      border: 1px solid var(--line-bright); background: var(--surface); padding: 0.55rem 0.65rem;
+      margin-bottom: 0.4rem; font-size: 0.78rem; cursor: pointer;
+    }
+    .project-card.active { border-color: var(--accent); background: #151820; }
+    .project-card .kind { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .project-card .counts { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--accent); margin-top: 0.25rem; }
+    .tag-check { display: flex; flex-wrap: wrap; gap: 0.35rem 0.65rem; margin: 0.35rem 0; }
+    .tag-check label { font-size: 0.72rem; color: var(--muted); display: flex; gap: 0.25rem; align-items: center; cursor: pointer; }
+    #stories.panel.fill.active { grid-template-columns: minmax(220px, 28%) 1fr; }
+    .story-index button { text-align: left; width: 100%; }
+    .story-index .camp-label { font-size: 0.58rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.65rem 0 0.25rem; }
+    .story-toolbar { padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; background: var(--surface); }
+    .chat-context-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--lime); border: 1px solid var(--line); padding: 0.2rem 0.45rem; }
 
     details.debug { margin-top: 1rem; font-size: 0.68rem; color: var(--muted); }
     details.debug pre { background: var(--surface); padding: 0.5rem; overflow: auto; max-height: 160px; font-family: "IBM Plex Mono", monospace; }
@@ -374,6 +399,7 @@
       <button type="button" data-tab="reports">Docs</button>
       <button type="button" data-tab="news">News</button>
       <button type="button" class="admin-only" data-tab="campaigns">Camp</button>
+      <button type="button" class="admin-only" data-tab="stories">Stories</button>
       <button type="button" class="admin-only" data-tab="chat">Chat</button>
       <button type="button" class="admin-only" data-tab="tasks">Tasks</button>
       <button type="button" class="admin-only" data-tab="backlog">Meta</button>
@@ -523,6 +549,22 @@
           <div class="camp-grid" id="campaign-list"></div>
         </section>
 
+        <section id="stories" class="panel fill admin-only">
+          <aside class="report-index story-index">
+            <h2>Story canon</h2>
+            <p class="meta" style="font-size:0.65rem;margin-bottom:0.5rem;color:var(--muted)">D&D / worldbuilding markdown — pick a doc to read or discuss</p>
+            <div id="story-list"></div>
+          </aside>
+          <article class="report-reader" id="story-reader">
+            <div class="story-toolbar">
+              <span class="meta" id="story-doc-title">Select a story document</span>
+              <button type="button" class="btn primary" id="story-chat-btn" disabled>Discuss in Chat</button>
+              <button type="button" class="btn" id="story-task-btn" disabled>+ Task with context</button>
+            </div>
+            <div class="empty-state" id="story-body">Choose a file from the left — premise, factions, characters, lore.</div>
+          </article>
+        </section>
+
         <section id="chat" class="panel fill admin-only">
           <div class="chat-toolbar">
             <label class="meta">Lane</label>
@@ -531,6 +573,8 @@
               <option value="fast">fast · Qwen</option>
               <option value="meta">meta · dashboard</option>
             </select>
+            <span class="chat-context-pill hidden" id="chat-context-pill"></span>
+            <button type="button" class="btn" id="chat-context-clear" style="display:none">Clear context</button>
           </div>
           <div class="chat-log" id="chat-log"></div>
           <div class="chat-compose">
@@ -541,18 +585,73 @@
 
         <section id="tasks" class="panel fill admin-only">
           <aside class="task-sidebar">
-            <h2>Add to queue</h2>
-            <div class="field"><label for="task-campaign">Campaign</label>
-              <select id="task-campaign">
+            <h2>Projects</h2>
+            <div id="user-project-list"></div>
+            <details style="margin:0.5rem 0 1rem">
+              <summary class="meta">New project</summary>
+              <div class="field" style="margin-top:0.5rem"><label for="user-project-name">Name</label>
+                <input type="text" id="user-project-name" placeholder="e.g. Infranet" />
+              </div>
+              <div class="field"><label for="user-project-kind">Kind</label>
+                <select id="user-project-kind">
+                  <option value="research-dev">Research &amp; development</option>
+                  <option value="product">Product</option>
+                  <option value="ops">Ops / infra</option>
+                  <option value="personal">Personal</option>
+                </select>
+              </div>
+              <div class="field"><label for="user-project-desc">Description</label>
+                <textarea id="user-project-desc" rows="2" placeholder="What this project is for…"></textarea>
+              </div>
+              <button type="button" class="btn" id="user-project-add">Create project</button>
+              <p class="empty" id="user-project-result"></p>
+            </details>
+            <h2>New task</h2>
+            <p class="meta" style="font-size:0.65rem;margin-bottom:0.5rem">Group tasks under a project when helpful — optional campaign/story links below.</p>
+            <div class="field"><label for="user-task-project">Project</label>
+              <select id="user-task-project">
+                <option value="">— none —</option>
+              </select>
+            </div>
+            <div class="field"><label for="user-task-title">Title</label>
+              <input type="text" id="user-task-title" placeholder="Bug fix, lore note, dashboard tweak…" />
+            </div>
+            <div class="field"><label for="user-task-body">Notes (optional)</label>
+              <textarea id="user-task-body" rows="3" placeholder="Extra detail for you or the agent…"></textarea>
+            </div>
+            <div class="field"><label>Tags</label>
+              <div class="tag-check" id="user-task-tags"></div>
+            </div>
+            <div class="field"><label for="user-task-campaign">Link campaign (optional)</label>
+              <select id="user-task-campaign">
+                <option value="">— none —</option>
                 <option value="spacequest">SpaceQuest</option>
                 <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
               </select>
             </div>
-            <div class="field"><label for="task-text">Task</label>
-              <textarea id="task-text" rows="4" placeholder="Add to queue…"></textarea>
+            <button type="button" class="btn primary" id="user-task-add">Create task</button>
+            <p class="empty" id="user-task-result"></p>
+            <h2 style="margin-top:1rem">Your tasks</h2>
+            <div class="field"><label for="user-task-filter-project">Filter</label>
+              <select id="user-task-filter-project">
+                <option value="">All projects</option>
+              </select>
             </div>
-            <button type="button" class="btn primary" id="task-add">Add</button>
-            <p class="empty" id="task-result"></p>
+            <div class="user-task-list" id="user-task-list"></div>
+            <details style="margin-top:1rem">
+              <summary class="meta">Add to campaign queue</summary>
+              <div class="field" style="margin-top:0.5rem"><label for="task-campaign">Campaign</label>
+                <select id="task-campaign">
+                  <option value="spacequest">SpaceQuest</option>
+                  <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
+                </select>
+              </div>
+              <div class="field"><label for="task-text">Task</label>
+                <textarea id="task-text" rows="3" placeholder="Append to progress.md…"></textarea>
+              </div>
+              <button type="button" class="btn" id="task-add">Add to campaign</button>
+              <p class="empty" id="task-result"></p>
+            </details>
             <div class="task-lane-banner" id="task-lane-status">
               <strong>Agent lane</strong>
               <span id="task-lane-text">Loading…</span>
@@ -560,7 +659,7 @@
           </aside>
           <div class="task-board-wrap">
             <div class="task-board-toolbar">
-              <span class="meta">Campaign queues from progress.md</span>
+              <span class="meta">Campaign queues (progress.md)</span>
               <div class="filter">
                 <select id="task-filter">
                   <option value="all">All campaigns</option>
@@ -586,7 +685,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "Hub", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", chat: "Chat", tasks: "Tasks", backlog: "Meta" };
+    const titles = { hub: "Hub", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", chat: "Chat", tasks: "Tasks", backlog: "Meta" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -596,6 +695,9 @@
       reader: "minmax(180px, 22%)",
     };
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
+    let chatContext = null, selectedStory = null, storyCatalog = null, selectedProjectId = "";
+    const TASK_TAG_LABELS = { general: "General", campaign: "Campaign", dnd: "D&D / story", dashboard: "Dashboard", news: "News", bugfix: "Bug fix", feature: "Feature", maintenance: "Maintenance" };
+    const PROJECT_KIND_LABELS = { "research-dev": "R&D", product: "Product", ops: "Ops", personal: "Personal" };
 
     async function loadSession() {
       try {
@@ -688,9 +790,175 @@
           else renderReports(agentData);
         }
         if (activeTab === "news") loadNews();
-        if (activeTab === "tasks") renderTasks(agentData);
+        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); }
+        if (activeTab === "stories") loadStories();
       });
     });
+
+    function setChatContext(ctx, label) {
+      chatContext = ctx || null;
+      const pill = document.getElementById("chat-context-pill");
+      const clearBtn = document.getElementById("chat-context-clear");
+      if (chatContext && label) {
+        pill.textContent = label;
+        pill.classList.remove("hidden");
+        clearBtn.style.display = "";
+      } else {
+        pill.classList.add("hidden");
+        clearBtn.style.display = "none";
+      }
+    }
+
+    function initUserTaskTags(tags) {
+      const root = document.getElementById("user-task-tags");
+      if (!root || root.dataset.ready) return;
+      root.dataset.ready = "1";
+      root.innerHTML = (tags || Object.keys(TASK_TAG_LABELS)).map((t) =>
+        `<label><input type="checkbox" name="utag" value="${esc(t)}"${t === "general" ? " checked" : ""}> ${esc(TASK_TAG_LABELS[t] || t)}</label>`
+      ).join("");
+    }
+
+    function selectedUserTags() {
+      return [...document.querySelectorAll('#user-task-tags input[name="utag"]:checked')].map((el) => el.value);
+    }
+
+    function projectMap(data) {
+      const m = {};
+      for (const p of data?.user_projects || []) m[p.id] = p;
+      return m;
+    }
+
+    function fillProjectSelects(data) {
+      const projects = (data?.user_projects || []).filter((p) => p.status !== "archived");
+      const opts = projects.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
+      const taskSel = document.getElementById("user-task-project");
+      const filtSel = document.getElementById("user-task-filter-project");
+      if (taskSel) taskSel.innerHTML = `<option value="">— none —</option>${opts}`;
+      if (filtSel) {
+        const cur = filtSel.value || selectedProjectId || "";
+        filtSel.innerHTML = `<option value="">All projects</option>${opts}`;
+        filtSel.value = cur;
+      }
+    }
+
+    function renderUserProjects(data) {
+      fillProjectSelects(data);
+      const root = document.getElementById("user-project-list");
+      if (!root) return;
+      const projects = (data?.user_projects || []).filter((p) => p.status !== "archived");
+      if (!projects.length) {
+        root.innerHTML = '<p class="empty">No projects yet</p>';
+        return;
+      }
+      root.innerHTML = projects.map((p) => {
+        const active = selectedProjectId === p.id ? " active" : "";
+        return `<div class="project-card${active}" data-id="${esc(p.id)}">
+          <strong>${esc(p.name)}</strong>
+          <div class="kind">${esc(PROJECT_KIND_LABELS[p.kind] || p.kind)}</div>
+          <div class="counts">${p.open_count || 0} open · ${p.done_count || 0} done</div>
+        </div>`;
+      }).join("");
+      root.querySelectorAll(".project-card").forEach((card) => {
+        card.onclick = () => {
+          selectedProjectId = selectedProjectId === card.dataset.id ? "" : card.dataset.id;
+          const filt = document.getElementById("user-task-filter-project");
+          if (filt) filt.value = selectedProjectId;
+          renderUserProjects(data);
+          renderUserTasks(data);
+          const taskProj = document.getElementById("user-task-project");
+          if (taskProj && selectedProjectId) taskProj.value = selectedProjectId;
+        };
+      });
+    }
+
+    function renderUserTasks(data) {
+      initUserTaskTags(data?.user_task_tags);
+      const pmap = projectMap(data);
+      const filterProj = document.getElementById("user-task-filter-project")?.value || selectedProjectId || "";
+      let tasks = (data?.user_tasks || []).filter((t) => t.status !== "cancelled");
+      if (filterProj) tasks = tasks.filter((t) => t.project_id === filterProj);
+      const root = document.getElementById("user-task-list");
+      if (!root) return;
+      if (!tasks.length) {
+        root.innerHTML = '<p class="empty">No tasks yet</p>';
+        return;
+      }
+      root.innerHTML = tasks.slice(0, 40).map((t) => {
+        const done = t.status === "done";
+        const tags = (t.tags || []).map((tag) => `<span class="tag">${esc(TASK_TAG_LABELS[tag] || tag)}</span>`).join("");
+        const proj = t.project_id && pmap[t.project_id] ? `<div class="project-pill">${esc(pmap[t.project_id].name)}</div>` : "";
+        const ctx = t.context?.story_path ? `<div class="meta" style="font-size:0.65rem;margin-top:0.2rem">${esc(t.context.story_path.split("/").pop())}</div>` : "";
+        return `<div class="user-task-card${done ? " done" : ""}" data-id="${esc(t.id)}">
+          ${proj}<strong>${esc(t.title)}</strong>${ctx}
+          <div class="tags">${tags}</div>
+          <div class="actions">
+            ${!done ? `<button type="button" class="btn user-task-done" data-id="${esc(t.id)}">Done</button>` : ""}
+            <button type="button" class="btn user-task-chat" data-id="${esc(t.id)}">Chat</button>
+          </div>
+        </div>`;
+      }).join("");
+      root.querySelectorAll(".user-task-done").forEach((btn) => {
+        btn.onclick = async () => {
+          await fetch(`${base}/api/user-tasks/${btn.dataset.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "done" }) });
+          load();
+        };
+      });
+      root.querySelectorAll(".user-task-chat").forEach((btn) => {
+        btn.onclick = () => {
+          const task = tasks.find((t) => t.id === btn.dataset.id);
+          if (!task) return;
+          const ctx = { task_id: task.id, tags: task.tags };
+          if (task.project_id) ctx.project_id = task.project_id;
+          const label = task.project_id && pmap[task.project_id]
+            ? `Task: ${task.title.slice(0, 28)} · ${pmap[task.project_id].name}`
+            : `Task: ${task.title.slice(0, 40)}`;
+          setChatContext(ctx, label);
+          goTab("chat");
+        };
+      });
+    }
+
+    async function loadStories() {
+      try {
+        const res = await fetch(`${base}/api/stories`, { cache: "no-store" });
+        storyCatalog = await res.json();
+        renderStoryList(storyCatalog);
+      } catch (e) {
+        document.getElementById("story-list").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
+    function renderStoryList(catalog) {
+      const root = document.getElementById("story-list");
+      const camps = catalog?.campaigns || {};
+      let html = "";
+      for (const [id, c] of Object.entries(camps)) {
+        html += `<div class="camp-label">${esc(c.label)}</div>`;
+        html += (c.files || []).map((f) =>
+          `<button type="button" data-c="${esc(id)}" data-p="${esc(f.path)}" data-n="${esc(f.name)}">
+            ${esc(f.name)}<br><span class="sub">${esc(f.folder)} · ${esc(f.mtime.slice(0, 10))}</span>
+          </button>`
+        ).join("");
+      }
+      root.innerHTML = html || '<p class="empty">No story files found under campaigns/*/story</p>';
+      root.querySelectorAll("button[data-p]").forEach((btn) => {
+        btn.onclick = () => openStoryDoc(btn.dataset.c, btn.dataset.p, btn.dataset.n);
+        if (selectedStory && selectedStory.path === btn.dataset.p) btn.classList.add("active");
+      });
+    }
+
+    async function openStoryDoc(campaign, relPath, name) {
+      selectedStory = { campaign, path: relPath, name };
+      document.querySelectorAll("#story-list button").forEach((b) => b.classList.toggle("active", b.dataset.p === relPath));
+      document.getElementById("story-doc-title").textContent = `${name} · ${campaign}`;
+      document.getElementById("story-body").innerHTML = '<div class="empty-state">Loading…</div>';
+      document.getElementById("story-chat-btn").disabled = false;
+      document.getElementById("story-task-btn").disabled = false;
+      const res = await fetch(`${base}/api/stories/doc?campaign=${encodeURIComponent(campaign)}&path=${encodeURIComponent(relPath)}`);
+      const j = await res.json();
+      document.getElementById("story-body").innerHTML =
+        `<div class="prose${document.getElementById("size-width").value === "full" ? " prose-full" : ""}">${marked.parse(j.content || "")}</div>`;
+    }
 
     function parseTaskParts(text) {
       const user = text.includes("**user**");
@@ -1002,7 +1270,7 @@
       const blocks = feeds.map((f) => {
         const items = f.items?.length
           ? f.items.map((it) => `<div class="social-item">${it.link ? `<a href="${esc(it.link)}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a>` : esc(it.title)}</div>`).join("")
-          : `<p class="empty">${f.error ? esc(f.error) : "No items"}</p>`;
+          : `<p class="empty">${f.error ? esc(f.error) + (f.cached ? " (cached)" : "") : "No items"}</p>`;
         return `<div class="social-block"><div class="plat">${esc(f.platform)}</div><h3>${esc(f.name)}</h3>${items}</div>`;
       }).join("");
       const toolLinks = tools.map((t) =>
@@ -1171,11 +1439,15 @@
         ).join("");
         return `<div class="camp-block"><h3>${esc(c.label)}</h3>
           <div class="meta" style="margin-bottom:0.5rem;font-family:monospace;font-size:0.72rem">${c.pending_count} pending · ${c.done_count} done</div>
+          <button type="button" class="btn" style="margin-bottom:0.5rem;font-size:0.68rem" data-stories="${esc(id)}">Explore story canon →</button>
           <ul class="list">${prog || "<li>(empty)</li>"}</ul>
           <div style="margin-top:0.5rem">${reps}</div></div>`;
       }).join("");
       root.querySelectorAll("button[data-f]").forEach((b) => {
         b.onclick = () => { activeTab = "reports"; document.querySelector('[data-tab="reports"]').click(); openReport(b.dataset.c, b.dataset.f, b.dataset.l); };
+      });
+      root.querySelectorAll("button[data-stories]").forEach((b) => {
+        b.onclick = () => goTab("stories");
       });
     }
 
@@ -1201,7 +1473,7 @@
           if (sessionRole === "viewer") loadPublicReports();
           else renderReports(agentData);
         }
-        if (activeTab === "tasks") renderTasks(agentData);
+        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); }
         document.getElementById("backlog-open").innerHTML = (agentData.dashboard_backlog_open || [])
           .map((t) => `<li>${esc(t)}</li>`).join("") || "<li class='empty'>Empty</li>";
       } catch (e) {
@@ -1247,7 +1519,7 @@
       log.appendChild(bubble);
       try {
         const res = await fetch(`${base}/api/chat`, { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: msg, profile: document.getElementById("chat-profile").value }) });
+          body: JSON.stringify({ message: msg, profile: document.getElementById("chat-profile").value, context: chatContext }) });
         const j = await res.json();
         bubble.innerHTML = `<div class="prose">${marked.parse(j.reply || j.error || "")}</div>`;
       } catch (e) { bubble.textContent = e.message; }
@@ -1257,6 +1529,92 @@
     };
 
     document.getElementById("task-filter")?.addEventListener("change", () => renderTasks(agentData));
+
+    document.getElementById("chat-context-clear").onclick = () => setChatContext(null);
+
+    document.getElementById("story-chat-btn").onclick = () => {
+      if (!selectedStory) return;
+      setChatContext(
+        { type: "story", campaign: selectedStory.campaign, path: selectedStory.path },
+        `Story: ${selectedStory.name}`
+      );
+      goTab("chat");
+      document.getElementById("chat-input").focus();
+    };
+
+    document.getElementById("story-task-btn").onclick = () => {
+      if (!selectedStory) return;
+      goTab("tasks");
+      document.getElementById("user-task-title").value = `Story: ${selectedStory.name.replace(/\.md$/i, "")}`;
+      const camp = document.getElementById("user-task-campaign");
+      if (camp) camp.value = selectedStory.campaign;
+      const dnd = document.querySelector('#user-task-tags input[value="dnd"]');
+      const campTag = document.querySelector('#user-task-tags input[value="campaign"]');
+      if (dnd) dnd.checked = true;
+      if (campTag) campTag.checked = true;
+      document.getElementById("user-task-body").value = `Context: ${selectedStory.path}`;
+    };
+
+    document.getElementById("user-task-filter-project")?.addEventListener("change", (e) => {
+      selectedProjectId = e.target.value || "";
+      renderUserProjects(agentData);
+      renderUserTasks(agentData);
+    });
+
+    document.getElementById("user-project-add").onclick = async () => {
+      const name = document.getElementById("user-project-name").value.trim();
+      if (!name) {
+        document.getElementById("user-project-result").textContent = "Name required";
+        return;
+      }
+      const res = await fetch(`${base}/api/user-projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          kind: document.getElementById("user-project-kind").value,
+          description: document.getElementById("user-project-desc").value.trim(),
+        }),
+      });
+      const j = await res.json();
+      document.getElementById("user-project-result").textContent = j.ok ? `Created: ${j.project?.name}` : (j.error || "Failed");
+      document.getElementById("user-project-name").value = "";
+      document.getElementById("user-project-desc").value = "";
+      load();
+    };
+
+    document.getElementById("user-task-add").onclick = async () => {
+      const title = document.getElementById("user-task-title").value.trim();
+      if (!title) {
+        document.getElementById("user-task-result").textContent = "Title required";
+        return;
+      }
+      const campaign = document.getElementById("user-task-campaign").value || null;
+      const bodyText = document.getElementById("user-task-body").value.trim();
+      const payload = {
+        mode: "user",
+        title,
+        body: bodyText,
+        tags: selectedUserTags(),
+        project_id: document.getElementById("user-task-project").value || null,
+        context: {},
+      };
+      if (campaign) payload.context.campaign = campaign;
+      if (selectedStory) {
+        payload.context.campaign = selectedStory.campaign;
+        payload.context.story_path = selectedStory.path;
+      }
+      const res = await fetch(`${base}/api/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const j = await res.json();
+      document.getElementById("user-task-result").textContent = j.ok ? `Created: ${j.task?.title || title}` : (j.error || "Failed");
+      document.getElementById("user-task-title").value = "";
+      document.getElementById("user-task-body").value = "";
+      load();
+    };
 
     document.getElementById("task-add").onclick = async () => {
       const res = await fetch(`${base}/api/tasks`, { method: "POST", headers: { "Content-Type": "application/json" },

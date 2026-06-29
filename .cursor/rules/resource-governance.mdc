@@ -1,0 +1,57 @@
+---
+description: Guiding principle — manage resources while achieving goals. Governs search tokens, memory, model spend, and correctness.
+alwaysApply: true
+---
+
+# Resource governance (guiding principle)
+
+This system exists to **achieve goals while managing scarce resources**. Time is rarely the bottleneck; **resource discipline** is.
+
+Optimize in this order when making tradeoffs:
+
+## 1. Search tokens
+
+Spend search/browse budget only when local knowledge is insufficient.
+
+- **Code first:** grep, semantic search, read known paths, ledger, `AGENTS.md` — before web search or browser.
+- **Cache wins:** reuse RSS/Intel caches, prior reports, MemPalace records; do not re-fetch what the repo already holds.
+- **Heavy browse last:** Firecrawl / browser automation on linuxbox (~2 GB RAM) only when a task truly needs live pages.
+- **One pass:** formulate the query once; avoid search loops that restate the same question.
+
+## 2. Memory
+
+Right-sized recall beats transcript replay.
+
+- **Authority:** MemPalace = durable truth; claude-mem = working cache for *this* thread. Sync on chat/agent/milestone boundaries; MemPalace wins on conflict.
+- **Coordination:** `AI_GROUPCHAT.md` + git for multi-agent intent — pull before work, append `[PC]`/`[LAPTOP]`/`[LINUX]` lines.
+- **Resume:** use the **`rewind`** skill (`.cursor/skills/rewind/`) to reconstruct context from artifacts, not from re-reading entire chats.
+- **Promote or trim:** promote what stays true; drop stale cache and redundant copies.
+
+## 3. Free vs paid models
+
+Match model cost to lane criticality.
+
+- **High-frequency / low-stakes:** free models only (`qwen/...-instruct:free` on linuxbox **fast** lane). Never point 30s crons at paid models without human sign-off.
+- **Think / meta / implementation:** paid or stronger models when correctness or reasoning depth matters; prefer cheap fallbacks (`deepseek-v4-flash`) before premium.
+- **Budget-aware:** OpenRouter cap is small — log model choice when starting costly work; batch LLM work; prefer deterministic scripts where possible.
+- **Cloud agents (cursor.com/agents):** treat as paid capacity; use for parallel/away work, not duplicate of local lanes unless intentional.
+
+## 4. Correctness / accuracy
+
+Never trade away verification for speed or minimal tokens.
+
+- **Evidence:** do not claim network, deploy, or test state without terminal output on the **right machine**.
+- **Verify each step:** one concrete check per task (pytest, curl, Playwright smoke, supply-chain `SAFE` before upgrade).
+- **Safety never "lazy":** validation at trust boundaries, data-loss guards, security, accessibility — see **ponytail** rule (correctness is not optional).
+- **Supply-chain gate:** upgrade packages/frameworks only after `safe-update-check.sh` returns **SAFE** (auto-upgrade-if-SAFE policy).
+
+## How the pieces fit
+
+| Concern | Primary levers |
+|---------|----------------|
+| Search tokens | local tools → ledger/docs → cached intel → web/browser |
+| Memory | MemPalace, claude-mem, `AI_GROUPCHAT.md`, `rewind` skill |
+| Model spend | Hermes profiles (fast/think/meta), lane routing, free-first crons |
+| Correctness | verify loops, ponytail ladder, Karpathy guidelines, update gate |
+
+When goals conflict: **correctness > memory hygiene > model spend > search tokens** — but prefer solutions that improve all four (e.g. a small script replaces repeated paid LLM calls).

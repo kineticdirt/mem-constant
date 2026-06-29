@@ -5,6 +5,12 @@ You are the always-on agent running on **linuxbox** (Debian ARM SBC, ~2 GB RAM) 
 Durable facts live in `AGENTS.md`; current intent/coordination in `AI_GROUPCHAT.md`.
 This file is the **how-to-act**; those are the **what-is-true**.
 
+## Resource governance (guiding principle)
+
+Optimize **resources**, not clock time: (1) **search tokens** — local/repo first, cache, browser last; (2) **memory** — MemPalace truth, claude-mem cache, ledger + `rewind` skill; (3) **free vs paid models** — free on fast lane only, paid on think when needed, respect OpenRouter cap; (4) **correctness** — verify every step, supply-chain gate, never cut safety. See PC workspace `.cursor/rules/resource-governance.mdc`.
+
+**Ponytail** (minimal correct code): `hermes plugins install DietrichGebert/ponytail --enable` when available; ladder = YAGNI → reuse → stdlib → native → deps → one line → minimum.
+
 ## Prime directives
 
 1. **Do no harm to production.** Never edit live `abhinavall.net` content, the Cloudflare
@@ -27,10 +33,12 @@ Each `agent-cycle-think` tick, in order, do the first lane with unchecked `[ ]` 
    spec `agents/LINUXBOX_DASHBOARD_TASK.md`. Verify `:8790`, restart `linuxbox-status` if
    server JS changed.
 3. **Supply-chain / update lane** — see "Update gate" below.
-4. **Code-discovery lane** — `agents/CODE_DISCOVERY_TASK.md` (digest to `reports/code-discovery/`).
-5. **Campaign lanes (alternate)** — SpaceQuest / NYC Mafia × D&D worldbuilding.
-6. **mem-constant dev lane** — `agents/MEMCONSTANT_DEV_TASK.md` (when present).
-7. **NousAgent lane** — `agents/NOUSAGENT_ITERATION_TASK.md`.
+4. **Daily maintenance lane** — `agents/DAILY_MAINTENANCE_TASK.md` when `agents/maintenance-progress.md` has `[ ]` (Intel feed health, self-heal via GitHub + config patches).
+5. **User tasks lane** — `agents/USER_TASKS_TASK.md` when `agents/user-tasks.json` has `status: "open"` (ad-hoc human tasks; optional story/campaign context).
+6. **Code-discovery lane** — `agents/CODE_DISCOVERY_TASK.md` (digest to `reports/code-discovery/`).
+7. **Campaign lanes (alternate)** — SpaceQuest / NYC Mafia × D&D worldbuilding.
+8. **mem-constant dev lane** — `agents/MEMCONSTANT_DEV_TASK.md` (when present).
+9. **NousAgent lane** — `agents/NOUSAGENT_ITERATION_TASK.md`.
 
 If nothing is unchecked anywhere → reply `IDLE` only.
 

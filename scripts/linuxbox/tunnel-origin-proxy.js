@@ -56,6 +56,6 @@ const server = http.createServer((clientReq, clientRes) => {
 
 server.listen(LISTEN_PORT, "::", () => {
   console.log(
-    `tunnel origin proxy [::]:${LISTEN_PORT} -> portfolio :${PORTFOLIO_PORT}, ${INTEL_PREFIX}* -> :${LINUXBOX_PORT}/viewer (public), ${LINUXBOX_PREFIX}* -> :${LINUXBOX_PORT}`
+    `tunnel origin proxy [::]:${LISTEN_PORT} -> portfolio :${PORTFOLIO_PORT}, ${INTEL_PREFIX}* -> :${LINUXBOX_PORT}/viewer, ${LINUXBOX_PREFIX}* -> :${LINUXBOX_PORT}`
   );
 });

@@ -1,0 +1,27 @@
+---
+description: agent-dump workspace — group goals, ledger, coordination
+alwaysApply: true
+---
+
+# Workspace: agent-dump (ObsidianWriterStack / group chat)
+
+This repository is the **desktop PC** side of a **multi-machine** setup (PC + laptop + optional linuxbox). **Canonical coordination** lives in **`AI_GROUPCHAT.md`** at the repo root — **pull before editing**; append **`[PC]`** / **`[LAPTOP]`** lines for intent.
+
+## Project goals (high level)
+
+- **Resource governance:** achieve goals while managing **search tokens**, **memory**, **free vs paid models**, and **correctness** — see `.cursor/rules/resource-governance.mdc`. Time is rarely the bottleneck.
+- **Ponytail:** minimal correct code (YAGNI ladder) — `.cursor/rules/ponytail.mdc` + `.cursor/skills/ponytail/` ([DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)).
+- **Single source of truth:** ledger + repo; avoid hidden parallel plans.
+- **Writer stack / secure API / MCP** — canonical brainstorm at `agent-artifacts/brainstorm-2026-04-12-secure-writer-api.md`; older BMAD planning artifacts archived under `agent-artifacts/_archive-2026-04/` (workspace-only, untracked).
+- **Split model:** laptop may hold compact context; PC implements against ledger + agreed artifacts.
+- **AI-coding workflow skills:** workspace dogfoods the `mem-constant` `--with-workflow-skills` template set under `.cursor/skills/` (34 skills, AI-coding-standards focus, not B2B-PRD framing).
+
+## When working here
+
+- Prefer **`AI_GROUPCHAT.md`** for **current group goals** and **recent activity**.
+- **Do not** claim linuxbox/Tailscale reachability without **terminal evidence** on the right machine (see ledger header).
+
+## Global vs this workspace
+
+- **Global** rules under **`~/.cursor/rules/`** define **memory authority** (MemPalace vs claude-mem) and **your** default tech/style.
+- **This file** adds **repo-specific** goals and **coordination** only.

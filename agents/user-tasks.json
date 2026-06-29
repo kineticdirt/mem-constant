@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "id": "infranet",
+      "name": "Infranet",
+      "kind": "research-dev",
+      "description": "Research & development: survey best practices, architecture spikes, prototypes, and iterative build-out of the Infranet stack.",
+      "status": "active",
+      "charter_path": "projects/infranet/README.md",
+      "created_at": "2026-06-28T00:00:00.000Z",
+      "updated_at": "2026-06-28T00:00:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "b3f1c2a4-1d6e-4a90-9c11-3a7e0f2b8c31",
+      "title": "Infranet: pick the first buildable spike (ponytail ladder)",
+      "body": "Resource pillar: correctness + model spend. Only AFTER tasks 1 and 2 are done. Propose ONE smallest buildable slice of Infranet per the ponytail ladder (YAGNI -> reuse -> stdlib -> native -> installed dep -> one line -> minimum). Name what existing code/stdlib already covers so nothing is re-implemented. No new dependency unless a few lines cannot do it. Verify: a short 'First spike' section appended to projects/infranet/AGENT-CHARTER.md naming (a) the one slice, (b) what is reused/skipped, (c) the single runnable check it will leave behind. No code written this tick — proposal only.",
+      "status": "open",
+      "project_id": "infranet",
+      "tags": ["general"],
+      "context": { "campaign": null, "story_path": null },
+      "created_at": "2026-06-29T00:47:30.000Z",
+      "updated_at": "2026-06-29T00:47:30.000Z"
+    },
+    {
+      "id": "a1c8e5d2-9b34-4f67-8a02-6d4f1e9c7b20",
+      "title": "Infranet: reconcile scope across the two architecture docs",
+      "body": "Resource pillar: memory (resolve ambiguity before building). projects/infranet/ holds two different architectures: README.md/PLANNING.md/BLOCKCHAIN_PLATFORM.md (decentralized storage + black-box identity network) vs claude-code-plan-kill-1.md (Claude Code agent loop + 'Kill 1' shutdown). Decide what Infranet's R&D scope actually is: the decentralized network, the agent-architecture study, or both as separate tracks. Verify: a 'Scope' section in projects/infranet/AGENT-CHARTER.md states the decision in 2-4 sentences and lists which docs belong to which track. Do not delete any doc.",
+      "status": "open",
+      "project_id": "infranet",
+      "tags": ["general"],
+      "context": { "campaign": null, "story_path": null },
+      "created_at": "2026-06-29T00:47:15.000Z",
+      "updated_at": "2026-06-29T00:47:15.000Z"
+    },
+    {
+      "id": "f7d0a93b-2e54-4c18-b6af-0c5b8e1d4a92",
+      "title": "Infranet: run the demo + tests, capture a baseline",
+      "body": "Resource pillar: correctness (understand before building) + search tokens (read local code, don't research the web). In projects/infranet/ run `python demo.py` and `python tests/run_all_tests.py` (and note the Rust crate `cargo test` if a toolchain exists; skip with a note if not). Trace what the demo actually does end to end. Verify: write projects/infranet/BASELINE.md with the commands run, pass/fail counts, and 3-5 bullets on what the system does today. Quote real terminal output; do not claim results without running.",
+      "status": "open",
+      "project_id": "infranet",
+      "tags": ["general"],
+      "context": { "campaign": null, "story_path": null },
+      "created_at": "2026-06-29T00:47:00.000Z",
+      "updated_at": "2026-06-29T00:47:00.000Z"
+    }
+  ]
+}
