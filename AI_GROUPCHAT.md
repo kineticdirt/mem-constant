@@ -78,6 +78,7 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-06-29 (UTC)** — [PC] **Result:** Fixed public **/Intel** empty doc pane — `viewerMayGet` allowed `/api/news` (exact match) but not `/api/news/brief`, so reading any brief 403'd for the no-login viewer. Added `/api/news/brief` to the viewer allowlist (briefs are public-intended; `readSituationBrief` already guards traversal). Deployed to linuxbox + restarted `linuxbox-status`; verified live `https://abhinavall.net/Intel/api/news/brief` returns content. Committed locally, not pushed.
 - **2026-06-29 (UTC)** — [PC] **Result:** Cursor CLI (`agent` v2026.06.26-7079533) installed on **linuxbox** at `~/.local/bin/agent` (arm64). Key file `~/.cursor-agent.env` (600, empty — user pastes `CURSOR_API_KEY` from Cursor Dashboard). **Paid, manual lane** — kept off crons; Hermes stays the free always-on lane. Gated pattern: `agent -p --force --disable-auto-update "…"`; manual `agent update` after SAFE check. **Flag:** this tree's git origin is the **PUBLIC** `kineticdirt/mem-constant` — `AGENTS.md`/`agents/`/`scripts/` already public (topology only, no creds; user accepts). Committed locally on PC, **not pushed**.
 - **2026-06-08 (UTC)** — [PC] **Result:** Fixed v8 **index.html** duplicate block (About/Now/Impact repeated twice — broke layout).
 - **2026-06-07 (UTC)** — [PC] **Intent:** User — apply [Qlik dashboard design](https://www.qlik.com/us/dashboard-examples/dashboard-design) principles to linuxbox Hub

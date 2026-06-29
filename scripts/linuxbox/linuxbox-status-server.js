@@ -1126,6 +1126,7 @@ const VIEWER_GET_PREFIXES = [
 
 function viewerMayGet(pathname) {
   if (VIEWER_GET_PREFIXES.includes(pathname)) return true;
+  if (pathname === "/api/news/brief") return true;
   if (pathname === "/api/reports/public") return true;
   if (pathname.startsWith("/api/reports/situation-monitor")) return true;
   if (pathname.startsWith("/api/reports/code-discovery")) return true;
