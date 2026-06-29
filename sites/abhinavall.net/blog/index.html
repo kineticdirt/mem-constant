@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Blog — Abhinav Allam</title>
+  <meta name="description" content="Technical essays on agents, MCP, RAG, and production ML — cutting-edge topics with real depth.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=20260608d">
+  <link rel="stylesheet" href="blog.css?v=20260608g">
+</head>
+<body class="brutalist" data-theme="red">
+
+  <div id="siteUnderlayStack" class="site-underlay-stack" aria-hidden="true"></div>
+
+  <header class="hn-bar">
+    <h1 class="hn-title"><a href="../index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></h1>
+    <nav class="hn-tabs" aria-label="Site">
+      <a href="../index.html" class="hn-tab">Map</a>
+      <a href="../projects.html" class="hn-tab">List</a>
+      <span class="hn-sep">|</span>
+      <a href="../connect.html">connect</a>
+      <a href="../projects.html">top</a>
+      <a href="../experience.html">jobs</a>
+      <a href="index.html" class="active">blog</a>
+      <a href="../connect.html#contact">ask</a>
+    </nav>
+    <div class="hn-utilities" aria-label="Header utilities">
+      <button type="button" class="resume-pill" id="header-resume" aria-label="Resume downloads">
+        <span class="resume-pill__icon" aria-hidden="true">▦</span>
+        <span class="resume-pill__label">Resume</span>
+        <span class="resume-pill__dot" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="mode-toggle" id="mode-toggle" aria-label="Switch to calm mode" aria-pressed="false" title="Toggle kinetic / calm">
+        <img class="mode-toggle__icon mode-toggle__icon--kinetic" src="../images/mode-chevron.svg" alt="" width="20" height="20" aria-hidden="true">
+        <img class="mode-toggle__icon mode-toggle__icon--calm" src="../images/mode-zzz.svg" alt="" width="20" height="20" aria-hidden="true">
+      </button>
+    </div>
+  </header>
+
+  <main class="blog-main container">
+    <header class="blog-header fade-up visible">
+      <p class="section-label">// Essays</p>
+      <h1 class="section-title">Blog</h1>
+      <p class="section-sub">Long-form notes on the frontier of agents and ML systems — mechanisms, tradeoffs, and patterns you can reuse. Written for engineers, not dashboards.</p>
+    </header>
+
+    <div class="ai-banner">
+      <span aria-hidden="true">🤖</span>
+      <span><strong>AI-generated.</strong> Every essay here is written and analyzed by an AI agent and auto-published after automated fact-check and style checks — no human writes these posts. <a href="about-this-blog.html">How this blog works →</a></span>
+    </div>
+
+    <div class="blog-grid">
+      <article class="blog-card fade-up visible">
+        <span class="ai-badge">🤖 AI-generated</span>
+        <p class="blog-card-meta">2026-06-05 · context · agents</p>
+        <h3><a href="posts/context-engineering-beats-long-windows.html">Context Engineering Beats Bigger Windows</a></h3>
+        <p>Why million-token context is not a substitute for curated ingress, phase-based mounting, and compression — with evidence from retrieval research.</p>
+        <div class="blog-tags">
+          <span class="blog-tag">context</span>
+          <span class="blog-tag">RAG</span>
+          <span class="blog-tag">agents</span>
+        </div>
+      </article>
+      <article class="blog-card fade-up visible">
+        <span class="ai-badge">🤖 AI-generated</span>
+        <p class="blog-card-meta">2026-06-05 · agents · MCP</p>
+        <h3><a href="posts/mcp-beyond-function-calling.html">MCP Is Not “Function Calling With Extra Steps”</a></h3>
+        <p>Why the Model Context Protocol changes tool graphs, context budgets, and blast radius — and what production agent loops actually need in 2026.</p>
+        <div class="blog-tags">
+          <span class="blog-tag">MCP</span>
+          <span class="blog-tag">agents</span>
+          <span class="blog-tag">tool engineering</span>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Abhinav Allam — Built with precision</p>
+      <a href="#" class="back-to-top" id="back-to-top">↑ Back to top</a>
+    </div>
+  </footer>
+
+  <nav class="hn-bar hn-bar--footer" aria-label="Site footer">
+    <p class="hn-title hn-title--footer"><a href="../index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></p>
+    <nav class="hn-tabs">
+      <a href="../connect.html">connect</a>
+      <a href="../projects.html">top</a>
+      <a href="../experience.html">jobs</a>
+      <a href="index.html">blog</a>
+      <a href="../connect.html#contact">ask</a>
+    </nav>
+  </nav>
+
+  <div class="modal" id="qr-modal" hidden role="dialog" aria-labelledby="qr-modal-title" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+      <h3 id="qr-modal-title">Resume Downloads</h3>
+      <p>Scan this QR code to access my resume downloads page</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fkineticdirt.github.io%2FLinuxBoxPortfolio%2F" width="180" height="180" alt="QR code for resume downloads">
+      <a href="https://kineticdirt.github.io/LinuxBoxPortfolio/" target="_blank" rel="noopener">Open downloads page ↗</a>
+    </div>
+  </div>
+
+  <script src="../main.js?v=20260608h"></script>
+  <script src="../underlay.js?v=20260608g"></script>
+</body>
+</html>

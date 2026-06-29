@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Is Not “Function Calling With Extra Steps” — Abhinav Allam</title>
+  <meta name="description" content="Why the Model Context Protocol changes how production agents connect to tools, data, and humans — and what to design for in 2026.">
+  <meta name="generator" content="AI agent (automated). See /blog/about-this-blog.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=20260608d">
+  <link rel="stylesheet" href="../blog.css?v=20260608g">
+</head>
+<body class="brutalist" data-theme="red">
+
+  <div id="siteUnderlayStack" class="site-underlay-stack" aria-hidden="true"></div>
+
+  <header class="hn-bar">
+    <h1 class="hn-title"><a href="../../index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></h1>
+    <nav class="hn-tabs" aria-label="Site">
+      <a href="../../index.html" class="hn-tab">Map</a>
+      <a href="../../projects.html" class="hn-tab">List</a>
+      <span class="hn-sep">|</span>
+      <a href="../../connect.html">connect</a>
+      <a href="../../projects.html">top</a>
+      <a href="../../experience.html">jobs</a>
+      <a href="../index.html" class="active">blog</a>
+      <a href="../../connect.html#contact">ask</a>
+    </nav>
+    <div class="hn-utilities" aria-label="Header utilities">
+      <button type="button" class="resume-pill" id="header-resume" aria-label="Resume downloads">
+        <span class="resume-pill__icon" aria-hidden="true">▦</span>
+        <span class="resume-pill__label">Resume</span>
+        <span class="resume-pill__dot" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="mode-toggle" id="mode-toggle" aria-label="Switch to calm mode" aria-pressed="false" title="Toggle kinetic / calm">
+        <img class="mode-toggle__icon mode-toggle__icon--kinetic" src="../../images/mode-chevron.svg" alt="" width="20" height="20" aria-hidden="true">
+        <img class="mode-toggle__icon mode-toggle__icon--calm" src="../../images/mode-zzz.svg" alt="" width="20" height="20" aria-hidden="true">
+      </button>
+    </div>
+  </header>
+
+  <article class="post-article container">
+    <span class="ai-badge">🤖 AI-generated</span>
+    <p class="post-meta">2026-06-05 · 11 min read · agents · MCP · <a href="../about-this-blog.html">how this was written</a></p>
+    <h1>MCP Is Not “Function Calling With Extra Steps”</h1>
+    <p class="post-lede">Function calling gave models hands. The Model Context Protocol gives those hands a <em>workshop</em> — standardized sockets for tools, readable resources, and composable servers that outlive any single chat session. If you are building agents in 2026, the design question is no longer “can the model call an API?” but “who owns the tool graph, the context budget, and the blast radius when the model is wrong?”</p>
+
+    <figure class="post-figure">
+      <img src="../images/mcp-agent-stack.svg" width="720" height="300" alt="Diagram: host app, MCP client, servers exposing tools and resources">
+      <figcaption>Figure 1 — MCP separates the <em>host</em> (orchestration + UX) from <em>servers</em> (capabilities). The agent loop still runs in the host; servers stay small and replaceable.</figcaption>
+    </figure>
+
+    <h2>What changed after function calling</h2>
+    <p>OpenAI’s function calling (2023) and parallel tool-use APIs normalized a pattern: the model emits structured JSON describing an intended action; your runtime executes it and feeds the result back. That unlocked reliable calculators, SQL, and internal APIs. It also created a maintenance cliff — every integration was a one-off schema in application code, every new data source required prompt surgery, and every IDE fork reinvented the same GitHub + filesystem + search trio.</p>
+    <p>Anthropic’s <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">Model Context Protocol</a> (MCP), open-sourced in late 2024, treats capabilities as <strong>pluggable servers</strong> speaking a shared wire format (JSON-RPC over stdio or SSE). Host applications implement an MCP <em>client</em>; capabilities live in MCP <em>servers</em>. The split matters: servers can ship independently, version independently, and run under different trust boundaries — while the host controls which servers are mounted for a given task.</p>
+    <p>That is the cutting-edge shift. Prompt engineering optimized tokens inside one blob; <strong>tool engineering</strong> optimizes the surface area the model can touch — and how observations re-enter context without drowning everything else.</p>
+
+    <h2>The three primitives (and why each exists)</h2>
+    <h3>Tools</h3>
+    <p>Tools are model-initiated actions with JSON Schema inputs — spiritually similar to function calling, but discovered at runtime from the server’s <code>tools/list</code> handshake instead of hard-coded per app. Good tool design is ruthlessly narrow: one verb, typed fields, enums instead of free text where possible. Wide “do anything” tools increase hallucinated arguments and recovery loops.</p>
+    <h3>Resources</h3>
+    <p>Resources are <em>application-initiated</em> or user-pinned context: files, log tails, schema snapshots, ticket JSON. They address a failure mode of pure tool loops — the model never knew a document existed because it never thought to fetch it. Resources let hosts preload or let users attach durable artifacts without stuffing the system prompt.</p>
+    <h3>Prompts</h3>
+    <p>Prompts are parameterized templates servers can expose — useful for repeatable workflows (“generate migration plan from schema resource”). They are underrated: they move tribal prompt lore out of Notion and into versioned server code.</p>
+
+    <h2>Production dynamics nobody puts in the README</h2>
+    <p><strong>Context inflation.</strong> Each tool result returns verbatim into the window. A browser scrape, a 400-line JSON API response, or a recursive directory listing can erase an hour of reasoning budget in one turn. Production hosts need compression policies: truncate with structure, summarize with a cheap model, or store blobs out-of-band and pass handles.</p>
+    <p><strong>Tool budget.</strong> Listing 80 tools “so the model can choose” often hurts more than it helps — selection accuracy drops as cardinality rises. The 2026 pattern is <em>dynamic mounting</em>: enable 5–12 tools per sub-task, swap servers when the phase changes (research → edit → verify).</p>
+    <p><strong>Blast radius.</strong> A model with shell and network tools is a remote-code-execution surface. MCP does not solve security; it standardizes plumbing. Serious deployments pair least-privilege servers, optional human approval on mutating tools, and separate read vs write servers so read-only research cannot accidentally call <code>git push</code>.</p>
+    <p><strong>Latency stacks.</strong> One “simple” user question can chain five tool calls across three servers. Without parallelization and aggressive caching of idempotent reads, agents feel broken compared to chat. Treat p95 tool latency as a product metric, not an afterthought.</p>
+
+    <h2>MCP vs ad-hoc function calling (when each wins)</h2>
+    <ul>
+      <li><strong>Ad-hoc functions</strong> — fastest for one product, one backend, &lt;10 tools, single team. You control schemas in-repo; no extra process management.</li>
+      <li><strong>MCP</strong> — wins when multiple hosts (IDE, CLI, automations) must share capabilities; when third-party tool packs matter; when you want servers sandboxed per domain (finance server, infra server) with different credentials.</li>
+      <li><strong>Hybrid</strong> — common in 2026: core business APIs stay native; MCP wraps everything episodic (browser, docs search, issue trackers).</li>
+    </ul>
+    <p>Interoperability is improving — OpenAI, Google, and open-source agent frameworks now document MCP client support — but you should still assume <strong>schema drift</strong> across model families. Test tool-call accuracy per model; do not trust zero-shot parity between providers.</p>
+
+    <h2>A minimal loop that actually ships</h2>
+    <p>Frameworks hide complexity, but the control flow is stable:</p>
+    <pre><code>while not done:
+    response = model.chat(messages, tools=mounted_tools)
+    if response.tool_calls:
+        for call in response.tool_calls:
+            result = mcp.invoke(call.server, call.name, call.arguments)
+            messages.append(tool_result(call.id, compress(result)))
+    else:
+        done = True</code></pre>
+    <p>The engineering effort sits in <code>compress(result)</code>, <code>mounted_tools</code>, and termination guards — not in parsing JSON. Agents fail in production on unbounded loops and un-summarized observations long before they fail on reasoning.</p>
+
+    <h2>Context engineering &gt; bigger windows</h2>
+    <p>Long-context models (128k–1M tokens) tempted teams to skip retrieval and dump everything. Field reports — and benchmarks like <a href="https://arxiv.org/abs/2310.11511" target="_blank" rel="noopener">Lost in the Middle</a> — still show attention degradation: models miss needles in haystacks, especially in the middle of huge prompts. MCP plus disciplined resources is a bet on <strong>curated ingress</strong>: attach the right 2–8k tokens per phase instead of the available 200k.</p>
+    <p>The frontier question for 2026 is not “how much context can we afford?” but “what is the minimum sufficient context for this tool subgraph?” That is the same optimization graph database people solved with query plans — except the planner is an LLM and the cost function is dollars plus latency plus wrong-tool risk.</p>
+
+    <h2>Checklist before you mount another server</h2>
+    <ol>
+      <li>Can this capability be a <em>read-only</em> server first?</li>
+      <li>Does each tool have a single happy path and explicit error strings the model can react to?</li>
+      <li>What is the max bytes returned per call — and what summarizer runs if exceeded?</li>
+      <li>Which tools require human approval — and can the UI show diffs before apply?</li>
+      <li>How do you log tool traces for replay without logging secrets?</li>
+      <li>What is the fallback when the model loops — step cap, duplicate-call detection, model swap?</li>
+    </ol>
+
+    <h2>Where this is heading</h2>
+    <p>Expect MCP-shaped boundaries to become the default “USB-C for agents” — not because one protocol is magical, but because the industry needed a **stable port** between hosts and capabilities. The differentiator moves up-stack: orchestration quality, memory tiers, evaluation harnesses, and product UX around partial autonomy.</p>
+    <p>If you are writing agents today, spend less time polishing monolithic system prompts and more time designing **tool graphs** with explicit phases, tight schemas, and measurable success criteria per phase. That is the difference between a demo that calls GitHub once and a system that can work for an afternoon without ruining your repo.</p>
+
+    <h2>References</h2>
+    <ul>
+      <li><a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">Model Context Protocol — specification &amp; docs</a></li>
+      <li><a href="https://www.anthropic.com/news/model-context-protocol" target="_blank" rel="noopener">Anthropic — Introducing the Model Context Protocol (2024)</a></li>
+      <li><a href="https://arxiv.org/abs/2310.11511" target="_blank" rel="noopener">Liu et al. — Lost in the Middle: How Language Models Use Long Contexts</a></li>
+      <li><a href="https://platform.openai.com/docs/guides/function-calling" target="_blank" rel="noopener">OpenAI — Function calling guide</a></li>
+    </ul>
+
+    <nav class="post-nav">
+      <a href="../index.html">← All posts</a>
+    </nav>
+  </article>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Abhinav Allam — Built with precision</p>
+      <a href="#" class="back-to-top" id="back-to-top">↑ Back to top</a>
+    </div>
+  </footer>
+
+  <nav class="hn-bar hn-bar--footer" aria-label="Site footer">
+    <p class="hn-title hn-title--footer"><a href="../../index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></p>
+    <nav class="hn-tabs">
+      <a href="../../connect.html">connect</a>
+      <a href="../../projects.html">top</a>
+      <a href="../../experience.html">jobs</a>
+      <a href="../index.html">blog</a>
+      <a href="../../connect.html#contact">ask</a>
+    </nav>
+  </nav>
+
+  <div class="modal" id="qr-modal" hidden role="dialog" aria-labelledby="qr-modal-title" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+      <h3 id="qr-modal-title">Resume Downloads</h3>
+      <p>Scan this QR code to access my resume downloads page</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fkineticdirt.github.io%2FLinuxBoxPortfolio%2F" width="180" height="180" alt="QR code for resume downloads">
+      <a href="https://kineticdirt.github.io/LinuxBoxPortfolio/" target="_blank" rel="noopener">Open downloads page ↗</a>
+    </div>
+  </div>
+
+  <script src="../../main.js?v=20260608h"></script>
+  <script src="../../underlay.js?v=20260608g"></script>
+</body>
+</html>

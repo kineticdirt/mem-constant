@@ -1,0 +1,144 @@
+/* AI blog — v8 brutalist chrome */
+.blog-main { padding: 2.5rem 0 4rem; min-height: 60vh; }
+.blog-header { margin-bottom: 2.5rem; }
+.blog-header .section-label { color: var(--accent-red, #ff2d2d); }
+.blog-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.blog-card {
+  border: 1px solid var(--border, #333);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 1.25rem 1.35rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.blog-card:hover {
+  border-color: var(--accent-yellow, #f5c518);
+  transform: translateY(-2px);
+}
+.blog-card-meta {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  color: var(--accent-yellow, #f5c518);
+  margin-bottom: 0.5rem;
+}
+.blog-card h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.65rem;
+  line-height: 1.35;
+}
+.blog-card h3 a { color: var(--text); text-decoration: none; }
+.blog-card h3 a:hover { color: var(--accent-cyan, #00e5ff); }
+.blog-card p { color: var(--text-muted, #9a9a9a); font-size: 0.92rem; margin: 0; }
+.blog-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.85rem; }
+.blog-tag {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--border, #444);
+  color: var(--text-muted);
+}
+
+/* Post layout */
+.post-article { max-width: 720px; margin: 0 auto; padding: 2rem var(--site-bezel, 1.75rem) 5rem; }
+.post-article .post-meta {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.78rem;
+  color: var(--accent-yellow);
+  margin-bottom: 0.35rem;
+}
+.post-article h1 {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  line-height: 1.2;
+  margin: 0 0 1.25rem;
+}
+.post-article .post-lede {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  border-left: 3px solid var(--accent-red);
+  padding-left: 1rem;
+  margin-bottom: 2rem;
+}
+.post-article h2 {
+  font-size: 1.15rem;
+  margin: 2rem 0 0.75rem;
+  color: var(--accent-cyan, #00e5ff);
+}
+.post-article h3 { font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+.post-article p, .post-article li { color: var(--text-muted); line-height: 1.65; }
+.post-article ul, .post-article ol { padding-left: 1.25rem; margin: 0.5rem 0 1rem; }
+.post-article pre {
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  margin: 1rem 0;
+}
+.post-article code {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.88em;
+}
+.post-article p code {
+  background: rgba(255, 45, 45, 0.12);
+  padding: 0.1rem 0.35rem;
+}
+.post-figure {
+  margin: 1.75rem 0;
+  border: 1px solid var(--border);
+  background: #050505;
+  padding: 1rem;
+}
+.post-figure img, .post-figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+.post-figure figcaption {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.65rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+.post-nav { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.post-nav a { color: var(--accent-yellow); }
+
+/* AI-generated disclosure (transparency-first) */
+.ai-banner {
+  display: flex;
+  gap: 0.7rem;
+  align-items: baseline;
+  border: 1px solid var(--accent-yellow, #f5c518);
+  background: rgba(245, 197, 24, 0.07);
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, #9a9a9a);
+  line-height: 1.55;
+}
+.ai-banner strong { color: var(--accent-yellow, #f5c518); }
+.ai-banner a { color: var(--accent-cyan, #00e5ff); white-space: nowrap; }
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #0a0a0a;
+  background: var(--accent-yellow, #f5c518);
+  padding: 0.2rem 0.5rem;
+}
+.post-article .ai-badge { margin-bottom: 1rem; }
+.blog-card .ai-badge { font-size: 0.6rem; margin-bottom: 0.5rem; }
+.post-method {
+  margin-top: 2.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px dashed var(--border, #444);
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 0.85rem;
+  color: var(--text-muted, #9a9a9a);
+  line-height: 1.6;
+}
+.post-method h2 { font-size: 0.95rem; color: var(--accent-yellow, #f5c518); margin: 0 0 0.6rem; }
+.post-method ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+.post-method a { color: var(--accent-cyan, #00e5ff); }
