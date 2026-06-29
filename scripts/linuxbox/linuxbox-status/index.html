@@ -1373,7 +1373,7 @@
         const data = await res.json();
         const parts = data.parts || [];
         if (data.error) { body.innerHTML = `<p class="empty">${esc(data.error)}</p>`; }
-        const tiers = { "1-handling": "Tier 1 — handling", "2-interior": "Tier 2 — interior", "3-evswap": "Tier 3 — EV swap" };
+        const tiers = { "1-handling": "Tier 1 — handling", "2-interior": "Tier 2 — interior", "2-styling": "Tier 2 — styling", "3-evswap": "Tier 3 — EV swap" };
         const sum = parts.reduce((a, p) => a + (Number(p.current_price) || 0), 0);
         const last = (data.monitor && data.monitor.last_run) ? new Date(data.monitor.last_run).toLocaleString() : "never";
         const intv = (data.monitor && data.monitor.interval_days) || 3;

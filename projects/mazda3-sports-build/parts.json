@@ -1,10 +1,10 @@
 {
   "project": "mazda3-sports-build",
   "title": "Mazda3 sports build",
-  "updated_at": "2026-06-29T00:10:54-04:00",
+  "updated_at": "2026-06-29T15:31:44-04:00",
   "monitor": {
     "interval_days": 3,
-    "last_run": "2026-06-29T00:10:54-04:00",
+    "last_run": "2026-06-29T15:31:44-04:00",
     "note": "Prices re-checked every 3 days by scripts/mazda3/price_monitor.py; changes appended to each part's price_history."
   },
   "fitment_warning": "Chassis conflict: H&R springs are CX-30-specific; the CorkSport strut bar fits 2019+ Mazda 3 ONLY (not CX-30). Confirm the actual car (Tier 0).",
@@ -88,6 +88,44 @@
         ]
       },
       "price_history": []
+    },
+    {
+      "id": "window-visors",
+      "name": "Bayson R OE-Style Window Visors (Mazda 3 hatch)",
+      "vendor": "Bayson R Motorsports",
+      "url": "https://baysonr.com/products/oe-style-window-visors-for-2019-2022-mazda-3-5dr",
+      "sku": "DWV-MAZ3195D",
+      "tier": "2-styling",
+      "fitment": "2019-2025 Mazda 3 5Dr Hatchback ONLY. Tinted acrylic, OE style.",
+      "status": "considering",
+      "currency": "USD",
+      "current_price": 70.0,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 70.0,
+          "note": "initial capture (sale, was 78.00)"
+        }
+      ]
+    },
+    {
+      "id": "ck-mid-spoiler",
+      "name": "Bayson R CK-Style Mid Spoiler (Mazda 3 hatch)",
+      "vendor": "Bayson R Motorsports",
+      "url": "https://baysonr.com/products/ck-style-mid-spoiler-for-2019-2021-mazda-3-5dr",
+      "sku": "SPOILER-MAZ3195DMID-A-CK",
+      "tier": "2-styling",
+      "fitment": "2019-2025 Mazda 3 5Dr Hatchback ONLY. ABS, unpainted (prep+paint needed).",
+      "status": "considering",
+      "currency": "USD",
+      "current_price": 80.0,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 80.0,
+          "note": "initial capture (sale, was 89.00)"
+        }
+      ]
     },
     {
       "id": "tesla-sdu",

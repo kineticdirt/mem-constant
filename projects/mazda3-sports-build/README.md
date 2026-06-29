@@ -28,8 +28,12 @@ This README is the human-readable mirror — when they disagree, `parts.json` wi
 | 4 | [EV West Tesla Small Rear Drive Unit Starter Kit (EV Controls T2-C)](https://evwest.com/tesla-small-rear-drive-unit-starter-kit-ev-controls-t2-c-controller) | EV West | **$9,900.00** | TSLA-MS-SDU | Tesla SDU, ~200 kW (264 HP), 277-408 VDC. *EV swap, not bolt-on* | researching |
 | 5 | [EVTV Quaife ATB LSD (Tesla Model S SDU)](https://store.evtv.me/products/quaifeatb) | EVTV Motor Verks | **$2,195.99** | QDH3T | Installs **inside** the Tesla S/X small drive unit (#4) | researching |
 | 6 | White wheels (spec — no product chosen yet) | — | — | — | **5x114.3** bolt pattern, **6-7"** width, white finish | spec-only |
+| 7 | [Bayson R OE-Style Window Visors](https://baysonr.com/products/oe-style-window-visors-for-2019-2022-mazda-3-5dr) | Bayson R Motorsports | **$70.00** (sale, was $78.00) | DWV-MAZ3195D | **2019-2025 Mazda 3 5Dr Hatchback only.** Tinted acrylic | considering |
+| 8 | [Bayson R CK-Style Mid Spoiler](https://baysonr.com/products/ck-style-mid-spoiler-for-2019-2021-mazda-3-5dr) | Bayson R Motorsports | **$80.00** (sale, was $89.00) | SPOILER-MAZ3195DMID-A-CK | **2019-2025 Mazda 3 5Dr Hatchback only.** ABS, unpainted (prep+paint) | considering |
 
-**Subtotals:** bolt-ons (1-3) ≈ **$862.28** · EV-swap drivetrain (4-5) ≈ **$12,095.99** · all five ≈ **$12,958.27** (before tax/shipping). Wheels (#6) TBD.
+**Subtotals:** handling bolt-ons (1,3) ≈ **$462.29** · styling (7,8) ≈ **$150.00** · interior (2) ≈ **$399.99** · EV-swap drivetrain (4-5) ≈ **$12,095.99** · everything priced ≈ **$13,108.27** (before tax/shipping). Wheels (#6) TBD.
+
+> **Chassis signal:** parts #7 and #8 fit the **Mazda 3 5Dr hatchback only** (not CX-30). If these are on the buy list, the car is almost certainly a **Mazda 3 hatch** — which would resolve Tier 0 in favor of Mazda 3 (swap the CX-30 springs #1 for the Mazda 3 equivalent). Still pending your confirmation in the Inbox before the agent acts on it.
 
 ## Wheels (#6) — target spec
 
@@ -54,6 +58,9 @@ Open before buying (add to a future row once chosen):
   - *Reviewers repeatedly pair the front strut bar + a rear sway bar + springs as the handling trifecta — a rear sway bar is a natural add to this tier.*
 - **Tier 2 — Interior / driver feel.**
   - Leather steering wheel (#2) — ~2 hr install. Note: kills the factory heated-wheel function if equipped.
+- **Tier 2 — Styling / exterior (cosmetic, Mazda 3 hatch).**
+  - Window visors (#7) — DIY, hardware included, ~OEM look. Easy first cosmetic mod.
+  - CK mid spoiler (#8) — ships unpainted ABS; budget for prep + paint before install.
 - **Tier 3 — EV swap (major project, separate track).**
   - Tesla small rear drive unit + EV Controls T2-C (#4) and the Quaife ATB LSD that goes inside it (#5).
   - This is a full electric conversion / fabrication effort (battery pack, mounts, charging, safety), not a weekend bolt-on. Treat as its own build with its own budget and plan; the LSD (#5) only makes sense if committing to the Tesla unit (#4).
