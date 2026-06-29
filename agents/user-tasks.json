@@ -10,9 +10,52 @@
       "charter_path": "projects/infranet/README.md",
       "created_at": "2026-06-28T00:00:00.000Z",
       "updated_at": "2026-06-28T00:00:00.000Z"
+    },
+    {
+      "id": "mazda3-sports-build",
+      "name": "Mazda3 sports build",
+      "kind": "personal-tracker",
+      "description": "Parts tracking, links, pricing, and upgrade path for a Mazda 3 / CX-30 sports build (handling bolt-ons through a possible Tesla EV-swap tier). Live sheet in the charter.",
+      "status": "active",
+      "charter_path": "projects/mazda3-sports-build/README.md",
+      "created_at": "2026-06-29T00:00:00.000Z",
+      "updated_at": "2026-06-29T00:00:00.000Z"
     }
   ],
   "tasks": [
+    {
+      "id": "c4e2a1b8-7f63-4d05-9a2e-1b8c6f3d09a7",
+      "title": "Mazda3 build: confirm chassis (Mazda 3 vs CX-30) to resolve fitment conflict",
+      "body": "Tier 0, blocks the rest. The tracked springs (#1) are CX-30-specific; the CorkSport strut tower bar (#3) fits 2019+ Mazda 3 ONLY (CorkSport says it does NOT fit CX-30). Confirm the actual car, then swap whichever part is wrong (CorkSport 2019+ Mazda 3 springs ~$279.99 if it's a Mazda 3). Steering wheel (#2) fits both. Verify: update the fitment column + status in projects/mazda3-sports-build/README.md.",
+      "status": "open",
+      "project_id": "mazda3-sports-build",
+      "tags": ["general"],
+      "context": { "campaign": null, "story_path": null },
+      "created_at": "2026-06-29T03:50:00.000Z",
+      "updated_at": "2026-06-29T03:50:00.000Z"
+    },
+    {
+      "id": "d9f3b2c7-5a41-4e26-8b07-2c5d1e8f4b63",
+      "title": "Mazda3 build: re-check tracked part prices and log changes",
+      "body": "Prices captured 2026-06-29 rotate with sales. Re-check the 5 linked product pages, update the price column, and append any change to the price-watch log table in projects/mazda3-sports-build/README.md. Verify: at least the price-watch table reflects today's check (even if 'no change').",
+      "status": "open",
+      "project_id": "mazda3-sports-build",
+      "tags": ["general"],
+      "context": { "campaign": null, "story_path": null },
+      "created_at": "2026-06-29T03:50:10.000Z",
+      "updated_at": "2026-06-29T03:50:10.000Z"
+    },
+    {
+      "id": "e1a7c4d9-3b62-4f18-9c50-7d2e6b1f8a04",
+      "title": "Mazda3 build: scope the EV-swap tier as its own plan (if pursuing)",
+      "body": "The Tesla SDU kit (#4, ~$9,900) + Quaife ATB LSD (#5, ~$2,196, installs inside #4) are a full EV conversion, not bolt-ons. If pursuing, spin up a separate build plan: battery pack/voltage, mounts/adapters, charging, cooling, safety/HV handling, legality/registration. The LSD only makes sense if committing to the Tesla unit. Verify: a Tier-3 sub-plan section or separate doc exists with at least the open questions listed.",
+      "status": "open",
+      "project_id": "mazda3-sports-build",
+      "tags": ["general"],
+      "context": { "campaign": null, "story_path": null },
+      "created_at": "2026-06-29T03:50:20.000Z",
+      "updated_at": "2026-06-29T03:50:20.000Z"
+    },
     {
       "id": "b3f1c2a4-1d6e-4a90-9c11-3a7e0f2b8c31",
       "title": "Infranet: pick the first buildable spike (ponytail ladder)",

@@ -1,0 +1,131 @@
+{
+  "project": "mazda3-sports-build",
+  "title": "Mazda3 sports build",
+  "updated_at": "2026-06-29T00:10:54-04:00",
+  "monitor": {
+    "interval_days": 3,
+    "last_run": "2026-06-29T00:10:54-04:00",
+    "note": "Prices re-checked every 3 days by scripts/mazda3/price_monitor.py; changes appended to each part's price_history."
+  },
+  "fitment_warning": "Chassis conflict: H&R springs are CX-30-specific; the CorkSport strut bar fits 2019+ Mazda 3 ONLY (not CX-30). Confirm the actual car (Tier 0).",
+  "parts": [
+    {
+      "id": "hr-springs",
+      "name": "H&R Sport Springs",
+      "vendor": "Darkside Motoring",
+      "url": "https://www.darksidemotoring.com/products/h-r-sport-springs-2020-mazda-cx-30-2wd-4wd-typ-f1",
+      "sku": "28663-3",
+      "tier": "1-handling",
+      "fitment": "CX-30 2020-2023 2WD/4WD; lowers ~1.3in F/R",
+      "status": "considering",
+      "currency": "USD",
+      "current_price": 272.3,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 272.3,
+          "note": "initial capture (sale, was 389.00)"
+        }
+      ]
+    },
+    {
+      "id": "steering-wheel",
+      "name": "CorkSport Leather Steering Wheel",
+      "vendor": "CorkSport",
+      "url": "https://corksport.com/leather-steering-wheel-for-2019-mazda-3-and-mazda-3-turbo.html",
+      "sku": "AXO-9-342-10",
+      "tier": "2-interior",
+      "fitment": "2019+ Mazda 3, 2021+ 3 Turbo, 2020+ CX-30, 2023+ CX-50; disables heated wheel",
+      "status": "considering",
+      "currency": "USD",
+      "current_price": 399.99,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 399.99,
+          "note": "initial capture"
+        }
+      ]
+    },
+    {
+      "id": "strut-bar",
+      "name": "CorkSport Front Strut Tower Bar",
+      "vendor": "CorkSport",
+      "url": "https://corksport.com/2019-mazda-3-front-strut-tower-bar.html",
+      "sku": "AXO-3-020-10",
+      "tier": "1-handling",
+      "fitment": "2019+ Mazda 3 sedan & hatch ONLY (not CX-30)",
+      "status": "considering",
+      "currency": "USD",
+      "current_price": 189.99,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 189.99,
+          "note": "initial capture"
+        }
+      ]
+    },
+    {
+      "id": "white-wheels",
+      "name": "White wheels (spec \u2014 no product chosen yet)",
+      "vendor": null,
+      "url": null,
+      "sku": null,
+      "tier": "1-handling",
+      "fitment": "5x114.3 bolt pattern, 6-7in width, white finish. Confirm offset/diameter against the chosen chassis + tire.",
+      "status": "spec-only",
+      "currency": "USD",
+      "current_price": null,
+      "spec": {
+        "color": "white",
+        "bolt_pattern": "5x114.3",
+        "width_in": "6-7",
+        "open": [
+          "pick diameter (17/18in)",
+          "confirm offset (Mazda 3/CX-30 ~ +45mm typical)",
+          "pick a model + source a link"
+        ]
+      },
+      "price_history": []
+    },
+    {
+      "id": "tesla-sdu",
+      "name": "EV West Tesla Small Rear Drive Unit Starter Kit (EV Controls T2-C)",
+      "vendor": "EV West",
+      "url": "https://evwest.com/tesla-small-rear-drive-unit-starter-kit-ev-controls-t2-c-controller",
+      "sku": "TSLA-MS-SDU",
+      "tier": "3-evswap",
+      "fitment": "Tesla SDU, ~200kW (264HP). EV swap, not a bolt-on.",
+      "status": "researching",
+      "currency": "USD",
+      "current_price": 9900.0,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 9900.0,
+          "note": "initial capture"
+        }
+      ]
+    },
+    {
+      "id": "quaife-lsd",
+      "name": "EVTV Quaife ATB LSD (Tesla Model S SDU)",
+      "vendor": "EVTV Motor Verks",
+      "url": "https://store.evtv.me/products/quaifeatb",
+      "sku": "QDH3T",
+      "tier": "3-evswap",
+      "fitment": "Installs inside the Tesla S/X small drive unit (pairs with tesla-sdu)",
+      "status": "researching",
+      "currency": "USD",
+      "current_price": 2195.99,
+      "price_history": [
+        {
+          "date": "2026-06-29",
+          "price": 2195.99,
+          "note": "initial capture"
+        }
+      ]
+    }
+  ]
+}

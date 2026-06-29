@@ -402,6 +402,7 @@
       <button type="button" class="admin-only" data-tab="stories">Stories</button>
       <button type="button" class="admin-only" data-tab="chat">Chat</button>
       <button type="button" class="admin-only" data-tab="tasks">Tasks</button>
+      <button type="button" class="admin-only" data-tab="garage">Build</button>
       <button type="button" class="admin-only" data-tab="backlog">Meta</button>
     </nav>
 
@@ -672,6 +673,11 @@
           </div>
         </section>
 
+        <section id="garage" class="panel admin-only">
+          <div id="garage-head"></div>
+          <div id="garage-body"><p class="empty">Loading build…</p></div>
+        </section>
+
         <section id="backlog" class="panel admin-only">
           <ul class="list" id="backlog-open"></ul>
           <div class="field" style="margin-top:1rem;max-width:480px">
@@ -685,7 +691,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "Hub", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", chat: "Chat", tasks: "Tasks", backlog: "Meta" };
+    const titles = { hub: "Hub", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -792,6 +798,7 @@
         if (activeTab === "news") loadNews();
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); }
         if (activeTab === "stories") loadStories();
+        if (activeTab === "garage") loadGarage();
       });
     });
 
@@ -1355,6 +1362,51 @@
     }
 
     function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+    function money(p) { return (p === null || p === undefined) ? "—" : "$" + Number(p).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    async function loadGarage() {
+      const head = document.getElementById("garage-head");
+      const body = document.getElementById("garage-body");
+      try {
+        const res = await fetch(`${base}/api/garage`, { cache: "no-store" });
+        const data = await res.json();
+        const parts = data.parts || [];
+        if (data.error) { body.innerHTML = `<p class="empty">${esc(data.error)}</p>`; }
+        const tiers = { "1-handling": "Tier 1 — handling", "2-interior": "Tier 2 — interior", "3-evswap": "Tier 3 — EV swap" };
+        const sum = parts.reduce((a, p) => a + (Number(p.current_price) || 0), 0);
+        const last = (data.monitor && data.monitor.last_run) ? new Date(data.monitor.last_run).toLocaleString() : "never";
+        const intv = (data.monitor && data.monitor.interval_days) || 3;
+        head.innerHTML =
+          `<h2 style="margin-bottom:0.4rem">${esc(data.title || "Mazda3 build")}</h2>` +
+          (data.fitment_warning ? `<div class="task-lane-banner" style="margin-bottom:0.75rem"><strong>⚠ Fitment</strong><span> ${esc(data.fitment_warning)}</span></div>` : "") +
+          `<p class="meta">Tracked total (priced parts): <strong>${money(sum)}</strong> · price monitor every ${esc(intv)} days · last checked: ${esc(last)}</p>`;
+        const rows = parts.map((p) => {
+          const hist = (p.price_history || []);
+          const lastChange = hist.length ? hist[hist.length - 1] : null;
+          const link = p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
+          const sub = lastChange ? `<div class="meta">since ${esc(lastChange.date)}${lastChange.note ? " · " + esc(lastChange.note) : ""}</div>` : "";
+          return `<tr>
+            <td><strong>${link}</strong>${sub}<div class="meta">${esc(p.fitment || "")}</div></td>
+            <td>${esc(p.vendor || "—")}</td>
+            <td>${esc(tiers[p.tier] || p.tier || "")}</td>
+            <td style="text-align:right;white-space:nowrap">${money(p.current_price)}</td>
+            <td>${esc(p.status || "")}</td>
+          </tr>`;
+        }).join("");
+        body.innerHTML =
+          `<style>#garage td,#garage th{padding:0.4rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.07);vertical-align:top}</style>
+           <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+             <thead><tr style="text-align:left;border-bottom:1px solid var(--border,#333)">
+               <th>Part</th><th>Vendor</th><th>Tier</th><th style="text-align:right">Price</th><th>Status</th>
+             </tr></thead>
+             <tbody>${rows}</tbody>
+           </table>
+           <p class="meta" style="margin-top:0.75rem">Prices auto-checked by <code>scripts/mazda3/price_monitor.py</code>; changes append to each part's history. Edit <code>projects/mazda3-sports-build/parts.json</code> to add parts.</p>`;
+      } catch (err) {
+        body.innerHTML = `<p class="empty">Failed to load build: ${esc(err.message || err)}</p>`;
+      }
+    }
 
     async function openReport(campaign, file, label) {
       selectedReport = { campaign, file };

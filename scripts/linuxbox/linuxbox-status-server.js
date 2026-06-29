@@ -23,6 +23,7 @@ const HEALTH_SCRIPT = path.join(__dirname, "nousagent-health.sh");
 const DASHBOARD_BACKLOG = path.join(REPO, "agents", "LINUXBOX_DASHBOARD_BACKLOG.md");
 const HUMAN_INBOX = path.join(REPO, "agents", "human-inbox.json");
 const USER_TASKS_FILE = path.join(REPO, "agents", "user-tasks.json");
+const MAZDA_PARTS_FILE = path.join(REPO, "projects", "mazda3-sports-build", "parts.json");
 const HERMES_BIN = path.join(process.env.HOME || "/home/abhinav", ".local/bin/hermes");
 const SITUATION_DIR = "reports/situation-monitor";
 const CODE_DISCOVERY_DIR = "reports/code-discovery";
@@ -327,6 +328,17 @@ function readUserTasksStore() {
     return { version: 2, projects, tasks };
   } catch {
     return { version: 2, projects: defaultUserProjects(), tasks: [] };
+  }
+}
+
+function readMazdaParts() {
+  if (!fs.existsSync(MAZDA_PARTS_FILE)) {
+    return { project: "mazda3-sports-build", parts: [], error: "parts.json missing" };
+  }
+  try {
+    return JSON.parse(fs.readFileSync(MAZDA_PARTS_FILE, "utf8"));
+  } catch (err) {
+    return { project: "mazda3-sports-build", parts: [], error: err.message };
   }
 }
 
@@ -1407,6 +1419,11 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && pathname === "/api/reports/public") {
       sendJson(res, 200, { updated_at: new Date().toISOString(), all_reports: listPublicReports() }, publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/garage") {
+      sendJson(res, 200, readMazdaParts(), publicMode);
       return;
     }
 
