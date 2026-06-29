@@ -571,6 +571,20 @@ function buildChatMessage(message, context) {
       );
     }
   }
+  if (context.project_id === "mazda3-sports-build") {
+    const m = readMazdaParts();
+    if (Array.isArray(m.parts) && m.parts.length) {
+      const lines = m.parts.map((p) => {
+        const price = p.current_price == null ? "—" : `$${p.current_price}`;
+        return `- ${p.name} | ${p.vendor || "—"} | ${p.tier || ""} | ${price} | ${p.status || ""} | fit: ${p.fitment || "?"}`;
+      });
+      const lr = (m.monitor && m.monitor.last_run) || "never";
+      const iv = (m.monitor && m.monitor.interval_days) || 3;
+      blocks.push(
+        `[Live build data — projects/mazda3-sports-build/parts.json]\nPrice monitor: every ${iv} days, last run ${lr}.${m.fitment_warning ? `\nFitment warning: ${m.fitment_warning}` : ""}\nParts (live prices):\n${lines.join("\n")}`.slice(0, 4000)
+      );
+    }
+  }
   if (context.type === "story" && context.campaign && context.path) {
     const doc = readStoryDoc(context.campaign, context.path);
     blocks.push(
@@ -628,8 +642,35 @@ async function runHermesChat(message, profile = "think", context = null) {
     maxBuffer: 512 * 1024,
   });
   const out = (stdout || stderr || "").trim();
-  const reply = out.split("\n").filter((l) => !l.startsWith("Resume this session")).join("\n").trim();
-  return { reply, profile: prof, context_used: !!context };
+  return { reply: extractHermesReply(out), profile: prof, context_used: !!context };
+}
+
+function extractHermesReply(raw) {
+  // Strip ANSI, then pull the answer out of the Hermes box (╭─ Hermes ─╮ … ╰─╯),
+  // dropping the echoed query and the session/resume footer. Fallback: filter footer lines.
+  const out = String(raw).replace(/\x1b\[[0-9;]*m/g, "");
+  const lines = out.split(/\r?\n/);
+  const start = lines.findIndex((l) => l.includes("\u256d") && /Hermes/.test(l));
+  if (start !== -1) {
+    const end = lines.findIndex((l, i) => i > start && l.trimStart().startsWith("\u2570"));
+    if (end !== -1) {
+      const body = lines
+        .slice(start + 1, end)
+        .map((l) => l.replace(/[\u2502]/g, "").trim())
+        .join("\n")
+        .trim();
+      if (body) return body;
+    }
+  }
+  return lines
+    .filter(
+      (l) =>
+        !l.startsWith("Resume this session") &&
+        !l.startsWith("hermes --resume") &&
+        !/^(Session|Duration|Messages):/.test(l.trim())
+    )
+    .join("\n")
+    .trim();
 }
 
 function situationKind(name) {

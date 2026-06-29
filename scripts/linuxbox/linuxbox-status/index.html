@@ -1378,9 +1378,14 @@
         const last = (data.monitor && data.monitor.last_run) ? new Date(data.monitor.last_run).toLocaleString() : "never";
         const intv = (data.monitor && data.monitor.interval_days) || 3;
         head.innerHTML =
-          `<h2 style="margin-bottom:0.4rem">${esc(data.title || "Mazda3 build")}</h2>` +
+          `<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem">
+             <h2 style="margin:0">${esc(data.title || "Mazda3 build")}</h2>
+             <button type="button" class="btn primary" id="garage-chat-btn" style="margin-left:auto">💬 Talk to the build</button>
+           </div>` +
           (data.fitment_warning ? `<div class="task-lane-banner" style="margin-bottom:0.75rem"><strong>⚠ Fitment</strong><span> ${esc(data.fitment_warning)}</span></div>` : "") +
           `<p class="meta">Tracked total (priced parts): <strong>${money(sum)}</strong> · price monitor every ${esc(intv)} days · last checked: ${esc(last)}</p>`;
+        const chatBtn = document.getElementById("garage-chat-btn");
+        if (chatBtn) chatBtn.onclick = () => { setChatContext({ project_id: "mazda3-sports-build" }, "Mazda3 build"); goTab("chat"); };
         const rows = parts.map((p) => {
           const hist = (p.price_history || []);
           const lastChange = hist.length ? hist[hist.length - 1] : null;
