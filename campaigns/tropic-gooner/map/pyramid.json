@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "tileSize": 256,
+  "format": "webp",
+  "width": 4096,
+  "height": 4176,
+  "minZoom": 0,
+  "maxZoom": 5,
+  "urlTemplate": "/map-tiles/{z}/{y}/{x}.webp",
+  "source": "master-enhanced.png",
+  "pipeline": "lanczos+pyramid",
+  "generated_at": "2026-06-30"
+}

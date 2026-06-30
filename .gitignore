@@ -2,6 +2,11 @@
 id_rsa_potato
 *.pem
 
+# Local linuxbox secrets (Discord etc.) — edit on PC, sync via scripts/pc/sync-linuxbox-secrets.sh
+secrets/linuxbox.env
+**/.env
+!**/.env.example
+
 # Machine-specific remote streaming config (Tailscale IPs, MACs)
 scripts/remote-stream-companion/config.psd1
 
@@ -10,6 +15,9 @@ scripts/laptop-usb-kit/secrets-local/
 
 # Hermes external continuity checkpoint (local machine state)
 hermes/state.json
+
+# Node
+node_modules/
 
 # Python packaging / test
 *.egg-info/

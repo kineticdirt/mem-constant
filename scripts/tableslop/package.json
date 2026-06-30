@@ -1,0 +1,19 @@
+{
+  "name": "tableslop-map-pipeline",
+  "private": true,
+  "type": "module",
+  "description": "PC-only: stitch Canva exports, Lanczos upscale, tile pyramid for map.tableslop.org",
+  "scripts": {
+    "map": "node run-panel-pipeline.mjs",
+    "map:hybrid": "node run-hybrid-pipeline.mjs",
+    "stitch": "node stitch-tiles.mjs",
+    "process": "node process-map.mjs",
+    "upscale": "node upscale-traditional.mjs",
+    "pyramid": "node build-pyramid.mjs",
+    "pipeline": "node run-pipeline.mjs",
+    "panels": "node run-panel-pipeline.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.34.2"
+  }
+}

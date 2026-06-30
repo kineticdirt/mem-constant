@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "campaign": "tropic-gooner",
+  "brand": "Primavera",
+  "title": "Isla Primavera",
+  "description": "tableslop overworld — Primavera setting. Markers use image-percent (0-100).",
+  "base_image": "map/master-enhanced.png",
+  "base_image_2k": "map/output-onlinetools-2k.png",
+  "tile_pyramid": "map/pyramid.json",
+  "base_image_master": "map/master-enhanced.png",
+  "base_image_source": "output-onlinetools4k.png",
+  "base_image_pipeline": "hybrid:lanczos+ui-labels",
+  "label_layer": "ui",
+  "base_image_status": "hybrid — terrain raster + UI labels from map.json",
+  "projection": "image-percent",
+  "updated_at": "2026-06-30",
+  "markers": [
+    {
+      "id": "r01-paradise",
+      "region": 1,
+      "name": "Paradise",
+      "label": "Paradise",
+      "type": "city",
+      "x_pct": 35,
+      "y_pct": 65,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning",
+      "note": "North central bay"
+    },
+    {
+      "id": "r02-porto-lujuria",
+      "region": 2,
+      "name": "Porto Lujuria",
+      "label": "Porto Lujuria",
+      "type": "city",
+      "x_pct": 45,
+      "y_pct": 62,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r03-crimson-quay",
+      "region": 3,
+      "name": "Crimson Quay",
+      "label": "Crimson Quay",
+      "type": "city",
+      "x_pct": 30,
+      "y_pct": 45,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning",
+      "aliases": [
+        "Jackedsonville"
+      ]
+    },
+    {
+      "id": "r04-villa-miel",
+      "region": 4,
+      "name": "Villa Miel",
+      "label": "Villa Miel",
+      "type": "town",
+      "x_pct": 22,
+      "y_pct": 72,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r05-culovera",
+      "region": 5,
+      "name": "CuloVera",
+      "label": "CuloVera",
+      "type": "city",
+      "x_pct": 45,
+      "y_pct": 88,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r06-seaside-springs",
+      "region": 6,
+      "name": "Seaside Springs",
+      "label": "Seaside Springs",
+      "type": "town",
+      "x_pct": 75,
+      "y_pct": 55,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r07-orchid-falls",
+      "region": 7,
+      "name": "Orchid Falls",
+      "label": "Orchid Falls",
+      "type": "town",
+      "x_pct": 82,
+      "y_pct": 28,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r08-sierra-dorado",
+      "region": 8,
+      "name": "Sierra Dorado",
+      "label": "Sierra Dorado",
+      "type": "capital",
+      "x_pct": 48,
+      "y_pct": 22,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning",
+      "note": "Federal mountain capital"
+    },
+    {
+      "id": "r09-ruby-harbor",
+      "region": 9,
+      "name": "Ruby Harbor",
+      "label": "Ruby Harbor",
+      "type": "city",
+      "x_pct": 18,
+      "y_pct": 82,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r10-lagoona-seica",
+      "region": 10,
+      "name": "Lagoona Seica",
+      "label": "Lagoona Seica",
+      "type": "town",
+      "x_pct": 78,
+      "y_pct": 75,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r11-black-sand-preserve",
+      "region": 11,
+      "name": "Black Sand Beach Preserve",
+      "label": "Black Sand Beach Preserve",
+      "type": "preserve",
+      "x_pct": 70,
+      "y_pct": 68,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning",
+      "note": "Zone 11 not on numbered overlay — estimated east coast"
+    },
+    {
+      "id": "r12-nueva-vista",
+      "region": 12,
+      "name": "Nueva Vista",
+      "label": "Nueva Vista",
+      "type": "town",
+      "x_pct": 50,
+      "y_pct": 32,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r13-portview",
+      "region": 13,
+      "name": "Portview",
+      "label": "Portview",
+      "type": "town",
+      "x_pct": 28,
+      "y_pct": 50,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    },
+    {
+      "id": "r14-federal-shores",
+      "region": 14,
+      "name": "Federal Shores",
+      "label": "Federal Shores",
+      "type": "region",
+      "x_pct": 55,
+      "y_pct": 8,
+      "coord_status": "approx-overlay",
+      "workflow_status": "planning"
+    }
+  ],
+  "base_image_terrain": "map/master-enhanced.png"
+}

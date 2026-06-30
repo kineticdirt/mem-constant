@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+# Large reference art — keep on linuxbox via scp; don't push to public origin
+Character Images/
+map/tiles/
+map/pipeline/panels/
+map/pipeline/output/
+map/source/*.png
+map/source/*.jpg
+map/master-enhanced*.png
+map/master-lanczos*.png
+map/reference/*.png
+map/output-onlinetools*.png
