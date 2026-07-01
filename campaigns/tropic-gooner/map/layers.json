@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "viewBox": "0 0 100 100",
+  "_doc": "Z-ordered compositor stack. Empty layers are placeholders for GTA-style world data (streets, buildings, transit, etc.).",
+  "layers": [
+    { "id": "terrain-tiles", "z": 10, "kind": "raster-tiles", "label": "Terrain tiles", "toggle": false, "default": true },
+    { "id": "terrain-base", "z": 11, "kind": "raster", "label": "Terrain raster", "toggle": false, "default": false },
+    { "id": "bathymetry", "z": 20, "kind": "svg", "label": "Bathymetry", "toggle": true, "default": false, "source": null },
+    { "id": "elevation-shade", "z": 21, "kind": "svg", "label": "Elevation", "toggle": true, "default": false, "source": null },
+    { "id": "biomes", "z": 22, "kind": "svg", "label": "Biomes", "toggle": true, "default": false, "source": null },
+    { "id": "jurisdiction", "z": 30, "kind": "svg", "label": "Jurisdiction", "toggle": true, "default": false, "source": null },
+    { "id": "regions", "z": 31, "kind": "svg", "label": "Regions", "toggle": true, "default": true, "source": "map/regions-ui.json" },
+    { "id": "districts", "z": 32, "kind": "svg", "label": "Districts", "toggle": true, "default": false, "source": null },
+    { "id": "parcels", "z": 33, "kind": "svg", "label": "Parcels", "toggle": true, "default": false, "source": null },
+    { "id": "waterways", "z": 40, "kind": "svg", "label": "Waterways", "toggle": true, "default": false, "source": null },
+    { "id": "streets", "z": 41, "kind": "svg", "label": "Streets", "toggle": true, "default": false, "source": null },
+    { "id": "highways", "z": 42, "kind": "svg", "label": "Highways", "toggle": true, "default": false, "source": null },
+    { "id": "transit-rail", "z": 43, "kind": "svg", "label": "Rail", "toggle": true, "default": false, "source": null },
+    { "id": "transit-bus", "z": 44, "kind": "svg", "label": "Bus routes", "toggle": true, "default": false, "source": null },
+    { "id": "bridges", "z": 45, "kind": "svg", "label": "Bridges", "toggle": true, "default": false, "source": null },
+    { "id": "buildings", "z": 50, "kind": "svg", "label": "Buildings", "toggle": true, "default": false, "source": null },
+    { "id": "landmarks", "z": 51, "kind": "svg", "label": "Landmarks", "toggle": true, "default": false, "source": null },
+    { "id": "poi-pins", "z": 60, "kind": "html", "label": "Cities", "toggle": true, "default": true },
+    { "id": "labels", "z": 61, "kind": "html", "label": "Labels", "toggle": true, "default": true },
+    { "id": "events", "z": 70, "kind": "html", "label": "Events", "toggle": true, "default": false, "source": null },
+    { "id": "fog", "z": 80, "kind": "svg", "label": "Fog of war", "toggle": true, "default": false, "source": null },
+    { "id": "selection", "z": 90, "kind": "svg", "label": "Selection", "toggle": false, "default": true }
+  ]
+}

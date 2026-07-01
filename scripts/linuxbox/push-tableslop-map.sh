@@ -16,17 +16,23 @@ TARBALL="/tmp/tableslop-map-deploy.tgz"
 PATHS=(
   "scripts/linuxbox/tableslop-server.js"
   "${MAP}/map.json"
+  "${MAP}/coords.json"
+  "${MAP}/layers.json"
+  "${MAP}/regions-ui.json"
   "${MAP}/pyramid.json"
   "${MAP}/master-enhanced.png"
   "${MAP}/tiles"
   "${MAP}/output-onlinetools4k.png"
   "${MAP}/output-onlinetools-2k.png"
-  "${MAP}/reference"
 )
 
 for p in "${PATHS[@]}"; do
   [ -e "${REPO}/${p}" ] || { echo "missing: ${p}" >&2; exit 1; }
 done
+# reference/ is optional (Canva exports, traces)
+if [ -d "${REPO}/${MAP}/reference" ]; then
+  PATHS+=("${MAP}/reference")
+fi
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=20 -o IdentitiesOnly=yes -i "${KEY}")
 

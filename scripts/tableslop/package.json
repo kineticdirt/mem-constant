@@ -6,6 +6,8 @@
   "scripts": {
     "map": "node run-panel-pipeline.mjs",
     "map:hybrid": "node run-hybrid-pipeline.mjs",
+    "map:install-esrgan": "powershell -ExecutionPolicy Bypass -File install-realesrgan.ps1",
+    "map:sync-coords": "node sync-overlay-coords.mjs",
     "stitch": "node stitch-tiles.mjs",
     "process": "node process-map.mjs",
     "upscale": "node upscale-traditional.mjs",

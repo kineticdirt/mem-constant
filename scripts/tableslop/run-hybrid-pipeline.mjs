@@ -12,7 +12,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { spawnSync } from "child_process";
 import { applyGlobalGrade, resolveGlobalOpts, writeThumb } from "./lib/panels.mjs";
-import { processMapImage } from "./lib/enhance.mjs";
+import { smoothTerrainImage } from "./lib/enhance.mjs";
+import { reinjectMapLines, sharpenMapDetail } from "./lib/line-preserve.mjs";
+import { stripOverlaysFromRaster } from "./lib/strip-overlays.mjs";
 import { patchMapJson } from "./lib/patch-map-json.mjs";
 import { parseArgs } from "./lib/args.mjs";
 
@@ -36,34 +38,53 @@ if (!fs.existsSync(input)) {
   process.exit(1);
 }
 
-const scale = parseInt(args.scale || "2", 10);
-const globalOpts = resolveGlobalOpts({ preset: args.preset || "minimal", ...args });
+const scale = args.scale != null ? parseInt(args.scale, 10) : 2;
+const globalOpts = resolveGlobalOpts({ preset: args.preset || "terrain-smooth", ...args });
 const lanczosOnly = Boolean(args["no-ai"]);
+const terrainSmooth = args.smooth != null ? parseFloat(args.smooth) : globalOpts.smooth ?? 0.7;
+
+const isTerrainOnly = /canva-terrain|terrain-only/i.test(path.basename(input));
+const lineReinject = args.lines === "true";
+const stripBaked = args["no-strip"] !== "true";
+const sharpenDetail = args["no-sharpen"] !== "true";
 
 fs.mkdirSync(outputDir, { recursive: true });
 
 const terrainUpscaled = path.join(outputDir, "master-terrain-upscaled.png");
+const terrainBase = path.join(mapRoot, "terrain-base.png");
+const terrainBaseLocal = path.join(outputDir, "terrain-base.png");
 const masterLocal = path.join(outputDir, "master-enhanced.png");
 const masterDeploy = path.join(mapRoot, "master-enhanced.png");
 const mapJsonPath = path.join(mapRoot, "map.json");
-
-const isTerrainOnly = /canva-terrain|terrain-only/i.test(path.basename(input));
 
 console.log("");
 console.log("=== tableslop hybrid pipeline ===");
 console.log(`Terrain:   ${input}`);
 console.log(`Terrain-only source: ${isTerrainOnly ? "yes" : "no (baked labels may duplicate UI labels)"}`);
-console.log(`Upscale:   ${lanczosOnly ? "Lanczos only (--no-ai)" : "AI (Real-ESRGAN) → Lanczos fallback"}`);
-console.log(`Scale:     ${scale}x`);
+console.log(`Upscale:   ${lanczosOnly ? "smooth terrain (--no-ai)" : "PyTorch AI + HTML UI overlays"}`);
+console.log(`Strip:     ${stripBaked && !isTerrainOnly ? "remove baked lines from raster" : "skip"}`);
+console.log(`Lines:     ${lineReinject ? "legacy raster reinject (--lines)" : "HTML/SVG only"}`);
+console.log(`Sharpen:   ${sharpenDetail ? "detail pass after composite" : "off"}`);
 console.log(`Labels:    UI layer (map.json label_layer=ui)`);
 console.log("");
 
-console.log("[1/4] Upscaling terrain…");
+console.log("[1/6] AI terrain upscale…");
 if (lanczosOnly) {
-  await processMapImage(input, terrainUpscaled, { scale, contrast: 1, sharpen: 0.08, saturation: 1 });
+  const r = await smoothTerrainImage(input, terrainUpscaled, {
+    scale,
+    autoScale: true,
+    smooth: terrainSmooth,
+    contrast: 1,
+    saturation: 1,
+  });
   fs.writeFileSync(
     terrainUpscaled + ".method.json",
-    JSON.stringify({ method: "lanczos", scale, input }) + "\n"
+    JSON.stringify({
+      method: "smooth-lanczos",
+      scale: r.scaleUsed,
+      smooth: terrainSmooth,
+      input,
+    }) + "\n"
   );
 } else {
   runScript("ai-upscale-terrain.mjs", [
@@ -73,6 +94,10 @@ if (lanczosOnly) {
     terrainUpscaled,
     "--scale",
     String(scale),
+    "--smooth",
+    String(terrainSmooth),
+    "--ai-smooth",
+    String(args["ai-smooth"] != null ? parseFloat(args["ai-smooth"]) : 0),
   ]);
 }
 
@@ -86,35 +111,72 @@ if (fs.existsSync(methodFile)) {
   }
 }
 
-console.log("[2/4] Global grade (terrain, gentle)…");
-await applyGlobalGrade(terrainUpscaled, masterLocal, globalOpts);
-console.log(`      → ${masterLocal}`);
+let gradedFrom = terrainUpscaled;
+if (lineReinject) {
+  const terrainLines = path.join(outputDir, "master-terrain-lines.png");
+  console.log("[2/6] Legacy line reinject (--lines)…");
+  await reinjectMapLines(input, terrainUpscaled, terrainLines);
+  gradedFrom = terrainLines;
+} else if (stripBaked && !isTerrainOnly) {
+  console.log("[2/6] Strip baked overlays -> terrain template…");
+  await stripOverlaysFromRaster(terrainUpscaled, input, terrainBaseLocal);
+  fs.copyFileSync(terrainBaseLocal, terrainBase);
+  gradedFrom = terrainBaseLocal;
+  console.log(`      -> ${terrainBase}`);
+} else {
+  console.log("[2/6] Terrain-only source — no strip");
+  fs.copyFileSync(terrainUpscaled, terrainBaseLocal);
+  fs.copyFileSync(terrainBaseLocal, terrainBase);
+  gradedFrom = terrainBaseLocal;
+}
 
-console.log("[3/4] Tile pyramid…");
+console.log("[3/6] Light grade (no extra blur)…");
+await applyGlobalGrade(gradedFrom, masterLocal, {
+  ...globalOpts,
+  scale: 1,
+  sharpen: 0,
+  smooth: 0,
+});
+console.log(`      -> ${masterLocal}`);
+
+if (sharpenDetail && /realesrgan/.test(upscaleMethod)) {
+  console.log("[4/6] Detail sharpen (map-tuned unsharp)…");
+  await sharpenMapDetail(masterLocal, masterLocal);
+} else {
+  console.log("[4/6] Skip detail sharpen");
+}
+
+console.log("[5/6] Tile pyramid…");
 fs.copyFileSync(masterLocal, masterDeploy);
+fs.copyFileSync(masterLocal, terrainBase);
+const pyramidInput = terrainBase;
 const tilesDir = path.join(mapRoot, "tiles");
 const pyramidPath = path.join(mapRoot, "pyramid.json");
 runScript("build-pyramid.mjs", [
   "--input",
-  masterDeploy,
+  pyramidInput,
   "--out-dir",
   tilesDir,
   "--manifest",
   pyramidPath,
 ]);
 
-console.log("[4/4] map.json + previews…");
+console.log("[6/6] map.json + previews…");
 const relSource = path.relative(mapRoot, input).replace(/\\/g, "/");
-const pipelineTag =
-  upscaleMethod === "realesrgan" ? "hybrid:realesrgan+ui-labels" : "hybrid:lanczos+ui-labels";
+const pipelineTag = /realesrgan/.test(upscaleMethod)
+  ? `hybrid:${upscaleMethod}+html-ui`
+  : "hybrid:terrain-template+html-ui";
 patchMapJson(mapJsonPath, {
   label_layer: "ui",
-  base_image: "map/master-enhanced.png",
-  base_image_master: "map/master-enhanced.png",
-  base_image_terrain: "map/master-enhanced.png",
+  overlay_layer: "ui",
+  base_image: "map/terrain-base.png",
+  base_image_master: "map/terrain-base.png",
+  base_image_terrain: "map/terrain-base.png",
   base_image_source: relSource,
   base_image_pipeline: pipelineTag,
   tile_pyramid: "map/pyramid.json",
+  base_image_status: "terrain template + HTML areas/cities/labels",
+  regions_ui: "map/regions-ui.json",
 });
 
 const thumb = path.join(outputDir, "thumb.jpg");
@@ -131,6 +193,9 @@ const manifest = {
   globalEnhance: globalOpts,
   master: masterLocal,
   pyramid: pyramidPath,
+  strip_baked: stripBaked,
+  line_reinject: lineReinject,
+  detail_sharpen: sharpenDetail,
   label_layer: "ui",
   finishedAt: new Date().toISOString(),
 };

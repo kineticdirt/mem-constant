@@ -26,6 +26,9 @@ const SESSION_DAYS = 7;
 
 const CAMPAIGN_DIR = path.join(REPO, "campaigns", CAMPAIGN);
 const MAP_JSON = path.join(CAMPAIGN_DIR, "map", "map.json");
+const REGIONS_UI_JSON = path.join(CAMPAIGN_DIR, "map", "regions-ui.json");
+const COORDS_JSON = path.join(CAMPAIGN_DIR, "map", "coords.json");
+const LAYERS_JSON = path.join(CAMPAIGN_DIR, "map", "layers.json");
 const REGIONS_BOARD = path.join(REPO, "projects", "tableslop", "regions.json");
 
 function parseCookies(header) {
@@ -146,13 +149,7 @@ function viewerHtml(_userLabel) {
     display:flex; flex-direction:column;
     height:100vh; height:100dvh;
     font:15px/1.4 "Share Tech Mono",monospace;
-    background:var(--void); color:var(--text);
-    background-image:
-      linear-gradient(180deg, rgba(255,113,206,.12) 0%, transparent 35%),
-      linear-gradient(0deg, rgba(1,205,254,.08) 0%, transparent 40%),
-      repeating-linear-gradient(90deg, rgba(1,205,254,.07) 0 1px, transparent 1px 48px),
-      repeating-linear-gradient(0deg, rgba(255,113,206,.05) 0 1px, transparent 1px 48px);
-    animation: grid-drift 24s linear infinite;
+    background:#0a0a0e; color:var(--text);
   }
   .hud {
     flex:0 0 auto;
@@ -183,6 +180,9 @@ function viewerHtml(_userLabel) {
     box-shadow:0 0 8px var(--glow-cyan);
   }
   .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
+  .hud-edit.is-on { border-color:var(--sun); color:var(--sun); box-shadow:0 0 12px rgba(255,251,150,.45); }
+  .hud-save { border-color:var(--cyan); color:var(--cyan); }
+  .hud-save.is-dirty { border-color:var(--sun); color:var(--sun); animation:lane-breathe 1.2s ease-in-out infinite; }
   .hud-auth { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:.85rem; }
   .hud-auth a { color:var(--cyan); text-decoration:none; }
   .hud-auth a:hover { text-shadow:0 0 8px var(--glow-cyan); }
@@ -210,10 +210,7 @@ function viewerHtml(_userLabel) {
     position:relative; min-height:0; overflow:hidden;
     overscroll-behavior:none;
     touch-action:none; user-select:none;
-    background:
-      radial-gradient(ellipse 70% 40% at 50% 100%, rgba(255,113,206,.18), transparent 60%),
-      radial-gradient(ellipse 50% 30% at 80% 20%, rgba(1,205,254,.1), transparent 50%),
-      linear-gradient(180deg, #1a0533 0%, #0d0221 100%);
+    background:#0a0a0e;
     cursor:grab;
   }
   .map-viewport.is-dragging { cursor:grabbing; }
@@ -223,19 +220,40 @@ function viewerHtml(_userLabel) {
     will-change:transform; overflow:visible;
   }
   .map-stage { position:relative; display:inline-block; line-height:0; z-index:1; }
+  .map-stack { position:relative; width:100%; height:100%; }
+  .map-layer {
+    position:absolute; inset:0; pointer-events:none; overflow:visible;
+  }
+  .map-layer.is-hidden { display:none; }
   .map-tile-layer { position:absolute; inset:0; pointer-events:none; overflow:visible; }
   .map-tile-layer img {
     position:absolute; display:block; image-rendering:auto;
+    transition:opacity .12s ease;
   }
-  .map-overlays {
-    position:absolute; inset:0; pointer-events:none; z-index:2;
-  }
-  .map-stage img {
-    display:block; width:auto; height:auto; max-width:none; max-height:none;
+  .map-layer--terrain-base img#mapImg {
+    display:block; width:100%; height:100%;
     border:2px solid transparent;
     border-image:linear-gradient(135deg, var(--pink), var(--cyan)) 1;
     box-shadow:0 0 40px var(--glow-pink), 0 0 80px rgba(1,205,254,.15);
   }
+  .map-area-svg {
+    width:100%; height:100%; display:block; overflow:visible;
+  }
+  .map-area-zone {
+    fill:rgba(255,113,206,.12); stroke:var(--pink); stroke-width:.35;
+    vector-effect:non-scaling-stroke; pointer-events:all; cursor:pointer;
+    transition:fill .15s, stroke-width .15s, filter .15s;
+  }
+  .map-area-zone:hover {
+    fill:rgba(1,205,254,.22); stroke:var(--cyan); stroke-width:.55;
+    filter:drop-shadow(0 0 6px var(--glow-cyan));
+  }
+  .map-area-zone.is-active {
+    fill:rgba(255,251,150,.2); stroke:var(--sun); stroke-width:.65;
+    filter:drop-shadow(0 0 10px rgba(255,251,150,.5));
+  }
+  .map-area-zone.is-dim { opacity:.35; }
+  .map-layer--poi-pins .pin { pointer-events:auto; }
   .map-controls {
     position:absolute; bottom:14px; right:14px; z-index:6;
     display:flex; flex-direction:column; gap:6px;
@@ -280,14 +298,15 @@ function viewerHtml(_userLabel) {
   .pin--preserve { background:linear-gradient(135deg, var(--cyan), #0099bb); }
   .pin--region { background:linear-gradient(135deg, #666, #999); }
   .map-label-layer {
-    position:absolute; inset:0; pointer-events:none; z-index:3;
+    position:absolute; inset:0; pointer-events:none;
   }
   .map-label {
     position:absolute; transform:translate(-50%,-100%);
     font: clamp(11px, 1.35vw, 18px) VT323,monospace;
     color:var(--sun); letter-spacing:.04em;
-    text-shadow:0 0 4px #0d0221, 0 0 10px var(--glow-pink), 0 0 18px rgba(1,205,254,.35);
-    white-space:nowrap; opacity:.92;
+    text-shadow:0 1px 0 #000, 0 0 4px #0d0221, 0 0 10px var(--glow-pink);
+    white-space:nowrap; opacity:.95;
+    -webkit-font-smoothing:antialiased;
     transition:opacity .15s, transform .15s;
   }
   .map-label--city { color:var(--pink); }
@@ -432,32 +451,19 @@ function viewerHtml(_userLabel) {
   .hud-brand { animation: shimmer-text 4s ease-in-out infinite; }
   .hud-setting { animation: shimmer-text 5s ease-in-out infinite .5s; }
 
-  .fx-scanlines {
-    position: fixed; inset: 0; pointer-events: none; z-index: 9998;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,.12) 2px,
-      rgba(0,0,0,.12) 4px
-    );
-    animation: scanlines .12s linear infinite;
-    opacity: .35;
+  .map-stage img#mapImg {
+    animation: map-reveal .5s ease forwards;
+    box-shadow: 0 4px 32px rgba(0,0,0,.55);
   }
-  .fx-sunset {
-    position: absolute; left: 50%; bottom: 8%; width: 70%; height: 40%;
-    transform: translateX(-50%);
-    background: radial-gradient(ellipse, rgba(255,113,206,.25) 0%, rgba(185,103,255,.12) 40%, transparent 70%);
-    pointer-events: none; z-index: 0;
-    animation: sunset-drift 8s ease-in-out infinite;
+  .map-tile-layer img {
+    animation: none;
+    image-rendering: auto;
   }
-
-  .map-viewport { position: relative; }
-  .map-stage img {
-    animation: map-frame-glow 4s ease-in-out infinite, map-reveal .7s ease forwards;
-  }
-  .pin { animation: pin-glow 2.8s ease-in-out infinite; }
-  .pin.is-active { animation: pin-glow-active 1.4s ease-in-out infinite; }
+  .pin.is-editable { cursor:grab; outline:2px dashed var(--sun); outline-offset:3px; }
+  .pin.is-dragging { cursor:grabbing; z-index:30; transform:translate(-50%,-50%) scale(1.15); }
+  .map-viewport.is-edit-mode { cursor:default; }
+  .map-viewport.is-edit-mode .map-hint { color:var(--sun); border-color:rgba(255,251,150,.45); }
+  .pin.is-active { box-shadow: 0 0 22px var(--glow-pink), 0 0 16px var(--glow-cyan); }
 
   .region-card {
     animation: card-in .45s ease backwards;
@@ -478,13 +484,7 @@ function viewerHtml(_userLabel) {
   .region-card:nth-child(14) { animation-delay: .56s; }
   .lane { animation: lane-breathe 3s ease-in-out infinite; }
 
-  .region-journal::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
-    background: linear-gradient(180deg, transparent 0%, rgba(1,205,254,.03) 50%, transparent 100%);
-    background-size: 100% 200%;
-    animation: scanlines 6s linear infinite;
-    opacity: .5;
-  }
+  .region-journal::after { display:none; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -497,17 +497,19 @@ function viewerHtml(_userLabel) {
 </style>
 </head>
 <body>
-<div class="fx-scanlines" aria-hidden="true"></div>
 <header class="hud">
   <div class="hud-brand">tableslop</div>
   <span class="hud-setting" id="mapTitle">Isla Primavera</span>
   <button type="button" class="hud-res" id="resToggle" hidden>4K</button>
+  <button type="button" class="hud-res" id="areasToggle" hidden>Areas</button>
   <button type="button" class="hud-res" id="labelToggle" hidden>Labels</button>
+  <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
+  <button type="button" class="hud-res hud-edit" id="editToggle">Edit</button>
+  <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <div class="hud-auth" id="authSlot"></div>
 </header>
 <div class="game-shell">
   <section class="map-viewport" id="viewport">
-    <div class="fx-sunset" aria-hidden="true"></div>
     <div class="map-camera" id="mapCamera">
       <div class="map-stage" id="mapStage"></div>
     </div>
@@ -542,6 +544,10 @@ let activeId = null;
 let mapRes = '4k';
 let mapDataCache = null;
 let uiLabelsVisible = true;
+let uiAreasVisible = true;
+let uiCitiesVisible = true;
+let editMode = false;
+let coordsDirty = false;
 let meCache = null;
 let cameraReady = false;
 let cameraSaveTimer = null;
@@ -550,20 +556,22 @@ let panDrag = null;
 let fitScale = 1;
 let tilePyramid = null;
 let tileUpdateTimer = null;
+let activeTileZ = null;
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const tooltip = document.getElementById('tooltip');
 
 function loadProfile() {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
-    if (!raw) return { v: 1, mapRes: '4k', visited: [], notes: {} };
+    if (!raw) return { v: 1, mapRes: '4k', visited: [], notes: {}, coord_overrides: {} };
     const p = JSON.parse(raw);
-    if (!p || p.v !== 1) return { v: 1, mapRes: '4k', visited: [], notes: {} };
+    if (!p || p.v !== 1) return { v: 1, mapRes: '4k', visited: [], notes: {}, coord_overrides: {} };
     if (!Array.isArray(p.visited)) p.visited = [];
     if (!p.notes || typeof p.notes !== 'object') p.notes = {};
+    if (!p.coord_overrides || typeof p.coord_overrides !== 'object') p.coord_overrides = {};
     return p;
   } catch {
-    return { v: 1, mapRes: '4k', visited: [], notes: {} };
+    return { v: 1, mapRes: '4k', visited: [], notes: {}, coord_overrides: {} };
   }
 }
 
@@ -571,6 +579,7 @@ function saveProfile(patch) {
   const cur = loadProfile();
   const next = { ...cur, ...patch, v: 1, updated_at: new Date().toISOString() };
   if (patch.notes) next.notes = { ...cur.notes, ...patch.notes };
+  if (patch.coord_overrides) next.coord_overrides = { ...cur.coord_overrides, ...patch.coord_overrides };
   if (patch.camera) next.camera = { ...cur.camera, ...patch.camera };
   localStorage.setItem(PROFILE_KEY, JSON.stringify(next));
   updatePilotStats(next);
@@ -589,19 +598,27 @@ function mapImageSize() {
 function pickTileZoom() {
   if (!tilePyramid) return 0;
   const ratio = camera.scale / (fitScale || 0.001);
-  if (ratio <= 1) return tilePyramid.minZoom;
-  const z = Math.round(Math.log2(ratio * Math.pow(2, tilePyramid.maxZoom)));
-  return Math.max(tilePyramid.minZoom, Math.min(tilePyramid.maxZoom, z));
+  // At fit (ratio≈1) use full-res tiles; step down only when zoomed out past fit.
+  const ideal = tilePyramid.maxZoom + Math.floor(Math.log2(Math.max(0.125, ratio)));
+  const z = Math.max(tilePyramid.minZoom, Math.min(tilePyramid.maxZoom, ideal));
+  if (activeTileZ == null) {
+    activeTileZ = z;
+    return z;
+  }
+  // Hysteresis — avoid swapping whole tile sets every frame near a zoom boundary.
+  if (Math.abs(z - activeTileZ) >= 1) activeTileZ = z;
+  return activeTileZ;
 }
 
 function scheduleTileUpdate() {
   if (!tilePyramid) return;
   window.clearTimeout(tileUpdateTimer);
-  tileUpdateTimer = window.setTimeout(updateVisibleTiles, 48);
+  tileUpdateTimer = window.setTimeout(updateVisibleTiles, 80);
 }
 
 function updateVisibleTiles() {
-  const layer = document.getElementById('mapTileLayer');
+  const layer = document.querySelector('[data-layer-id="terrain-tiles"] #mapTileLayer')
+    || document.getElementById('mapTileLayer');
   if (!layer || !tilePyramid) return;
   const z = pickTileZoom();
   const nativeScale = Math.pow(2, tilePyramid.maxZoom - z);
@@ -649,6 +666,9 @@ function updateVisibleTiles() {
     img.style.top = lTop + 'px';
     img.style.width = tw + 'px';
     img.style.height = th + 'px';
+    img.decoding = 'async';
+    img.style.opacity = '0';
+    img.onload = function() { img.style.opacity = '1'; };
     img.src = '/map-tiles/' + zz + '/' + ty + '/' + tx + '.webp';
     layer.appendChild(img);
   });
@@ -733,6 +753,131 @@ function focusOnMarker(marker, animate) {
   camera.y = vp.clientHeight / 2 - py * camera.scale;
   applyCamera(animate);
   scheduleCameraSave();
+}
+
+function applyCoordOverrides(markers, profile) {
+  const ov = (profile && profile.coord_overrides) || {};
+  return markers.map(function(m) {
+    const o = ov[m.id];
+    if (!o || o.x_pct == null || o.y_pct == null) return m;
+    return { ...m, x_pct: o.x_pct, y_pct: o.y_pct, coord_status: 'manual' };
+  });
+}
+
+function pointerToMapPct(clientX, clientY) {
+  const stage = document.getElementById('mapStage');
+  if (!stage) return null;
+  const rect = stage.getBoundingClientRect();
+  if (rect.width < 1 || rect.height < 1) return null;
+  const x_pct = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
+  const y_pct = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
+  return { x_pct: +x_pct.toFixed(2), y_pct: +y_pct.toFixed(2) };
+}
+
+function syncLabelForMarker(id) {
+  const m = markerById(id);
+  if (!m) return;
+  const label = document.querySelector('.map-label[data-id="' + id + '"]');
+  if (!label) return;
+  const lx = m.label_x_pct != null ? m.label_x_pct : m.x_pct;
+  const dy = m.label_dy_pct != null ? m.label_dy_pct : -2.8;
+  const ly = m.label_y_pct != null ? m.label_y_pct : (m.y_pct + dy);
+  label.style.left = lx + '%';
+  label.style.top = ly + '%';
+}
+
+function syncAreaForMarker(id, x_pct, y_pct) {
+  const zone = document.querySelector('.map-area-zone[data-id="' + id + '"]');
+  if (!zone) return;
+  zone.setAttribute('cx', String(x_pct));
+  zone.setAttribute('cy', String(y_pct));
+}
+
+function setMarkerCoord(id, x_pct, y_pct) {
+  const m = markerById(id);
+  if (!m) return;
+  m.x_pct = x_pct;
+  m.y_pct = y_pct;
+  m.coord_status = 'manual';
+  const pin = document.querySelector('.pin[data-id="' + id + '"]');
+  if (pin) {
+    pin.style.left = x_pct + '%';
+    pin.style.top = y_pct + '%';
+  }
+  syncLabelForMarker(id);
+  syncAreaForMarker(id, x_pct, y_pct);
+  const cur = loadProfile();
+  saveProfile({ coord_overrides: { ...cur.coord_overrides, [id]: { x_pct, y_pct } } });
+  coordsDirty = true;
+  const saveBtn = document.getElementById('saveCoordsBtn');
+  if (saveBtn) saveBtn.classList.add('is-dirty');
+}
+
+function updateEditHint() {
+  const hint = document.getElementById('mapHint');
+  if (!hint) return;
+  hint.textContent = editMode
+    ? 'EDIT — drag pins to reposition · Save coords when done'
+    : 'drag to pan · scroll to zoom · legend to focus';
+}
+
+function refreshPins() {
+  const pinLayer = document.querySelector('[data-layer-id="poi-pins"]');
+  if (!pinLayer || !mapDataCache) return;
+  pinLayer.innerHTML = '';
+  placePins(pinLayer, mapDataCache.markers || []);
+}
+
+function initEditMode(profile) {
+  const btn = document.getElementById('editToggle');
+  const saveBtn = document.getElementById('saveCoordsBtn');
+  const vp = document.getElementById('viewport');
+  if (!btn) return;
+  editMode = profile.editMode === true;
+  btn.textContent = editMode ? 'Edit ON' : 'Edit';
+  btn.classList.toggle('is-on', editMode);
+  if (saveBtn) {
+    saveBtn.hidden = !editMode;
+    saveBtn.classList.toggle('is-dirty', coordsDirty && editMode);
+  }
+  if (vp) vp.classList.toggle('is-edit-mode', editMode);
+  updateEditHint();
+  btn.onclick = function() {
+    editMode = !editMode;
+    saveProfile({ editMode });
+    initEditMode(loadProfile());
+    refreshPins();
+  };
+  if (saveBtn) {
+    saveBtn.onclick = async function() {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      try {
+        const regions = {};
+        (mapDataCache.markers || []).forEach(function(m) {
+          if (m.x_pct != null && m.y_pct != null) regions[m.id] = { x_pct: m.x_pct, y_pct: m.y_pct };
+        });
+        const r = await fetch('/api/map/coords', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ regions }),
+        });
+        const out = await r.json();
+        if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
+        coordsDirty = false;
+        saveBtn.classList.remove('is-dirty');
+        saveProfile({ coord_overrides: {} });
+        saveBtn.textContent = 'Saved ✓';
+        window.setTimeout(function() { saveBtn.textContent = 'Save coords'; }, 2000);
+      } catch (err) {
+        saveBtn.textContent = 'Save failed';
+        alert('Save coords failed: ' + err.message);
+        window.setTimeout(function() { saveBtn.textContent = 'Save coords'; }, 2500);
+      } finally {
+        saveBtn.disabled = false;
+      }
+    };
+  }
 }
 
 function markerById(id) {
@@ -875,6 +1020,106 @@ function labelsUiEnabled() {
   return mapDataCache && mapDataCache.label_layer === 'ui' && uiLabelsVisible;
 }
 
+function areasUiEnabled() {
+  return mapDataCache && mapDataCache.overlay_layer === 'ui' && uiAreasVisible && mapDataCache.regions_ui_data;
+}
+
+function citiesUiEnabled() {
+  return mapDataCache && mapDataCache.overlay_layer === 'ui' && uiCitiesVisible;
+}
+
+function placeRegionAreas(container, areasData) {
+  if (!areasUiEnabled() || !container || !areasData) return;
+  const areas = areasData.areas || [];
+  const vb = areasData.viewBox || '0 0 100 100';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'map-area-svg');
+  svg.setAttribute('viewBox', vb);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  areas.forEach(function(a) {
+    let shape;
+    if (a.shape === 'ellipse') {
+      shape = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      shape.setAttribute('cx', String(a.cx));
+      shape.setAttribute('cy', String(a.cy));
+      shape.setAttribute('rx', String(a.rx));
+      shape.setAttribute('ry', String(a.ry));
+    } else if (a.shape === 'polygon' && a.points) {
+      shape = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      shape.setAttribute('points', a.points);
+    } else {
+      return;
+    }
+    shape.setAttribute('class', 'map-area-zone');
+    shape.dataset.id = a.id;
+    if (a.stroke) shape.style.stroke = a.stroke;
+    if (a.fill) shape.style.fill = a.fill;
+    if (activeId && a.id !== activeId) shape.classList.add('is-dim');
+    if (a.id === activeId) shape.classList.add('is-active');
+    shape.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+    shape.addEventListener('click', function() { selectMarker(a.id, { focus: true }); });
+    shape.addEventListener('mouseenter', function(e) {
+      showTooltip(a.name || a.id, e.clientX, e.clientY);
+    });
+    shape.addEventListener('mousemove', function(e) {
+      showTooltip(a.name || a.id, e.clientX, e.clientY);
+    });
+    shape.addEventListener('mouseleave', hideTooltip);
+    svg.appendChild(shape);
+  });
+  container.appendChild(svg);
+}
+
+function syncLayerVisibility(layerId, visible) {
+  const el = document.querySelector('[data-layer-id="' + layerId + '"]');
+  if (el) el.classList.toggle('is-hidden', !visible);
+}
+
+function syncAreaLayerVisibility() {
+  syncLayerVisibility('regions', areasUiEnabled());
+}
+
+function syncCitiesLayerVisibility() {
+  syncLayerVisibility('poi-pins', citiesUiEnabled());
+}
+
+function initAreaToggle(data, profile) {
+  const btn = document.getElementById('areasToggle');
+  if (!btn) return;
+  if (data.overlay_layer !== 'ui' || !data.regions_ui_data) {
+    btn.hidden = true;
+    return;
+  }
+  btn.hidden = false;
+  uiAreasVisible = profile.showAreas !== false;
+  btn.textContent = uiAreasVisible ? 'Areas ON' : 'Areas OFF';
+  btn.onclick = function() {
+    uiAreasVisible = !uiAreasVisible;
+    btn.textContent = uiAreasVisible ? 'Areas ON' : 'Areas OFF';
+    saveProfile({ showAreas: uiAreasVisible });
+    const stage = document.getElementById('mapStage');
+    if (stage && mapDataCache) renderMapStage(stage, mapDataCache, loadProfile());
+  };
+}
+
+function initCitiesToggle(data, profile) {
+  const btn = document.getElementById('citiesToggle');
+  if (!btn) return;
+  if (data.overlay_layer !== 'ui') {
+    btn.hidden = true;
+    return;
+  }
+  btn.hidden = false;
+  uiCitiesVisible = profile.showCities !== false;
+  btn.textContent = uiCitiesVisible ? 'Cities ON' : 'Cities OFF';
+  btn.onclick = function() {
+    uiCitiesVisible = !uiCitiesVisible;
+    btn.textContent = uiCitiesVisible ? 'Cities ON' : 'Cities OFF';
+    saveProfile({ showCities: uiCitiesVisible });
+    syncCitiesLayerVisibility();
+  };
+}
+
 function placeMapLabels(container, markers) {
   if (!labelsUiEnabled() || !container) return;
   markers.forEach(function(m) {
@@ -896,8 +1141,35 @@ function placeMapLabels(container, markers) {
 }
 
 function syncLabelLayerVisibility() {
-  const layer = document.getElementById('mapLabelLayer');
-  if (layer) layer.classList.toggle('is-hidden', !labelsUiEnabled());
+  syncLayerVisibility('labels', labelsUiEnabled());
+}
+
+function buildLayerStack(stack) {
+  const manifest = (mapDataCache && mapDataCache.layers_manifest) || [];
+  stack.innerHTML = '';
+  manifest.slice().sort(function(a, b) { return a.z - b.z; }).forEach(function(def) {
+    const div = document.createElement('div');
+    div.className = 'map-layer map-layer--' + def.id;
+    div.dataset.layerId = def.id;
+    div.style.zIndex = String(def.z);
+    stack.appendChild(div);
+  });
+}
+
+function getMapStack(stage) {
+  let stack = stage.querySelector('.map-stack');
+  if (!stack) {
+    stack = document.createElement('div');
+    stack.className = 'map-stack';
+    stack.id = 'mapStack';
+    stage.appendChild(stack);
+    buildLayerStack(stack);
+  }
+  return stack;
+}
+
+function layerEl(stack, layerId) {
+  return stack.querySelector('[data-layer-id="' + layerId + '"]');
 }
 
 function initLabelToggle(data, profile) {
@@ -930,6 +1202,10 @@ function selectMarker(id, opts) {
     el.classList.toggle('is-active', el.dataset.id === id);
   });
   document.querySelectorAll('.map-label').forEach(function(el) {
+    el.classList.toggle('is-active', el.dataset.id === id);
+    el.classList.toggle('is-dim', activeId && el.dataset.id !== id);
+  });
+  document.querySelectorAll('.map-area-zone').forEach(function(el) {
     el.classList.toggle('is-active', el.dataset.id === id);
     el.classList.toggle('is-dim', activeId && el.dataset.id !== id);
   });
@@ -969,6 +1245,7 @@ async function load() {
   const r = await fetch('/api/map');
   if (r.status === 401) { location.href = '/'; return; }
   const data = await r.json();
+  data.markers = applyCoordOverrides(data.markers || [], profile);
   mapDataCache = data;
   const titleEl = document.getElementById('mapTitle');
   if (titleEl) titleEl.textContent = data.title || data.island || 'Isla Primavera';
@@ -987,6 +1264,10 @@ async function load() {
   }
   if (data.tile_pyramid_ready) resBtn.hidden = true;
   initLabelToggle(data, profile);
+  initAreaToggle(data, profile);
+  initCitiesToggle(data, profile);
+  initEditMode(profile);
+  coordsDirty = Object.keys(profile.coord_overrides || {}).length > 0;
   if (data.error) {
     stage.innerHTML = '<p class="err">' + data.error + '</p>';
     return;
@@ -1022,24 +1303,27 @@ function mapImageUrl(data) {
 }
 
 function finishMapStage(stage, markers, profile) {
-  let overlays = stage.querySelector('.map-overlays');
-  if (!overlays) {
-    overlays = document.createElement('div');
-    overlays.className = 'map-overlays';
-    overlays.id = 'mapOverlays';
-    stage.appendChild(overlays);
+  const stack = getMapStack(stage);
+  const areaLayer = layerEl(stack, 'regions');
+  const pinLayer = layerEl(stack, 'poi-pins');
+  const labelLayer = layerEl(stack, 'labels');
+  if (areaLayer) {
+    areaLayer.innerHTML = '';
+    if (mapDataCache && mapDataCache.regions_ui_data) {
+      placeRegionAreas(areaLayer, mapDataCache.regions_ui_data);
+    }
   }
-  let labelLayer = stage.querySelector('.map-label-layer');
-  if (!labelLayer) {
-    labelLayer = document.createElement('div');
-    labelLayer.className = 'map-label-layer';
-    labelLayer.id = 'mapLabelLayer';
-    stage.appendChild(labelLayer);
+  if (pinLayer) {
+    pinLayer.innerHTML = '';
+    placePins(pinLayer, markers);
   }
-  labelLayer.innerHTML = '';
-  stage.querySelectorAll('.pin').forEach(function(p) { p.remove(); });
-  placePins(stage, markers);
-  placeMapLabels(labelLayer, markers);
+  if (labelLayer) {
+    labelLayer.classList.add('map-label-layer');
+    labelLayer.innerHTML = '';
+    placeMapLabels(labelLayer, markers);
+  }
+  syncAreaLayerVisibility();
+  syncCitiesLayerVisibility();
   syncLabelLayerVisibility();
   restoreCameraFromProfile(profile || loadProfile(), !prefersReducedMotion);
   cameraReady = true;
@@ -1049,13 +1333,22 @@ function finishMapStage(stage, markers, profile) {
 function renderMapPyramid(stage, data, profile) {
   const py = data.tile_pyramid;
   tilePyramid = py;
+  activeTileZ = null;
   stage.innerHTML = '';
   stage.style.width = py.width + 'px';
   stage.style.height = py.height + 'px';
-  const layer = document.createElement('div');
-  layer.id = 'mapTileLayer';
-  layer.className = 'map-tile-layer';
-  stage.appendChild(layer);
+  const stack = document.createElement('div');
+  stack.className = 'map-stack';
+  stack.id = 'mapStack';
+  stage.appendChild(stack);
+  buildLayerStack(stack);
+  const terrainTiles = layerEl(stack, 'terrain-tiles');
+  if (terrainTiles) {
+    const tileWrap = document.createElement('div');
+    tileWrap.id = 'mapTileLayer';
+    tileWrap.className = 'map-tile-layer';
+    terrainTiles.appendChild(tileWrap);
+  }
   finishMapStage(stage, data.markers || [], profile);
 }
 
@@ -1071,6 +1364,12 @@ function renderMapStage(stage, data, profile) {
   const url = mapImageUrl(data);
   const markers = data.markers || [];
   if (url) {
+    const stack = document.createElement('div');
+    stack.className = 'map-stack';
+    stack.id = 'mapStack';
+    stage.appendChild(stack);
+    buildLayerStack(stack);
+    const terrainBase = layerEl(stack, 'terrain-base') || layerEl(stack, 'terrain-tiles');
     const img = document.createElement('img');
     img.id = 'mapImg';
     img.src = url;
@@ -1091,7 +1390,8 @@ function renderMapStage(stage, data, profile) {
         stage.innerHTML = '<p class="err">Map image unavailable — origin may be restarting. Retry in a moment.</p>';
       }
     };
-    stage.appendChild(img);
+    if (terrainBase) terrainBase.appendChild(img);
+    else stage.appendChild(img);
   } else {
     stage.innerHTML = '<p class="muted">Base map image missing</p>';
   }
@@ -1102,19 +1402,53 @@ function placePins(stage, markers) {
     if (m.x_pct == null || m.y_pct == null) return;
     const pin = document.createElement('button');
     pin.type = 'button';
-    pin.className = 'pin pin--' + (m.type || 'default');
+    pin.className = 'pin pin--' + (m.type || 'default') + (editMode ? ' is-editable' : '');
     pin.dataset.id = m.id;
+    pin.style.pointerEvents = 'auto';
     const num = m.region != null ? m.region : '';
     pin.innerHTML = '<span class="pin-num">' + num + '</span>';
     pin.style.left = m.x_pct + '%';
     pin.style.top = m.y_pct + '%';
     const label = m.label || m.name || m.id;
     pin.setAttribute('aria-label', label);
-    pin.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
-    pin.addEventListener('click', function() { selectMarker(m.id, { focus: true }); });
-    pin.addEventListener('mouseenter', e => showTooltip(label, e.clientX, e.clientY));
-    pin.addEventListener('mousemove', e => showTooltip(label, e.clientX, e.clientY));
-    pin.addEventListener('mouseleave', hideTooltip);
+    if (editMode) {
+      let drag = null;
+      pin.addEventListener('pointerdown', function(e) {
+        e.stopPropagation();
+        drag = { id: e.pointerId, pinId: m.id };
+        pin.setPointerCapture(e.pointerId);
+        pin.classList.add('is-dragging');
+        hideTooltip();
+      });
+      pin.addEventListener('pointermove', function(e) {
+        if (!drag || drag.id !== e.pointerId) return;
+        const p = pointerToMapPct(e.clientX, e.clientY);
+        if (!p) return;
+        pin.style.left = p.x_pct + '%';
+        pin.style.top = p.y_pct + '%';
+        showTooltip(p.x_pct + '%, ' + p.y_pct + '%', e.clientX, e.clientY);
+      });
+      pin.addEventListener('pointerup', function(e) {
+        if (!drag || drag.id !== e.pointerId) return;
+        const p = pointerToMapPct(e.clientX, e.clientY);
+        if (p) setMarkerCoord(m.id, p.x_pct, p.y_pct);
+        drag = null;
+        pin.classList.remove('is-dragging');
+        hideTooltip();
+        try { pin.releasePointerCapture(e.pointerId); } catch (_) { /* ok */ }
+      });
+      pin.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        selectMarker(m.id, { focus: false });
+      });
+    } else {
+      pin.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      pin.addEventListener('click', function() { selectMarker(m.id, { focus: true }); });
+      pin.addEventListener('mouseenter', e => showTooltip(label, e.clientX, e.clientY));
+      pin.addEventListener('mousemove', e => showTooltip(label, e.clientX, e.clientY));
+      pin.addEventListener('mouseleave', hideTooltip);
+    }
     stage.appendChild(pin);
   });
 }
@@ -1183,6 +1517,47 @@ function loadMapJson() {
         }
       }
     }
+    const regionsRel = data.regions_ui;
+    const regionsAbs = regionsRel && !regionsRel.includes("..")
+      ? path.join(CAMPAIGN_DIR, regionsRel)
+      : REGIONS_UI_JSON;
+    if (fs.existsSync(regionsAbs)) {
+      try {
+        data.regions_ui_data = JSON.parse(fs.readFileSync(regionsAbs, "utf8"));
+      } catch {
+        data.regions_ui_data = null;
+      }
+    }
+    if (!data.overlay_layer && data.label_layer === "ui") data.overlay_layer = "ui";
+    const coordsRel = data.coords;
+    const coordsAbs = coordsRel && !coordsRel.includes("..")
+      ? path.join(CAMPAIGN_DIR, coordsRel)
+      : COORDS_JSON;
+    if (fs.existsSync(coordsAbs)) {
+      try {
+        data.coords_data = JSON.parse(fs.readFileSync(coordsAbs, "utf8"));
+        const reg = data.coords_data.regions || {};
+        data.markers = (data.markers || []).map((m) => {
+          const c = reg[m.id];
+          if (!c) return m;
+          return { ...m, x_pct: c.x_pct, y_pct: c.y_pct, coord_status: "calibrated" };
+        });
+      } catch {
+        data.coords_data = null;
+      }
+    }
+    const layersRel = data.layers_manifest;
+    const layersAbs = layersRel && !layersRel.includes("..")
+      ? path.join(CAMPAIGN_DIR, layersRel)
+      : LAYERS_JSON;
+    if (fs.existsSync(layersAbs)) {
+      try {
+        const lm = JSON.parse(fs.readFileSync(layersAbs, "utf8"));
+        data.layers_manifest = lm.layers || [];
+      } catch {
+        data.layers_manifest = [];
+      }
+    }
     mapJsonCache = { mtimeMs: st.mtimeMs, data };
     return data;
   } catch (err) {
@@ -1210,6 +1585,62 @@ function mePayload(req) {
     profile_storage: "client-v1",
     cloud_save: false,
   };
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+/** Persist dragged pin coords → coords.json, map.json, regions-ui.json */
+function saveMapCoords(bodyStr) {
+  const payload = JSON.parse(bodyStr);
+  const regions = payload.regions;
+  if (!regions || typeof regions !== "object") throw new Error("regions object required");
+
+  let coords = { version: 1, regions: {} };
+  if (fs.existsSync(COORDS_JSON)) {
+    coords = JSON.parse(fs.readFileSync(COORDS_JSON, "utf8"));
+  }
+  coords.regions = coords.regions || {};
+  for (const [id, c] of Object.entries(regions)) {
+    if (c.x_pct == null || c.y_pct == null) continue;
+    coords.regions[id] = {
+      ...(coords.regions[id] || {}),
+      x_pct: +Number(c.x_pct).toFixed(2),
+      y_pct: +Number(c.y_pct).toFixed(2),
+      anchor: "manual-drag",
+    };
+  }
+  coords.updated_at = new Date().toISOString().slice(0, 10);
+  coords.method = "manual edit mode";
+  fs.writeFileSync(COORDS_JSON, JSON.stringify(coords, null, 2) + "\n");
+
+  const mapData = JSON.parse(fs.readFileSync(MAP_JSON, "utf8"));
+  mapData.markers = (mapData.markers || []).map((m) => {
+    const c = regions[m.id];
+    if (!c || c.x_pct == null || c.y_pct == null) return m;
+    return { ...m, x_pct: +Number(c.x_pct).toFixed(2), y_pct: +Number(c.y_pct).toFixed(2), coord_status: "manual" };
+  });
+  mapData.updated_at = coords.updated_at;
+  fs.writeFileSync(MAP_JSON, JSON.stringify(mapData, null, 2) + "\n");
+
+  if (fs.existsSync(REGIONS_UI_JSON)) {
+    const ui = JSON.parse(fs.readFileSync(REGIONS_UI_JSON, "utf8"));
+    ui.areas = (ui.areas || []).map((a) => {
+      const c = regions[a.id];
+      if (!c || c.x_pct == null || c.y_pct == null) return a;
+      return { ...a, cx: +Number(c.x_pct).toFixed(2), cy: +Number(c.y_pct).toFixed(2) };
+    });
+    fs.writeFileSync(REGIONS_UI_JSON, JSON.stringify(ui, null, 2) + "\n");
+  }
+
+  mapJsonCache = { mtimeMs: 0, data: null };
+  return { ok: true, saved: Object.keys(regions).length, updated_at: coords.updated_at };
 }
 
 async function handleRequest(req, res) {
@@ -1312,6 +1743,20 @@ async function handleRequest(req, res) {
       return;
     }
     sendJson(res, loadMapJson(), 200, 300);
+    return;
+  }
+  if (url === "/api/map/coords" && req.method === "POST") {
+    if (REQUIRE_AUTH && !session) {
+      sendJson(res, { error: "login required" }, 401);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      const result = saveMapCoords(body);
+      sendJson(res, result, 200);
+    } catch (err) {
+      sendJson(res, { error: err.message || "save failed" }, 400);
+    }
     return;
   }
   if (url === "/api/regions") {
