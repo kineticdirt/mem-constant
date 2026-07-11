@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-11 (UTC)** — [PC] **Intent:** Chat per-message **Delete** (not whole-thread) + **free-first everywhere** (revert campaign paid-first). Touch: `linuxbox-status/index.html`, `linuxbox-status-server.js`. Deploy git sync + `--dashboard`.
+
 - **2026-07-11 (UTC)** — [PC] **Result:** Hermes bash-spam RCA — session `20260711_180006_e5fc10` = dashboard Chat job `f8137c…` (think / `tencent/hy3:free`). **Not** terminal tools (`tool_turns=0`; `-t none` correctly empties tools). **Root cause:** `execHermesChatOnce` wrapped prompt in `bash -lc` + double quotes → markdown `` `path` `` in injected Tropic README/canon ran as command substitution. **Fix:** argv `execFile(hermes)` (no shell); strip `bash: line` / Unknown toolsets from replies. Deploy `--dashboard`.
 
 - **2026-07-11 (UTC)** — [PC] **Intent:** RCA+fix Hermes Chat flood of `bash: line 1: …: command not found` (session `20260711_180006_e5fc10` / Tropic paths). Hypothesis: `-t none` vs terminal toolsets — verify on potato; fix dashboard so tools stay off and shell does not expand prompt backticks.
@@ -210,6 +212,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-11 (UTC)** — [PC] **Result:** OpenRouter ops key **limit=$10** daily confirmed (remaining **~$4.99**, usage_daily ~$5.01). Single `OPENROUTER_API_KEY` on potato (no separate OPS/RP vars). Dashboard Chat smoke (campaign paid-first, loopback `:8790`, no thread) → **OK** model **`z-ai/glm-5.2`** reply `PAID_SMOKE_OK`. Repo soft target still `$7` in `agents/model-budget/config.json` (message text only; live key is $10).
+- **2026-07-11 (UTC)** — [PC] **Intent:** User raised OpenRouter **ops** daily limit to **$10**. Verify Dashboard Chat / Hermes paid path on potato (budget check + loopback `:8790` chat smoke; prefer paid hermes-4-70b). No chat-threads wipe; no commit unless code change.
 - **2026-07-11 (UTC)** — [PC] **Result:** Chat Hermes fail = free `hy3` ~180s timeout hard-stopped failover + ops OpenRouter **daily limit** (403). Fixed: retry timeouts/API/empty across chain; campaign **paid-first**; clearer Tried: errors; sidebar ✕ + **Delete chat**. Linuxbox **03cc703**; potato HEAD match; delete smoke OK; `:8790` 200.
 
 - **2026-07-11 (UTC)** — [PC] **Intent:** Dashboard Chat — Hermes "Hermes chat failed" + user wants **delete chats**. Diagnose potato jobs/Hermes/OpenRouter; fix replies; wire visible thread-delete (UI+API); deploy via push/bundle (not SCP-only). Touch: `linuxbox-status-server.js`, `linuxbox-status/index.html`.

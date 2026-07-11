@@ -143,6 +143,17 @@
     .lane-dot.bad { background: var(--bad); }
     .lane-row .lane-name { font-weight: 600; }
     .lane-row .lane-time { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); }
+    .machines-bar {
+      border: 1px solid var(--line-bright); background: var(--surface);
+      padding: 0.75rem 1rem;
+    }
+    .machines-bar h2 { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
+    .machine-sync-meta { font-size: 0.68rem; color: var(--muted); margin-top: 0.55rem; line-height: 1.5; font-family: "IBM Plex Mono", monospace; }
+    .machine-sync-meta.warn { color: var(--warn); }
+    .machine-steps { font-size: 0.72rem; color: var(--muted); margin-top: 0.45rem; padding-left: 1rem; }
+    .machine-steps li { margin-bottom: 0.2rem; }
+    .sys-machines { margin-bottom: 1rem; border: 1px solid var(--line); padding: 0.75rem; background: var(--bg); }
+    .sys-machines h2 { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
     .ops-actions .action-list { display: flex; flex-direction: column; gap: 0.45rem; }
     .action-link {
       display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
@@ -216,6 +227,17 @@
     .report-reader {
       overflow-y: auto; padding: 1.25rem 1.75rem; background: var(--bg);
     }
+    #story-reader.report-reader {
+      display: flex; flex-direction: column; overflow: hidden; padding: 0;
+    }
+    #story-reader .character-panel { flex-shrink: 0; margin: 0; border-left: none; border-right: none; border-top: none; }
+    #story-reader .story-toolbar { flex-shrink: 0; }
+    #story-reader #story-body {
+      flex: 1; min-height: 0; overflow-y: auto; padding: 1.25rem 1.75rem;
+    }
+    #story-reader #story-body.empty-state {
+      display: flex; align-items: center; justify-content: center; color: var(--muted);
+    }
     .report-reader .empty-state {
       height: 100%; display: flex; align-items: center; justify-content: center;
       color: var(--muted); font-size: 0.85rem;
@@ -245,13 +267,81 @@
     /* Inbox */
     .inbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: calc(100% - 2rem); }
     @media (max-width: 900px) { .inbox-grid { grid-template-columns: 1fr; } }
-    .inbox-col { border: 1px solid var(--line-bright); background: var(--surface); padding: 1rem; overflow-y: auto; }
+    .inbox-col { border: 1px solid var(--line-bright); background: var(--surface); padding: 1rem; overflow-y: auto; min-width: 0; }
     .inbox-col h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
     .inbox-item { border-bottom: 1px solid var(--line); padding: 0.75rem 0; }
     .inbox-item .q { font-size: 0.88rem; margin-bottom: 0.4rem; }
     .inbox-item .from { font-size: 0.65rem; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 0.5rem; }
-    textarea, select, input { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line-bright); padding: 0.5rem; font: inherit; font-size: 0.85rem; }
-    textarea { resize: vertical; min-height: 64px; font-family: inherit; }
+    .inbox-context {
+      font-size: 0.8rem; line-height: 1.5; color: var(--text); margin: 0.45rem 0 0.65rem;
+      padding: 0.55rem 0.7rem; border-left: 3px solid var(--accent-cyan);
+      background: rgba(110, 200, 255, 0.1);
+    }
+    .inbox-context-label {
+      display: block; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--accent-cyan); margin-bottom: 0.35rem; font-family: "IBM Plex Mono", monospace;
+    }
+    .inbox-context p { margin: 0; }
+    .inbox-context--missing { border-left-color: var(--accent-yellow); background: rgba(255, 220, 80, 0.09); }
+    .inbox-context--missing .inbox-context-label { color: var(--accent-yellow); }
+    .inbox-option-help { font-size: 0.68rem; color: var(--muted); margin: 0.35rem 0 0.55rem; padding-left: 1.1rem; list-style: disc; }
+    .inbox-option-help li { margin: 0.2rem 0; line-height: 1.35; }
+    .inbox-tag { display: inline-block; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.1rem 0.35rem; margin-right: 0.35rem; border: 1px solid var(--line); color: var(--accent-cyan); }
+    .inbox-choices { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.5rem 0; width: 100%; }
+    .inbox-choice {
+      display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;
+      width: 100%; line-height: 1.35;
+    }
+    .inbox-choice input[type="radio"],
+    .inbox-choice input[type="checkbox"] {
+      width: 1rem; min-width: 1rem; height: 1rem; margin: 0.1rem 0 0; padding: 0;
+      flex-shrink: 0; accent-color: var(--accent-yellow); cursor: pointer;
+    }
+    .inbox-choice span { flex: 1; min-width: 0; }
+    .inbox-other-input { margin-top: 0.25rem; margin-left: 1.5rem; display: none; }
+    .inbox-other-input.visible { display: block; }
+    .inbox-yesno { display: flex; gap: 0.5rem; margin: 0.5rem 0; flex-wrap: wrap; }
+    .inbox-answer:focus,
+    .inbox-other-input:focus,
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus { outline: 1px solid var(--accent-yellow); border-color: var(--accent-yellow); }
+    .inbox-err { font-size: 0.72rem; color: #f87171; margin-top: 0.25rem; }
+    .inbox-actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.35rem; flex-wrap: wrap; }
+    .inbox-hint { font-size: 0.62rem; color: var(--muted); }
+
+    /* === FORM SYSTEM — docs/dashboard-ui-architecture.md §3 (no global input rules) === */
+    .field input[type="text"],
+    .field textarea,
+    .field select {
+      width: 100%; font: inherit; font-size: 0.82rem; padding: 0.45rem 0.55rem;
+      border: 1px solid var(--line-bright); background: var(--bg); color: var(--text);
+    }
+    .field textarea { resize: vertical; min-height: 64px; }
+    .inbox-answer,
+    .inbox-other-input {
+      width: 100%; font-family: inherit; font-size: 0.82rem; background: var(--bg); color: var(--text);
+      border: 1px solid var(--line); padding: 0.45rem 0.5rem;
+    }
+    .inbox-answer { resize: vertical; }
+    .tag-check input[type="checkbox"] {
+      width: 1rem; height: 1rem; margin: 0; padding: 0; flex-shrink: 0; accent-color: var(--accent-yellow);
+    }
+    .camp-pick-bar select,
+    .story-camp-pick select,
+    .task-board-toolbar select,
+    .chat-compose-controls select,
+    .size-row select {
+      width: auto; min-width: 8rem; max-width: 100%;
+      font: inherit; font-size: 0.82rem; padding: 0.4rem 0.5rem;
+      border: 1px solid var(--line-bright); background: var(--bg); color: var(--text);
+    }
+    .chat-compose textarea {
+      width: 100%; font: inherit; font-size: 0.85rem; padding: 0.5rem;
+      border: 1px solid var(--line-bright); background: var(--bg); color: var(--text); resize: vertical;
+    }
+    button, .btn { width: auto; max-width: 100%; }
+
     .btn {
       background: var(--surface); border: 1px solid var(--line-bright); color: var(--text);
       padding: 0.45rem 0.85rem; font-size: 0.78rem; font-weight: 600; cursor: pointer;
@@ -259,6 +349,7 @@
     }
     .btn:hover { border-color: var(--accent); }
     .btn.primary { background: #1a2838; border-color: var(--accent); color: var(--accent); }
+    .btn.picked { border-color: var(--accent-yellow); color: var(--accent-yellow); box-shadow: 0 0 0 1px var(--accent-yellow); }
     .btn:disabled { opacity: 0.4; cursor: wait; }
 
     /* Campaigns */
@@ -272,20 +363,169 @@
     .list li.next { color: var(--text); border-left: 2px solid var(--lime); padding-left: 0.45rem; }
 
     /* Chat */
-    #chat.panel.fill.active { grid-template-rows: auto 1fr auto; grid-template-columns: 1fr; height: 100%; padding: 0; }
-    .chat-toolbar { padding: 0.75rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.75rem; align-items: center; background: var(--surface); }
-    .chat-toolbar select { width: auto; min-width: 180px; }
-    .chat-log { overflow-y: auto; padding: 1rem 1.25rem; }
+    #chat.panel.fill.active {
+      grid-template-columns: minmax(200px, 24%) 1fr;
+      grid-template-rows: 1fr;
+      height: 100%; padding: 0;
+    }
+    .chat-sidebar {
+      border-right: 1px solid var(--line-bright); background: var(--surface);
+      display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+    }
+    .chat-sidebar-head {
+      padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line-bright);
+      display: flex; flex-direction: column; gap: 0.45rem;
+    }
+    .chat-sidebar-head .btn { width: 100%; }
+    .chat-new-context { font-size: 0.72rem; display: flex; flex-direction: column; gap: 0.35rem; }
+    .chat-new-context select { font-size: 0.72rem; padding: 0.25rem 0.35rem; }
+    .chat-filter-caption { font-size: 0.6rem; margin: 0; color: var(--muted); }
+    .chat-filter-hint { font-size: 0.62rem; color: var(--lime); margin: 0; }
+    .chat-thread-list { flex: 1; overflow-y: auto; padding: 0.35rem 0; }
+    .chat-thread-item {
+      position: relative;
+      padding: 0.55rem 2.1rem 0.55rem 0.75rem; border-bottom: 1px solid var(--line); cursor: pointer;
+      font-size: 0.78rem; line-height: 1.35;
+    }
+    .chat-thread-item:hover { background: #151820; }
+    .chat-thread-item.active { background: #1a2838; border-left: 2px solid var(--accent); padding-left: calc(0.75rem - 2px); }
+    .chat-thread-item .title { font-weight: 600; color: var(--text); display: block; }
+    .chat-thread-item .meta { font-size: 0.62rem; color: var(--muted); margin-top: 0.15rem; }
+    .chat-thread-del {
+      position: absolute; top: 0.4rem; right: 0.35rem;
+      border: 1px solid color-mix(in srgb, var(--bad) 45%, var(--line));
+      background: transparent; color: var(--bad);
+      font-size: 0.62rem; line-height: 1; padding: 0.2rem 0.35rem;
+      border-radius: 3px; cursor: pointer; opacity: 0.85;
+    }
+    .chat-thread-del:hover { background: color-mix(in srgb, var(--bad) 18%, transparent); opacity: 1; }
+    .btn.danger {
+      border-color: color-mix(in srgb, var(--bad) 55%, var(--line));
+      color: var(--bad);
+    }
+    .btn.danger:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--bad) 16%, transparent);
+    }
+    .chat-thread-chips { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.25rem; }
+    .chat-chip {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.58rem;
+      color: var(--lime); border: 1px solid var(--line); padding: 0.1rem 0.3rem;
+    }
+    /* rows: toolbar, context, moderation banner, log, compose — named areas so display:none banner doesn't steal 1fr */
+    .chat-main {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "toolbar"
+        "context"
+        "banner"
+        "log"
+        "compose";
+      min-height: 0; overflow: hidden;
+    }
+    .chat-toolbar {
+      grid-area: toolbar;
+      padding: 0.5rem 1rem; border-bottom: 1px solid var(--line-bright);
+      display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;
+      background: var(--surface); flex-wrap: wrap;
+    }
+    .chat-toolbar-start { display: flex; gap: 0.35rem; align-items: center; margin-right: auto; }
+    .chat-threads-toggle { display: none; }
+    .chat-threads-backdrop {
+      display: none; position: absolute; inset: 0; z-index: 15;
+      background: rgba(0, 0, 0, 0.45); border: none; padding: 0; cursor: pointer;
+    }
+    .chat-context-bar {
+      grid-area: context;
+      padding: 0.45rem 1rem; border-bottom: 1px solid var(--line);
+      display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; background: var(--bg);
+      font-size: 0.72rem;
+    }
+    .chat-moderation-banner {
+      grid-area: banner;
+      display: none;
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--warn) 60%, var(--line));
+      background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+      color: var(--text);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+    .chat-moderation-banner.visible { display: block; }
+    .chat-moderation-banner strong { color: var(--warn); }
+    .chat-paid-retry-note {
+      margin-top: 0.45rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .chat-log { grid-area: log; overflow-y: auto; padding: 1rem 1.25rem; min-height: 0; }
     .chat-bubble { max-width: 85%; margin: 0.5rem 0; padding: 0.65rem 0.85rem; font-size: 0.85rem; border: 1px solid var(--line); }
     .chat-bubble.user { margin-left: auto; background: #1a2838; border-color: var(--accent); }
-    .chat-bubble.bot { background: var(--surface); }
-    .chat-compose { padding: 0.75rem 1rem; border-top: 1px solid var(--line-bright); display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; background: var(--surface); }
+    .chat-bubble.bot { background: var(--surface); min-height: 2.4rem; }
+    .chat-bubble.bot.is-loading {
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    }
+    .chat-bubble-actions { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .chat-branch-btn { font-size: 0.65rem; padding: 0.15rem 0.4rem; }
+    .chat-action-btn { font-size: 0.65rem; padding: 0.15rem 0.4rem; }
+    .chat-bubble-edit {
+      display: flex; flex-direction: column; gap: 0.4rem; width: 100%;
+    }
+    .chat-bubble-edit textarea {
+      width: 100%; min-height: 4.5rem; resize: vertical;
+      font: inherit; color: var(--text); background: #0d1118;
+      border: 1px solid var(--accent); padding: 0.45rem 0.55rem;
+      box-sizing: border-box;
+    }
+    .chat-bubble-edit-actions { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: flex-end; }
+    .chat-artifacts {
+      margin-top: 0.5rem; padding: 0.45rem 0.6rem;
+      border: 1px solid color-mix(in srgb, var(--ok) 55%, var(--line));
+      border-left: 3px solid var(--ok);
+      background: color-mix(in srgb, var(--ok) 6%, var(--surface));
+      font-size: 0.75rem; line-height: 1.45;
+    }
+    .chat-artifacts-title {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--ok); margin-bottom: 0.35rem; font-weight: 600;
+    }
+    .chat-artifacts-honest { color: var(--muted); margin-bottom: 0.35rem; }
+    .chat-artifact-row { display: flex; align-items: baseline; gap: 0.35rem; margin-top: 0.2rem; }
+    .chat-artifact-row a {
+      color: var(--ok); text-decoration: underline; cursor: pointer;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.72rem;
+    }
+    .chat-artifact-row a:hover { color: var(--lime); }
+    .chat-artifact-cta { margin-top: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .chat-status {
+      display: flex; align-items: center; gap: 0.55rem;
+      color: var(--muted); font-size: 0.82rem; line-height: 1.45;
+    }
+    .chat-status-text { color: var(--text); }
+    .chat-spinner {
+      width: 0.85rem; height: 0.85rem; flex-shrink: 0;
+      border: 2px solid var(--line-bright); border-top-color: var(--accent);
+      border-radius: 50%; animation: chat-spin 0.85s linear infinite;
+    }
+    @keyframes chat-spin { to { transform: rotate(360deg); } }
+    .chat-compose {
+      grid-area: compose;
+      padding: 0.75rem 1rem; border-top: 1px solid var(--line-bright); background: var(--surface);
+      display: grid; grid-template-columns: 1fr auto; grid-template-rows: 1fr auto; gap: 0.5rem 0.65rem;
+    }
+    .chat-compose textarea { grid-column: 1; grid-row: 1; min-height: 2.75rem; }
+    .chat-compose .chat-send-col { grid-column: 2; grid-row: 1; align-self: end; }
+    .chat-compose-controls {
+      grid-column: 1 / -1; grid-row: 2;
+      display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;
+    }
+    .chat-compose-controls .meta { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; }
 
     .empty { color: var(--muted); font-size: 0.82rem; }
     .field { margin-bottom: 0.65rem; }
     .field label { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem; }
-    .field input[type="text"], .field textarea, .field select { width: 100%; font: inherit; font-size: 0.82rem; padding: 0.45rem 0.55rem; border: 1px solid var(--line-bright); background: var(--bg); color: var(--text); }
-    .field input, .field textarea, .field select { width: 100%; background: var(--bg); border: 1px solid var(--line-bright); color: var(--text); padding: 0.45rem 0.55rem; font: inherit; font-size: 0.82rem; }
 
     /* Tasks board */
     #tasks.panel.fill.active {
@@ -304,17 +544,86 @@
       font-size: 0.78rem; color: var(--muted); line-height: 1.45;
     }
     .task-lane-banner strong { color: var(--text); display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; }
-    .task-board-wrap { overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    /* overflow-y:auto — overflow:hidden clipped Active now when campaign board filled the pane */
+    .task-board-wrap { overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
     .task-board-toolbar {
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
       padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); background: rgba(17,17,20,0.92);
+      flex-shrink: 0;
     }
     .task-board-toolbar .filter select { width: auto; min-width: 160px; font-size: 0.78rem; }
     .task-board {
-      flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      flex: 0 1 auto; max-height: min(36vh, 360px); overflow: auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 1px; background: var(--line-bright); align-content: start;
     }
-    .task-col { background: var(--bg); display: flex; flex-direction: column; min-height: 280px; }
+    .task-col { background: var(--bg); display: flex; flex-direction: column; min-height: 200px; }
+    .active-work {
+      flex: 1 0 auto; flex-shrink: 0; min-height: 200px; overflow-y: auto;
+      border-top: 1px solid var(--line-bright); background: var(--surface); padding: 0.85rem 1rem 1.1rem;
+    }
+    .active-work-head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+      margin-bottom: 0.65rem; flex-wrap: wrap;
+    }
+    .active-work-head h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0;
+    }
+    .active-work-links {
+      display: flex; gap: 0.55rem; align-items: baseline; flex-wrap: wrap;
+      font-size: 0.68rem;
+    }
+    .active-work-links a {
+      color: var(--cyan, #5eead4); text-decoration: none; border-bottom: 1px solid transparent;
+    }
+    .active-work-links a:hover { border-bottom-color: currentColor; }
+    .active-work-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.55rem;
+    }
+    .active-work-card {
+      border: 1px solid var(--line); background: var(--surface); padding: 0.55rem 0.65rem; font-size: 0.78rem;
+    }
+    .active-work-card .aw-label,
+    .hub-running-now .aw-label {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .active-work-card .aw-row,
+    .hub-running-now .aw-row {
+      display: flex; gap: 0.4rem; align-items: baseline; margin: 0.25rem 0; line-height: 1.4;
+    }
+    .active-work-card .aw-chip,
+    .hub-running-now .aw-chip {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--lime);
+      border: 1px solid var(--line); padding: 0.05rem 0.3rem; flex-shrink: 0;
+    }
+    .active-work-card .aw-chip.warn,
+    .hub-running-now .aw-chip.warn { color: var(--warn); }
+    .active-work-card .aw-chip.ok,
+    .hub-running-now .aw-chip.ok { color: var(--ok); }
+    .active-work-card .aw-chip.muted,
+    .hub-running-now .aw-chip.muted { color: var(--muted); }
+    .active-work-card .aw-time,
+    .hub-running-now .aw-time {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--muted); flex-shrink: 0;
+    }
+    .active-work-empty { color: var(--muted); font-size: 0.82rem; padding: 0.5rem 0; }
+    .active-work-card.running-now {
+      border-color: var(--warn); background: #1a1810; grid-column: 1 / -1;
+    }
+    .active-work-card.running-now .aw-label { color: var(--warn); }
+    .running-now-idle { color: var(--muted); font-size: 0.78rem; }
+    .topbar .running-now-chrome {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
+      color: var(--muted); max-width: min(42vw, 420px); overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; margin: 0 0.5rem;
+    }
+    .topbar .running-now-chrome.live { color: var(--warn); }
+    .hub-running-now {
+      border: 1px solid var(--line); background: var(--surface);
+      padding: 0.55rem 0.75rem; font-size: 0.78rem;
+    }
+    .hub-running-now.live { border-left: 3px solid var(--warn); }
+    .hub-running-now.live .aw-label { color: var(--warn); }
     .task-col-head {
       padding: 0.75rem 1rem; border-bottom: 1px solid var(--line-bright); background: var(--surface);
     }
@@ -358,6 +667,33 @@
     #stories.panel.fill.active { grid-template-columns: minmax(220px, 28%) 1fr; }
     .story-index button { text-align: left; width: 100%; }
     .story-index .camp-label { font-size: 0.58rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.65rem 0 0.25rem; }
+    .story-index .story-camp-pick { margin-bottom: 0.65rem; }
+    .story-index .story-camp-pick select { font-size: 0.78rem; }
+    .story-group { margin-bottom: 0.35rem; border: 1px solid var(--line); background: var(--surface); }
+    .story-group summary {
+      font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 0.45rem 0.55rem; cursor: pointer; color: var(--muted); list-style: none;
+    }
+    .story-group summary::-webkit-details-marker { display: none; }
+    .story-group[open] summary { color: var(--accent); border-bottom: 1px solid var(--line); }
+    .story-group .group-files { padding: 0.25rem 0.35rem 0.45rem; }
+    .story-group button { font-size: 0.76rem; padding: 0.35rem 0.45rem; margin: 0.15rem 0; border: 1px solid transparent; background: transparent; color: var(--text); cursor: pointer; }
+    .story-group button:hover { border-color: var(--line-bright); }
+    .story-group button.active { border-color: var(--accent); background: #151820; }
+    .story-group button .sub { font-size: 0.62rem; color: var(--muted); }
+    .story-group button .link-badge { font-size: 0.58rem; color: var(--warn); margin-left: 0.25rem; }
+    .story-group button .link-ok { color: var(--ok); }
+    .character-panel {
+      border: 1px solid var(--line-bright); background: #12141a; padding: 0.75rem 1rem; margin-bottom: 0.75rem;
+    }
+    .character-panel h3 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent); margin-bottom: 0.5rem; }
+    .character-panel .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 0.75rem; }
+    @media (max-width: 700px) { .character-panel .char-grid { grid-template-columns: 1fr; } }
+    .character-panel .char-actions { margin-top: 0.65rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .character-panel .char-hint { font-size: 0.65rem; color: var(--muted); margin-top: 0.35rem; }
+    .camp-pick-bar { margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .camp-pick-bar select { width: auto; min-width: 220px; font-size: 0.82rem; }
+    .camp-pick-bar .meta { font-size: 0.72rem; }
     .story-toolbar { padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; background: var(--surface); }
     .chat-context-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--lime); border: 1px solid var(--line); padding: 0.2rem 0.45rem; }
 
@@ -388,6 +724,89 @@
     body.role-viewer .admin-only { display: none !important; }
     body.role-viewer .rail .brand::after { content: " · viewer"; font-size: 0.55rem; color: var(--muted); margin-left: 0.35rem; font-weight: 400; }
     body.role-public .rail .brand::after { content: " · live"; font-size: 0.55rem; color: var(--ok); margin-left: 0.35rem; font-weight: 400; }
+
+    /* Systems control panel */
+    .sys-host { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .sys-host .kpi { min-width: 7rem; }
+    .sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.75rem; }
+    .sys-card { border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem; background: var(--surface); display: flex; flex-direction: column; gap: 0.5rem; }
+    .sys-card.ok { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+    .sys-card.warn { border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+    .sys-card.down { border-color: color-mix(in srgb, var(--bad) 50%, var(--line)); }
+    .sys-card.unknown { border-color: var(--line); }
+
+    /* Mobile — bottom tab bar, larger touch targets */
+    @media (max-width: 720px) {
+      html { font-size: calc(15px * var(--ui-scale)); }
+      .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: 100dvh; }
+      .rail {
+        flex-direction: row; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        border-right: none; border-top: 1px solid var(--line-bright);
+        padding: 0.25rem 0.35rem; gap: 0.15rem;
+      }
+      .rail .brand { display: none; }
+      .rail button {
+        flex: 0 0 auto; min-width: 3.25rem; min-height: 2.75rem;
+        padding: 0.5rem 0.35rem; border-left: none;
+        border-top: 2px solid transparent; font-size: 0.58rem;
+      }
+      .rail button.active { border-left-color: transparent; border-top-color: var(--lime); }
+      .topbar { padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 0.35rem; }
+      .topbar h1 { font-size: 1.1rem; }
+      .topbar .lanes { display: none; }
+      .panel { padding: 0.75rem; }
+      .kpi-primary .kpi { min-height: 72px; padding: 0.75rem; }
+      .sys-grid { grid-template-columns: 1fr; }
+      .sys-actions .btn { min-height: 2.5rem; padding: 0.5rem 0.75rem; }
+      .btn, button { min-height: 2.25rem; }
+
+      /* Chat: full-width pane + thread drawer (sidebar was minmax(200px) crushing composer) */
+      #chat.panel.fill.active {
+        grid-template-columns: 1fr;
+        position: relative;
+        overflow: hidden;
+      }
+      .chat-threads-toggle { display: inline-flex; align-items: center; }
+      .chat-sidebar {
+        position: absolute;
+        top: 0; left: 0; bottom: 0;
+        width: min(88vw, 18rem);
+        z-index: 20;
+        transform: translateX(-105%);
+        transition: transform 0.2s ease;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+        border-right: 1px solid var(--line-bright);
+      }
+      #chat.threads-open .chat-sidebar { transform: translateX(0); }
+      #chat.threads-open .chat-threads-backdrop { display: block; }
+      .chat-main { min-width: 0; width: 100%; position: relative; z-index: 1; }
+      .chat-toolbar { padding: 0.45rem 0.65rem; justify-content: flex-start; position: relative; z-index: 2; }
+      .chat-toolbar .btn { font-size: 0.68rem; padding: 0.35rem 0.55rem; }
+      .chat-context-bar { padding: 0.4rem 0.65rem; }
+      .chat-log { padding: 0.75rem 0.85rem; min-width: 0; }
+      .chat-bubble { max-width: 100%; word-break: break-word; overflow-wrap: anywhere; }
+      .chat-bubble-actions .btn,
+      .chat-action-btn,
+      .chat-branch-btn { min-height: 2.25rem; padding: 0.35rem 0.55rem; }
+      .chat-compose {
+        padding: 0.55rem 0.65rem;
+        padding-bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
+        grid-template-columns: 1fr auto;
+        gap: 0.4rem 0.5rem;
+      }
+      .chat-compose textarea { min-height: 2.75rem; font-size: 1rem; }
+      .chat-compose .chat-send-col .btn { min-width: 4.5rem; min-height: 2.75rem; }
+      .chat-compose-controls { gap: 0.45rem; }
+      .chat-compose-controls select { max-width: 100%; min-height: 2.25rem; }
+    }
+    .sys-head { display: flex; gap: 0.6rem; align-items: flex-start; }
+    .sys-icon { width: 2.25rem; height: 2.25rem; flex-shrink: 0; border-radius: 4px; background: #0a0a0c; }
+    .sys-title { font-weight: 600; font-size: 0.85rem; }
+    .sys-sub { font-size: 0.65rem; color: var(--muted); font-family: monospace; }
+    .sys-meta { font-size: 0.65rem; color: var(--muted); font-family: monospace; }
+    .sys-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.25rem; }
+    .sys-actions .btn { font-size: 0.62rem; padding: 0.2rem 0.45rem; }
+    .sys-flash { font-size: 0.72rem; margin-bottom: 0.5rem; min-height: 1.2em; }
   </style>
 </head>
 <body>
@@ -395,6 +814,7 @@
     <nav class="rail" aria-label="Sections">
       <div class="brand">linuxbox</div>
       <button type="button" class="active admin-only" data-tab="hub">Hub</button>
+      <button type="button" class="admin-only" data-tab="systems">Systems</button>
       <button type="button" class="admin-only" data-tab="inbox">Inbox<span class="dot hidden" id="inbox-dot"></span></button>
       <button type="button" data-tab="reports">Docs</button>
       <button type="button" data-tab="news">News</button>
@@ -412,6 +832,7 @@
           <h1 id="page-title">Hub</h1>
           <span class="meta" id="clock">—</span>
         </div>
+        <div class="running-now-chrome admin-only" id="running-now-chrome" title="Live in-flight work"></div>
         <div class="lanes admin-only" id="lane-row"></div>
         <div class="topbar-actions">
           <button type="button" class="btn size-toggle" id="size-toggle" title="Display sizing" aria-expanded="false" aria-controls="size-popover">Aa</button>
@@ -468,8 +889,15 @@
             </div>
             <div class="story-cta" id="ops-cta"></div>
           </div>
+          <div class="hub-running-now" id="hub-running-now" aria-label="Running now"></div>
           <div class="kpi-primary" id="kpi-primary"></div>
           <div class="kpi-secondary" id="kpi-secondary"></div>
+          <div class="machines-bar admin-only" id="machines-bar">
+            <h2>Machines &amp; sync</h2>
+            <div id="machines-list"><p class="empty">Loading…</p></div>
+            <div class="machine-sync-meta" id="machines-sync-meta"></div>
+            <ol class="machine-steps" id="machines-laptop-steps"></ol>
+          </div>
           <div class="ops-grid">
             <div class="ops-card">
               <h2>Campaign progress</h2>
@@ -485,6 +913,17 @@
             </div>
           </div>
           <details class="debug"><summary>Debug</summary><pre id="debug-json"></pre></details>
+        </section>
+
+        <section id="systems" class="panel admin-only">
+          <div class="sys-flash" id="sys-flash"></div>
+          <div class="sys-machines" id="sys-machines-wrap">
+            <h2>Machines &amp; sync</h2>
+            <div id="sys-machines-list"><p class="empty">Loading…</p></div>
+            <div class="machine-sync-meta" id="sys-machines-meta"></div>
+          </div>
+          <div class="sys-host" id="sys-host"></div>
+          <div class="sys-grid" id="sys-grid"><p class="empty">Loading…</p></div>
         </section>
 
         <section id="inbox" class="panel admin-only">
@@ -547,19 +986,30 @@
         </section>
 
         <section id="campaigns" class="panel admin-only">
-          <div class="camp-grid" id="campaign-list"></div>
+          <div class="camp-pick-bar">
+            <label class="meta" for="camp-focus">Campaign</label>
+            <select id="camp-focus"></select>
+            <span class="meta" id="camp-focus-hint">Pick one chronicle — progress, reports, and story canon.</span>
+          </div>
+          <div id="campaign-detail"></div>
         </section>
 
         <section id="stories" class="panel fill admin-only">
           <aside class="report-index story-index">
             <h2>Story canon</h2>
-            <p class="meta" style="font-size:0.65rem;margin-bottom:0.5rem;color:var(--muted)">D&D / worldbuilding markdown — pick a doc to read or discuss</p>
+            <p class="meta" style="font-size:0.65rem;margin-bottom:0.5rem;color:var(--muted)">Pick a campaign, open a folder, then a doc — brainstorm with the assistant (you're the GM).</p>
+            <div class="story-camp-pick">
+              <label class="meta" for="story-campaign">Campaign</label>
+              <select id="story-campaign"></select>
+            </div>
             <div id="story-list"></div>
           </aside>
           <article class="report-reader" id="story-reader">
+            <div id="character-panel" class="character-panel hidden" style="display:none"></div>
             <div class="story-toolbar">
               <span class="meta" id="story-doc-title">Select a story document</span>
-              <button type="button" class="btn primary" id="story-chat-btn" disabled>Discuss in Chat</button>
+              <button type="button" class="btn primary" id="story-gm-btn" disabled>Brainstorm</button>
+              <button type="button" class="btn" id="story-chat-btn" disabled>Discuss in Chat</button>
               <button type="button" class="btn" id="story-task-btn" disabled>+ Task with context</button>
             </div>
             <div class="empty-state" id="story-body">Choose a file from the left — premise, factions, characters, lore.</div>
@@ -567,20 +1017,63 @@
         </section>
 
         <section id="chat" class="panel fill admin-only">
-          <div class="chat-toolbar">
-            <label class="meta">Lane</label>
-            <select id="chat-profile">
-              <option value="think">think · owl-alpha</option>
-              <option value="fast">fast · Qwen</option>
-              <option value="meta">meta · dashboard</option>
-            </select>
-            <span class="chat-context-pill hidden" id="chat-context-pill"></span>
-            <button type="button" class="btn" id="chat-context-clear" style="display:none">Clear context</button>
-          </div>
-          <div class="chat-log" id="chat-log"></div>
-          <div class="chat-compose">
-            <textarea id="chat-input" rows="2" placeholder="Message…"></textarea>
-            <button type="button" class="btn primary" id="chat-send">Send</button>
+          <button type="button" class="chat-threads-backdrop" id="chat-threads-backdrop" aria-label="Close thread list" tabindex="-1"></button>
+          <aside class="chat-sidebar" id="chat-sidebar">
+            <div class="chat-sidebar-head">
+              <button type="button" class="btn primary" id="chat-new">+ New chat</button>
+              <div class="chat-new-context">
+                <p class="chat-filter-caption">Filter threads · context for new chats</p>
+                <label class="meta" for="chat-new-project">Project</label>
+                <select id="chat-new-project"><option value="">— any project —</option></select>
+                <label class="meta" for="chat-new-task">Task</label>
+                <select id="chat-new-task"><option value="">— optional task —</option></select>
+                <label class="meta" for="chat-new-campaign">Campaign</label>
+                <select id="chat-new-campaign">
+                  <option value="">— none —</option>
+                  <option value="spacequest">SpaceQuest</option>
+                  <option value="tropic-gooner">Tropic Gooner</option>
+                  <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
+                </select>
+                <p class="chat-filter-hint hidden" id="chat-filter-hint"></p>
+              </div>
+            </div>
+            <div class="chat-thread-list" id="chat-thread-list"></div>
+          </aside>
+          <div class="chat-main">
+            <div class="chat-toolbar">
+              <div class="chat-toolbar-start">
+                <button type="button" class="btn chat-threads-toggle" id="chat-threads-toggle" aria-expanded="false" aria-controls="chat-sidebar" title="Thread list">Threads</button>
+              </div>
+              <button type="button" class="btn" id="chat-save-thread" disabled title="Save full transcript to campaign notes">+ Save chat</button>
+              <button type="button" class="btn" id="chat-promote-task" disabled title="Create an open user task from this thread">+ Promote to task</button>
+            </div>
+            <div class="chat-context-bar" id="chat-context-bar">
+              <span class="meta">Context:</span>
+              <span class="chat-context-pill hidden" id="chat-context-pill"></span>
+              <span class="meta" id="chat-thread-meta"></span>
+            </div>
+            <div class="chat-moderation-banner" id="chat-moderation-banner" role="alert" aria-live="polite"></div>
+            <div class="chat-log" id="chat-log">
+              <p class="empty">Select a thread or start a new chat.</p>
+            </div>
+            <div class="chat-compose">
+              <textarea id="chat-input" rows="2" placeholder="Message… (Enter to send, Shift+Enter for newline)"></textarea>
+              <div class="chat-send-col">
+                <button type="button" class="btn primary" id="chat-send">Send</button>
+              </div>
+              <div class="chat-compose-controls">
+                <label class="meta" for="chat-profile">Lane</label>
+                <select id="chat-profile">
+                  <option value="think" selected>think · campaign brainstorm</option>
+                  <option value="meta">meta · dashboard coding</option>
+                </select>
+                <label class="meta" for="chat-response-mode">Style</label>
+                <select id="chat-response-mode">
+                  <option value="brief" selected>Brief</option>
+                  <option value="workshop">Workshop</option>
+                </select>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -627,6 +1120,7 @@
               <select id="user-task-campaign">
                 <option value="">— none —</option>
                 <option value="spacequest">SpaceQuest</option>
+                <option value="tropic-gooner">Tropic Gooner (Hunter)</option>
                 <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
               </select>
             </div>
@@ -644,6 +1138,7 @@
               <div class="field" style="margin-top:0.5rem"><label for="task-campaign">Campaign</label>
                 <select id="task-campaign">
                   <option value="spacequest">SpaceQuest</option>
+                  <option value="tropic-gooner">Tropic Gooner (Hunter)</option>
                   <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
                 </select>
               </div>
@@ -665,11 +1160,20 @@
                 <select id="task-filter">
                   <option value="all">All campaigns</option>
                   <option value="spacequest">SpaceQuest</option>
+                  <option value="tropic-gooner">Tropic Gooner (Hunter)</option>
                   <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
                 </select>
               </div>
             </div>
             <div class="task-board" id="task-board"></div>
+            <section class="active-work" id="active-work" aria-label="Active work">
+              <div class="active-work-head">
+                <h2>Active now</h2>
+                <div class="active-work-links" id="active-work-links"></div>
+                <span class="meta" id="active-work-meta"></span>
+              </div>
+              <div id="active-work-body"><p class="active-work-empty">Loading…</p></div>
+            </section>
           </div>
         </section>
 
@@ -691,7 +1195,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "Hub", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
+    const titles = { hub: "Hub", systems: "Systems", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -701,13 +1205,58 @@
       reader: "minmax(180px, 22%)",
     };
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
-    let chatContext = null, selectedStory = null, storyCatalog = null, selectedProjectId = "";
+    let selectedStory = null, storyCatalog = null, selectedProjectId = "";
+    let activeChatThreadId = localStorage.getItem("linuxbox-chat-active") || "";
+    let chatThreads = [];
+    let activeChatThread = null;
+    let storyCampaignFilter = localStorage.getItem("story-campaign") || "tropic-gooner";
+    let campFocusId = localStorage.getItem("camp-focus") || "tropic-gooner";
     const TASK_TAG_LABELS = { general: "General", campaign: "Campaign", dnd: "D&D / story", dashboard: "Dashboard", news: "News", bugfix: "Bug fix", feature: "Feature", maintenance: "Maintenance" };
     const PROJECT_KIND_LABELS = { "research-dev": "R&D", product: "Product", ops: "Ops", personal: "Personal" };
+    /** linuxbox system TZ (America/New_York — EST/EDT) */
+    const LINUXBOX_TZ = "America/New_York";
+
+    function fmtEt(iso) {
+      if (!iso) return "—";
+      const d = iso instanceof Date ? iso : new Date(iso);
+      if (Number.isNaN(d.getTime())) return "—";
+      return d.toLocaleString("en-US", {
+        timeZone: LINUXBOX_TZ,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZoneName: "short",
+      });
+    }
+
+    function fmtEtTime(iso) {
+      if (!iso) return "—";
+      const d = iso instanceof Date ? iso : new Date(iso);
+      if (Number.isNaN(d.getTime())) return "—";
+      return d.toLocaleTimeString("en-US", {
+        timeZone: LINUXBOX_TZ,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZoneName: "short",
+      });
+    }
+
+    function fmtEtDate(iso) {
+      if (!iso) return "—";
+      const d = iso instanceof Date ? iso : new Date(iso);
+      if (Number.isNaN(d.getTime())) return "—";
+      return d.toLocaleDateString("en-US", { timeZone: LINUXBOX_TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+    }
 
     async function loadSession() {
       try {
-        const res = await fetch(`${base}/api/session`, { cache: "no-store" });
+        const res = await fetch(`${base}/api/session`, { cache: "no-store", credentials: "same-origin" });
         const j = await res.json();
         sessionRole = j.role === "viewer" ? "viewer" : "admin";
         document.body.classList.toggle("role-viewer", sessionRole === "viewer");
@@ -718,7 +1267,12 @@
           if (brand) brand.textContent = "intel";
         }
       } catch {
-        sessionRole = "admin";
+        sessionRole = /\/intel/i.test(location.pathname) ? "viewer" : "admin";
+        document.body.classList.toggle("role-viewer", sessionRole === "viewer");
+        document.body.classList.toggle("role-admin", sessionRole === "admin");
+        if (sessionRole === "viewer" && /\/intel/i.test(location.pathname)) {
+          document.body.classList.add("role-public");
+        }
       }
     }
 
@@ -779,7 +1333,13 @@
       applySizing({ ...SIZE_DEFAULTS });
     };
 
-    marked.setOptions({ breaks: true, gfm: true });
+    if (typeof marked !== "undefined") {
+      marked.setOptions({ breaks: true, gfm: true });
+    }
+    function mdParse(text) {
+      if (typeof marked !== "undefined" && marked.parse) return marked.parse(text || "");
+      return esc(text || "").replace(/\n/g, "<br>");
+    }
 
     document.querySelectorAll(".rail button[data-tab]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -796,23 +1356,848 @@
           else renderReports(agentData);
         }
         if (activeTab === "news") loadNews();
-        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); }
+        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
         if (activeTab === "stories") loadStories();
+        if (activeTab === "chat") { fillChatNewSelects(agentData); loadChatThreads().then(() => document.getElementById("chat-input")?.focus()); }
         if (activeTab === "garage") loadGarage();
+        if (activeTab === "systems") loadSystems();
+        if (activeTab === "hub" && sessionRole !== "viewer") load();
       });
     });
 
-    function setChatContext(ctx, label) {
-      chatContext = ctx || null;
+    function projectMap(data) {
+      const m = {};
+      for (const p of data?.user_projects || []) m[p.id] = p;
+      return m;
+    }
+
+    function openTasks(data) {
+      return (data?.user_tasks || []).filter((t) => t.status !== "done" && t.status !== "cancelled");
+    }
+
+    function getChatFilter() {
+      return {
+        project_id: document.getElementById("chat-new-project")?.value || "",
+        task_id: document.getElementById("chat-new-task")?.value || "",
+        campaign: document.getElementById("chat-new-campaign")?.value || "",
+      };
+    }
+
+    function chatFilterIsActive(filter = getChatFilter()) {
+      return !!(filter.project_id || filter.task_id || filter.campaign);
+    }
+
+    function chatFilterLabel(filter = getChatFilter()) {
+      const pmap = projectMap(agentData);
+      const parts = [];
+      if (filter.project_id) parts.push(pmap[filter.project_id]?.name || filter.project_id);
+      if (filter.task_id) {
+        const task = (agentData?.user_tasks || []).find((t) => t.id === filter.task_id);
+        parts.push(task ? task.title.slice(0, 28) : filter.task_id);
+      }
+      if (filter.campaign) parts.push(filter.campaign);
+      return parts.join(" · ");
+    }
+
+    function updateChatFilterHint() {
+      const hint = document.getElementById("chat-filter-hint");
+      if (!hint) return;
+      const label = chatFilterLabel();
+      if (label) {
+        hint.textContent = `Showing threads: ${label}`;
+        hint.classList.remove("hidden");
+      } else {
+        hint.textContent = "";
+        hint.classList.add("hidden");
+      }
+    }
+
+    function fillChatNewSelects(data) {
+      const pmap = projectMap(data);
+      const projSel = document.getElementById("chat-new-project");
+      const taskSel = document.getElementById("chat-new-task");
+      if (!projSel || !taskSel) return;
+      const prevProj = projSel.value || "";
+      const prevTask = taskSel.value || "";
+      const projects = (data?.user_projects || []).filter((p) => p.status !== "archived");
+      projSel.innerHTML = `<option value="">— any project —</option>${projects.map((p) =>
+        `<option value="${esc(p.id)}">${esc(p.name)}</option>`
+      ).join("")}`;
+      if (prevProj && projects.some((p) => p.id === prevProj)) projSel.value = prevProj;
+      const filterProj = projSel.value || "";
+      const tasks = openTasks(data);
+      const filtered = filterProj ? tasks.filter((t) => t.project_id === filterProj) : tasks;
+      taskSel.innerHTML = `<option value="">— optional task —</option>${filtered.map((t) => {
+        const pn = t.project_id && pmap[t.project_id] ? pmap[t.project_id].name : "—";
+        return `<option value="${esc(t.id)}">${esc(t.title.slice(0, 42))} · ${esc(pn)}</option>`;
+      }).join("")}`;
+      if (prevTask && filtered.some((t) => t.id === prevTask)) taskSel.value = prevTask;
+      updateChatFilterHint();
+    }
+
+    function onChatFilterChange() {
+      fillChatNewSelects(agentData);
+      loadChatThreads();
+    }
+
+    function threadContextChips(ctx, data) {
+      if (!ctx || typeof ctx !== "object") return "";
+      const pmap = projectMap(data);
+      const chips = [];
+      if (ctx.project_id && pmap[ctx.project_id]) chips.push(`proj:${pmap[ctx.project_id].name}`);
+      else if (ctx.project_id) chips.push(`proj:${ctx.project_id}`);
+      if (ctx.task_id) {
+        const task = (data?.user_tasks || []).find((t) => t.id === ctx.task_id);
+        chips.push(task ? `task:${task.title.slice(0, 24)}` : "task");
+      }
+      if (ctx.campaign) chips.push(`camp:${ctx.campaign}`);
+      if (ctx.story_path || ctx.path) chips.push(`story:${(ctx.story_path || ctx.path || "").split("/").pop()}`);
+      if (ctx.inbox_id) chips.push(`inbox:${ctx.inbox_id.slice(0, 12)}`);
+      if (ctx.type === "character") chips.push("character");
+      return chips.map((c) => `<span class="chat-chip">${esc(c)}</span>`).join("");
+    }
+
+    function contextLabel(ctx, data) {
+      const pmap = projectMap(data);
+      if (ctx?.task_id) {
+        const task = (data?.user_tasks || []).find((t) => t.id === ctx.task_id);
+        if (task) {
+          const pn = task.project_id && pmap[task.project_id] ? pmap[task.project_id].name : "";
+          return pn ? `Task · ${task.title.slice(0, 32)} · ${pn}` : `Task · ${task.title.slice(0, 40)}`;
+        }
+      }
+      if (ctx?.project_id && pmap[ctx.project_id]) return `Project · ${pmap[ctx.project_id].name}`;
+      if (ctx?.type === "story" && ctx.path) return `Story · ${ctx.path.split("/").pop()}`;
+      if (ctx?.campaign) return `Campaign · ${ctx.campaign}`;
+      if (ctx?.inbox_id) return `Inbox · ${ctx.inbox_id}`;
+      return "";
+    }
+
+    function setChatComposerState() {
+      const waiting = chatWaiting;
+      const input = document.getElementById("chat-input");
+      const send = document.getElementById("chat-send");
+      if (input) input.disabled = waiting;
+      if (send) send.disabled = waiting;
+    }
+
+    async function loadChatThreads() {
+      try {
+        const filter = getChatFilter();
+        const qs = new URLSearchParams();
+        if (filter.project_id) qs.set("project_id", filter.project_id);
+        if (filter.task_id) qs.set("task_id", filter.task_id);
+        if (filter.campaign) qs.set("campaign", filter.campaign);
+        const query = qs.toString();
+        const url = `${base}/api/chat/threads${query ? `?${query}` : ""}`;
+        const res = await fetch(url, { credentials: "same-origin", cache: "no-store" });
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "threads_load_failed");
+        chatThreads = j.threads || [];
+        updateChatFilterHint();
+        renderChatThreadList();
+        if (activeChatThreadId && chatThreads.some((t) => t.id === activeChatThreadId)) {
+          await selectChatThread(activeChatThreadId, false);
+        } else if (chatThreads.length) {
+          await selectChatThread(chatThreads[0].id, false);
+        } else {
+          activeChatThreadId = "";
+          activeChatThread = null;
+          localStorage.removeItem("linuxbox-chat-active");
+          document.getElementById("chat-promote-task").disabled = true;
+          document.getElementById("chat-save-thread").disabled = true;
+          document.getElementById("chat-log").innerHTML =
+            chatFilterIsActive(filter)
+              ? '<p class="empty">No threads match this filter — start a new chat below.</p>'
+              : '<p class="empty">Select a thread or start a new chat.</p>';
+          setChatComposerState();
+        }
+      } catch (e) {
+        const root = document.getElementById("chat-thread-list");
+        if (root) root.innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
+    async function deleteChatThreadById(id, { confirmMsg } = {}) {
+      if (!id || chatWaiting) return false;
+      const msg =
+        confirmMsg ||
+        "Delete this entire chat? This cannot be undone. Other threads are kept.";
+      if (!confirm(msg)) return false;
+      const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const j = await parseApiJson(res);
+      if (!res.ok) throw new Error(j.error || "delete_failed");
+      if (activeChatThreadId === id) {
+        activeChatThreadId = "";
+        activeChatThread = null;
+        localStorage.removeItem("linuxbox-chat-active");
+        document.getElementById("chat-promote-task").disabled = true;
+        document.getElementById("chat-save-thread").disabled = true;
+        setChatComposerState();
+        document.getElementById("chat-log").innerHTML =
+          '<p class="empty">Select a thread or start a new chat.</p>';
+        updateChatContextBar(null);
+      }
+      await loadChatThreads();
+      return true;
+    }
+
+    function renderChatThreadList() {
+      const root = document.getElementById("chat-thread-list");
+      if (!root) return;
+      if (!chatThreads.length) {
+        const msg = chatFilterIsActive()
+          ? "No threads match this filter"
+          : "No threads yet";
+        root.innerHTML = `<p class="empty" style="padding:0.75rem">${esc(msg)}</p>`;
+        return;
+      }
+      root.innerHTML = chatThreads.map((t) => {
+        const active = t.id === activeChatThreadId ? " active" : "";
+        const when = t.updated_at ? new Date(t.updated_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+        return `<div class="chat-thread-item${active}" data-id="${esc(t.id)}">
+          <button type="button" class="chat-thread-del" data-del="${esc(t.id)}" title="Delete chat" aria-label="Delete chat">✕</button>
+          <span class="title">${esc(t.title || "Chat")}</span>
+          <span class="meta">${t.message_count || 0} msgs · ${esc(when)}</span>
+          <div class="chat-thread-chips">${threadContextChips(t.context, agentData)}</div>
+        </div>`;
+      }).join("");
+      root.querySelectorAll(".chat-thread-item").forEach((el) => {
+        el.onclick = (e) => {
+          if (e.target.closest("[data-del]")) return;
+          selectChatThread(el.dataset.id, true);
+        };
+      });
+      root.querySelectorAll("[data-del]").forEach((btn) => {
+        btn.onclick = async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            await deleteChatThreadById(btn.getAttribute("data-del"));
+          } catch (err) {
+            alert(err.message);
+          }
+        };
+      });
+    }
+
+    async function selectChatThread(id, remember = true, force = false) {
+      if (chatWaiting && !force) return;
+      try {
+        const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(id)}`, { credentials: "same-origin", cache: "no-store" });
+        const thread = await parseApiJson(res);
+        if (!res.ok) throw new Error(thread.error || "thread_load_failed");
+        activeChatThreadId = id;
+        activeChatThread = thread;
+        if (remember) localStorage.setItem("linuxbox-chat-active", id);
+        document.getElementById("chat-profile").value = thread.profile || "think";
+        document.getElementById("chat-response-mode").value = thread.response_mode || "brief";
+        document.getElementById("chat-promote-task").disabled = false;
+        document.getElementById("chat-save-thread").disabled = false;
+        setChatComposerState();
+        updateChatContextBar(thread);
+        renderChatThreadList();
+        renderChatLog(thread, force);
+        setChatThreadsOpen(false);
+      } catch (e) {
+        document.getElementById("chat-log").innerHTML = `<p class="empty" style="color:var(--bad)">${esc(e.message)}</p>`;
+      }
+    }
+
+    function setChatThreadsOpen(open) {
+      const panel = document.getElementById("chat");
+      const btn = document.getElementById("chat-threads-toggle");
+      if (!panel) return;
+      panel.classList.toggle("threads-open", !!open);
+      if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    function updateChatContextBar(thread) {
       const pill = document.getElementById("chat-context-pill");
-      const clearBtn = document.getElementById("chat-context-clear");
-      if (chatContext && label) {
+      const meta = document.getElementById("chat-thread-meta");
+      const label = contextLabel(thread?.context, agentData);
+      if (label) {
         pill.textContent = label;
         pill.classList.remove("hidden");
-        clearBtn.style.display = "";
       } else {
         pill.classList.add("hidden");
-        clearBtn.style.display = "none";
+      }
+      const parts = [];
+      if (thread?.parent_id) parts.push(`branched from ${thread.parent_id.slice(0, 8)}`);
+      if (thread?.branch_from_index != null) parts.push(`@ msg ${thread.branch_from_index + 1}`);
+      meta.textContent = parts.join(" · ");
+    }
+
+    function buildChatContextFromForm(extra = {}) {
+      const ctx = {};
+      const keys = [
+        "project_id", "task_id", "campaign", "story_path", "type", "path",
+        "character_id", "inbox_id", "workshop_mode", "ask_human",
+      ];
+      for (const key of keys) {
+        if (extra[key] != null && extra[key] !== "") ctx[key] = extra[key];
+      }
+      if (Array.isArray(extra.tags) && extra.tags.length) ctx.tags = extra.tags.filter(Boolean).slice(0, 12);
+      const proj = document.getElementById("chat-new-project")?.value;
+      const task = document.getElementById("chat-new-task")?.value;
+      const camp = document.getElementById("chat-new-campaign")?.value;
+      if (proj) ctx.project_id = proj;
+      if (task) ctx.task_id = task;
+      if (camp) ctx.campaign = camp;
+      return ctx;
+    }
+
+    async function createChatThreadFromForm(extra = {}, opts = {}) {
+      const ctx = buildChatContextFromForm(extra);
+      const title = opts.title || extra.title || contextLabel(ctx, agentData) || "New chat";
+      const res = await fetch(`${base}/api/chat/threads`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          context: ctx,
+          profile: document.getElementById("chat-profile").value,
+          response_mode: document.getElementById("chat-response-mode").value,
+        }),
+      });
+      const thread = await parseApiJson(res);
+      if (!res.ok) throw new Error(thread.error || "create_failed");
+      if (!thread?.id) throw new Error("create_failed_no_id");
+      activeChatThreadId = thread.id;
+      activeChatThread = thread;
+      localStorage.setItem("linuxbox-chat-active", thread.id);
+      document.getElementById("chat-promote-task").disabled = false;
+      document.getElementById("chat-save-thread").disabled = false;
+      await loadChatThreads();
+      await selectChatThread(thread.id, true);
+      return thread;
+    }
+
+    async function openChatWithContext(ctx, label) {
+      goTab("chat");
+      fillChatNewSelects(agentData);
+      if (ctx.project_id) document.getElementById("chat-new-project").value = ctx.project_id;
+      if (ctx.task_id) document.getElementById("chat-new-task").value = ctx.task_id;
+      if (ctx.campaign) document.getElementById("chat-new-campaign").value = ctx.campaign;
+      fillChatNewSelects(agentData);
+      updateChatFilterHint();
+      await createChatThreadFromForm({ ...ctx, title: label || contextLabel(ctx, agentData) || "New chat" });
+      document.getElementById("chat-input").focus();
+    }
+
+    function detectSaveIntent(text) {
+      const s = String(text || "");
+      return (
+        /\b(I(?:'ll|'m going to)|let me)\s+(?:write|save|create|add|store|export|draft)\b/i.test(s) ||
+        /\bsaving(?:\s+it|\s+this|\s+to|\s+as|\s+the)\b/i.test(s) ||
+        /\b(wrote|saved|created)\s+(?:it|this|the|a)\b/i.test(s)
+      );
+    }
+
+    function chatCampaignForThread(thread) {
+      return thread?.context?.campaign || document.getElementById("chat-new-campaign")?.value || "";
+    }
+
+    function renderChatArtifactsPanel(bubble, msg, thread, msgIdx) {
+      const arts = Array.isArray(msg.artifacts) ? msg.artifacts : [];
+      const hasArts = arts.length > 0;
+      const saveIntent = !msg.error && detectSaveIntent(msg.text);
+      if (!hasArts && !msg.promoted_task_id && !saveIntent) return;
+
+      const panel = document.createElement("div");
+      panel.className = "chat-artifacts";
+
+      if (hasArts || msg.promoted_task_id) {
+        panel.innerHTML = `<div class="chat-artifacts-title">Saved outputs</div>`;
+        const list = document.createElement("div");
+        for (const a of arts) {
+          const row = document.createElement("div");
+          row.className = "chat-artifact-row";
+          const prefix = a.type === "task" ? "Task" : a.type === "note" ? "Saved" : "File";
+          if (a.type === "task") {
+            const link = document.createElement("a");
+            link.href = "#";
+            link.textContent = a.label || a.path;
+            link.onclick = (e) => {
+              e.preventDefault();
+              goTab("tasks");
+            };
+            row.innerHTML = `<span>${prefix}:</span> `;
+            row.appendChild(link);
+          } else {
+            const link = document.createElement("a");
+            link.href = a.url || "#";
+            link.textContent = a.path || a.label;
+            link.onclick = (e) => {
+              e.preventDefault();
+              const camp = chatCampaignForThread(thread) || (a.path || "").split("/")[1];
+              if (camp && a.path) {
+                goTab("stories");
+                openStoryDoc(camp, a.path, a.label || a.path.split("/").pop());
+              }
+            };
+            row.innerHTML = `<span>${prefix}:</span> `;
+            row.appendChild(link);
+          }
+          list.appendChild(row);
+        }
+        if (msg.promoted_task_id && !arts.some((a) => a.type === "task")) {
+          const row = document.createElement("div");
+          row.className = "chat-artifact-row";
+          const link = document.createElement("a");
+          link.href = "#";
+          link.textContent = `Task ${msg.promoted_task_id.slice(0, 8)}…`;
+          link.onclick = (e) => {
+            e.preventDefault();
+            goTab("tasks");
+          };
+          row.innerHTML = `<span>Task:</span> `;
+          row.appendChild(link);
+          list.appendChild(row);
+        }
+        panel.appendChild(list);
+      } else if (saveIntent) {
+        panel.innerHTML =
+          `<div class="chat-artifacts-title">Outputs</div>` +
+          `<div class="chat-artifacts-honest">Nothing saved yet — Hermes replied in text only.</div>`;
+        const cta = document.createElement("div");
+        cta.className = "chat-artifact-cta";
+        if (chatCampaignForThread(thread)) {
+          const saveBtn = document.createElement("button");
+          saveBtn.type = "button";
+          saveBtn.className = "btn chat-action-btn";
+          saveBtn.textContent = "+ Save to campaign";
+          saveBtn.onclick = () => saveChatMessageNote(msgIdx, bubble);
+          cta.appendChild(saveBtn);
+        }
+        if (!msg.promoted_task_id) {
+          const promBtn = document.createElement("button");
+          promBtn.type = "button";
+          promBtn.className = "btn chat-action-btn";
+          promBtn.textContent = "+ Promote to task";
+          promBtn.onclick = () => promoteChatMessage(msgIdx, bubble);
+          cta.appendChild(promBtn);
+        }
+        panel.appendChild(cta);
+      }
+
+      bubble.appendChild(panel);
+    }
+
+    function bindChatMessageActions(bubble, msg, thread, msgIdx) {
+      const actions = document.createElement("div");
+      actions.className = "chat-bubble-actions";
+      const btns = [];
+      if (msg.role === "bot" && !msg.error && String(msg.text || "").trim()) {
+        btns.push(
+          { act: "copy", label: "Copy" },
+          { act: "regenerate", label: "Regenerate" },
+          { act: "branch", label: "Branch from here" }
+        );
+        if (chatCampaignForThread(thread)) {
+          btns.push({ act: "save-note", label: "+ Save to campaign" });
+        }
+        if (!msg.promoted_task_id) {
+          btns.push({ act: "promote", label: "+ Promote to task" });
+        }
+      }
+      btns.push({ act: "delete", label: "Delete" });
+      actions.innerHTML = btns
+        .map((b) => {
+          const danger = b.act === "delete" ? " danger" : "";
+          return `<button type="button" class="btn chat-action-btn${danger}" data-act="${b.act}" data-idx="${msgIdx}">${esc(b.label)}</button>`;
+        })
+        .join("");
+      actions.querySelectorAll(".chat-action-btn").forEach((btn) => {
+        btn.onclick = () => handleChatMessageAction(btn.dataset.act, Number(btn.dataset.idx), bubble);
+      });
+      bubble.appendChild(actions);
+    }
+
+    async function handleChatMessageAction(action, msgIdx, bubbleEl) {
+      if (!activeChatThreadId || chatWaiting) return;
+      if (action === "copy") {
+        try {
+          await navigator.clipboard.writeText(String(activeChatThread?.messages?.[msgIdx]?.text || ""));
+        } catch {
+          /* ponytail: fallback ignored */
+        }
+        return;
+      }
+      if (action === "branch") {
+        await branchChatFrom(msgIdx);
+        return;
+      }
+      if (action === "save-note") {
+        await saveChatMessageNote(msgIdx, bubbleEl);
+        return;
+      }
+      if (action === "promote") {
+        await promoteChatMessage(msgIdx, bubbleEl);
+        return;
+      }
+      if (action === "regenerate") {
+        await regenerateChatFrom(msgIdx);
+        return;
+      }
+      if (action === "delete") {
+        await deleteChatMessageAt(msgIdx);
+      }
+    }
+
+    async function deleteChatMessageAt(msgIdx) {
+      if (!activeChatThreadId || chatWaiting) return;
+      const msgs = activeChatThread?.messages || [];
+      const target = msgs[msgIdx];
+      if (!target) return;
+      let confirmMsg = "Delete this message? This cannot be undone.";
+      if (target.role === "user") {
+        const next = msgs[msgIdx + 1];
+        if (next && next.role === "bot") {
+          confirmMsg =
+            "Delete this message and the assistant reply that follows it?\n\n" +
+            "Later turns in this thread are kept. (Whole-thread delete is the ✕ on the thread list.)";
+        }
+      }
+      if (!confirm(confirmMsg)) return;
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/messages/${msgIdx}`,
+          { method: "DELETE", credentials: "same-origin" }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "message_delete_failed");
+        activeChatThread = j.thread || activeChatThread;
+        await loadChatThreads();
+        if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function saveChatMessageNote(msgIdx, bubbleEl) {
+      if (!activeChatThreadId || chatWaiting) return;
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/messages/${msgIdx}/save-note`,
+          { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: "{}" }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "save_failed");
+        activeChatThread = j.thread || activeChatThread;
+        if (bubbleEl && activeChatThread?.messages?.[msgIdx]) {
+          const oldArts = bubbleEl.querySelector(".chat-artifacts");
+          if (oldArts) oldArts.remove();
+          renderChatArtifactsPanel(bubbleEl, activeChatThread.messages[msgIdx], activeChatThread, msgIdx);
+        } else if (activeChatThreadId) {
+          await selectChatThread(activeChatThreadId, false);
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function promoteChatMessage(msgIdx, bubbleEl) {
+      if (!activeChatThreadId || chatWaiting) return;
+      const msg = activeChatThread?.messages?.[msgIdx];
+      const defaultTitle = (msg?.text || activeChatThread?.title || "From chat").trim().slice(0, 80);
+      const custom = prompt("Task title (optional edit):", defaultTitle);
+      if (custom === null) return;
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/messages/${msgIdx}/promote-task`,
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: custom.trim() || defaultTitle }),
+          }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "promote_failed");
+        activeChatThread = j.thread || activeChatThread;
+        if (bubbleEl && activeChatThread?.messages?.[msgIdx]) {
+          const oldArts = bubbleEl.querySelector(".chat-artifacts");
+          if (oldArts) oldArts.remove();
+          renderChatArtifactsPanel(bubbleEl, activeChatThread.messages[msgIdx], activeChatThread, msgIdx);
+          const oldActs = bubbleEl.querySelector(".chat-bubble-actions");
+          if (oldActs) oldActs.remove();
+          bindChatMessageActions(bubbleEl, activeChatThread.messages[msgIdx], activeChatThread, msgIdx);
+        } else if (activeChatThreadId) {
+          await selectChatThread(activeChatThreadId, false);
+        }
+        load();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function regenerateChatFrom(msgIdx) {
+      if (!activeChatThreadId || chatWaiting) return;
+      const msgs = activeChatThread?.messages || [];
+      const target = msgs[msgIdx];
+      if (!target || target.role !== "bot") {
+        alert("Can only regenerate assistant replies.");
+        return;
+      }
+      const toRemove = msgs.length - msgIdx;
+      const confirmMsg =
+        `Regenerate this reply?\n\n` +
+        `This will delete ${toRemove} message(s) after this point (this reply + everything following).\n` +
+        `${msgIdx} earlier message(s) are kept.`;
+      if (!confirm(confirmMsg)) return;
+      chatWaiting = true;
+      setChatComposerState();
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/messages/${msgIdx}/regenerate`,
+          { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: "{}" }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "regenerate_failed");
+        await selectChatThread(activeChatThreadId, false, true);
+        const log = document.getElementById("chat-log");
+        const bubble = document.createElement("div");
+        setChatBubbleLoading(
+          bubble,
+          j.status === "queued" ? chatLoadingLabel(j, 0) : "Regenerating… 0s (Hermes on linuxbox)"
+        );
+        log.appendChild(bubble);
+        log.scrollTop = log.scrollHeight;
+        const result = await pollChatJob(j.job_id, bubble);
+        if (result.error) {
+          setChatBubbleReply(bubble, result.error, true);
+          if (result.moderation_refusal) setChatModerationBanner(true, result.error);
+        } else {
+          setChatModerationBanner(false);
+          setChatBubbleReply(bubble, result.reply || "", false, {
+            paidRetry: !!result.paid_retry,
+            freeFallback: !!result.free_fallback,
+          });
+        }
+        bubble.classList.remove("is-loading");
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        chatWaiting = false;
+        setChatComposerState();
+        await loadChatThreads();
+        if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
+        const log = document.getElementById("chat-log");
+        if (log) log.scrollTop = log.scrollHeight;
+      }
+    }
+
+    async function saveChatThreadToCampaign() {
+      if (!activeChatThreadId || chatWaiting) return;
+      const campaign = chatCampaignForThread(activeChatThread);
+      if (!campaign) {
+        alert("Set a campaign on this thread (or pick one in New chat filters) before saving.");
+        return;
+      }
+      if (!(activeChatThread?.messages || []).length) {
+        alert("Nothing to save — thread is empty.");
+        return;
+      }
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/save-note`,
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ campaign }),
+          }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "save_failed");
+        activeChatThread = j.thread || activeChatThread;
+        const art = j.artifact;
+        if (art?.path) {
+          const open = confirm(
+            `Saved full chat to campaign notes:\n${art.path}\n\nOpen in Stories?`
+          );
+          if (open) {
+            goTab("stories");
+            openStoryDoc(campaign, art.path, art.label || art.path.split("/").pop());
+          } else if (activeChatThreadId) {
+            await selectChatThread(activeChatThreadId, false);
+          }
+        } else if (activeChatThreadId) {
+          await selectChatThread(activeChatThreadId, false);
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function bindChatUserActions(bubble, msgIdx) {
+      if (chatWaiting) return;
+      const actions = document.createElement("div");
+      actions.className = "chat-bubble-actions";
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "btn chat-action-btn";
+      editBtn.textContent = "Edit";
+      editBtn.onclick = () => beginChatUserEdit(bubble, msgIdx);
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn chat-action-btn danger";
+      delBtn.textContent = "Delete";
+      delBtn.onclick = () => deleteChatMessageAt(msgIdx);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      bubble.appendChild(actions);
+    }
+
+    function beginChatUserEdit(bubble, msgIdx) {
+      if (!activeChatThreadId || chatWaiting) return;
+      const msg = activeChatThread?.messages?.[msgIdx];
+      if (!msg || msg.role !== "user") return;
+      const original = String(msg.text || "");
+      bubble.innerHTML = "";
+      const form = document.createElement("div");
+      form.className = "chat-bubble-edit";
+      const ta = document.createElement("textarea");
+      ta.value = original;
+      ta.rows = Math.min(12, Math.max(3, original.split("\n").length + 1));
+      const row = document.createElement("div");
+      row.className = "chat-bubble-edit-actions";
+      const saveBtn = document.createElement("button");
+      saveBtn.type = "button";
+      saveBtn.className = "btn primary chat-action-btn";
+      saveBtn.textContent = "Save & regen";
+      const cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.className = "btn chat-action-btn";
+      cancelBtn.textContent = "Cancel";
+      cancelBtn.onclick = () => {
+        if (activeChatThreadId) selectChatThread(activeChatThreadId, false);
+      };
+      saveBtn.onclick = () => submitChatUserEdit(msgIdx, ta.value);
+      row.appendChild(cancelBtn);
+      row.appendChild(saveBtn);
+      form.appendChild(ta);
+      form.appendChild(row);
+      bubble.appendChild(form);
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+
+    async function submitChatUserEdit(msgIdx, newText) {
+      if (!activeChatThreadId || chatWaiting) return;
+      const trimmed = String(newText || "").trim();
+      if (!trimmed) {
+        alert("Message cannot be empty.");
+        return;
+      }
+      const msgs = activeChatThread?.messages || [];
+      const target = msgs[msgIdx];
+      if (!target || target.role !== "user") {
+        alert("Can only edit user messages.");
+        return;
+      }
+      const toRemove = msgs.length - msgIdx - 1;
+      if (toRemove > 0) {
+        const confirmMsg =
+          `Save this edit and regenerate?\n\n` +
+          `This will delete ${toRemove} message(s) after this point, then auto-regenerate the assistant reply.\n` +
+          `${msgIdx + 1} message(s) up to this edit are kept.`;
+        if (!confirm(confirmMsg)) return;
+      } else if (trimmed === String(target.text || "").trim()) {
+        if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
+        return;
+      }
+      chatWaiting = true;
+      setChatComposerState();
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/messages/${msgIdx}/edit`,
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: trimmed }),
+          }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "edit_failed");
+        await selectChatThread(activeChatThreadId, false, true);
+        const log = document.getElementById("chat-log");
+        const bubble = document.createElement("div");
+        setChatBubbleLoading(
+          bubble,
+          j.status === "queued" ? chatLoadingLabel(j, 0) : "Thinking… 0s (Hermes on linuxbox)"
+        );
+        log.appendChild(bubble);
+        log.scrollTop = log.scrollHeight;
+        const result = await pollChatJob(j.job_id, bubble);
+        if (result.error) {
+          setChatBubbleReply(bubble, result.error, true);
+          if (result.moderation_refusal) setChatModerationBanner(true, result.error);
+        } else {
+          setChatModerationBanner(false);
+          setChatBubbleReply(bubble, result.reply || "", false, {
+            paidRetry: !!result.paid_retry,
+            freeFallback: !!result.free_fallback,
+          });
+        }
+        bubble.classList.remove("is-loading");
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        chatWaiting = false;
+        setChatComposerState();
+        await loadChatThreads();
+        if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
+        const log = document.getElementById("chat-log");
+        if (log) log.scrollTop = log.scrollHeight;
+      }
+    }
+
+    function renderChatLog(thread, force = false) {
+      const log = document.getElementById("chat-log");
+      if (!log || (chatWaiting && !force)) return;
+      log.innerHTML = "";
+      const messages = thread?.messages || [];
+      if (!messages.length) {
+        log.innerHTML = '<p class="empty">No messages yet — send one below.</p>';
+        return;
+      }
+      messages.forEach((t, idx) => {
+        if (t.role === "user") appendChatUserMessage(log, t.text, idx);
+        else {
+          const bubble = document.createElement("div");
+          log.appendChild(bubble);
+          setChatBubbleReply(bubble, t.text, t.error);
+          if (!t.error && String(t.text || "").trim()) {
+            renderChatArtifactsPanel(bubble, t, thread, idx);
+          }
+          bindChatMessageActions(bubble, t, thread, idx);
+        }
+      });
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function branchChatFrom(fromIndex) {
+      if (!activeChatThreadId || chatWaiting) return;
+      try {
+        const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/branch`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ from_index: fromIndex }),
+        });
+        const branch = await parseApiJson(res);
+        if (!res.ok) throw new Error(branch.error || "branch_failed");
+        await loadChatThreads();
+        await selectChatThread(branch.id, true);
+      } catch (e) {
+        alert(e.message);
       }
     }
 
@@ -827,12 +2212,6 @@
 
     function selectedUserTags() {
       return [...document.querySelectorAll('#user-task-tags input[name="utag"]:checked')].map((el) => el.value);
-    }
-
-    function projectMap(data) {
-      const m = {};
-      for (const p of data?.user_projects || []) m[p.id] = p;
-      return m;
     }
 
     function fillProjectSelects(data) {
@@ -916,11 +2295,16 @@
           if (!task) return;
           const ctx = { task_id: task.id, tags: task.tags };
           if (task.project_id) ctx.project_id = task.project_id;
+          if (task.context?.campaign) ctx.campaign = task.context.campaign;
+          if (task.context?.story_path) {
+            ctx.story_path = task.context.story_path;
+            ctx.type = "story";
+            ctx.path = task.context.story_path;
+          }
           const label = task.project_id && pmap[task.project_id]
             ? `Task: ${task.title.slice(0, 28)} · ${pmap[task.project_id].name}`
             : `Task: ${task.title.slice(0, 40)}`;
-          setChatContext(ctx, label);
-          goTab("chat");
+          openChatWithContext(ctx, label);
         };
       });
     }
@@ -929,42 +2313,193 @@
       try {
         const res = await fetch(`${base}/api/stories`, { cache: "no-store" });
         storyCatalog = await res.json();
+        initStoryCampaignPicker(storyCatalog);
         renderStoryList(storyCatalog);
       } catch (e) {
         document.getElementById("story-list").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
       }
     }
 
+    function initStoryCampaignPicker(catalog) {
+      const sel = document.getElementById("story-campaign");
+      if (!sel) return;
+      const camps = catalog?.campaigns || {};
+      const ids = Object.keys(camps);
+      if (!ids.includes(storyCampaignFilter)) storyCampaignFilter = ids[0] || "tropic-gooner";
+      sel.innerHTML = ids.map((id) =>
+        `<option value="${esc(id)}"${id === storyCampaignFilter ? " selected" : ""}>${esc(camps[id].label)}</option>`
+      ).join("");
+      if (!sel.dataset.ready) {
+        sel.dataset.ready = "1";
+        sel.onchange = () => {
+          storyCampaignFilter = sel.value;
+          localStorage.setItem("story-campaign", storyCampaignFilter);
+          selectedStory = null;
+          document.getElementById("story-body").innerHTML = '<div class="empty-state">Choose a file from the left.</div>';
+          document.getElementById("story-body").classList.add("empty-state");
+      document.getElementById("story-body").classList.add("empty-state");
+          document.getElementById("story-doc-title").textContent = "Select a story document";
+          hideCharacterPanel();
+          ["story-gm-btn", "story-chat-btn", "story-task-btn"].forEach((id) => {
+            document.getElementById(id).disabled = true;
+          });
+          renderStoryList(storyCatalog);
+        };
+      }
+    }
+
+    function registryForPath(catalog, campaignId, relPath) {
+      const reg = catalog?.registries?.[campaignId];
+      if (!reg) return null;
+      const chars = reg.characters || [];
+      let row = chars.find((c) => c.story_path === relPath);
+      if (row) return row;
+      row = chars.find((c) => (c.duplicate_paths || []).includes(relPath));
+      if (row) return { ...row, _viewing_duplicate: true };
+      const slug = relPath.split("/").pop().replace(/\.md$/i, "");
+      return chars.find((c) => c.id === slug || (c.aliases || []).includes(slug)) || null;
+    }
+
     function renderStoryList(catalog) {
       const root = document.getElementById("story-list");
       const camps = catalog?.campaigns || {};
-      let html = "";
-      for (const [id, c] of Object.entries(camps)) {
-        html += `<div class="camp-label">${esc(c.label)}</div>`;
-        html += (c.files || []).map((f) =>
-          `<button type="button" data-c="${esc(id)}" data-p="${esc(f.path)}" data-n="${esc(f.name)}">
-            ${esc(f.name)}<br><span class="sub">${esc(f.folder)} · ${esc(f.mtime.slice(0, 10))}</span>
-          </button>`
-        ).join("");
+      const c = camps[storyCampaignFilter];
+      if (!c) {
+        root.innerHTML = '<p class="empty">No campaigns with story files.</p>';
+        return;
       }
-      root.innerHTML = html || '<p class="empty">No story files found under campaigns/*/story</p>';
+      const groups = c.groups || [];
+      let html = "";
+      if (!groups.length && c.files?.length) {
+        html = c.files.map((f) => storyFileButton(f, storyCampaignFilter, catalog)).join("");
+      } else {
+        html = groups.map((g) => {
+          const files = (g.files || []).map((f) => storyFileButton(f, storyCampaignFilter, catalog)).join("");
+          if (!files) return "";
+          const open = g.id.includes("characters") ? " open" : "";
+          return `<details class="story-group"${open}><summary>${esc(g.label)} · ${g.files.length}</summary><div class="group-files">${files}</div></details>`;
+        }).join("");
+      }
+      root.innerHTML = html || '<p class="empty">No files in this campaign yet.</p>';
       root.querySelectorAll("button[data-p]").forEach((btn) => {
-        btn.onclick = () => openStoryDoc(btn.dataset.c, btn.dataset.p, btn.dataset.n);
-        if (selectedStory && selectedStory.path === btn.dataset.p) btn.classList.add("active");
+        btn.onclick = () => openStoryDoc(btn.dataset.c, btn.dataset.p, btn.dataset.n, btn.dataset.char);
       });
+      if (selectedStory) {
+        root.querySelectorAll(`button[data-p="${CSS.escape(selectedStory.path)}"]`).forEach((b) => b.classList.add("active"));
+      }
     }
 
-    async function openStoryDoc(campaign, relPath, name) {
-      selectedStory = { campaign, path: relPath, name };
+    function storyFileButton(f, campaignId, catalog) {
+      const row = registryForPath(catalog, campaignId, f.path);
+      const isChar = /\/characters\//.test(f.path);
+      let badge = "";
+      if (isChar && row) {
+        const linked = row.discord_user_id || row.discord_username;
+        badge = linked
+          ? `<span class="link-badge link-ok">linked</span>`
+          : `<span class="link-badge">needs Discord</span>`;
+      } else if (isChar) {
+        badge = `<span class="link-badge">unregistered</span>`;
+      }
+      return `<button type="button" data-c="${esc(campaignId)}" data-p="${esc(f.path)}" data-n="${esc(f.name)}" data-char="${row?.id || ""}">
+        ${esc(f.name)}${badge}<br><span class="sub">${esc(f.folder)} · ${esc(fmtEtDate(f.mtime))}</span>
+      </button>`;
+    }
+
+    function hideCharacterPanel() {
+      const panel = document.getElementById("character-panel");
+      panel.style.display = "none";
+      panel.innerHTML = "";
+    }
+
+    function renderCharacterPanel(campaign, relPath, charId) {
+      const panel = document.getElementById("character-panel");
+      if (!/\/characters\//.test(relPath)) {
+        hideCharacterPanel();
+        return;
+      }
+      const reg = storyCatalog?.registries?.[campaign];
+      let row = charId && reg?.characters?.find((c) => c.id === charId);
+      if (!row) row = registryForPath(storyCatalog, campaign, relPath);
+      const slug = relPath.split("/").pop().replace(/\.md$/i, "");
+      const id = row?.id || slug;
+      const display = row?.display_name || slug.replace(/-/g, " ");
+      const dupNote = row?._viewing_duplicate
+        ? `<p class="char-hint" style="color:var(--warn)">This file is a duplicate stub. Canonical: <code>${esc(row.story_path.split("/").pop())}</code></p>`
+        : "";
+      const aliasNote = row?.aliases?.length
+        ? `<p class="char-hint">Also filed as: ${row.aliases.map((a) => esc(a) + ".md").join(", ")}</p>`
+        : "";
+      panel.style.display = "";
+      panel.innerHTML = `
+        <h3>Player &amp; Discord link</h3>
+        ${dupNote}${aliasNote}
+        <div class="char-grid">
+          <div class="field"><label>Character</label><input type="text" id="char-display" value="${esc(display)}" /></div>
+          <div class="field"><label>Player name</label><input type="text" id="char-player" placeholder="Who plays this PC?" value="${esc(row?.player_name || "")}" /></div>
+          <div class="field"><label>Discord username</label><input type="text" id="char-discord-user" placeholder="name#1234 or @handle" value="${esc(row?.discord_username || "")}" /></div>
+          <div class="field"><label>Discord user ID</label><input type="text" id="char-discord-id" placeholder="numeric snowflake" value="${esc(row?.discord_user_id || "")}" /></div>
+          <div class="field"><label>Status</label>
+            <select id="char-status">
+              ${["active", "hiatus", "retired"].map((s) => `<option value="${s}"${(row?.status || "active") === s ? " selected" : ""}>${s}</option>`).join("")}
+            </select>
+          </div>
+          <div class="field"><label>Proxy (future)</label>
+            <select id="char-proxy" disabled title="Player proxy not built yet — see docs/campaign-player-continuity-goals.md">
+              <option value="0"${!row?.can_proxy ? " selected" : ""}>Off</option>
+              <option value="1"${row?.can_proxy ? " selected" : ""}>On</option>
+            </select>
+          </div>
+        </div>
+        <div class="char-actions">
+          <button type="button" class="btn primary" id="char-save-btn">Save link</button>
+          <span class="meta" id="char-save-result"></span>
+        </div>
+        <p class="char-hint">Link Discord so the agent knows who plays whom. Future: when you're away, a governed proxy can stand in (see campaign continuity goals).</p>`;
+      document.getElementById("char-save-btn").onclick = async () => {
+        const payload = {
+          campaign,
+          id,
+          display_name: document.getElementById("char-display").value.trim(),
+          story_path: relPath,
+          player_name: document.getElementById("char-player").value.trim(),
+          discord_username: document.getElementById("char-discord-user").value.trim(),
+          discord_user_id: document.getElementById("char-discord-id").value.trim(),
+          status: document.getElementById("char-status").value,
+        };
+        const res = await fetch(`${base}/api/characters-registry`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const j = await res.json();
+        const out = document.getElementById("char-save-result");
+        if (res.ok) {
+          storyCatalog.registries = storyCatalog.registries || {};
+          storyCatalog.registries[campaign] = j;
+          out.textContent = "Saved";
+          renderStoryList(storyCatalog);
+        } else {
+          out.textContent = j.error || "Save failed";
+        }
+      };
+    }
+
+    async function openStoryDoc(campaign, relPath, name, charId) {
+      selectedStory = { campaign, path: relPath, name, character_id: charId || "" };
       document.querySelectorAll("#story-list button").forEach((b) => b.classList.toggle("active", b.dataset.p === relPath));
       document.getElementById("story-doc-title").textContent = `${name} · ${campaign}`;
       document.getElementById("story-body").innerHTML = '<div class="empty-state">Loading…</div>';
+      document.getElementById("story-body").classList.remove("empty-state");
+      document.getElementById("story-gm-btn").disabled = false;
       document.getElementById("story-chat-btn").disabled = false;
       document.getElementById("story-task-btn").disabled = false;
+      renderCharacterPanel(campaign, relPath, charId);
       const res = await fetch(`${base}/api/stories/doc?campaign=${encodeURIComponent(campaign)}&path=${encodeURIComponent(relPath)}`);
       const j = await res.json();
       document.getElementById("story-body").innerHTML =
-        `<div class="prose${document.getElementById("size-width").value === "full" ? " prose-full" : ""}">${marked.parse(j.content || "")}</div>`;
+        `<div class="prose${document.getElementById("size-width").value === "full" ? " prose-full" : ""}">${mdParse(j.content || "")}</div>`;
+      document.getElementById("story-body").classList.remove("empty-state");
     }
 
     function parseTaskParts(text) {
@@ -1021,9 +2556,288 @@
       }).join("");
     }
 
+    function fmtElapsed(ms) {
+      const n = Math.max(0, Math.round(Number(ms) || 0) / 1000);
+      if (n < 60) return `${n}s`;
+      const m = Math.floor(n / 60);
+      const s = Math.round(n % 60);
+      if (m < 60) return s ? `${m}m ${s}s` : `${m}m`;
+      return `${Math.floor(m / 60)}h ${m % 60}m`;
+    }
+
+    /** Shared live in-flight signal — Hub strip, Tasks card, topbar chrome. */
+    function collectRunningNow(data) {
+      const rn = data?.running_now || {};
+      const jobs = Array.isArray(rn.chat_jobs)
+        ? rn.chat_jobs
+        : (data?.chat_jobs?.jobs || []);
+      const pod = rn.pod || data?.current_pod || null;
+      const parts = [];
+      for (const j of jobs.slice(0, 4)) {
+        const st = j.status === "queued" ? "queued" : "thinking";
+        parts.push({
+          kind: "chat",
+          label: j.title || "Chat",
+          status: st,
+          elapsed: fmtElapsed(j.elapsed_ms),
+        });
+      }
+      if (pod?.name) {
+        parts.push({
+          kind: pod.kind === "tick" ? "tick" : "pod",
+          label: pod.name,
+          status: "running",
+          elapsed: fmtElapsed(pod.elapsed_ms),
+        });
+      }
+      const plain = [];
+      const thinking = jobs.filter((j) => j.status === "thinking");
+      const queued = jobs.filter((j) => j.status === "queued");
+      if (thinking.length) {
+        const t = thinking[0];
+        let bit = `Chat: thinking… ${(t.title || "chat").slice(0, 28)} · ${fmtElapsed(t.elapsed_ms)}`;
+        if (thinking.length > 1) bit += ` +${thinking.length - 1}`;
+        plain.push(bit);
+      } else if (queued.length) {
+        plain.push(`Chat: queued ${queued.length}`);
+      }
+      if (pod?.name) plain.push(`${pod.name} ${fmtElapsed(pod.elapsed_ms)}`);
+      return {
+        parts,
+        anything: parts.length > 0,
+        summary: plain.join(" · ") || "Nothing running right now",
+      };
+    }
+
+    function renderRunningNow(data, mode) {
+      const info = collectRunningNow(data);
+      if (mode === "chrome") {
+        const el = document.getElementById("running-now-chrome");
+        if (!el) return;
+        if (info.anything) {
+          el.textContent = info.summary;
+          el.classList.add("live");
+          el.title = info.summary;
+        } else {
+          el.textContent = "";
+          el.classList.remove("live");
+          el.title = "Nothing running right now";
+        }
+        return;
+      }
+
+      const rowsHtml = info.parts.map((p) => {
+        const chip = p.status === "queued"
+          ? `<span class="aw-chip warn">queued</span>`
+          : p.status === "thinking"
+            ? `<span class="aw-chip warn">thinking</span>`
+            : `<span class="aw-chip warn">running</span>`;
+        const kind = p.kind === "chat" ? "chat" : p.kind === "tick" ? "tick" : "pod";
+        return `<div class="aw-row">${chip}<span class="aw-chip muted">${kind}</span><strong>${esc(p.label)}</strong><span class="aw-time">${esc(p.elapsed)}</span></div>`;
+      }).join("");
+
+      if (mode === "hub") {
+        const el = document.getElementById("hub-running-now");
+        if (!el) return;
+        if (!info.anything) {
+          el.className = "hub-running-now";
+          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">Nothing running right now</div>`;
+          return;
+        }
+        el.className = "hub-running-now live";
+        el.innerHTML = `<div class="aw-label">Running now</div>${rowsHtml}`;
+        return;
+      }
+
+      // mode === "card" (Tasks Active now)
+      if (!info.anything) {
+        return `<div class="active-work-card running-now">
+          <div class="aw-label">Running now</div>
+          <div class="running-now-idle">Nothing running right now</div>
+        </div>`;
+      }
+      return `<div class="active-work-card running-now">
+        <div class="aw-label">Running now</div>
+        ${rowsHtml}
+      </div>`;
+    }
+
+    function renderActiveWork(data) {
+      const body = document.getElementById("active-work-body");
+      const meta = document.getElementById("active-work-meta");
+      const linksEl = document.getElementById("active-work-links");
+      if (!body) return;
+
+      const obs = data?.observability || {};
+      if (linksEl) {
+        const bits = [];
+        if (obs.kuma_url) {
+          bits.push(`<a href="${esc(obs.kuma_url)}" target="_blank" rel="noopener">Uptime Kuma</a>`);
+        }
+        if (obs.grafana_url) {
+          bits.push(`<a href="${esc(obs.grafana_url)}" target="_blank" rel="noopener">Grafana</a>`);
+        }
+        bits.push(`<a href="${esc(base + (obs.metrics_path || "/metrics"))}" target="_blank" rel="noopener" title="Prometheus text (loopback/admin)">/metrics</a>`);
+        linksEl.innerHTML = bits.join('<span class="meta">·</span>');
+      }
+
+      const pmap = projectMap(data);
+      const openTasks = (data?.user_tasks || []).filter(
+        (t) => t.status === "open" || t.status === "in_progress"
+      );
+      const backlog = data?.dashboard_backlog_open || [];
+      const jobs = data?.chat_jobs || { running: 0, pending: 0 };
+      const pods = data?.recent_pods || [];
+      const maint = data?.maintenance_open || 0;
+      const lane = (data?.current_task_status || "").replace(/\*\*/g, "").trim();
+      const fast = data?.lanes?.["agent-cycle-fast"];
+      const think = data?.lanes?.["agent-cycle-think"];
+      const runningCard = renderRunningNow(data, "card");
+
+      const inFlight =
+        openTasks.length +
+        backlog.length +
+        (jobs.running || 0) +
+        (jobs.pending || 0) +
+        maint +
+        (lane && !/^idle/i.test(lane) ? 1 : 0);
+
+      if (meta) {
+        meta.textContent = data?.updated_at
+          ? `updated ${fmtEtTime(data.updated_at)}`
+          : "";
+      }
+
+      if (!inFlight && !pods.length) {
+        body.innerHTML = `${runningCard}<p class="active-work-empty" style="margin-top:0.5rem">Nothing in backlog — queues clear</p>`;
+        return;
+      }
+
+      const cards = [runningCard];
+
+      cards.push(`<div class="active-work-card">
+        <div class="aw-label">Lane focus</div>
+        <div>${esc(lane || "—")}</div>
+        <div class="aw-row" style="margin-top:0.4rem">
+          <span class="aw-chip muted">fast</span>
+          <span class="aw-time">${fast?.last_run ? esc(fmtEtTime(fast.last_run)) : "n/a"}</span>
+          <span class="aw-chip muted">think</span>
+          <span class="aw-time">${think?.last_run ? esc(fmtEtTime(think.last_run)) : "n/a"}</span>
+        </div>
+      </div>`);
+
+      const taskRows = openTasks.slice(0, 8).map((t) => {
+        const proj = t.project_id && pmap[t.project_id]
+          ? `<span class="aw-chip">${esc(pmap[t.project_id].name)}</span>`
+          : `<span class="aw-chip muted">no project</span>`;
+        const st = t.status === "in_progress"
+          ? `<span class="aw-chip warn">in progress</span>`
+          : `<span class="aw-chip">open</span>`;
+        return `<div class="aw-row">${proj}${st}<span>${esc(t.title || t.id)}</span></div>`;
+      }).join("") || '<div class="meta">No open user tasks</div>';
+      cards.push(`<div class="active-work-card">
+        <div class="aw-label">User tasks · ${openTasks.length} open</div>
+        ${taskRows}
+      </div>`);
+
+      const backlogLine = backlog.length
+        ? `<div>${esc(backlog[0].replace(/\*\*/g, "").slice(0, 120))}</div>
+           <div class="meta" style="margin-top:0.25rem">${backlog.length} open in Meta backlog</div>`
+        : '<div class="meta">Dashboard backlog clear</div>';
+      const maintLine = maint
+        ? `<div class="aw-row" style="margin-top:0.35rem"><span class="aw-chip warn">maint</span><span>${maint} open</span></div>`
+        : "";
+      cards.push(`<div class="active-work-card">
+        <div class="aw-label">Meta / maintenance</div>
+        ${backlogLine}${maintLine}
+      </div>`);
+
+      const thinkingN = jobs.thinking ?? jobs.running ?? 0;
+      const queuedN = jobs.queued ?? jobs.pending ?? 0;
+      const jobCls = (thinkingN || queuedN) ? "warn" : "ok";
+      cards.push(`<div class="active-work-card">
+        <div class="aw-label">Chat jobs</div>
+        <div class="aw-row">
+          <span class="aw-chip ${jobCls}">thinking ${thinkingN}</span>
+          <span class="aw-chip ${queuedN ? "warn" : "muted"}">queued ${queuedN}</span>
+        </div>
+      </div>`);
+
+      const podRows = pods.slice(0, 6).map((p) => {
+        const chip = p.idle
+          ? `<span class="aw-chip muted">IDLE</span>`
+          : `<span class="aw-chip warn">work</span>`;
+        const when = p.ts ? `<span class="aw-time">${esc(fmtEtTime(p.ts))}</span>` : "";
+        const sum = p.summary && !p.idle
+          ? `<span class="meta">${esc(p.summary.slice(0, 60))}</span>`
+          : "";
+        return `<div class="aw-row">${chip}<strong>${esc(p.name)}</strong>${when}${sum}</div>`;
+      }).join("") || '<div class="meta">No recent pod ticks</div>';
+      cards.push(`<div class="active-work-card">
+        <div class="aw-label">Recent pod ticks</div>
+        ${podRows}
+      </div>`);
+
+      if (!inFlight && pods.every((p) => p.idle)) {
+        body.innerHTML = `<div class="active-work-grid">${runningCard}${cards.filter((_, i) => i === 1 || i === 5).join("")}</div>`;
+        return;
+      }
+
+      body.innerHTML = `<div class="active-work-grid">${cards.join("")}</div>`;
+    }
+
     function goTab(tab) {
       const btn = document.querySelector(`.rail button[data-tab="${tab}"]`);
       if (btn) btn.click();
+    }
+
+    function machineDotClass(m) {
+      if (m.online) return "ok";
+      return "bad";
+    }
+
+    function machineHint(m) {
+      if (m.id === "linuxbox") return "self · runtime";
+      if (m.ping_ms != null) return `ping ${m.ping_ms}ms`;
+      if (m.online) return m.active_hint || "online";
+      return m.last_seen ? `last ${m.last_seen.slice(0, 10)}` : "offline";
+    }
+
+    function renderMachines(sync, opts = {}) {
+      if (!sync) return;
+      const listHtml = (sync.machines || []).map((m) => {
+        const st = machineDotClass(m);
+        return `<div class="lane-row">
+          <span class="lane-dot ${st}"></span>
+          <span class="lane-name">${esc(m.label)} <span style="font-weight:400;color:var(--muted)">· ${esc(m.tailnet_ip || "?")}</span></span>
+          <span class="lane-time">${esc(machineHint(m))}</span>
+        </div>`;
+      }).join("") || '<p class="empty">No machines registered</p>';
+
+      const git = sync.git || {};
+      const oc = sync.open_channel || {};
+      const gitLine = `git ${git.head || "?"}${git.last_to ? ` · bundle ${git.last_from || "?"}→${git.last_to}` : ""}${git.bundle_pending ? " · bundle pending" : ""}`;
+      const channelLine = oc.active
+        ? (oc.awaiting_laptop ? "OPEN CHANNEL · awaiting [LAPTOP] reply" : "OPEN CHANNEL · laptop replied")
+        : "no OPEN CHANNEL";
+      const metaCls = oc.awaiting_laptop ? "machine-sync-meta warn" : "machine-sync-meta";
+      const metaHtml = `${esc(gitLine)} · ${esc(channelLine)}`;
+
+      const listId = opts.listId || "machines-list";
+      const metaId = opts.metaId || "machines-sync-meta";
+      const stepsId = opts.stepsId || "machines-laptop-steps";
+      const listEl = document.getElementById(listId);
+      const metaEl = document.getElementById(metaId);
+      if (listEl) listEl.innerHTML = listHtml;
+      if (metaEl) {
+        metaEl.className = metaCls;
+        metaEl.textContent = metaHtml;
+      }
+      const stepsEl = document.getElementById(stepsId);
+      if (stepsEl && !opts.skipSteps) {
+        const steps = sync.laptop_steps || [];
+        stepsEl.innerHTML = steps.map((s) => `<li>${esc(s)}</li>`).join("");
+      }
     }
 
     function laneState(l) {
@@ -1036,6 +2850,7 @@
     function renderHub(data) {
       const inboxN = data.inbox_open_count || 0;
       const gwOk = data.gateway === "active";
+      const gwHung = data.gateway === "hung";
       const lanes = Object.values(data.lanes || {});
       const laneBad = lanes.some((l) => laneState(l) === "bad");
       const campaigns = Object.values(data.campaigns || {});
@@ -1045,7 +2860,11 @@
       let title = "All systems nominal";
       let sub = (data.current_task_status || "Agent idle").replace(/\*\*/g, "");
 
-      if (!gwOk) {
+      if (gwHung) {
+        headlineClass = "bad";
+        title = "Gateway hung";
+        sub = "Hermes process alive but event loop stuck (SQLite/D-state or Discord heartbeat) — watchdog should restart.";
+      } else if (!gwOk) {
         headlineClass = "bad";
         title = "Gateway offline";
         sub = "Hermes gateway is not active — agent cycles may be failing.";
@@ -1070,12 +2889,18 @@
       const think = data.lanes?.["agent-cycle-think"];
       const fastSt = fast ? laneState(fast) : "warn";
       const thinkSt = think ? laneState(think) : "warn";
+      const gwLabel = gwOk ? "UP" : gwHung ? "HUNG" : "DOWN";
+      const gwHint = gwOk
+        ? "hermes-gateway active"
+        : gwHung
+          ? "alive but stuck — check watchdog / state.db"
+          : "check systemd";
 
       document.getElementById("kpi-primary").innerHTML = [
-        { label: "Gateway", value: gwOk ? "UP" : "DOWN", hint: gwOk ? "hermes-gateway active" : "check systemd", cls: gwOk ? "ok" : "bad", drill: null },
+        { label: "Gateway", value: gwLabel, hint: gwHint, cls: gwOk ? "ok" : "bad", drill: null },
         { label: "Inbox", value: inboxN ? String(inboxN) : "0", hint: inboxN ? "needs response" : "clear", cls: inboxN ? "warn" : "ok", drill: "inbox" },
-        { label: "Fast lane", value: fast?.schedule?.replace(" (crontab)", "") || "~30s", hint: fast?.last_run ? `last ${fast.last_run.slice(11, 19)}` : "no recent run", cls: fastSt, drill: null },
-        { label: "Think lane", value: think?.schedule || "1m", hint: think?.last_run ? `last ${think.last_run.slice(11, 19)}` : "no recent run", cls: thinkSt, drill: null },
+        { label: "Fast lane", value: fast?.schedule?.replace(" (crontab)", "") || "~30s", hint: fast?.last_run ? `last ${fmtEtTime(fast.last_run)}` : "no recent run", cls: fastSt, drill: null },
+        { label: "Think lane", value: think?.schedule || "1m", hint: think?.last_run ? `last ${fmtEtTime(think.last_run)}` : "no recent run", cls: thinkSt, drill: null },
       ].map((k) => `<div class="kpi${k.drill ? " drill" : ""}" ${k.drill ? `data-tab="${k.drill}"` : ""}>
         <div class="label">${esc(k.label)}</div>
         <div class="value ${k.cls}">${esc(k.value)}</div>
@@ -1092,6 +2917,10 @@
         ["Disk free", data.root_free || "?", ""],
         ["API keys", data.openrouter_key === "set" ? "set" : "missing", data.openrouter_key === "set" ? "" : "warn"],
       ].map(([l, v, c]) => `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(v)}</div></div>`).join("");
+
+      renderMachines(data.machines_sync);
+      renderMachines(data.machines_sync, { listId: "sys-machines-list", metaId: "sys-machines-meta", stepsId: null, skipSteps: true });
+      renderRunningNow(data, "hub");
 
       document.getElementById("campaign-bars").innerHTML = Object.entries(data.campaigns || {}).map(([id, c]) => {
         const done = c.done_count || 0;
@@ -1115,12 +2944,15 @@
         return `<div class="lane-row">
           <span class="lane-dot ${st}"></span>
           <span class="lane-name">${esc(name)} · ${esc(l.schedule || "?")}</span>
-          <span class="lane-time">${l.last_run ? l.last_run.slice(11, 19) : "—"}</span>
+          <span class="lane-time">${l.last_run ? fmtEtTime(l.last_run) : "—"}</span>
         </div>`;
       }).join("") : '<p class="empty">No lanes</p>';
 
       const actions = [];
       if (inboxN) actions.push({ tab: "inbox", label: `Answer inbox (${inboxN})`, emphasis: true });
+      if (data.machines_sync?.open_channel?.awaiting_laptop) {
+        actions.push({ tab: "hub", label: "Laptop handshake pending", emphasis: true });
+      }
       actions.push({ tab: "news", label: "Intel · markets & news", mode: "markets" });
       actions.push({ tab: "reports", label: "Browse reports" });
       actions.push({ tab: "tasks", label: "Campaign queues" });
@@ -1144,6 +2976,89 @@
       if (gotoNews) gotoNews.onclick = () => goTab("news");
       const gotoDocs = document.getElementById("goto-docs");
       if (gotoDocs) gotoDocs.onclick = () => goTab("reports");
+    }
+
+    let systemsData = null;
+
+    function renderSystems(data) {
+      if (!data) return;
+      systemsData = data;
+      const host = data.host || {};
+      const telem = (data.resource || {}).telemetry || {};
+      document.getElementById("sys-host").innerHTML = [
+        ["Memory avail", `${host.mem_avail_mb ?? "?"} MiB`, host.mem_avail_mb < 250 ? "bad" : "ok"],
+        ["Swap used", `${host.swap_used_pct ?? "?"}%`, host.swap_used_pct >= 85 ? "warn" : "ok"],
+        ["Load", host.load_avg || "?", ""],
+        ["Last pod", data.resource?.chosen || telem.chosen || "—", ""],
+      ].map(([l, v, c]) => `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div></div>`).join("");
+
+      const grid = document.getElementById("sys-grid");
+      const systems = data.systems || [];
+      if (!systems.length) {
+        grid.innerHTML = '<p class="empty">No systems registered</p>';
+        return;
+      }
+      grid.innerHTML = systems.map((s) => {
+        const cls = s.health || "unknown";
+        const local = s.http_code ? `local ${s.http_code}` : s.active ? "active" : "inactive";
+        const pubNote =
+          s.public_http_code != null
+            ? ` · public ${s.public_http_code}`
+            : s.health_note === "local_ok_public_down"
+              ? " · public unreachable"
+              : "";
+        const code = `${local}${pubNote}`;
+        const pub = s.public_url ? `<a href="${esc(s.public_url)}" target="_blank" rel="noopener" class="sys-meta">${esc(s.public_url)}</a>` : "";
+        const btns = (s.controls || []).map((c) =>
+          `<button type="button" class="btn" data-sys-id="${esc(s.id)}" data-sys-action="${esc(c.action)}">${esc(c.action)}</button>`
+        ).join("");
+        return `<article class="sys-card ${cls}">
+          <div class="sys-head">
+            <img class="sys-icon" src="${base}/icons/${esc(s.icon)}.svg" alt="" width="36" height="36" />
+            <div>
+              <div class="sys-title">${esc(s.label)}</div>
+              <div class="sys-sub">${esc(s.subtitle || s.kind)} · ${esc(s.unit)}</div>
+            </div>
+          </div>
+          <div class="sys-meta">${esc(code)} · ${esc(cls)}</div>
+          ${pub}
+          <div class="sys-actions">${btns}</div>
+        </article>`;
+      }).join("");
+
+      grid.querySelectorAll("button[data-sys-id]").forEach((btn) => {
+        btn.onclick = () => runSystemControl(btn.dataset.sysId, btn.dataset.sysAction);
+      });
+    }
+
+    async function loadSystems() {
+      try {
+        const res = await fetch(`${base}/api/systems`, { credentials: "same-origin", cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        renderSystems(await res.json());
+      } catch (e) {
+        document.getElementById("sys-grid").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
+    async function runSystemControl(systemId, action) {
+      const flash = document.getElementById("sys-flash");
+      flash.textContent = `Running ${action} on ${systemId}…`;
+      try {
+        const res = await fetch(`${base}/api/systems/control`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ system_id: systemId, action }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        flash.textContent = data.message || `${action} OK`;
+        await loadSystems();
+        if (activeTab === "hub") load();
+      } catch (e) {
+        flash.textContent = `Failed: ${e.message}`;
+      }
     }
 
     const KIND_LABEL = { latest: "Latest", rss: "RSS", digest: "Digest", stock: "Markets" };
@@ -1259,7 +3174,7 @@
           .then((j) => {
             const el = document.getElementById("markets-brief-inline");
             if (el && j.content) {
-              el.innerHTML = `<h2>Latest stock brief</h2><div class="prose">${marked.parse(j.content)}</div>`;
+              el.innerHTML = `<h2>Latest stock brief</h2><div class="prose">${mdParse(j.content)}</div>`;
             }
           })
           .catch(() => {});
@@ -1310,7 +3225,7 @@
         return;
       }
       const fullWidth = document.getElementById("size-width").value === "full";
-      reader.innerHTML = `<div class="doc-title">${esc(KIND_LABEL[kind] || kind)} · ${esc(label)} / ${esc(j.file)}</div><div class="prose${fullWidth ? " prose-full" : ""}">${marked.parse(j.content || "")}</div>`;
+      reader.innerHTML = `<div class="doc-title">${esc(KIND_LABEL[kind] || kind)} · ${esc(label)} / ${esc(j.file)}</div><div class="prose${fullWidth ? " prose-full" : ""}">${mdParse(j.content || "")}</div>`;
     }
 
     async function loadNews() {
@@ -1330,7 +3245,7 @@
       const root = document.getElementById("news-list");
       const items = data?.briefs || [];
       if (!items.length) {
-        root.innerHTML = '<p class="empty">No briefs yet — wait for situation-rss (08:00) or situation-hermes (09:00) UTC crons.</p>';
+        root.innerHTML = '<p class="empty">No briefs yet — wait for situation-rss (08:00) or situation-hermes (09:00) ET crons on linuxbox.</p>';
         return;
       }
       const groups = [
@@ -1347,7 +3262,7 @@
         html += groupItems.map((b) => `
           <button type="button" data-f="${esc(b.name)}" data-l="${esc(b.label)}" data-k="${esc(b.kind)}">
             <span class="kind-${esc(b.kind)}">${esc(KIND_LABEL[b.kind] || b.kind)}</span> · ${esc(b.label)}<br>
-            <span class="sub">${esc(b.name)}<br>${esc(b.mtime.slice(0, 16).replace("T", " "))}</span>
+            <span class="sub">${esc(b.name)}<br>${esc(fmtEt(b.mtime))}</span>
           </button>`).join("");
       }
       root.innerHTML = html;
@@ -1375,7 +3290,7 @@
         if (data.error) { body.innerHTML = `<p class="empty">${esc(data.error)}</p>`; }
         const tiers = { "1-handling": "Tier 1 — handling", "2-interior": "Tier 2 — interior", "2-styling": "Tier 2 — styling", "3-evswap": "Tier 3 — EV swap" };
         const sum = parts.reduce((a, p) => a + (Number(p.current_price) || 0), 0);
-        const last = (data.monitor && data.monitor.last_run) ? new Date(data.monitor.last_run).toLocaleString() : "never";
+        const last = (data.monitor && data.monitor.last_run) ? fmtEt(data.monitor.last_run) : "never";
         const intv = (data.monitor && data.monitor.interval_days) || 3;
         head.innerHTML =
           `<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem">
@@ -1385,7 +3300,7 @@
           (data.fitment_warning ? `<div class="task-lane-banner" style="margin-bottom:0.75rem"><strong>⚠ Fitment</strong><span> ${esc(data.fitment_warning)}</span></div>` : "") +
           `<p class="meta">Tracked total (priced parts): <strong>${money(sum)}</strong> · price monitor every ${esc(intv)} days · last checked: ${esc(last)}</p>`;
         const chatBtn = document.getElementById("garage-chat-btn");
-        if (chatBtn) chatBtn.onclick = () => { setChatContext({ project_id: "mazda3-sports-build" }, "Mazda3 build"); goTab("chat"); };
+        if (chatBtn) chatBtn.onclick = () => openChatWithContext({ project_id: "mazda3-sports-build" }, "Mazda3 build");
         const rows = parts.map((p) => {
           const hist = (p.price_history || []);
           const lastChange = hist.length ? hist[hist.length - 1] : null;
@@ -1420,7 +3335,7 @@
       reader.innerHTML = '<div class="empty-state">Loading…</div>';
       const res = await fetch(`${base}/api/reports/${campaign}?file=${encodeURIComponent(file)}`);
       const j = await res.json();
-      reader.innerHTML = `<div class="doc-title">${esc(label)} / ${esc(j.file)}</div><div class="prose${document.getElementById("size-width").value === "full" ? " prose-full" : ""}">${marked.parse(j.content || "")}</div>`;
+      reader.innerHTML = `<div class="doc-title">${esc(label)} / ${esc(j.file)}</div><div class="prose${document.getElementById("size-width").value === "full" ? " prose-full" : ""}">${mdParse(j.content || "")}</div>`;
     }
 
     function renderReports(data) {
@@ -1433,7 +3348,7 @@
       root.innerHTML = reports.map((r) => `
         <button type="button" data-c="${esc(r.campaign)}" data-f="${esc(r.name)}" data-l="${esc(r.label)}">
           <strong>${esc(r.label)}</strong><br>${esc(r.name)}
-          <div class="sub">${esc(r.mtime.slice(0,16))}</div>
+          <div class="sub">${esc(fmtEt(r.mtime))}</div>
         </button>`).join("");
       root.querySelectorAll("button").forEach((b) => {
         b.onclick = () => openReport(b.dataset.c, b.dataset.f, b.dataset.l);
@@ -1451,77 +3366,337 @@
       renderReports(data);
     }
 
+    const INBOX_DRAFT_KEY = "linuxbox-inbox-drafts";
+
+    /* === INBOX MODULE — see docs/dashboard-ui-architecture.md §4 ===
+     * State: sessionStorage drafts keyed by question id.
+     * Invariant: submit removes one card only; never re-render all open questions.
+     */
+
+    function getInboxDrafts() {
+      try { return JSON.parse(sessionStorage.getItem(INBOX_DRAFT_KEY) || "{}"); } catch { return {}; }
+    }
+
+    function setInboxDraft(id, value) {
+      const drafts = getInboxDrafts();
+      if (value == null || value === "") delete drafts[id];
+      else drafts[id] = value;
+      sessionStorage.setItem(INBOX_DRAFT_KEY, JSON.stringify(drafts));
+    }
+
+    function clearInboxDraft(id) {
+      setInboxDraft(id, null);
+    }
+
+    function collectInboxAnswer(itemEl) {
+      const type = itemEl.dataset.type || "text";
+      if (type === "yesno") {
+        const picked = itemEl.querySelector(".inbox-yesno .btn.picked");
+        return picked ? picked.dataset.val : "";
+      }
+      if (type === "choice") {
+        const radio = itemEl.querySelector('.inbox-choices input[type="radio"]:checked');
+        if (!radio) return "";
+        if (radio.value === "__other__") {
+          const other = itemEl.querySelector(".inbox-other-input");
+          const t = other ? other.value.trim() : "";
+          return t ? `Other: ${t}` : "";
+        }
+        return radio.value;
+      }
+      if (type === "multi") {
+        const parts = [...itemEl.querySelectorAll('.inbox-choices input[type="checkbox"]:checked')].map((c) => c.value);
+        const otherCb = itemEl.querySelector('.inbox-choices input[value="__other__"]:checked');
+        if (otherCb) {
+          const other = itemEl.querySelector(".inbox-other-input");
+          const t = other ? other.value.trim() : "";
+          if (t) parts.push(`Other: ${t}`);
+        }
+        return parts.join(", ");
+      }
+      const ta = itemEl.querySelector(".inbox-answer");
+      return ta ? ta.value.trim() : "";
+    }
+
+    function inboxOptionList(q) {
+      const opts = q.options || [];
+      if (!q.allow_other) return opts;
+      return opts.filter((o) => String(o).toLowerCase() !== "other");
+    }
+
+    function syncInboxOtherField(itemEl) {
+      const otherInput = itemEl.querySelector(".inbox-other-input");
+      if (!otherInput) return;
+      const picked = itemEl.querySelector('input[value="__other__"]:checked');
+      otherInput.classList.toggle("visible", !!picked);
+    }
+
+    function renderInboxInput(q, draft) {
+      const type = q.type || "text";
+      if (type === "yesno") {
+        const yes = draft === "Yes" ? " picked" : "";
+        const no = draft === "No" ? " picked" : "";
+        return `<div class="inbox-yesno">
+          <button type="button" class="btn${yes}" data-val="Yes">Yes</button>
+          <button type="button" class="btn${no}" data-val="No">No</button>
+        </div>`;
+      }
+      if (type === "choice" || type === "multi") {
+        const inputType = type === "multi" ? "checkbox" : "radio";
+        const opts = inboxOptionList(q).map((o) => {
+          const isChecked = type === "multi"
+            ? (draft || "").split(", ").includes(o)
+            : draft === o;
+          return `<label class="inbox-choice"><input type="${inputType}" name="inbox-${esc(q.id)}" value="${esc(o)}"${isChecked ? " checked" : ""}><span>${esc(o)}</span></label>`;
+        }).join("");
+        const otherDraft = (draft || "").startsWith("Other:") ? draft.replace(/^Other:\s*/, "") : "";
+        const otherChecked = (draft || "").startsWith("Other:") || draft === "Other";
+        const otherBlock = q.allow_other
+          ? `<label class="inbox-choice"><input type="${inputType}" name="inbox-${esc(q.id)}" value="__other__"${otherChecked ? " checked" : ""}><span>Other (specify)</span></label>
+             <input type="text" class="inbox-answer inbox-other-input${otherChecked ? " visible" : ""}" placeholder="Your answer…" value="${esc(otherDraft)}">`
+          : "";
+        return `<div class="inbox-choices">${opts}${otherBlock}</div>`;
+      }
+      const ph = esc(q.placeholder || "Answer…");
+      return `<textarea class="inbox-answer" rows="2" placeholder="${ph}">${esc(draft || "")}</textarea>`;
+    }
+
+    function renderInboxOptionHelp(q) {
+      if (!Array.isArray(q.option_help) || !q.option_help.length) return "";
+      const opts = inboxOptionList(q);
+      const items = q.option_help.map((hint, i) => {
+        const label = opts[i] || `Option ${i + 1}`;
+        return `<li><strong>${esc(label)}</strong> — ${esc(hint)}</li>`;
+      }).join("");
+      return `<ul class="inbox-option-help">${items}</ul>`;
+    }
+
+    function renderInboxContext(q) {
+      const text = String(q.context || "").trim();
+      if (!text) {
+        return `<div class="inbox-context inbox-context--missing"><span class="inbox-context-label">Context</span><p>Missing — agent should add 2–4 sentences: what this is in-fiction, which report file applies, and how your answer changes play.</p></div>`;
+      }
+      return `<div class="inbox-context"><span class="inbox-context-label">Context</span><p>${esc(text)}</p></div>`;
+    }
+
+    function renderInboxItem(q, draft) {
+      const camp = q.campaign ? `<span class="inbox-tag">${esc(q.campaign)}</span>` : "";
+      const when = esc(fmtEt(q.at || q.created_at || ""));
+      return `<div class="inbox-item" data-id="${esc(q.id)}" data-type="${esc(q.type || "text")}">
+        <div class="from">${camp}${esc(q.from || "agent")} · ${when}</div>
+        <div class="q">${esc(q.question)}</div>
+        ${renderInboxContext(q)}
+        ${renderInboxOptionHelp(q)}
+        ${renderInboxInput(q, draft)}
+        <div class="inbox-actions">
+          <button type="button" class="btn primary inbox-reply">Submit</button>
+          <span class="inbox-hint">Enter to submit · Shift+Enter newline</span>
+        </div>
+        <div class="inbox-err hidden"></div>
+      </div>`;
+    }
+
+    function bindInboxItem(itemEl) {
+      const id = itemEl.dataset.id;
+      itemEl.querySelectorAll(".inbox-answer, .inbox-other-input").forEach((el) => {
+        el.addEventListener("input", () => setInboxDraft(id, collectInboxAnswer(itemEl)));
+      });
+      itemEl.querySelectorAll('.inbox-choices input').forEach((el) => {
+        el.addEventListener("change", () => {
+          syncInboxOtherField(itemEl);
+          setInboxDraft(id, collectInboxAnswer(itemEl));
+        });
+      });
+      syncInboxOtherField(itemEl);
+      itemEl.querySelectorAll(".inbox-yesno .btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          itemEl.querySelectorAll(".inbox-yesno .btn").forEach((b) => b.classList.remove("picked"));
+          btn.classList.add("picked");
+          setInboxDraft(id, btn.dataset.val);
+        });
+      });
+      const submit = async () => {
+        const errEl = itemEl.querySelector(".inbox-err");
+        const btn = itemEl.querySelector(".inbox-reply");
+        const answer = collectInboxAnswer(itemEl);
+        if (!answer) {
+          errEl.textContent = "Pick or type an answer first.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        errEl.classList.add("hidden");
+        btn.disabled = true;
+        try {
+          const res = await fetch(`${base}/api/inbox/reply`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ id, answer }),
+          });
+          const data = await parseApiJson(res);
+          if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+          clearInboxDraft(id);
+          const questionText = itemEl.querySelector(".q")?.textContent || id;
+          itemEl.remove();
+          const openRoot = document.getElementById("inbox-open");
+          if (!openRoot.querySelector(".inbox-item")) {
+            openRoot.innerHTML = '<p class="empty">No open questions</p>';
+          }
+          const ansRoot = document.getElementById("inbox-answered");
+          const row = document.createElement("div");
+          row.className = "inbox-item";
+          row.innerHTML = `<div class="q">${esc(questionText)}</div><div class="from">→ ${esc(data.answer || answer)}</div>`;
+          if (ansRoot.querySelector(".empty")) ansRoot.innerHTML = "";
+          ansRoot.prepend(row);
+          const dot = document.getElementById("inbox-dot");
+          const left = openRoot.querySelectorAll(".inbox-item").length;
+          dot.classList.toggle("hidden", left === 0);
+          load();
+        } catch (e) {
+          errEl.textContent = e.message || "Submit failed";
+          errEl.classList.remove("hidden");
+          btn.disabled = false;
+        }
+      };
+      itemEl.querySelector(".inbox-reply").onclick = submit;
+      itemEl.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Enter" || ev.shiftKey) return;
+        const tag = ev.target.tagName;
+        const type = ev.target.type;
+        if (tag === "TEXTAREA" && type !== "button") {
+          ev.preventDefault();
+          submit();
+          return;
+        }
+        if (type === "text" && ev.target.classList.contains("inbox-other-input")) {
+          ev.preventDefault();
+          submit();
+          return;
+        }
+        if (type === "radio" || type === "checkbox") {
+          ev.preventDefault();
+          submit();
+        }
+      });
+    }
+
     async function loadInbox() {
-      const res = await fetch(`${base}/api/inbox`, { cache: "no-store" });
-      const data = await res.json();
-      const n = (data.open || []).length;
+      const res = await fetch(`${base}/api/inbox`, { cache: "no-store", credentials: "same-origin" });
+      const data = await parseApiJson(res);
+      const drafts = getInboxDrafts();
+      const open = data.open || [];
+      const n = open.length;
       const dot = document.getElementById("inbox-dot");
       dot.classList.toggle("hidden", n === 0);
 
-      document.getElementById("inbox-open").innerHTML = n ? (data.open || []).map((q) => `
-        <div class="inbox-item" data-id="${esc(q.id)}">
-          <div class="from">${esc(q.from||"agent")} · ${esc((q.at||"").slice(0,16))}</div>
-          <div class="q">${esc(q.question)}</div>
-          ${q.context ? `<div class="from">${esc(q.context)}</div>` : ""}
-          <textarea class="inbox-answer" rows="2" placeholder="Answer…"></textarea>
-          <button type="button" class="btn primary inbox-reply" style="margin-top:0.35rem">Reply</button>
-        </div>`).join("") : '<p class="empty">No open questions</p>';
+      document.getElementById("inbox-open").innerHTML = n
+        ? open.map((q) => renderInboxItem(q, drafts[q.id])).join("")
+        : '<p class="empty">No open questions</p>';
 
-      document.getElementById("inbox-open").querySelectorAll(".inbox-reply").forEach((btn) => {
-        btn.onclick = async () => {
-          const item = btn.closest(".inbox-item");
-          const answer = item.querySelector(".inbox-answer").value.trim();
-          if (!answer) return;
-          btn.disabled = true;
-          await fetch(`${base}/api/inbox/reply`, { method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: item.dataset.id, answer }) });
-          loadInbox(); load();
-        };
-      });
+      document.getElementById("inbox-open").querySelectorAll(".inbox-item").forEach(bindInboxItem);
 
-      document.getElementById("inbox-answered").innerHTML = (data.answered || []).slice(0, 10).map((q) => `
+      document.getElementById("inbox-answered").innerHTML = (data.answered || []).slice(0, 12).map((q) => `
         <div class="inbox-item"><div class="q">${esc(q.question)}</div><div class="from">→ ${esc(q.answer)}</div></div>`
       ).join("") || '<p class="empty">None yet</p>';
     }
 
     function renderCampaigns(data) {
-      const root = document.getElementById("campaign-list");
-      root.innerHTML = Object.entries(data?.campaigns || {}).map(([id, c]) => {
-        const prog = (c.progress || []).slice(0, 8).map((p) => {
-          const cls = [p.done ? "done" : "", !p.done && p.text === c.next_item ? "next" : ""].filter(Boolean).join(" ");
-          return `<li class="${cls}">${p.done ? "✓" : "○"} ${esc(p.text)}</li>`;
-        }).join("");
-        const reps = (c.latest_reports || []).slice(0, 4).map((r) =>
-          `<button type="button" class="btn" style="margin:0.2rem 0.2rem 0 0;font-size:0.65rem" data-c="${id}" data-f="${esc(r.name)}" data-l="${esc(c.label)}">${esc(r.name.replace(/\.md$/,""))}</button>`
-        ).join("");
-        return `<div class="camp-block"><h3>${esc(c.label)}</h3>
-          <div class="meta" style="margin-bottom:0.5rem;font-family:monospace;font-size:0.72rem">${c.pending_count} pending · ${c.done_count} done</div>
-          <button type="button" class="btn" style="margin-bottom:0.5rem;font-size:0.68rem" data-stories="${esc(id)}">Explore story canon →</button>
-          <ul class="list">${prog || "<li>(empty)</li>"}</ul>
-          <div style="margin-top:0.5rem">${reps}</div></div>`;
+      const camps = data?.campaigns || {};
+      const ids = Object.keys(camps);
+      const pick = document.getElementById("camp-focus");
+      const detail = document.getElementById("campaign-detail");
+      if (!pick || !detail) return;
+      if (!ids.includes(campFocusId)) campFocusId = ids[0] || "tropic-gooner";
+      pick.innerHTML = ids.map((id) =>
+        `<option value="${esc(id)}"${id === campFocusId ? " selected" : ""}>${esc(camps[id].label)}</option>`
+      ).join("");
+      if (!pick.dataset.ready) {
+        pick.dataset.ready = "1";
+        pick.onchange = () => {
+          campFocusId = pick.value;
+          localStorage.setItem("camp-focus", campFocusId);
+          renderCampaignDetail(data, campFocusId);
+        };
+      }
+      renderCampaignDetail(data, campFocusId);
+    }
+
+    function renderCampaignDetail(data, id) {
+      const detail = document.getElementById("campaign-detail");
+      const c = data?.campaigns?.[id];
+      if (!c) {
+        detail.innerHTML = '<p class="empty">No campaign data.</p>';
+        return;
+      }
+      const prog = (c.progress || []).slice(0, 12).map((p) => {
+        const cls = [p.done ? "done" : "", !p.done && p.text === c.next_item ? "next" : ""].filter(Boolean).join(" ");
+        return `<li class="${cls}">${p.done ? "✓" : "○"} ${esc(p.text)}</li>`;
       }).join("");
-      root.querySelectorAll("button[data-f]").forEach((b) => {
+      const reps = (c.latest_reports || []).slice(0, 6).map((r) =>
+        `<button type="button" class="btn" style="margin:0.2rem 0.2rem 0 0;font-size:0.65rem" data-c="${id}" data-f="${esc(r.name)}" data-l="${esc(c.label)}">${esc(r.name.replace(/\.md$/,""))}</button>`
+      ).join("");
+      detail.innerHTML = `<div class="camp-block"><h3>${esc(c.label)}</h3>
+        <div class="meta" style="margin-bottom:0.5rem;font-family:monospace;font-size:0.72rem">${c.pending_count} pending · ${c.done_count} done</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
+          <button type="button" class="btn primary" data-stories="${esc(id)}">Story canon →</button>
+          <button type="button" class="btn" data-chat-camp="${esc(id)}">Brainstorm canon</button>
+        </div>
+        <ul class="list">${prog || "<li>(empty)</li>"}</ul>
+        <div style="margin-top:0.75rem"><span class="meta">Reports · </span>${reps || '<span class="meta">none</span>'}</div></div>`;
+      detail.querySelectorAll("button[data-f]").forEach((b) => {
         b.onclick = () => { activeTab = "reports"; document.querySelector('[data-tab="reports"]').click(); openReport(b.dataset.c, b.dataset.f, b.dataset.l); };
       });
-      root.querySelectorAll("button[data-stories]").forEach((b) => {
-        b.onclick = () => goTab("stories");
+      detail.querySelectorAll("button[data-stories]").forEach((b) => {
+        b.onclick = () => {
+          storyCampaignFilter = b.dataset.stories;
+          localStorage.setItem("story-campaign", storyCampaignFilter);
+          const sel = document.getElementById("story-campaign");
+          if (sel) sel.value = storyCampaignFilter;
+          goTab("stories");
+          if (storyCatalog) renderStoryList(storyCatalog);
+        };
+      });
+      detail.querySelectorAll("button[data-chat-camp]").forEach((b) => {
+        b.onclick = async () => {
+          await openChatWithContext(
+            { type: "character", campaign: b.dataset.chatCamp, workshop_mode: true },
+            `Workshop · ${c.label}`
+          );
+          document.getElementById("chat-input").placeholder =
+            "You're the GM — riff on lore, cast, threats. I'll capture notes, theorize, and suggest tasks.";
+        };
       });
     }
 
     async function load() {
       if (sessionRole === "viewer") return;
       try {
-        const res = await fetch(`${base}/api/agent`, { cache: "no-store" });
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 45000);
+        const res = await fetch(`${base}/api/agent`, {
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+        if (!res.ok) {
+          throw new Error(
+            res.status === 401
+              ? "Unauthorized — refresh and re-enter dashboard password"
+              : `API error HTTP ${res.status}`
+          );
+        }
         agentData = await res.json();
-        document.getElementById("clock").textContent = (agentData.updated_at || "").replace("T"," ").slice(0,19);
+        document.getElementById("clock").textContent = fmtEt(agentData.updated_at || new Date());
         document.getElementById("debug-json").textContent = JSON.stringify(agentData, null, 2);
 
         renderHub(agentData);
+        renderRunningNow(agentData, "chrome");
 
         const lanes = document.getElementById("lane-row");
         lanes.innerHTML = Object.values(agentData.lanes || {}).map((l) => {
           const st = (l.status || "pending").startsWith("ok") ? "ok" : (l.status === "pending" ? "pending" : "bad");
-          const t = l.last_run ? l.last_run.slice(11,19) : "—";
+          const t = l.last_run ? fmtEtTime(l.last_run) : "—";
           return `<span class="lane-chip ${st}">${esc(l.name.replace("agent-cycle-",""))} · ${esc(l.schedule||"?")} · ${t} · ${esc(l.status)}</span>`;
         }).join("");
 
@@ -1530,22 +3705,36 @@
           if (sessionRole === "viewer") loadPublicReports();
           else renderReports(agentData);
         }
-        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); }
+        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
+        if (activeTab === "chat") fillChatNewSelects(agentData);
+        if (activeTab === "systems") loadSystems();
         document.getElementById("backlog-open").innerHTML = (agentData.dashboard_backlog_open || [])
           .map((t) => `<li>${esc(t)}</li>`).join("") || "<li class='empty'>Empty</li>";
       } catch (e) {
+        const msg = e.name === "AbortError" ? "Hub load timed out (45s) — potato may be busy; tap ↻ to retry" : e.message;
         document.getElementById("ops-title").textContent = "Load error";
-        document.getElementById("ops-sub").textContent = e.message;
+        document.getElementById("ops-sub").textContent = msg;
       }
     }
 
     async function boot() {
+      if (/\/intel/i.test(location.pathname)) {
+        document.body.classList.add("role-viewer", "role-public");
+        document.querySelectorAll(".rail button[data-tab]").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        const newsBtn = document.querySelector('.rail button[data-tab="news"]');
+        const newsPanel = document.getElementById("news");
+        if (newsBtn) newsBtn.classList.add("active");
+        if (newsPanel) newsPanel.classList.add("active");
+        activeTab = "news";
+        document.getElementById("page-title").textContent = titles.news || "News";
+      }
       await loadSession();
       if (sessionRole === "viewer") {
         goTab("news");
         loadNews();
         loadPublicReports();
-        document.getElementById("clock").textContent = new Date().toISOString().slice(0, 19).replace("T", " ");
+        document.getElementById("clock").textContent = fmtEt(new Date());
       } else {
         load();
         loadInbox();
@@ -1559,43 +3748,304 @@
         return;
       }
       load();
+      if (activeTab === "inbox") loadInbox();
     };
+
+    async function parseApiJson(res) {
+      const text = await res.text();
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      if (!ct.includes("json") && text.trimStart().startsWith("<")) {
+        throw new Error(
+          res.status === 524 || res.status === 522
+            ? "Gateway timeout — chat took too long. Shorten the question or clear context and retry."
+            : `Server returned HTML (HTTP ${res.status}). Refresh the page and re-login if needed.`
+        );
+      }
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(`Bad response (HTTP ${res.status}): ${text.slice(0, 120)}`);
+      }
+    }
+
+    function setChatModerationBanner(show, message) {
+      const el = document.getElementById("chat-moderation-banner");
+      if (!el) return;
+      if (!show) {
+        el.classList.remove("visible");
+        el.textContent = "";
+        return;
+      }
+      el.innerHTML =
+        `<strong>Model refused (content filter).</strong> ${esc(
+          message ||
+            "Campaign chat uses Hermes — if this persists, try Workshop mode or shorten explicit phrasing."
+        )}`;
+      el.classList.add("visible");
+    }
+
+    function setChatBubbleLoading(bubble, text) {
+      bubble.className = "chat-bubble bot is-loading";
+      bubble.innerHTML =
+        `<div class="chat-status" role="status" aria-live="polite">` +
+        `<span class="chat-spinner" aria-hidden="true"></span>` +
+        `<span class="chat-status-text">${esc(text)}</span></div>`;
+    }
+
+    function setChatBubbleReply(bubble, text, isError, opts = {}) {
+      bubble.className = "chat-bubble bot";
+      const body = String(text || "").trim();
+      if (isError) {
+        bubble.innerHTML = `<div class="prose" style="color:var(--bad)">${esc(body || "Chat failed")}</div>`;
+        return;
+      }
+      if (!body) {
+        bubble.innerHTML = `<div class="prose" style="color:var(--muted)">(empty response)</div>`;
+        return;
+      }
+      let html;
+      try {
+        html = `<div class="prose">${mdParse(body)}</div>`;
+      } catch {
+        html = `<div class="prose">${esc(body).replace(/\n/g, "<br>")}</div>`;
+      }
+      if (opts.paidRetry) {
+        html += `<div class="chat-paid-retry-note">Paid model (free rate-limited or refused)</div>`;
+      }
+      if (opts.freeFallback) {
+        html += `<div class="chat-paid-retry-note">Free model (model-budget free-first)</div>`;
+      }
+      bubble.innerHTML = html;
+    }
+
+    function appendChatUserMessage(log, msg, msgIdx) {
+      const user = document.createElement("div");
+      user.className = "chat-bubble user";
+      const textEl = document.createElement("div");
+      textEl.className = "chat-bubble-text";
+      textEl.textContent = msg;
+      user.appendChild(textEl);
+      if (typeof msgIdx === "number") bindChatUserActions(user, msgIdx);
+      log.appendChild(user);
+    }
+
+    function chatLoadingLabel(j, elapsedSec) {
+      if (j?.status === "queued") {
+        const ahead = typeof j.queue_depth === "number" ? j.queue_depth : 1;
+        return `Queued… ${elapsedSec}s (${ahead} ahead — one Hermes chat at a time on linuxbox)`;
+      }
+      return `Thinking… ${elapsedSec}s (Hermes on linuxbox — usually 1–2 min)`;
+    }
+
+    async function pollChatJob(jobId, bubble) {
+      const started = Date.now();
+      let last = null;
+      const tick = (j) => {
+        const elapsed = Math.round((Date.now() - started) / 1000);
+        setChatBubbleLoading(bubble, chatLoadingLabel(j || last, elapsed));
+      };
+      tick(null);
+      for (let i = 0; i < 150; i++) {
+        const res = await fetch(
+          `${base}/api/chat/status?job_id=${encodeURIComponent(jobId)}`,
+          { cache: "no-store", credentials: "same-origin" }
+        );
+        const j = await parseApiJson(res);
+        if (res.status === 404) {
+          throw new Error(
+            "Chat job lost (dashboard restarted). Hard-refresh and send again."
+          );
+        }
+        if (!res.ok) {
+          throw new Error(j.error || `HTTP ${res.status}`);
+        }
+        last = j;
+        if (j.status === "done") return j;
+        if (j.status === "error") return j;
+        tick(j);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      throw new Error(
+        "Chat timed out after 5 minutes. Shorten the message, clear context, or retry when the box is less busy."
+      );
+    }
+
+    document.getElementById("chat-input").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+      e.preventDefault();
+      document.getElementById("chat-send").click();
+    });
 
     document.getElementById("chat-send").onclick = async () => {
       const input = document.getElementById("chat-input");
       const msg = input.value.trim();
       if (!msg) return;
+      if (!activeChatThreadId) {
+        try {
+          await createChatThreadFromForm();
+        } catch (e) {
+          alert(e.message);
+          return;
+        }
+      }
       const log = document.getElementById("chat-log");
-      log.innerHTML += `<div class="chat-bubble user">${esc(msg)}</div>`;
+      if (log.querySelector(".empty")) log.innerHTML = "";
+      appendChatUserMessage(log, msg);
       input.value = "";
-      document.getElementById("chat-send").disabled = true;
       chatWaiting = true;
+      setChatComposerState();
       const bubble = document.createElement("div");
-      bubble.className = "chat-bubble bot";
-      bubble.textContent = "…";
+      setChatBubbleLoading(bubble, "Sending…");
       log.appendChild(bubble);
+      log.scrollTop = log.scrollHeight;
       try {
-        const res = await fetch(`${base}/api/chat`, { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: msg, profile: document.getElementById("chat-profile").value, context: chatContext }) });
-        const j = await res.json();
-        bubble.innerHTML = `<div class="prose">${marked.parse(j.reply || j.error || "")}</div>`;
-      } catch (e) { bubble.textContent = e.message; }
-      document.getElementById("chat-send").disabled = false;
+        const res = await fetch(`${base}/api/chat`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: msg,
+            thread_id: activeChatThreadId,
+            profile: document.getElementById("chat-profile").value,
+            response_mode: document.getElementById("chat-response-mode").value,
+          }),
+        });
+        const j = await parseApiJson(res);
+        if (j.error && !j.job_id) {
+          setChatBubbleReply(bubble, j.error, true);
+        } else if (j.job_id) {
+          if (j.deduped) {
+            setChatBubbleLoading(bubble, chatLoadingLabel(j, 0));
+          } else {
+            setChatBubbleLoading(
+              bubble,
+              j.status === "queued"
+                ? chatLoadingLabel(j, 0)
+                : "Thinking… 0s (Hermes on linuxbox — usually 1–2 min)"
+            );
+          }
+          const result = await pollChatJob(j.job_id, bubble);
+          if (result.error) {
+            setChatBubbleReply(bubble, result.error, true);
+            if (result.moderation_refusal) setChatModerationBanner(true, result.error);
+          } else {
+            setChatModerationBanner(false);
+            setChatBubbleReply(bubble, result.reply || "", false, {
+            paidRetry: !!result.paid_retry,
+            freeFallback: !!result.free_fallback,
+          });
+          }
+        } else if (j.reply) {
+          setChatBubbleReply(bubble, j.reply, false);
+        } else {
+          setChatBubbleReply(bubble, j.error || "Unexpected chat response", true);
+        }
+      } catch (e) {
+        setChatBubbleReply(bubble, e.message, true);
+      }
+      bubble.classList.remove("is-loading");
       chatWaiting = false;
+      setChatComposerState();
+      await loadChatThreads();
+      if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
       log.scrollTop = log.scrollHeight;
     };
 
-    document.getElementById("task-filter")?.addEventListener("change", () => renderTasks(agentData));
+    document.getElementById("task-filter")?.addEventListener("change", () => {
+      renderTasks(agentData);
+      renderActiveWork(agentData);
+    });
 
-    document.getElementById("chat-context-clear").onclick = () => setChatContext(null);
+    document.getElementById("chat-new").onclick = async () => {
+      if (chatWaiting) {
+        alert("Wait for the current reply to finish, then try again.");
+        return;
+      }
+      const btn = document.getElementById("chat-new");
+      const prevLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Creating…";
+      try {
+        document.getElementById("chat-log").innerHTML =
+          '<p class="empty">No messages yet — send one below.</p>';
+        await createChatThreadFromForm({}, { title: "New chat" });
+        setChatThreadsOpen(false);
+        document.getElementById("chat-input").focus();
+      } catch (e) {
+        alert(e.message || "Could not create chat");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = prevLabel;
+      }
+    };
+
+    document.getElementById("chat-threads-toggle").onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const panel = document.getElementById("chat");
+      setChatThreadsOpen(!panel?.classList.contains("threads-open"));
+    };
+    document.getElementById("chat-threads-backdrop").onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setChatThreadsOpen(false);
+    };
+
+    document.getElementById("chat-promote-task").onclick = async () => {
+      if (!activeChatThreadId || chatWaiting) return;
+      const title = activeChatThread?.title || "From chat";
+      const custom = prompt("Task title (optional edit):", title);
+      if (custom === null) return;
+      try {
+        const res = await fetch(
+          `${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}/promote-task`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ title: custom.trim() || title }),
+          }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "promote_failed");
+        alert(`Task created: ${j.task?.title || custom}\n\nOpen the Tasks tab to view it.`);
+        load();
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    document.getElementById("chat-save-thread").onclick = () => saveChatThreadToCampaign();
+
+    document.getElementById("chat-new-project")?.addEventListener("change", () => onChatFilterChange());
+    document.getElementById("chat-new-task")?.addEventListener("change", () => loadChatThreads());
+    document.getElementById("chat-new-campaign")?.addEventListener("change", () => loadChatThreads());
 
     document.getElementById("story-chat-btn").onclick = () => {
       if (!selectedStory) return;
-      setChatContext(
-        { type: "story", campaign: selectedStory.campaign, path: selectedStory.path },
+      openChatWithContext(
+        { type: "story", campaign: selectedStory.campaign, path: selectedStory.path, story_path: selectedStory.path },
         `Story: ${selectedStory.name}`
       );
-      goTab("chat");
+    };
+
+    document.getElementById("story-gm-btn").onclick = () => {
+      if (!selectedStory) return;
+      const isChar = /\/characters\//.test(selectedStory.path);
+      openChatWithContext(
+        {
+          type: isChar ? "character" : "story",
+          campaign: selectedStory.campaign,
+          path: selectedStory.path,
+          story_path: selectedStory.path,
+          character_id: selectedStory.character_id || undefined,
+          workshop_mode: true,
+        },
+        `Workshop · ${selectedStory.name}`
+      );
+      document.getElementById("chat-response-mode").value = "workshop";
+      document.getElementById("chat-input").placeholder =
+        "You're the GM — add ideas, theories, links. I'll note them and flag gaps.";
       document.getElementById("chat-input").focus();
     };
 
@@ -1680,7 +4130,10 @@
       document.getElementById("task-result").textContent = j.ok ? `Added: ${j.added}` : (j.error || "Failed");
       document.getElementById("task-text").value = "";
       load();
-      if (activeTab === "tasks") renderTasks(agentData);
+      if (activeTab === "tasks") {
+        renderTasks(agentData);
+        renderActiveWork(agentData);
+      }
     };
 
     document.getElementById("backlog-add").onclick = async () => {

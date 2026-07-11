@@ -2067,6 +2067,25 @@ function isSessionIdOnlyReply(text) {
   return lines.length > 0 && lines.every((l) => /^session_id:\s*\S+/i.test(l));
 }
 
+function isHermesExecTimeout(err) {
+  if (!err || typeof err !== "object") return false;
+  if (err.killed || err.code === "ETIMEDOUT" || err.signal === "SIGTERM" || err.signal === "SIGKILL") {
+    return true;
+  }
+  return /ETIMEDOUT|timed out|SIGTERM|SIGKILL/i.test(String(err.message || err));
+}
+
+function isRetryableChatModelError(text) {
+  const s = String(text || "");
+  if (!s.trim()) return true;
+  return (
+    isHermesModelFailure(s) ||
+    /timed out|ETIMEDOUT|SIGTERM|SIGKILL|Command failed|Hermes chat failed|Hermes returned no reply|empty response|session_id only|API call failed|Error code:\s*40\d/i.test(
+      s
+    )
+  );
+}
+
 async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}) {
   // argv-only (no bash -lc): campaign canon has many `backticks`; bash would run each
   // as command substitution → flood of `bash: line 1: …: command not found` on stderr.
@@ -2082,25 +2101,40 @@ async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}
     ...process.env,
     PATH: `${path.dirname(HERMES_BIN)}${path.delimiter}${process.env.PATH || ""}`,
   };
+  // Free models are slow on large campaign prompts — shorter cap so failover reaches paid/next free.
+  const isFree = String(modelId || "").includes(":free");
+  const timeoutMs = Number(execOpts.timeoutMs) || (isFree ? 90_000 : 180_000);
   let stdout = "";
   let stderr = "";
   try {
     const result = await execFileAsync(HERMES_BIN, args, {
       cwd: REPO,
       env: hermesEnv,
-      timeout: 180000,
+      timeout: timeoutMs,
       maxBuffer: 512 * 1024,
     });
     stdout = result.stdout || "";
     stderr = result.stderr || "";
   } catch (err) {
-    const out = hermesChatCombinedOutput(err, "");
+    const out = hermesChatCombinedOutput(err, "") || String(err.message || err);
+    if (isHermesExecTimeout(err)) {
+      return {
+        error: `Chat timed out (>${Math.round(timeoutMs / 1000)}s) on ${modelId || "model"} — trying next model.`,
+        raw: out,
+        model: modelId,
+        timed_out: true,
+      };
+    }
     if (isHermesModelFailure(out) || /API call failed|Error code:/i.test(out)) {
       return { error: summarizeHermesFailure(out), raw: out, model: modelId };
     }
     throw err;
   }
   const out = hermesChatCombinedOutput(stdout, stderr);
+  // Hermes often exits 0 even on OpenRouter 403/404 — detect from stdout/stderr before treating as reply.
+  if (isHermesModelFailure(out) || /API call failed|Error code:\s*40\d|Key limit exceeded/i.test(out)) {
+    return { error: summarizeHermesFailure(out), raw: out, model: modelId };
+  }
   if (execOpts.rejectQwenFallback && isQwenFallbackInRaw(out)) {
     return {
       error: `${MODERATION_REFUSAL_USER_MSG} (Hermes fell back to Qwen free — retry or use Workshop mode.)`,
@@ -2114,7 +2148,7 @@ async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}
   if ((!reply || isSessionIdOnlyReply(reply)) && isHermesModelFailure(out)) {
     return { error: summarizeHermesFailure(out), raw: out, model: modelId };
   }
-  if (isSessionIdOnlyReply(reply)) {
+  if (isSessionIdOnlyReply(reply) || !reply) {
     return {
       error: summarizeHermesFailure(out) || "Hermes returned no reply (session_id only).",
       raw: out,
@@ -2129,7 +2163,11 @@ async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}
       moderation_refusal: true,
     };
   }
-  return { reply: reply || "(empty response)", raw: out, model: modelId };
+  // Don't accept API error text as a successful assistant reply.
+  if (/^Error:\s*Error code:/i.test(reply) || /Key limit exceeded/i.test(reply)) {
+    return { error: summarizeHermesFailure(out || reply), raw: out, model: modelId };
+  }
+  return { reply, raw: out, model: modelId };
 }
 
 const CHAT_JOBS_FILE = path.join(REPO, "agents", "state", "chat-jobs.json");
@@ -2321,6 +2359,41 @@ function deleteChatThread(id) {
   const idx = readChatThreadsIndex();
   writeChatThreadsIndex(idx.threads.filter((t) => t.id !== id));
   return { ok: true, id };
+}
+
+/**
+ * Delete one message by index. Semantics (match least-surprise vs Edit):
+ * - Assistant/error: remove that message only.
+ * - User: remove that message + the immediately following bot reply (orphaned pair),
+ *   but keep any later turns (unlike Edit/Regen which truncate the rest).
+ */
+function deleteChatMessage(threadId, msgIdx) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const idx = Number(msgIdx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+    throw new Error("bad_message_index");
+  }
+  const target = thread.messages[idx];
+  if (!target || (target.role !== "user" && target.role !== "bot")) {
+    throw new Error("bad_message_index");
+  }
+  backupChatThread(thread);
+  let removeCount = 1;
+  if (target.role === "user") {
+    const next = thread.messages[idx + 1];
+    if (next && next.role === "bot") removeCount = 2;
+  }
+  thread.messages.splice(idx, removeCount);
+  thread.updated_at = Date.now();
+  writeChatThread(thread);
+  return {
+    ok: true,
+    thread_id: threadId,
+    deleted_index: idx,
+    removed_count: removeCount,
+    thread: readChatThread(threadId),
+  };
 }
 
 function branchChatThread(id, fromIndex) {
@@ -2899,22 +2972,26 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
             recordChatModelUsage(modelId, "rate_limit");
             continue;
           }
-          if (isHermesModelFailure(result.raw || result.error)) {
-            recordChatModelUsage(modelId, "fail");
+          // Timeouts / empty / opaque Hermes failures → next model (do not hard-stop the chain).
+          recordChatModelUsage(modelId, "fail");
+          if (isRetryableChatModelError(result.raw || result.error)) {
             continue;
           }
-          recordChatModelUsage(modelId, "fail");
-          return {
-            kind: "error",
-            payload: {
-              error: result.error,
-              profile: prof,
-              model: modelId,
-              context_used: !!context,
-              failover_tried: triedModels,
-              openrouter_daily_limit: hitDailyLimit || undefined,
-            },
-          };
+          // Only hard-stop on missing binary / spawn failures.
+          if (/ENOENT|spawn |hermes: not found|no such file/i.test(result.raw || result.error)) {
+            return {
+              kind: "error",
+              payload: {
+                error: result.error,
+                profile: prof,
+                model: modelId,
+                context_used: !!context,
+                failover_tried: triedModels,
+                openrouter_daily_limit: hitDailyLimit || undefined,
+              },
+            };
+          }
+          continue;
         }
         let reply = result.reply;
         if (isModelModerationRefusal(reply)) {
@@ -2976,7 +3053,9 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
         };
       } catch (err) {
         const detail = hermesChatCombinedOutput(err, "") || String(err.message || err);
-        lastErr = summarizeHermesFailure(detail);
+        lastErr = isHermesExecTimeout(err)
+          ? `Chat timed out on ${modelId} — trying next model.`
+          : summarizeHermesFailure(detail);
         if (isOpenRouterDailyLimit(detail)) {
           recordChatModelUsage(modelId, "daily_limit");
           hitDailyLimit = true;
@@ -2987,30 +3066,33 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
           recordChatModelUsage(modelId, "rate_limit");
           continue;
         }
-        if (isHermesModelFailure(detail)) {
-          recordChatModelUsage(modelId, "fail");
+        recordChatModelUsage(modelId, "fail");
+        if (isRetryableChatModelError(detail) || isHermesExecTimeout(err)) {
           continue;
         }
-        recordChatModelUsage(modelId, "fail");
-        return {
-          kind: "error",
-          payload: {
-            error: lastErr,
-            profile: prof,
-            model: modelId,
-            context_used: !!context,
-            failover_tried: triedModels,
-            openrouter_daily_limit: hitDailyLimit || undefined,
-          },
-        };
+        if (/ENOENT|spawn |hermes: not found|no such file/i.test(detail)) {
+          return {
+            kind: "error",
+            payload: {
+              error: lastErr,
+              profile: prof,
+              model: modelId,
+              context_used: !!context,
+              failover_tried: triedModels,
+              openrouter_daily_limit: hitDailyLimit || undefined,
+            },
+          };
+        }
+        continue;
       }
     }
     return { kind: "exhausted" };
   }
 
-  // Free-first (model-budget): paid only when free rate-limits / refuses / fails.
+  // Free-first everywhere (incl. campaign threads); paid only after free fails (429/timeout/empty/error).
   loadModelBudgetConfig();
-  const phases = CHAT_FREE_FIRST
+  const preferFree = CHAT_FREE_FIRST;
+  const phases = preferFree
     ? [
         { chain: freeChain, allowFree: true },
         { chain: paidChain, allowFree: false },
@@ -3039,10 +3121,16 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
     };
   }
 
+  const triedSuffix = triedModels.length ? ` Tried: ${triedModels.join(" → ")}.` : "";
+  const baseErr = lastModerationRefusal
+    ? formatAllModelsRefusedError(triedModels)
+    : lastErr || formatAllModelsRefusedError(triedModels);
+  const withTried =
+    triedModels.length && !String(baseErr).includes("Tried:")
+      ? `${baseErr}${triedSuffix}`
+      : baseErr;
   return {
-    error: lastModerationRefusal
-      ? formatAllModelsRefusedError(triedModels)
-      : lastErr || formatAllModelsRefusedError(triedModels),
+    error: withTried,
     profile: prof,
     context_used: !!context,
     moderation_refusal: lastModerationRefusal,
@@ -3055,7 +3143,7 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
 function summarizeHermesFailure(raw) {
   const s = String(raw).replace(/\x1b\[[0-9;]*m/g, "");
   if (/key limit exceeded|daily limit/i.test(s)) {
-    return `OpenRouter daily USD limit on ops key (target $${OPENROUTER_OPS_DAILY_USD}/day). Cycling free→paid per model-budget; raise key limit in OpenRouter UI or set-openrouter-key-limit.sh.`;
+    return `OpenRouter daily USD limit on ops key (target $${OPENROUTER_OPS_DAILY_USD}/day). Falling through free models; raise key limit in OpenRouter UI or set-openrouter-key-limit.sh.`;
   }
   if (/HTTP 429|rate.?limit|too many requests|Provider returned error/i.test(s)) {
     return "Rate limited (HTTP 429) — trying next model in free→paid chain (model-budget).";
@@ -3070,7 +3158,9 @@ function summarizeHermesFailure(raw) {
     s.match(/HTTP 40[234][^\n]*/i) ||
     s.match(/unavailable for free[^\n]*/i);
   if (m) return `Model error: ${m[0].slice(0, 200)}. Use think lane; run install-hermes-profiles.sh on linuxbox if persistent.`;
-  if (/timed out|ETIMEDOUT/i.test(s)) return "Chat timed out (>3m). Try a shorter message or less context.";
+  if (/timed out|ETIMEDOUT|SIGTERM|SIGKILL/i.test(s)) {
+    return "Chat timed out — trying next model (or shorten message / use Brief).";
+  }
   const line = s
     .split("\n")
     .map((l) => l.trim())
@@ -3079,9 +3169,12 @@ function summarizeHermesFailure(raw) {
         l &&
         !/^session_id:/i.test(l) &&
         !/^Warning: Unknown toolsets/i.test(l) &&
-        !/^bash:\s*line\s+\d+:/i.test(l)
+        !/^bash:\s*line\s+\d+:/i.test(l) &&
+        !/^Resume this session/i.test(l) &&
+        !/^hermes --resume/i.test(l) &&
+        !/^(Session|Duration|Messages):/.test(l)
     );
-  return line?.slice(0, 240) || "Hermes chat failed";
+  return line?.slice(0, 240) || "Hermes chat failed (no usable model output)";
 }
 
 function isHermesNoiseLine(line) {
@@ -4378,6 +4471,31 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "DELETE") {
       if (pathname.startsWith("/api/chat/threads/") && auth?.role === "admin") {
+        const msgDel = pathname.match(/^\/api\/chat\/threads\/([a-f0-9]{16})\/messages\/(\d+)$/);
+        if (msgDel) {
+          try {
+            const inFlight = findInFlightChatJobForThread(msgDel[1]);
+            if (inFlight) {
+              sendJson(
+                res,
+                409,
+                {
+                  error: "chat_job_in_flight",
+                  job_id: inFlight.job_id,
+                  status: inFlight.status,
+                  thread_id: msgDel[1],
+                },
+                publicMode
+              );
+              return;
+            }
+            sendJson(res, 200, deleteChatMessage(msgDel[1], msgDel[2]), publicMode);
+          } catch (err) {
+            const code = err.message === "thread_not_found" ? 404 : 400;
+            sendJson(res, code, { error: err.message || "message_delete_failed" }, publicMode);
+          }
+          return;
+        }
         const threadId = pathname.slice("/api/chat/threads/".length).split("/")[0];
         try {
           sendJson(res, 200, deleteChatThread(threadId), publicMode);
