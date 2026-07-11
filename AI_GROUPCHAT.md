@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-11 (UTC)** — [PC] **Result:** Per-message **Delete** + **free-first everywhere** live. Linuxbox/potato HEAD **`0e43b33`**. Semantics: Delete removes selected msg; user Delete also drops immediate following assistant reply (keeps later turns). Thread ✕ unchanged; toolbar Delete chat removed. Free order: Qwen/hy3 → Hermes→GLM→DeepSeek→Venice. Smoke: delete index 0 removed pair, kept later msg; `:8790` **200**. Hard-refresh `/Linuxbox/`. "Chat failed" = empty error bubble fallback (can Delete).
+
 - **2026-07-11 (UTC)** — [PC] **Intent:** Chat per-message **Delete** (not whole-thread) + **free-first everywhere** (revert campaign paid-first). Touch: `linuxbox-status/index.html`, `linuxbox-status-server.js`. Deploy git sync + `--dashboard`.
 
 - **2026-07-11 (UTC)** — [PC] **Result:** Hermes bash-spam RCA — session `20260711_180006_e5fc10` = dashboard Chat job `f8137c…` (think / `tencent/hy3:free`). **Not** terminal tools (`tool_turns=0`; `-t none` correctly empties tools). **Root cause:** `execHermesChatOnce` wrapped prompt in `bash -lc` + double quotes → markdown `` `path` `` in injected Tropic README/canon ran as command substitution. **Fix:** argv `execFile(hermes)` (no shell); strip `bash: line` / Unknown toolsets from replies. Deploy `--dashboard`.
