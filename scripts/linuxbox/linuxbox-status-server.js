@@ -7,10 +7,13 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { execFile } = require("child_process");
+const { execFile, execFileSync } = require("child_process");
 const { promisify } = require("util");
 
 const execFileAsync = promisify(execFile);
+
+const { collectSystemsState, runSystemControl } = require("./linuxbox-systems");
+const { collectMachinesState } = require("./linuxbox-machines");
 
 const LISTEN_HOST = "127.0.0.1";
 const LISTEN_PORT = 8790;
@@ -21,7 +24,9 @@ const REPO = process.env.AGENT_DUMP || path.join(process.env.HOME || "/home/abhi
 const STATIC_DIR = path.join(__dirname, "linuxbox-status");
 const HEALTH_SCRIPT = path.join(__dirname, "nousagent-health.sh");
 const DASHBOARD_BACKLOG = path.join(REPO, "agents", "LINUXBOX_DASHBOARD_BACKLOG.md");
-const HUMAN_INBOX = path.join(REPO, "agents", "human-inbox.json");
+const HUMAN_INBOX_LEGACY = path.join(REPO, "agents", "human-inbox.json");
+const HUMAN_INBOX = path.join(REPO, "agents", "state", "human-inbox.json");
+const INBOX_SEEDS = path.join(REPO, "agents", "inbox-seeds.json");
 const USER_TASKS_FILE = path.join(REPO, "agents", "user-tasks.json");
 const MAZDA_PARTS_FILE = path.join(REPO, "projects", "mazda3-sports-build", "parts.json");
 const HERMES_BIN = path.join(process.env.HOME || "/home/abhinav", ".local/bin/hermes");
@@ -53,7 +58,35 @@ const CAMPAIGNS = {
     reportsDir: "campaigns/nyc-mafia-dnd/reports",
     storyDirs: ["story"],
   },
+  "tropic-gooner": {
+    label: "Tropic Gooner (Hunter: The Reckoning)",
+    progress: "campaigns/tropic-gooner/reports/progress.md",
+    reportsDir: "campaigns/tropic-gooner/reports",
+    storyDirs: ["Things and Places of Note", "Organizations", "Plot Lines", "characters", "places"],
+    charactersRegistry: "campaigns/tropic-gooner/characters-registry.json",
+  },
 };
+
+/** Server-injected canon for campaign chat (Hermes has no file-read tools). */
+const CAMPAIGN_CHAT_CANON_FILES = {
+  "tropic-gooner": [
+    "campaigns/tropic-gooner/README.md",
+    "campaigns/tropic-gooner/reports/island-vice-and-enforcement.md",
+    "campaigns/tropic-gooner/reports/chronicle-history.md",
+    "campaigns/tropic-gooner/reports/vice-theory-notes.md",
+    "campaigns/tropic-gooner/Things and Places of Note/Regions/PARADISIO COUNTY/Paradisio Overview.md",
+  ],
+  spacequest: ["campaigns/spacequest/reports/progress.md"],
+  "nyc-mafia-dnd": ["campaigns/nyc-mafia-dnd/reports/progress.md"],
+};
+
+const CHAT_RUNTIME_GUARDRAIL = `[Runtime — important]
+You cannot read, write, or check files on disk during this chat. Canon excerpts and a short system/task status block are injected below when available.
+You may reference injected system/task status; you cannot run shell — use injected facts only.
+Never say "let me read/check/look on disk" or promise to open files — answer substantively in one message using injected context and conversation history.
+If facts are missing, ask 1–2 targeted questions or draft from what you know; the human can use Save to campaign after you produce content.`;
+
+const CHAT_STATUS_MAX_CHARS = 2800;
 
 const USER_TASK_TAGS = [
   "general",
@@ -73,7 +106,256 @@ const USER_PROJECT_KINDS = [
   { id: "personal", label: "Personal" },
 ];
 
-const VALID_PROFILES = new Set(["fast", "think", "meta", "default"]);
+const VALID_PROFILES = new Set(["fast", "think", "meta", "code", "default"]);
+const HERMES_MODEL_REGISTRY = path.join(REPO, "agents/hermes-model-registry.json");
+const CHAT_PAID_MODEL_FALLBACK = [
+  "nousresearch/hermes-4-70b",
+  "z-ai/glm-5.2",
+  "deepseek/deepseek-v4-flash",
+];
+/** Last resort for moderation-heavy RP worldbuilding — Venice uncensored via OpenRouter (paid). */
+const CHAT_VENICE_LAST_RESORT = "cognitivecomputations/dolphin-mistral-24b-venice-edition";
+/** Free-first for dashboard Chat when possible — cycled by usage tracker. */
+const CHAT_FREE_LAST_RESORT = [
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "tencent/hy3:free",
+];
+const CHAT_MODEL_USAGE_FILE = path.join(REPO, "agents", "state", "chat-model-usage.json");
+const MODEL_BUDGET_CONFIG = path.join(REPO, "agents/model-budget/config.json");
+const MODEL_BUDGET_STATE = path.join(REPO, "agents/state/model-budget.json");
+/** Soft daily caps (attempts) — prefer less-used models; not hard blocks. */
+let CHAT_USAGE_SOFT_CAP_PAID = 40;
+let CHAT_USAGE_SOFT_CAP_FREE = 80;
+/** Free-first policy (agents/model-budget/config.json). */
+let CHAT_FREE_FIRST = true;
+/** Documented ops spend target (USD/day) — actual OpenRouter key limit set via UI/management API. */
+let OPENROUTER_OPS_DAILY_USD = 7;
+let CHAT_PROFILE_CHAIN = ["think", "meta", "code"];
+let HERMES_MODEL_REGISTRY_DATA = null;
+let MODEL_BUDGET_CONFIG_DATA = null;
+
+function loadModelBudgetConfig() {
+  if (MODEL_BUDGET_CONFIG_DATA) return MODEL_BUDGET_CONFIG_DATA;
+  try {
+    MODEL_BUDGET_CONFIG_DATA = JSON.parse(fs.readFileSync(MODEL_BUDGET_CONFIG, "utf8"));
+    const soft = MODEL_BUDGET_CONFIG_DATA.soft_caps || {};
+    if (soft.paid_attempts_per_day) CHAT_USAGE_SOFT_CAP_PAID = soft.paid_attempts_per_day;
+    if (soft.free_attempts_per_day) CHAT_USAGE_SOFT_CAP_FREE = soft.free_attempts_per_day;
+    if (typeof MODEL_BUDGET_CONFIG_DATA.routing?.prefer_free === "boolean") {
+      CHAT_FREE_FIRST = MODEL_BUDGET_CONFIG_DATA.routing.prefer_free;
+    }
+    const opsUsd = MODEL_BUDGET_CONFIG_DATA.pools?.ops?.daily_usd_target;
+    if (typeof opsUsd === "number" && opsUsd > 0) OPENROUTER_OPS_DAILY_USD = opsUsd;
+  } catch {
+    MODEL_BUDGET_CONFIG_DATA = {};
+  }
+  return MODEL_BUDGET_CONFIG_DATA;
+}
+
+loadModelBudgetConfig();
+
+function loadHermesModelRegistry() {
+  if (HERMES_MODEL_REGISTRY_DATA) return HERMES_MODEL_REGISTRY_DATA;
+  try {
+    HERMES_MODEL_REGISTRY_DATA = JSON.parse(fs.readFileSync(HERMES_MODEL_REGISTRY, "utf8"));
+    if (
+      Array.isArray(HERMES_MODEL_REGISTRY_DATA.chat_profile_chain) &&
+      HERMES_MODEL_REGISTRY_DATA.chat_profile_chain.length
+    ) {
+      CHAT_PROFILE_CHAIN = HERMES_MODEL_REGISTRY_DATA.chat_profile_chain.filter((p) => p !== "fast");
+    }
+  } catch {
+    HERMES_MODEL_REGISTRY_DATA = {};
+  }
+  return HERMES_MODEL_REGISTRY_DATA;
+}
+
+loadHermesModelRegistry();
+
+/** Paid ops models only — never :free (those come after daily-limit via getChatFreeFailoverChain). */
+function getChatPaidModelChain(preferredProfile = "think") {
+  const reg = loadHermesModelRegistry();
+  const models = [];
+  const add = (m) => {
+    const id = String(m || "").trim();
+    if (!id || id.includes(":free") || models.includes(id)) return;
+    models.push(id);
+  };
+  const prof = VALID_PROFILES.has(preferredProfile) ? preferredProfile : "think";
+  for (const m of reg.profiles?.[prof]?.chain || []) add(m);
+  for (const p of CHAT_PROFILE_CHAIN) {
+    for (const m of reg.profiles?.[p]?.chain || []) add(m);
+  }
+  for (const m of CHAT_PAID_MODEL_FALLBACK) add(m);
+  return models.length ? models : [...CHAT_PAID_MODEL_FALLBACK];
+}
+
+/** Paid chain then Venice — free models are separate (daily-limit / exhaustion last resort). */
+function getChatRefusalFailoverChain(preferredProfile = "think") {
+  const models = [];
+  const add = (m) => {
+    const id = String(m || "").trim();
+    if (!id || id.includes(":free") || models.includes(id)) return;
+    models.push(id);
+  };
+  for (const m of CHAT_PAID_MODEL_FALLBACK) add(m);
+  const prof = VALID_PROFILES.has(preferredProfile) ? preferredProfile : "think";
+  const reg = loadHermesModelRegistry();
+  for (const m of reg.profiles?.[prof]?.chain || []) add(m);
+  for (const p of CHAT_PROFILE_CHAIN) {
+    for (const m of reg.profiles?.[p]?.chain || []) add(m);
+  }
+  add(CHAT_VENICE_LAST_RESORT);
+  return sortChatModelsByUsage(models.length ? models : [...CHAT_PAID_MODEL_FALLBACK, CHAT_VENICE_LAST_RESORT], false);
+}
+
+function chatUsageUtcDay() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function readChatModelUsage() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(CHAT_MODEL_USAGE_FILE, "utf8"));
+    if (raw && typeof raw === "object") {
+      if (raw.day !== chatUsageUtcDay()) {
+        return { day: chatUsageUtcDay(), models: {} };
+      }
+      if (!raw.models || typeof raw.models !== "object") raw.models = {};
+      return raw;
+    }
+  } catch {
+    /* missing or corrupt */
+  }
+  return { day: chatUsageUtcDay(), models: {} };
+}
+
+function writeChatModelUsage(data) {
+  try {
+    fs.mkdirSync(path.dirname(CHAT_MODEL_USAGE_FILE), { recursive: true });
+    fs.writeFileSync(CHAT_MODEL_USAGE_FILE, JSON.stringify(data, null, 2) + "\n");
+  } catch (err) {
+    console.warn("chat-model-usage write:", err.message || err);
+  }
+}
+
+function recordChatModelUsage(modelId, outcome) {
+  const id = String(modelId || "").trim();
+  if (!id) return;
+  const data = readChatModelUsage();
+  if (!data.models[id]) {
+    data.models[id] = {
+      attempts: 0,
+      ok: 0,
+      fail: 0,
+      daily_limit: 0,
+      moderation: 0,
+      rate_limit: 0,
+      last_used: 0,
+    };
+  }
+  const row = data.models[id];
+  row.attempts = (row.attempts || 0) + 1;
+  row.last_used = Date.now();
+  if (outcome === "ok") row.ok = (row.ok || 0) + 1;
+  else if (outcome === "daily_limit") row.daily_limit = (row.daily_limit || 0) + 1;
+  else if (outcome === "moderation") row.moderation = (row.moderation || 0) + 1;
+  else if (outcome === "rate_limit") row.rate_limit = (row.rate_limit || 0) + 1;
+  else row.fail = (row.fail || 0) + 1;
+  writeChatModelUsage(data);
+  // Mirror into shared swarm budget state
+  try {
+    let budget = { day: chatUsageUtcDay(), models: {}, lanes: { free_ok: 0, paid_ok: 0 } };
+    try {
+      const raw = JSON.parse(fs.readFileSync(MODEL_BUDGET_STATE, "utf8"));
+      if (raw?.day === chatUsageUtcDay()) budget = raw;
+    } catch {
+      /* fresh day */
+    }
+    budget.models = budget.models || {};
+    budget.lanes = budget.lanes || { free_ok: 0, paid_ok: 0 };
+    if (!budget.models[id]) {
+      budget.models[id] = {
+        attempts: 0,
+        ok: 0,
+        fail: 0,
+        rate_limit: 0,
+        moderation: 0,
+        daily_limit: 0,
+        last_used: 0,
+      };
+    }
+    const b = budget.models[id];
+    b.attempts = (b.attempts || 0) + 1;
+    b.last_used = Date.now();
+    if (outcome === "ok") {
+      b.ok = (b.ok || 0) + 1;
+      const lane = id.includes(":free") ? "free_ok" : "paid_ok";
+      budget.lanes[lane] = (budget.lanes[lane] || 0) + 1;
+    } else if (outcome === "rate_limit") b.rate_limit = (b.rate_limit || 0) + 1;
+    else if (outcome === "moderation") b.moderation = (b.moderation || 0) + 1;
+    else if (outcome === "daily_limit") b.daily_limit = (b.daily_limit || 0) + 1;
+    else b.fail = (b.fail || 0) + 1;
+    fs.mkdirSync(path.dirname(MODEL_BUDGET_STATE), { recursive: true });
+    fs.writeFileSync(MODEL_BUDGET_STATE, JSON.stringify(budget, null, 2) + "\n");
+  } catch (err) {
+    console.warn("model-budget state:", err.message || err);
+  }
+}
+
+/** Prefer models with fewer attempts today, then older last_used — soft cycle. */
+function sortChatModelsByUsage(models, isFree) {
+  const usage = readChatModelUsage();
+  const softCap = isFree ? CHAT_USAGE_SOFT_CAP_FREE : CHAT_USAGE_SOFT_CAP_PAID;
+  return [...models].sort((a, b) => {
+    const ra = usage.models[a] || {};
+    const rb = usage.models[b] || {};
+    const aa = ra.attempts || 0;
+    const ab = rb.attempts || 0;
+    // Soft-cap penalty: push over-cap models later without hard-blocking
+    const pa = aa >= softCap ? 1000 + aa : aa;
+    const pb = ab >= softCap ? 1000 + ab : ab;
+    if (pa !== pb) return pa - pb;
+    return (ra.last_used || 0) - (rb.last_used || 0);
+  });
+}
+
+/** Free :free models only — last resort after paid daily-limit / exhaustion. */
+function getChatFreeFailoverChain() {
+  const reg = loadHermesModelRegistry();
+  const models = [];
+  const add = (m) => {
+    const id = String(m || "").trim();
+    if (!id || !id.includes(":free") || models.includes(id)) return;
+    models.push(id);
+  };
+  for (const m of reg.chat_free_last_resort || []) add(m);
+  for (const m of reg.profiles?.fast?.chain || []) add(m);
+  for (const m of CHAT_FREE_LAST_RESORT) add(m);
+  return sortChatModelsByUsage(models.length ? models : [...CHAT_FREE_LAST_RESORT], true);
+}
+
+function chatModelUsageSummary() {
+  const data = readChatModelUsage();
+  const rows = Object.entries(data.models || {}).map(([id, row]) => ({
+    id,
+    attempts: row.attempts || 0,
+    ok: row.ok || 0,
+    fail: row.fail || 0,
+    daily_limit: row.daily_limit || 0,
+    moderation: row.moderation || 0,
+    last_used: row.last_used || 0,
+    free: id.includes(":free"),
+  }));
+  rows.sort((a, b) => b.attempts - a.attempts);
+  return { day: data.day, models: rows.slice(0, 16) };
+}
+
+function resolveChatProfile(context, requested) {
+  const req = VALID_PROFILES.has(requested) ? requested : "think";
+  if (req === "fast") return "think";
+  if (context?.campaign && CAMPAIGNS[context.campaign]) return "think";
+  return req;
+}
 
 const SECURITY_HEADERS = {
   "X-Robots-Tag": "noindex, nofollow",
@@ -120,16 +402,179 @@ function listReports(dir) {
     .sort((a, b) => b.mtime.localeCompare(a.mtime));
 }
 
-function readHumanInbox() {
-  if (!fs.existsSync(HUMAN_INBOX)) {
-    return { open: [], answered: [] };
+function readInboxSeeds() {
+  if (!fs.existsSync(INBOX_SEEDS)) return [];
+  try {
+    const data = JSON.parse(fs.readFileSync(INBOX_SEEDS, "utf8"));
+    return Array.isArray(data.items) ? data.items : [];
+  } catch {
+    return [];
   }
+}
+
+function ensureHumanInboxMigrated() {
+  fs.mkdirSync(path.dirname(HUMAN_INBOX), { recursive: true });
+  if (fs.existsSync(HUMAN_INBOX)) return;
+  if (!fs.existsSync(HUMAN_INBOX_LEGACY)) return;
+  try {
+    const data = JSON.parse(fs.readFileSync(HUMAN_INBOX_LEGACY, "utf8"));
+    const hasData = (data.open || []).length > 0 || (data.answered || []).length > 0;
+    if (hasData) {
+      fs.writeFileSync(HUMAN_INBOX, JSON.stringify(data, null, 2) + "\n", "utf8");
+    }
+  } catch {
+    /* legacy unreadable — start fresh in state path */
+  }
+}
+
+const INBOX_CONTEXT_REQUEST =
+  /need\s+more\s+context|not\s+enough\s+context|don'?t\s+understand|confused|what\s+is\s+this/i;
+
+function inboxNormQuestion(q) {
+  return String(q || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Dedupe open[] by id — keep entry with richest context (do not drop answers). */
+function dedupeInboxOpen(open) {
+  const byId = new Map();
+  for (const q of open || []) {
+    if (!q || !q.id) continue;
+    const prev = byId.get(q.id);
+    if (!prev) {
+      byId.set(q.id, q);
+      continue;
+    }
+    const prevCtx = String(prev.context || "").length;
+    const nextCtx = String(q.context || "").length;
+    byId.set(q.id, nextCtx >= prevCtx ? { ...prev, ...q } : { ...q, ...prev });
+  }
+  return [...byId.values()];
+}
+
+/** Re-open answered items where the human asked for more context (not a real taste decision). */
+function reviveContextRequests(data) {
+  const open = [...(data.open || [])];
+  const kept = [];
+  const seedsById = new Map(readInboxSeeds().map((s) => [s.id, s]));
+  let changed = false;
+  for (const q of data.answered || []) {
+    const ans = String(q.answer || "");
+    if (INBOX_CONTEXT_REQUEST.test(ans)) {
+      const seed = seedsById.get(q.id) || {};
+      const enriched = {
+        ...seed,
+        ...q,
+        context:
+          seed.context ||
+          q.context ||
+          "GM asked for more context — see campaigns/tropic-gooner/reports/ and option_help; answer when ready.",
+        option_help: seed.option_help || q.option_help,
+        options: seed.options || q.options,
+        question: seed.question || q.question,
+        type: seed.type || q.type,
+        answer: undefined,
+        answered_at: undefined,
+        revived_at: new Date().toISOString(),
+        from: q.from || seed.from || "seed",
+      };
+      delete enriched.answer;
+      delete enriched.answered_at;
+      const idx = open.findIndex((o) => o.id === q.id);
+      if (idx >= 0) open[idx] = { ...open[idx], ...enriched, context: enriched.context };
+      else open.push(enriched);
+      changed = true;
+      continue;
+    }
+    kept.push(q);
+  }
+  if (!changed) return data;
+  const next = { open: dedupeInboxOpen(open), answered: kept };
+  writeHumanInbox(next);
+  return next;
+}
+
+function readHumanInboxRaw() {
+  ensureHumanInboxMigrated();
+  if (!fs.existsSync(HUMAN_INBOX)) return { open: [], answered: [] };
   try {
     const data = JSON.parse(fs.readFileSync(HUMAN_INBOX, "utf8"));
-    return { open: data.open || [], answered: data.answered || [] };
+    return reviveContextRequests({ open: data.open || [], answered: data.answered || [] });
   } catch {
     return { open: [], answered: [] };
   }
+}
+
+function readHumanInbox() {
+  return mergeInboxSeeds(readHumanInboxRaw());
+}
+
+/** Ponytail: seeds are read-only canon questions — show until answered by id (or same question text). */
+function mergeInboxSeeds(data) {
+  const answeredIds = new Set((data.answered || []).map((q) => q.id).filter(Boolean));
+  const answeredQuestions = new Set(
+    (data.answered || []).map((q) => inboxNormQuestion(q.question)).filter(Boolean)
+  );
+  const merged = {
+    open: dedupeInboxOpen(data.open || []),
+    answered: data.answered || [],
+  };
+  // Drop ad-hoc open copies of already-answered seed topics (id drift / pod re-ask).
+  merged.open = merged.open.filter((q) => {
+    if (q.id && answeredIds.has(q.id)) return false;
+    const nq = inboxNormQuestion(q.question);
+    if (nq && answeredQuestions.has(nq)) return false;
+    return true;
+  });
+  for (const seed of readInboxSeeds()) {
+    if (!seed.id || answeredIds.has(seed.id)) continue;
+    if (answeredQuestions.has(inboxNormQuestion(seed.question))) continue;
+    const idx = merged.open.findIndex((q) => q.id === seed.id);
+    if (idx >= 0) {
+      const existing = merged.open[idx];
+      merged.open[idx] = {
+        ...seed,
+        ...existing,
+        // Prefer seed context when present — potato stubs often had empty context.
+        context: seed.context || existing.context,
+        option_help: seed.option_help || existing.option_help,
+        options: seed.options || existing.options,
+        question: seed.question || existing.question,
+        type: seed.type || existing.type,
+        at: existing.at || seed.at || seed.created_at || new Date().toISOString(),
+        from: existing.from || seed.from || "seed",
+        seeded: true,
+      };
+      continue;
+    }
+    // Skip merging a seed if an open ad-hoc item already asks the same question.
+    const dupQ = merged.open.findIndex(
+      (q) => inboxNormQuestion(q.question) === inboxNormQuestion(seed.question)
+    );
+    if (dupQ >= 0) {
+      const existing = merged.open[dupQ];
+      merged.open[dupQ] = {
+        ...seed,
+        ...existing,
+        id: seed.id,
+        context: seed.context || existing.context,
+        option_help: seed.option_help || existing.option_help,
+        options: seed.options || existing.options,
+        seeded: true,
+      };
+      continue;
+    }
+    merged.open.push({
+      ...seed,
+      at: seed.at || seed.created_at || new Date().toISOString(),
+      from: seed.from || "seed",
+      seeded: true,
+    });
+  }
+  merged.open = dedupeInboxOpen(merged.open);
+  return merged;
 }
 
 function writeHumanInbox(data) {
@@ -138,18 +583,32 @@ function writeHumanInbox(data) {
 }
 
 function replyHumanInbox(id, answer) {
-  const clean = answer.replace(/\s+/g, " ").trim().slice(0, 2000);
+  const clean = String(answer || "").replace(/\s+/g, " ").trim().slice(0, 4000);
   if (!clean) throw new Error("empty_answer");
-  const data = readHumanInbox();
-  const idx = data.open.findIndex((q) => q.id === id);
+  const raw = readHumanInboxRaw();
+  const merged = mergeInboxSeeds(raw);
+  const idx = merged.open.findIndex((q) => q.id === id);
   if (idx < 0) throw new Error("question_not_found");
-  const item = data.open.splice(idx, 1)[0];
+  const item = { ...merged.open[idx] };
+  if (item.type === "choice" && Array.isArray(item.options)) {
+    const ok =
+      item.options.includes(clean) ||
+      (item.allow_other && (clean === "Other" || clean.startsWith("Other:")));
+    if (!ok) throw new Error("invalid_choice");
+  }
   item.answer = clean;
   item.answered_at = new Date().toISOString();
-  data.answered.unshift(item);
-  data.answered = data.answered.slice(0, 50);
-  writeHumanInbox(data);
+  raw.open = raw.open.filter((q) => q.id !== id);
+  raw.answered.unshift(item);
+  raw.answered = raw.answered.slice(0, 50);
+  writeHumanInbox(raw);
   return { ok: true, id, answer: clean };
+}
+
+function readLaneHeartbeat(filename) {
+  const stamp = path.join(REPO, "agents", "state", filename);
+  if (!fs.existsSync(stamp)) return null;
+  return fs.readFileSync(stamp, "utf8").trim() || null;
 }
 
 async function collectFastCrontabStatus() {
@@ -158,22 +617,44 @@ async function collectFastCrontabStatus() {
       timeout: 5000,
       maxBuffer: 4096,
     });
-    return parseInt(stdout.trim(), 10) >= 2;
+    const active = parseInt(stdout.trim(), 10) >= 2;
+    return { active, lastRun: readLaneHeartbeat("fast-tick.last") };
   } catch {
-    return false;
+    return { active: false, lastRun: null };
+  }
+}
+
+async function collectThinkCrontabStatus() {
+  try {
+    const { stdout } = await execFileAsync("bash", ["-lc", "crontab -l 2>/dev/null | grep -c agent-cycle-think-tick || echo 0"], {
+      timeout: 5000,
+      maxBuffer: 4096,
+    });
+    const active = parseInt(stdout.trim(), 10) >= 1;
+    return { active, lastRun: readLaneHeartbeat("think-tick.last") };
+  } catch {
+    return { active: false, lastRun: null };
   }
 }
 async function collectHealth() {
-  const { stdout } = await execFileAsync("bash", [HEALTH_SCRIPT], {
-    timeout: 15000,
-    maxBuffer: 64 * 1024,
-  });
-  const fields = {};
-  for (const line of stdout.trim().split("\n")) {
-    const idx = line.indexOf("=");
-    if (idx > 0) fields[line.slice(0, idx)] = line.slice(idx + 1);
+  try {
+    const { stdout } = await execFileAsync("bash", [HEALTH_SCRIPT], {
+      timeout: 15000,
+      maxBuffer: 64 * 1024,
+    });
+    const fields = {};
+    for (const line of stdout.trim().split("\n")) {
+      const idx = line.indexOf("=");
+      if (idx > 0) fields[line.slice(0, idx)] = line.slice(idx + 1);
+    }
+    return fields;
+  } catch (err) {
+    // Never throw: background refresh + Hub poll must not take down :8790 (CF 502).
+    return {
+      gateway: "unknown",
+      health_error: String((err && err.message) || "health_failed").slice(0, 200),
+    };
   }
-  return fields;
 }
 
 async function collectCronSummary() {
@@ -227,17 +708,360 @@ function parseLaneCrons(raw) {
   return lanes;
 }
 
-async function collectAgentState() {
-  const health = await collectHealth();
-  const cronRaw = await collectCronSummary();
+function readPodSchedulerLaneHints() {
+  // Cheap file read — used when Hermes cron list is skipped (lite) or empty.
+  const p = path.join(REPO, "agents", "state", "pod-scheduler.json");
+  if (!fs.existsSync(p)) return {};
+  try {
+    const state = JSON.parse(fs.readFileSync(p, "utf8"));
+    const last = state.last_run || {};
+    const out = {};
+    if (last.fast) {
+      out.fast = new Date(Number(last.fast) * 1000).toISOString();
+    }
+    if (last.think) {
+      out.think = new Date(Number(last.think) * 1000).toISOString();
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function countUncheckedMd(relPath) {
+  const p = path.join(REPO, relPath);
+  if (!fs.existsSync(p)) return 0;
+  try {
+    return fs
+      .readFileSync(p, "utf8")
+      .split("\n")
+      .filter((l) => /^- \[ \]/.test(l)).length;
+  } catch {
+    return 0;
+  }
+}
+
+/** Recent pod/lane ticks from run-index (newest first). */
+function readRecentPodRuns(limit = 8) {
+  const runIndex = path.join(REPO, "agents", "state", "run-index.jsonl");
+  if (!fs.existsSync(runIndex)) return [];
+  try {
+    const lines = fs.readFileSync(runIndex, "utf8").trim().split("\n").filter(Boolean).slice(-limit);
+    const out = [];
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        const j = JSON.parse(lines[i]);
+        const name = j.name || j.pod || j.lane || "?";
+        const summary = String(j.summary || "").slice(0, 140);
+        const idle = /\bIDLE\b/i.test(summary);
+        out.push({
+          name: String(name).slice(0, 48),
+          category: j.category || "",
+          ts: j.ts || null,
+          exit: j.exit ?? null,
+          summary,
+          idle,
+        });
+      } catch {
+        /* skip bad line */
+      }
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** Chat job UI status: pending+started = thinking; queued = waiting. */
+function chatJobUiStatus(job) {
+  if (!job || typeof job !== "object") return null;
+  if (job.status === "queued") return "queued";
+  if (job.status === "running") return "thinking";
+  if (job.status === "pending") return job.started_at ? "thinking" : "queued";
+  return null;
+}
+
+function iterChatJobsRaw() {
+  const out = [];
+  try {
+    if (typeof CHAT_JOBS !== "undefined" && CHAT_JOBS && typeof CHAT_JOBS.values === "function") {
+      for (const job of CHAT_JOBS.values()) out.push(job);
+      return out;
+    }
+  } catch {
+    /* fall through to file */
+  }
+  try {
+    const jobsFile = path.join(REPO, "agents", "state", "chat-jobs.json");
+    if (fs.existsSync(jobsFile)) {
+      const data = JSON.parse(fs.readFileSync(jobsFile, "utf8"));
+      for (const job of Object.values(data.jobs || {})) {
+        if (job && typeof job === "object") out.push(job);
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return out;
+}
+
+function threadTitleForJob(threadId) {
+  if (!threadId) return null;
+  try {
+    const idx = readChatThreadsIndex();
+    const meta = (idx.threads || []).find((t) => t.id === threadId);
+    if (meta?.title) return String(meta.title).slice(0, 80);
+  } catch {
+    /* index may not exist yet at boot */
+  }
+  return null;
+}
+
+function listChatJobsInFlight() {
+  const now = Date.now();
+  const jobs = [];
+  let thinking = 0;
+  let queued = 0;
+  for (const job of iterChatJobsRaw()) {
+    const ui = chatJobUiStatus(job);
+    if (!ui) continue;
+    if (ui === "thinking") thinking += 1;
+    else queued += 1;
+    const started = job.started_at || job.created_at || now;
+    jobs.push({
+      job_id: job.job_id || null,
+      thread_id: job.thread_id || null,
+      title: threadTitleForJob(job.thread_id) || (job.thread_id ? `thread ${String(job.thread_id).slice(0, 8)}` : "Chat"),
+      status: ui,
+      started_at: started,
+      elapsed_ms: Math.max(0, now - (Number(started) || 0)),
+      queue_depth: job.queue_depth || 0,
+    });
+  }
+  jobs.sort((a, b) => {
+    if (a.status !== b.status) return a.status === "thinking" ? -1 : 1;
+    return (b.started_at || 0) - (a.started_at || 0);
+  });
+  return {
+    running: thinking,
+    pending: queued,
+    thinking,
+    queued,
+    jobs: jobs.slice(0, 8),
+  };
+}
+
+function countChatJobsInFlight() {
+  const d = listChatJobsInFlight();
+  return { running: d.running, pending: d.pending };
+}
+
+/** Pod mid-tick from scheduler state.current (written while flock held). */
+function readCurrentPodRun() {
+  const p = path.join(REPO, "agents", "state", "pod-scheduler.json");
+  if (!fs.existsSync(p)) return null;
+  try {
+    const state = JSON.parse(fs.readFileSync(p, "utf8"));
+    const cur = state.current;
+    if (!cur || typeof cur !== "object" || !cur.name) return null;
+    const startedSec = Number(cur.started_at);
+    if (!Number.isFinite(startedSec) || startedSec <= 0) return null;
+    // Stale guard: pods timeout at 600s; drop if older than 12m
+    const ageSec = Date.now() / 1000 - startedSec;
+    if (ageSec < 0 || ageSec > 720) return null;
+    return {
+      name: String(cur.name).slice(0, 48),
+      started_at: new Date(startedSec * 1000).toISOString(),
+      elapsed_ms: Math.round(ageSec * 1000),
+      kind: cur.name === "fast" || cur.name === "think" ? "tick" : "pod",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildRunningNow() {
+  const chat = listChatJobsInFlight();
+  const pod = readCurrentPodRun();
+  return {
+    chat_jobs: chat.jobs,
+    chat_thinking: chat.thinking,
+    chat_queued: chat.queued,
+    pod,
+    anything: chat.jobs.length > 0 || !!pod,
+  };
+}
+
+/** Optional out-links (Grafana off-box; Kuma already on :13001). */
+function readObservabilityLinks() {
+  const kuma =
+    envVal("OBSERVABILITY_KUMA_URL") ||
+    envVal("UPTIME_KUMA_URL") ||
+    "http://raspbian-bullseye-aml-s905x-cc:13001";
+  const grafana = envVal("OBSERVABILITY_GRAFANA_URL") || envVal("GRAFANA_URL") || "";
+  return {
+    kuma_url: kuma || null,
+    grafana_url: grafana || null,
+    metrics_path: "/metrics",
+  };
+}
+
+function promEscapeLabel(s) {
+  return String(s || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/"/g, '\\"');
+}
+
+function hermesGatewayUp() {
+  try {
+    const out = execFileSync("systemctl", ["--user", "is-active", "hermes-gateway"], {
+      encoding: "utf8",
+      timeout: 3000,
+    }).trim();
+    if (out !== "active") return 0;
+    // Mirror nousagent-health hung check (cheap): D-state MainPID.
+    const pid = execFileSync("systemctl", ["--user", "show", "-p", "MainPID", "--value", "hermes-gateway"], {
+      encoding: "utf8",
+      timeout: 2000,
+    }).trim();
+    if (pid && pid !== "0") {
+      try {
+        const st = execFileSync("ps", ["-o", "state=", "-p", pid], {
+          encoding: "utf8",
+          timeout: 2000,
+        }).trim();
+        if (st.startsWith("D")) return 0;
+      } catch {
+        /* ignore */
+      }
+    }
+    return 1;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Cheap Prometheus text for off-box Grafana (or curl).
+ * File reads + one systemctl — no Hermes cron list, no collectHealth.
+ */
+function buildPrometheusMetrics() {
+  const lines = [];
+  const jobs = countChatJobsInFlight();
+  const mem = readMemQuick();
+  const hints = readPodSchedulerLaneHints();
+  const pods = readRecentPodRuns(8);
+  const runningNow = buildRunningNow();
+  const openTasks = (readUserTasksStore().tasks || []).filter(
+    (t) => t.status === "open" || t.status === "in_progress"
+  ).length;
+  const maint = countUncheckedMd("agents/maintenance-progress.md");
+  let backlog = 0;
+  if (fs.existsSync(DASHBOARD_BACKLOG)) {
+    try {
+      backlog = fs
+        .readFileSync(DASHBOARD_BACKLOG, "utf8")
+        .split("\n")
+        .filter((l) => /^- \[ \]/.test(l)).length;
+    } catch {
+      backlog = 0;
+    }
+  }
+
+  const emit = (name, help, type, value, labels) => {
+    lines.push(`# HELP ${name} ${help}`);
+    lines.push(`# TYPE ${name} ${type}`);
+    const lab =
+      labels && Object.keys(labels).length
+        ? `{${Object.entries(labels)
+            .map(([k, v]) => `${k}="${promEscapeLabel(v)}"`)
+            .join(",")}}`
+        : "";
+    lines.push(`${name}${lab} ${value}`);
+  };
+
+  emit("linuxbox_up", "linuxbox-status process is up", "gauge", 1);
+  emit("linuxbox_hermes_gateway_up", "hermes-gateway user unit active", "gauge", hermesGatewayUp());
+  emit("linuxbox_chat_jobs_running", "Dashboard chat jobs thinking/running", "gauge", jobs.running || 0);
+  emit("linuxbox_chat_jobs_pending", "Dashboard chat jobs queued/pending", "gauge", jobs.pending || 0);
+  emit(
+    "linuxbox_pod_tick_in_flight",
+    "Pod scheduler currently holding a tick (1=yes)",
+    "gauge",
+    runningNow.pod ? 1 : 0
+  );
+  emit("linuxbox_user_tasks_open", "Open or in_progress user tasks", "gauge", openTasks);
+  emit("linuxbox_dashboard_backlog_open", "Unchecked Meta backlog items", "gauge", backlog);
+  emit("linuxbox_maintenance_open", "Unchecked maintenance-progress items", "gauge", maint);
+  emit("linuxbox_mem_available_mb", "MemAvailable from /proc/meminfo", "gauge", Math.round(mem.avail_mb || 0));
+  emit("linuxbox_swap_used_pct", "Swap used percent", "gauge", Math.round(mem.swap_used_pct || 0));
+
+  for (const [lane, iso] of Object.entries(hints)) {
+    const ts = iso ? Math.floor(new Date(iso).getTime() / 1000) : 0;
+    if (ts > 0) {
+      emit("linuxbox_lane_last_run_unixtime", "Last pod-scheduler stamp for lane", "gauge", ts, {
+        lane,
+      });
+    }
+  }
+
+  let idlePods = 0;
+  let workPods = 0;
+  for (const p of pods) {
+    if (p.idle) idlePods += 1;
+    else workPods += 1;
+  }
+  emit("linuxbox_recent_pod_ticks_idle", "Recent run-index ticks marked IDLE", "gauge", idlePods);
+  emit("linuxbox_recent_pod_ticks_work", "Recent run-index ticks with work", "gauge", workPods);
+
+  for (const p of pods.slice(0, 8)) {
+    if (!p.ts) continue;
+    const ts = Math.floor(new Date(p.ts).getTime() / 1000);
+    if (!(ts > 0)) continue;
+    emit("linuxbox_pod_last_tick_unixtime", "Recent pod tick timestamp", "gauge", ts, {
+      pod: p.name,
+      idle: p.idle ? "1" : "0",
+    });
+  }
+
+  return lines.join("\n") + "\n";
+}
+
+async function collectAgentState(lite = false) {
+  // lite skips only expensive `hermes cron list` — heartbeats + crontab grep stay
+  // (swap pressure was blanking lanes → Hub "no recent run" despite ticks).
+  const [health, cronRaw, fastCrontab, thinkCrontab] = await Promise.all([
+    collectHealth(),
+    lite ? Promise.resolve("") : collectCronSummary(),
+    collectFastCrontabStatus(),
+    collectThinkCrontabStatus(),
+  ]);
   const lanes = parseLaneCrons(cronRaw);
-  if (await collectFastCrontabStatus()) {
+  const podHints = readPodSchedulerLaneHints();
+  const fastLast =
+    fastCrontab.lastRun || lanes["agent-cycle-fast"]?.last_run || podHints.fast || null;
+  const thinkLast =
+    thinkCrontab.lastRun || lanes["agent-cycle-think"]?.last_run || podHints.think || null;
+  if (fastCrontab.active || fastLast) {
     lanes["agent-cycle-fast"] = {
       name: "agent-cycle-fast",
-      schedule: "~30s (crontab)",
-      last_run: lanes["agent-cycle-fast"]?.last_run || null,
-      status: "active",
+      schedule: fastCrontab.active ? "~30s (crontab)" : lanes["agent-cycle-fast"]?.schedule || "~30s",
+      last_run: fastLast,
+      status: fastCrontab.active ? "active" : lanes["agent-cycle-fast"]?.status || "pending",
     };
+  }
+  if (thinkCrontab.active || thinkLast) {
+    lanes["agent-cycle-think"] = {
+      name: "agent-cycle-think",
+      schedule: thinkCrontab.active
+        ? "1m (crontab)"
+        : lanes["agent-cycle-think"]?.schedule || "1m",
+      last_run: thinkLast,
+      status: thinkCrontab.active ? "active" : lanes["agent-cycle-think"]?.status || "pending",
+    };
+  } else if (lanes["agent-cycle-think"]) {
+    lanes["agent-cycle-think"].schedule = lanes["agent-cycle-think"].schedule || "1m (hermes)";
   }
   const inbox = readHumanInbox();
 
@@ -285,6 +1109,11 @@ async function collectAgentState() {
       .slice(0, 8);
   }
 
+  const chatJobs = listChatJobsInFlight();
+  const recentPods = readRecentPodRuns(8);
+  const maintenanceOpen = countUncheckedMd("agents/maintenance-progress.md");
+  const runningNow = buildRunningNow();
+
   return {
     updated_at: new Date().toISOString(),
     host: "linuxbox",
@@ -299,7 +1128,83 @@ async function collectAgentState() {
     user_projects: summarizeUserProjects(readUserTasksStore()),
     user_task_tags: USER_TASK_TAGS,
     user_project_kinds: USER_PROJECT_KINDS,
+    machines_sync: await collectMachinesState(),
+    // Tasks tab "Active now" / Running now — cheap reads
+    chat_jobs: {
+      running: chatJobs.running,
+      pending: chatJobs.pending,
+      thinking: chatJobs.thinking,
+      queued: chatJobs.queued,
+      jobs: chatJobs.jobs,
+    },
+    recent_pods: recentPods,
+    maintenance_open: maintenanceOpen,
+    running_now: runningNow,
+    current_pod: runningNow.pod,
+    observability: readObservabilityLinks(),
+    chat_model_usage: chatModelUsageSummary(),
+    model_budget: {
+      policy: CHAT_FREE_FIRST ? "free_first" : "paid_first",
+      ops_daily_usd_target: OPENROUTER_OPS_DAILY_USD,
+      config: "agents/model-budget/config.json",
+    },
   };
+}
+
+// ponytail: cache agent snapshot — collectAgentState was ~30s on 2GB box under load
+let agentStateCache = null;
+let agentStateCacheAt = 0;
+let agentRefreshInFlight = false;
+const AGENT_STATE_TTL_MS = 45_000;
+const AGENT_STATE_STALE_MS = 180_000;
+
+function readMemQuick() {
+  try {
+    const raw = fs.readFileSync("/proc/meminfo", "utf8");
+    let availKb = 0;
+    let swapTotal = 0;
+    let swapFree = 0;
+    for (const line of raw.split("\n")) {
+      if (line.startsWith("MemAvailable:")) availKb = parseInt(line.split(/\s+/)[1], 10) || 0;
+      if (line.startsWith("SwapTotal:")) swapTotal = parseInt(line.split(/\s+/)[1], 10) || 0;
+      if (line.startsWith("SwapFree:")) swapFree = parseInt(line.split(/\s+/)[1], 10) || 0;
+    }
+    const swapPct = swapTotal ? 100 * (1 - swapFree / swapTotal) : 0;
+    return { avail_mb: availKb / 1024, swap_used_pct: swapPct };
+  } catch {
+    return { avail_mb: 999, swap_used_pct: 0 };
+  }
+}
+
+function shouldUseLiteAgentCollect() {
+  return readMemQuick().swap_used_pct >= 35;
+}
+
+async function refreshAgentStateBackground(lite = false) {
+  if (agentRefreshInFlight) return;
+  agentRefreshInFlight = true;
+  try {
+    agentStateCache = await collectAgentState(lite);
+    agentStateCacheAt = Date.now();
+  } catch (err) {
+    console.error("agent state refresh failed:", (err && err.message) || err);
+  } finally {
+    agentRefreshInFlight = false;
+  }
+}
+
+async function collectAgentStateCached(opts = {}) {
+  const lite = opts.lite ?? shouldUseLiteAgentCollect();
+  const now = Date.now();
+  if (agentStateCache && now - agentStateCacheAt < AGENT_STATE_TTL_MS) {
+    return { ...agentStateCache, updated_at: new Date().toISOString(), cached: true };
+  }
+  if (agentStateCache && now - agentStateCacheAt < AGENT_STATE_STALE_MS) {
+    refreshAgentStateBackground(lite);
+    return { ...agentStateCache, updated_at: new Date().toISOString(), stale: true };
+  }
+  await refreshAgentStateBackground(lite);
+  return agentStateCache;
 }
 
 async function appendTask(campaignId, text) {
@@ -339,6 +1244,27 @@ function readMazdaParts() {
     return JSON.parse(fs.readFileSync(MAZDA_PARTS_FILE, "utf8"));
   } catch (err) {
     return { project: "mazda3-sports-build", parts: [], error: err.message };
+  }
+}
+
+function readCampaignMap(campaignId) {
+  const cfg = CAMPAIGNS[campaignId];
+  if (!cfg) return { error: "unknown_campaign" };
+  const mapFile = path.join(REPO, "campaigns", campaignId, "map", "map.json");
+  if (!fs.existsSync(mapFile)) return { campaign: campaignId, markers: [], error: "map.json missing" };
+  try {
+    const data = JSON.parse(fs.readFileSync(mapFile, "utf8"));
+    const rel = data.base_image;
+    if (rel && !rel.includes("..")) {
+      const abs = path.join(REPO, "campaigns", campaignId, rel);
+      data.base_image_exists = fs.existsSync(abs);
+      data.base_image_url = data.base_image_exists
+        ? `/api/campaigns/${campaignId}/map-image`
+        : null;
+    }
+    return data;
+  } catch (err) {
+    return { campaign: campaignId, markers: [], error: err.message };
   }
 }
 
@@ -463,6 +1389,7 @@ function createUserTask(payload) {
     context: {
       campaign: payload.context?.campaign && CAMPAIGNS[payload.context.campaign] ? payload.context.campaign : null,
       story_path: null,
+      chat_thread_id: null,
     },
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -474,6 +1401,10 @@ function createUserTask(payload) {
     } catch {
       /* ignore invalid story path */
     }
+  }
+  const threadId = String(payload.context?.chat_thread_id || "").trim();
+  if (threadId && readChatThread(threadId)) {
+    task.context.chat_thread_id = threadId;
   }
   store.tasks.unshift(task);
   store.tasks = store.tasks.slice(0, 200);
@@ -525,15 +1456,123 @@ function walkStoryMarkdown(absDir, relPrefix, acc, depth = 0, opts = {}) {
 
 function listStoryCatalog() {
   const campaigns = {};
+  const registries = {};
   for (const [id, cfg] of Object.entries(CAMPAIGNS)) {
     const files = [];
     for (const sub of cfg.storyDirs || ["story"]) {
       walkStoryMarkdown(path.join(REPO, "campaigns", id, sub), `campaigns/${id}/${sub}`, files);
     }
     files.sort((a, b) => a.path.localeCompare(b.path));
-    campaigns[id] = { label: cfg.label, files };
+    const groups = groupStoryFiles(files, id);
+    campaigns[id] = { label: cfg.label, files, groups };
+    if (cfg.charactersRegistry) {
+      registries[id] = readCharactersRegistry(id);
+    }
   }
-  return { updated_at: new Date().toISOString(), campaigns, tags: USER_TASK_TAGS };
+  return { updated_at: new Date().toISOString(), campaigns, registries, tags: USER_TASK_TAGS };
+}
+
+function groupStoryFiles(files, campaignId) {
+  const prefix = `campaigns/${campaignId}/`;
+  const buckets = new Map();
+  for (const f of files) {
+    const rel = f.path.startsWith(prefix) ? f.path.slice(prefix.length) : f.path;
+    const parts = rel.split("/");
+    const top = parts.length > 1 ? parts[0] : "(root)";
+    const sub = parts.length > 2 ? parts.slice(0, 2).join("/") : top;
+    const key = sub;
+    if (!buckets.has(key)) {
+      buckets.set(key, { id: key, label: humanGroupLabel(key), files: [] });
+    }
+    buckets.get(key).files.push(f);
+  }
+  return [...buckets.values()].sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function humanGroupLabel(key) {
+  const labels = {
+    characters: "Characters",
+    "characters/discord": "Discord · character sheets",
+    places: "Places",
+    Organizations: "Organizations",
+    "Plot Lines": "Plot & timeline",
+    "Things and Places of Note": "Lore & regions",
+    story: "Story",
+    lore: "Lore",
+    "(root)": "Other",
+  };
+  return labels[key] || key.replace(/\//g, " · ");
+}
+
+function charactersRegistryPath(campaignId) {
+  const cfg = CAMPAIGNS[campaignId];
+  if (!cfg?.charactersRegistry) return null;
+  return path.join(REPO, cfg.charactersRegistry);
+}
+
+function readCharactersRegistry(campaignId) {
+  const abs = charactersRegistryPath(campaignId);
+  if (!abs || !fs.existsSync(abs)) {
+    return { version: 1, campaign_id: campaignId, characters: [], updated_at: null };
+  }
+  try {
+    const data = JSON.parse(fs.readFileSync(abs, "utf8"));
+    data.characters = Array.isArray(data.characters) ? data.characters : [];
+    return data;
+  } catch {
+    return { version: 1, campaign_id: campaignId, characters: [], updated_at: null, error: "parse_failed" };
+  }
+}
+
+function writeCharactersRegistry(campaignId, data) {
+  const abs = charactersRegistryPath(campaignId);
+  if (!abs) throw new Error("no_registry");
+  data.updated_at = new Date().toISOString().slice(0, 10);
+  fs.writeFileSync(abs, JSON.stringify(data, null, 2) + "\n");
+  return data;
+}
+
+function findRegistryForPath(registry, relPath) {
+  const chars = registry?.characters || [];
+  return chars.find((c) => c.story_path === relPath) || null;
+}
+
+function patchCharacterRegistry(campaignId, patch) {
+  const registry = readCharactersRegistry(campaignId);
+  const id = patch.id;
+  if (!id) throw new Error("id_required");
+  let row = registry.characters.find((c) => c.id === id);
+  if (!row && patch.story_path) {
+    row = registry.characters.find((c) => c.story_path === patch.story_path);
+  }
+  if (!row) {
+    row = {
+      id,
+      display_name: patch.display_name || id,
+      story_path: patch.story_path || "",
+      discord_user_id: "",
+      discord_username: "",
+      player_name: "",
+      status: "active",
+      can_proxy: false,
+      notes: "",
+    };
+    registry.characters.push(row);
+  }
+  const allowed = [
+    "display_name",
+    "story_path",
+    "discord_user_id",
+    "discord_username",
+    "player_name",
+    "status",
+    "can_proxy",
+    "notes",
+  ];
+  for (const k of allowed) {
+    if (patch[k] !== undefined) row[k] = patch[k];
+  }
+  return writeCharactersRegistry(campaignId, registry);
 }
 
 function readStoryDoc(campaignId, relPath) {
@@ -552,12 +1591,289 @@ function readStoryDoc(campaignId, relPath) {
   };
 }
 
-function buildChatMessage(message, context) {
+function listRecentCampaignNotes(campaignId, max = 3) {
+  const notesDir = path.join(REPO, "campaigns", campaignId, "notes");
+  if (!fs.existsSync(notesDir)) return [];
+  try {
+    return fs
+      .readdirSync(notesDir)
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => {
+        const abs = path.join(notesDir, f);
+        return { rel: `campaigns/${campaignId}/notes/${f}`, mtime: fs.statSync(abs).mtimeMs };
+      })
+      .sort((a, b) => b.mtime - a.mtime)
+      .slice(0, max)
+      .map((x) => x.rel);
+  } catch {
+    return [];
+  }
+}
+
+function buildCampaignContextExcerpt(campaignId, maxChars = 8000) {
+  const cfg = CAMPAIGNS[campaignId];
+  if (!cfg) return "";
+  const paths = [
+    ...(CAMPAIGN_CHAT_CANON_FILES[campaignId] || []),
+    cfg.progress,
+    ...listRecentCampaignNotes(campaignId, 3),
+  ].filter(Boolean);
+  const seen = new Set();
+  const sections = [];
+  let budget = maxChars;
+  for (const rel of paths) {
+    if (seen.has(rel) || budget < 400) break;
+    seen.add(rel);
+    const abs = path.join(REPO, rel);
+    if (!fs.existsSync(abs)) continue;
+    try {
+      const content = fs.readFileSync(abs, "utf8").trim();
+      if (!content) continue;
+      const slice = Math.min(2800, budget - 80);
+      if (slice < 80) break;
+      const excerpt = content.slice(0, slice);
+      sections.push(`### ${path.basename(rel)}\n${excerpt}`);
+      budget -= excerpt.length + 60;
+    } catch {
+      /* skip unreadable */
+    }
+  }
+  if (!sections.length) return "";
+  return `[Campaign canon — ${cfg.label}]\n${sections.join("\n\n")}`.slice(0, maxChars);
+}
+
+function isModelModerationRefusal(text) {
+  const t = String(text || "").trim();
+  if (!t || t.length > 500) return false;
+  const patterns = [
+    /无法给出|无法给到|无法绘制|无法提供|不能提供|我无法|抱歉.*无法/i,
+    /\bI(?:'m| am) sorry,? I can(?:'t| not)\b/i,
+    /\bcannot provide (?:relevant )?content\b/i,
+    /\bI can'?t (?:help|assist|provide|fulfill)\b/i,
+    /\bcontent (?:policy|filter|moderation)\b/i,
+    /\bas an ai\b.*\b(cannot|can't|unable)\b/i,
+  ];
+  return patterns.some((re) => re.test(t)) && t.length < 320;
+}
+
+const CAMPAIGN_CHAT_MODEL = "nousresearch/hermes-4-70b";
+const MODERATION_REFUSAL_USER_MSG =
+  "All paid models refused (content filter). Try Workshop mode or rephrase — dashboard chat already retried Hermes → GLM → DeepSeek.";
+
+function formatAllModelsRefusedError(triedModels) {
+  const list = (triedModels || []).join(", ") || "none";
+  return `All models refused (content filter). Tried: ${list}. Try Workshop mode or shorten explicit phrasing.`;
+}
+
+function isCampaignChatContext(context) {
+  return !!(context?.campaign && CAMPAIGNS[context.campaign]);
+}
+
+function isQwenFallbackInRaw(raw) {
+  const s = String(raw || "");
+  return (
+    /switching to fallback:.*(?:qwen|hy3)/i.test(s) ||
+    /qwen\/qwen3-next-80b-a3b-instruct:free/i.test(s) ||
+    /tencent\/hy3:free/i.test(s) ||
+    (/Primary model failed/i.test(s) && /(?:qwen|hy3:free)/i.test(s))
+  );
+}
+
+function isIntentOnlyChatReply(text) {
+  const t = String(text || "").trim();
+  if (!t || t.length >= 200) return false;
+  if (isModelModerationRefusal(t)) return false;
+  const intentRe =
+    /\blet me (read|check|write|look|see|pull|open|fetch|grab|verify|confirm|build|save)\b/i;
+  const futureRe =
+    /\bi(?:'ll| will) (read|check|write|look|see|pull|open|fetch|grab|verify|confirm|save)\b/i;
+  const hasIntent =
+    intentRe.test(t) ||
+    futureRe.test(t) ||
+    /^(one moment|give me a (?:second|moment)|hang on)\b/i.test(t);
+  if (!hasIntent) return false;
+  const hasSubstance =
+    (t.match(/\n/g) || []).length >= 2 ||
+    /^[-*•]\s/m.test(t) ||
+    /^#{1,3}\s/m.test(t) ||
+    t.split(/[.!?]\s+/).filter(Boolean).length >= 4;
+  return !hasSubstance;
+}
+
+function buildChatStylePreamble(responseMode, context) {
+  const brief = responseMode !== "workshop";
+  const lines = [CHAT_RUNTIME_GUARDRAIL, ""];
+  const styleLines = brief
+    ? [
+        "[Response style — Brief]",
+        "Be concise: short paragraphs or bullets; no essays unless the user asks for depth.",
+        "If the request is ambiguous, vague, or would require inventing canon, ask 1–2 specific clarifying questions before proposing lore or tasks.",
+        "For RP/worldbuilding: think in rise/fall phases with nuance — not fill-in templates.",
+        "The human is GM (creative authority); you are scribe/implementer — capture, brainstorm, note gaps; do not act as GM.",
+      ]
+    : [
+        "[Response style — Workshop]",
+        "Longer form is OK when it helps — still prefer structure (sections/bullets) over walls of text.",
+        "When facts are missing or the ask is ambiguous, ask 1–2 targeted clarifying questions before inventing canon.",
+        "For RP/worldbuilding: rise/fall phases with nuance; the human is GM, you are scribe/implementer.",
+      ];
+  lines.push(...styleLines);
+  if (context?.workshop_mode && brief) {
+    lines.push(
+      "Context is a campaign/story workshop — default to brief scribe notes unless the user asks to expand."
+    );
+  }
+  return lines.join("\n");
+}
+
+/** Cheap read-only snapshot for chat prompts — no secrets, capped size. */
+function buildChatSystemStatusBlock() {
+  const lines = ["[System / running tasks — injected, read-only]"];
+  try {
+    try {
+      const out = execFileSync("systemctl", ["--user", "is-active", "hermes-gateway"], {
+        timeout: 2000,
+        encoding: "utf8",
+      })
+        .trim()
+        .slice(0, 40);
+      lines.push(`hermes-gateway: ${out || "unknown"}`);
+    } catch {
+      lines.push("hermes-gateway: unknown");
+    }
+
+    const fastLast = readLaneHeartbeat("fast-tick.last");
+    const thinkLast = readLaneHeartbeat("think-tick.last");
+    lines.push(`fast last tick: ${fastLast || "n/a"}`);
+    lines.push(`think last tick: ${thinkLast || "n/a"}`);
+
+    const inbox = readHumanInbox();
+    lines.push(`inbox open: ${(inbox.open || []).length}`);
+
+    const store = readUserTasksStore();
+    const openTasks = (store.tasks || []).filter((t) => t.status === "open");
+    lines.push(`user-tasks open: ${openTasks.length}`);
+    for (const t of openTasks.slice(0, 5)) {
+      lines.push(`  - ${(t.title || t.id || "?").toString().slice(0, 80)}`);
+    }
+
+    let backlogOpen = 0;
+    if (fs.existsSync(DASHBOARD_BACKLOG)) {
+      backlogOpen = fs
+        .readFileSync(DASHBOARD_BACKLOG, "utf8")
+        .split("\n")
+        .filter((l) => /^- \[ \]/.test(l)).length;
+    }
+    lines.push(`dashboard backlog open: ${backlogOpen}`);
+
+    const taskPath = path.join(REPO, "agents", "CURRENT_TASK.md");
+    if (fs.existsSync(taskPath)) {
+      const raw = fs.readFileSync(taskPath, "utf8");
+      const m = raw.match(/\*\*Status:\*\*\s*(.+)/);
+      if (m) lines.push(`CURRENT_TASK: ${m[1].trim().slice(0, 160)}`);
+    }
+
+    let pending = 0;
+    let running = 0;
+    const jobsFile = path.join(REPO, "agents", "state", "chat-jobs.json");
+    try {
+      if (typeof CHAT_JOBS !== "undefined" && CHAT_JOBS && typeof CHAT_JOBS.values === "function") {
+        for (const job of CHAT_JOBS.values()) {
+          if (job.status === "pending" || job.status === "queued") pending += 1;
+          if (job.status === "running") running += 1;
+        }
+      } else if (fs.existsSync(jobsFile)) {
+        const data = JSON.parse(fs.readFileSync(jobsFile, "utf8"));
+        for (const job of Object.values(data.jobs || {})) {
+          if (job.status === "pending" || job.status === "queued") pending += 1;
+          if (job.status === "running") running += 1;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    lines.push(`chat jobs: running=${running} queued/pending=${pending}`);
+
+    const runIndex = path.join(REPO, "agents", "state", "run-index.jsonl");
+    if (fs.existsSync(runIndex)) {
+      const tail = fs.readFileSync(runIndex, "utf8").trim().split("\n").slice(-6);
+      const pods = [];
+      for (const row of tail) {
+        try {
+          const j = JSON.parse(row);
+          const name = j.pod || j.name || j.lane || "?";
+          const st = j.status || j.result || j.exit || "";
+          pods.push(`${name}${st ? `:${st}` : ""}`.slice(0, 40));
+        } catch {
+          /* skip */
+        }
+      }
+      if (pods.length) lines.push(`recent pods: ${pods.join(", ")}`);
+    }
+
+    for (const [id, cfg] of Object.entries(CAMPAIGNS)) {
+      const progPath = path.join(REPO, cfg.progress);
+      if (!fs.existsSync(progPath)) continue;
+      const progress = parseProgress(fs.readFileSync(progPath, "utf8"));
+      const pendingItems = progress.filter((p) => !p.done).length;
+      if (pendingItems > 0) {
+        lines.push(`campaign ${id}: ${pendingItems} open`);
+      }
+    }
+
+    const podSched = path.join(REPO, "agents", "state", "pod-scheduler.json");
+    if (fs.existsSync(podSched)) {
+      try {
+        const st = JSON.parse(fs.readFileSync(podSched, "utf8"));
+        const last = st.last_run || {};
+        const names = Object.keys(last).slice(0, 8);
+        if (names.length) {
+          lines.push(
+            `pod last_run: ${names
+              .map((n) => `${n}=${String(last[n]).slice(0, 19)}`)
+              .join(", ")}`
+          );
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  } catch (err) {
+    lines.push(`(status snapshot error: ${(err && err.message) || "unknown"})`);
+  }
+  return lines.join("\n").slice(0, CHAT_STATUS_MAX_CHARS);
+}
+
+function formatChatHistory(history) {
+  if (!Array.isArray(history) || !history.length) return "";
+  const lines = history
+    .slice(-10)
+    .map((t) => {
+      if (!t || typeof t !== "object") return null;
+      const text = String(t.text || "").trim().slice(0, 1500);
+      if (!text) return null;
+      const who = t.role === "user" ? "Human" : "Assistant";
+      return `${who}: ${text}`;
+    })
+    .filter(Boolean);
+  if (!lines.length) return "";
+  return `[Conversation so far]\n${lines.join("\n\n")}`;
+}
+
+function buildChatMessage(message, context, options = {}) {
   const clean = message.trim().slice(0, 2000);
   if (!clean) throw new Error("empty_message");
-  if (!context || typeof context !== "object") return clean;
+  const responseMode = options.responseMode === "workshop" ? "workshop" : "brief";
+  const blocks = [buildChatStylePreamble(responseMode, context)];
+  const statusBlock = buildChatSystemStatusBlock();
+  if (statusBlock) blocks.push(statusBlock);
+  const hist = formatChatHistory(options.history);
+  if (hist) blocks.push(hist);
 
-  const blocks = [];
+  if (!context || typeof context !== "object") {
+    return `${blocks.join("\n\n---\n\n")}\n\n---\n\nUser message:\n${clean}`;
+  }
+
   const store = readUserTasksStore();
   if (context.project_id) {
     const project = findUserProject(store, context.project_id);
@@ -586,10 +1902,54 @@ function buildChatMessage(message, context) {
     }
   }
   if (context.type === "story" && context.campaign && context.path) {
-    const doc = readStoryDoc(context.campaign, context.path);
-    blocks.push(
-      `[Story context — ${doc.label} / ${doc.file}]\n\n${doc.content.slice(0, 12000)}`
-    );
+    try {
+      const doc = readStoryDoc(context.campaign, context.path);
+      blocks.push(
+        `[Story context — ${doc.label} / ${doc.file}]\n\n${doc.content.slice(0, 12000)}`
+      );
+    } catch (err) {
+      blocks.push(`[Story context — file unavailable: ${context.path} (${err.message || "not_found"})]`);
+    }
+    if (context.workshop_mode || context.ask_human) {
+      blocks.push(
+        `[Campaign workshop — roles]
+The human is the GM. You are scribe/implementer for this lore doc: riff with them, capture theories, list follow-ups, propose tasks. Do not act as GM.`
+      );
+    }
+  }
+  if (context.type === "character" && context.campaign) {
+    if (context.workshop_mode && !context.path) {
+      blocks.push(
+        `[Campaign workshop — ${context.campaign}]
+The human is the GM for this chronicle. You are scribe/implementer: brainstorm, capture theories, list follow-ups, suggest registry/task updates. Do not act as GM.`
+      );
+    }
+    const reg = readCharactersRegistry(context.campaign);
+    const row =
+      (context.character_id && reg.characters.find((c) => c.id === context.character_id)) ||
+      (context.path && findRegistryForPath(reg, context.path));
+    if (row) {
+      blocks.push(
+        `[Character registry — ${row.display_name}]\nstatus: ${row.status}\nplayer: ${row.player_name || "(unknown)"}\ndiscord: ${row.discord_username || row.discord_user_id || "(unlinked)"}\ncan_proxy (future): ${row.can_proxy}\nnotes: ${row.notes || ""}`.slice(
+          0,
+          2000
+        )
+      );
+    }
+    if (context.workshop_mode || context.ask_human) {
+      blocks.push(
+        `[Campaign workshop — roles]
+The human is the GM (creative authority). You are the scribe/implementer: capture ideas, brainstorm options, note open questions, suggest tasks or registry updates. Do not act as GM or lecture. When they settle on something, offer to record it. Ask only when blocked on facts — never invent Discord IDs or player identities.`
+      );
+    }
+    if (context.path) {
+      try {
+        const doc = readStoryDoc(context.campaign, context.path);
+        blocks.push(`[Character sheet]\n\n${doc.content.slice(0, 10000)}`);
+      } catch {
+        /* optional sheet */
+      }
+    }
   }
   if (context.task_id) {
     const task = store.tasks.find((t) => t.id === context.task_id);
@@ -600,18 +1960,68 @@ function buildChatMessage(message, context) {
           blocks.push(`[Task project: ${project.name}]`);
         }
       }
+      const taskCtx = task.context && typeof task.context === "object" ? task.context : {};
+      if (taskCtx.campaign && taskCtx.story_path && !context.path) {
+        try {
+          const doc = readStoryDoc(taskCtx.campaign, taskCtx.story_path);
+          blocks.push(
+            `[Task-linked story — ${doc.label} / ${doc.file}]\n\n${doc.content.slice(0, 8000)}`
+          );
+        } catch {
+          /* optional story on task */
+        }
+      }
       blocks.push(
-        `[Linked task ${task.id.slice(0, 8)}]\nTitle: ${task.title}\nTags: ${task.tags.join(", ")}\nStatus: ${task.status}\n${task.body || ""}`.slice(
+        `[Linked task ${task.id.slice(0, 8)}]\nTitle: ${task.title}\nTags: ${(task.tags || []).join(", ")}\nStatus: ${task.status}\n${task.body || ""}`.slice(
           0,
           3000
         )
+      );
+      if (taskCtx.chat_thread_id) {
+        const linkedThread = readChatThread(taskCtx.chat_thread_id);
+        if (linkedThread) {
+          const excerpt = chatThreadExcerpt(linkedThread, 10);
+          if (excerpt) {
+            blocks.push(`[Linked chat thread ${taskCtx.chat_thread_id}]\n${excerpt}`.slice(0, 4000));
+          }
+        }
+      }
+    }
+  }
+  if (context.inbox_id) {
+    const inbox = readHumanInbox();
+    const all = [...(inbox.open || []), ...(inbox.answered || [])];
+    const row = all.find((q) => q.id === context.inbox_id);
+    if (row) {
+      blocks.push(
+        `[Inbox question ${row.id}]\n${row.question || row.title || ""}\n${row.context || ""}`.slice(0, 3000)
+      );
+    }
+  }
+  if (context.story_path && context.campaign && context.type !== "story" && context.type !== "character") {
+    try {
+      const doc = readStoryDoc(context.campaign, context.story_path);
+      blocks.push(`[Story path]\n\n${doc.content.slice(0, 8000)}`);
+    } catch {
+      /* optional */
+    }
+  }
+  if (context.campaign && CAMPAIGNS[context.campaign]) {
+    const hasStoryDoc =
+      (context.type === "story" && context.path) ||
+      (context.type === "character" && context.path) ||
+      (context.story_path && context.type !== "story" && context.type !== "character");
+    if (!hasStoryDoc) {
+      const canon = buildCampaignContextExcerpt(context.campaign);
+      if (canon) blocks.push(canon);
+      blocks.push(
+        `[Campaign — ${CAMPAIGNS[context.campaign].label}]\nUse injected canon above plus this thread. Deliver substantive worldbuilding in one reply — no "let me read files" meta.`
       );
     }
   }
   if (Array.isArray(context.tags) && context.tags.length) {
     blocks.push(`[Context tags: ${context.tags.join(", ")}]`);
   }
-  if (!blocks.length) return clean;
   return `${blocks.join("\n\n---\n\n")}\n\n---\n\nUser message:\n${clean}`;
 }
 
@@ -632,17 +2042,1033 @@ async function suggestDashboardImprovement(text) {
   return { ok: true, added: clean };
 }
 
-async function runHermesChat(message, profile = "think", context = null) {
-  const prof = VALID_PROFILES.has(profile) ? profile : "think";
-  const prompt = buildChatMessage(message, context);
-  const wrapper = prof === "default" ? "hermes" : prof;
-  const cmd = `export PATH="${path.dirname(HERMES_BIN)}:$PATH"; cd "${REPO}" && ${wrapper} chat -q ${JSON.stringify(prompt)}`;
-  const { stdout, stderr } = await execFileAsync("bash", ["-lc", cmd], {
-    timeout: 180000,
-    maxBuffer: 512 * 1024,
+function isHermesModelFailure(text) {
+  return /HTTP 40[2349]|HTTP 429|rate.?limit|too many requests|unavailable for free|no endpoints found|model not found|RuntimeError|key limit exceeded|daily limit|Provider returned error/i.test(
+    String(text || "")
+  );
+}
+
+function isOpenRouterRateLimit(text) {
+  return /HTTP 429|rate.?limit|too many requests|Provider returned error/i.test(String(text || ""));
+}
+
+function hermesChatCombinedOutput(errOrStdout, stderr) {
+  if (errOrStdout && typeof errOrStdout === "object" && (errOrStdout.stdout != null || errOrStdout.stderr != null)) {
+    return `${errOrStdout.stdout || ""}\n${errOrStdout.stderr || ""}`.trim();
+  }
+  return `${errOrStdout || ""}\n${stderr || ""}`.trim();
+}
+
+function isSessionIdOnlyReply(text) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return lines.length > 0 && lines.every((l) => /^session_id:\s*\S+/i.test(l));
+}
+
+async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}) {
+  const wrapper = profile === "default" ? "hermes" : profile;
+  const flags = [];
+  if (modelId) flags.push(`-m ${JSON.stringify(modelId)}`);
+  if (execOpts.maxTurns != null) flags.push(`--max-turns ${Number(execOpts.maxTurns)}`);
+  // ponytail: hermes-4-70b has no tool-use endpoints on OpenRouter; default hermes-cli
+  // toolset includes browser_* and 404s. `-t none` is unknown → effective empty tool list.
+  if (execOpts.disableTools !== false) flags.push(`-t none`);
+  const flagStr = flags.length ? ` ${flags.join(" ")}` : "";
+  const cmd = `export PATH="${path.dirname(HERMES_BIN)}:$PATH"; cd "${REPO}" && ${wrapper} chat -Q -q ${JSON.stringify(prompt)}${flagStr}`;
+  let stdout = "";
+  let stderr = "";
+  try {
+    const result = await execFileAsync("bash", ["-lc", cmd], {
+      timeout: 180000,
+      maxBuffer: 512 * 1024,
+    });
+    stdout = result.stdout || "";
+    stderr = result.stderr || "";
+  } catch (err) {
+    const out = hermesChatCombinedOutput(err, "");
+    if (isHermesModelFailure(out) || /API call failed|Error code:/i.test(out)) {
+      return { error: summarizeHermesFailure(out), raw: out, model: modelId };
+    }
+    throw err;
+  }
+  const out = hermesChatCombinedOutput(stdout, stderr);
+  if (execOpts.rejectQwenFallback && isQwenFallbackInRaw(out)) {
+    return {
+      error: `${MODERATION_REFUSAL_USER_MSG} (Hermes fell back to Qwen free — retry or use Workshop mode.)`,
+      raw: out,
+      model: modelId,
+      moderation_refusal: true,
+      qwen_fallback: true,
+    };
+  }
+  const reply = extractHermesReply(out);
+  if ((!reply || isSessionIdOnlyReply(reply)) && isHermesModelFailure(out)) {
+    return { error: summarizeHermesFailure(out), raw: out, model: modelId };
+  }
+  if (isSessionIdOnlyReply(reply)) {
+    return {
+      error: summarizeHermesFailure(out) || "Hermes returned no reply (session_id only).",
+      raw: out,
+      model: modelId,
+    };
+  }
+  if (reply && isModelModerationRefusal(reply)) {
+    return {
+      error: MODERATION_REFUSAL_USER_MSG,
+      raw: out,
+      model: modelId,
+      moderation_refusal: true,
+    };
+  }
+  return { reply: reply || "(empty response)", raw: out, model: modelId };
+}
+
+const CHAT_JOBS_FILE = path.join(REPO, "agents", "state", "chat-jobs.json");
+const CHAT_THREADS_DIR = path.join(REPO, "agents", "state", "chat-threads");
+const CHAT_THREADS_INDEX = path.join(CHAT_THREADS_DIR, "index.json");
+const CHAT_MAX_MESSAGES = 80;
+// ponytail: 32k chars (~8k tokens) — enough for Workshop replies; Brief stays short via prompt, not hard chop
+const CHAT_MAX_MESSAGE_CHARS = 32_000;
+
+function ensureChatThreadsDir() {
+  fs.mkdirSync(CHAT_THREADS_DIR, { recursive: true });
+}
+
+function readChatThreadsIndex() {
+  ensureChatThreadsDir();
+  if (!fs.existsSync(CHAT_THREADS_INDEX)) {
+    return { updated_at: new Date().toISOString(), threads: [] };
+  }
+  try {
+    const data = JSON.parse(fs.readFileSync(CHAT_THREADS_INDEX, "utf8"));
+    return { updated_at: data.updated_at || new Date().toISOString(), threads: Array.isArray(data.threads) ? data.threads : [] };
+  } catch {
+    return { updated_at: new Date().toISOString(), threads: [] };
+  }
+}
+
+function writeChatThreadsIndex(threads) {
+  ensureChatThreadsDir();
+  const sorted = [...threads].sort((a, b) => (b.updated_at || 0) - (a.updated_at || 0));
+  fs.writeFileSync(
+    CHAT_THREADS_INDEX,
+    JSON.stringify({ updated_at: new Date().toISOString(), threads: sorted }, null, 2) + "\n",
+    "utf8"
+  );
+}
+
+function chatThreadFile(id) {
+  return path.join(CHAT_THREADS_DIR, `${id}.json`);
+}
+
+function backupChatThread(thread) {
+  if (!thread?.id) return;
+  try {
+    const bak = `${chatThreadFile(thread.id)}.bak`;
+    fs.writeFileSync(bak, JSON.stringify(thread, null, 2) + "\n", "utf8");
+  } catch {
+    /* ponytail: backup failure must not block truncate */
+  }
+}
+
+function normalizeThreadContext(raw) {
+  if (!raw || typeof raw !== "object") return {};
+  const ctx = {};
+  for (const key of [
+    "project_id",
+    "task_id",
+    "campaign",
+    "story_path",
+    "type",
+    "path",
+    "character_id",
+    "inbox_id",
+    "workshop_mode",
+    "ask_human",
+  ]) {
+    if (raw[key] != null && raw[key] !== "") ctx[key] = raw[key];
+  }
+  if (Array.isArray(raw.tags) && raw.tags.length) ctx.tags = raw.tags.filter(Boolean).slice(0, 12);
+  return ctx;
+}
+
+function readChatThread(id) {
+  if (!id || !/^[a-f0-9]{16}$/.test(id)) return null;
+  const file = chatThreadFile(id);
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function writeChatThread(thread) {
+  ensureChatThreadsDir();
+  fs.writeFileSync(chatThreadFile(thread.id), JSON.stringify(thread, null, 2) + "\n", "utf8");
+  const idx = readChatThreadsIndex();
+  const meta = {
+    id: thread.id,
+    title: thread.title,
+    created_at: thread.created_at,
+    updated_at: thread.updated_at,
+    context: thread.context || {},
+    parent_id: thread.parent_id || null,
+    branch_from_index: thread.branch_from_index ?? null,
+    message_count: (thread.messages || []).length,
+    profile: thread.profile || "think",
+    response_mode: thread.response_mode || "brief",
+  };
+  const i = idx.threads.findIndex((t) => t.id === thread.id);
+  if (i === -1) idx.threads.push(meta);
+  else idx.threads[i] = meta;
+  writeChatThreadsIndex(idx.threads);
+  return thread;
+}
+
+function threadMatchesFilters(meta, filters) {
+  const ctx = meta.context || {};
+  if (filters.project_id && ctx.project_id !== filters.project_id) return false;
+  if (filters.task_id && ctx.task_id !== filters.task_id) return false;
+  if (filters.campaign && ctx.campaign !== filters.campaign) return false;
+  if (filters.story_path && ctx.story_path !== filters.story_path && ctx.path !== filters.story_path) return false;
+  return true;
+}
+
+function listChatThreads(filters = {}) {
+  const idx = readChatThreadsIndex();
+  let threads = idx.threads;
+  if (filters.project_id || filters.task_id || filters.campaign || filters.story_path) {
+    threads = threads.filter((t) => threadMatchesFilters(t, filters));
+  }
+  return { updated_at: idx.updated_at, threads };
+}
+
+function createChatThread(body = {}) {
+  const id = crypto.randomBytes(8).toString("hex");
+  const now = Date.now();
+  const context = normalizeThreadContext(body.context);
+  const thread = {
+    id,
+    title: String(body.title || "New chat").trim().slice(0, 120) || "New chat",
+    context,
+    messages: Array.isArray(body.messages) ? body.messages.slice(0, CHAT_MAX_MESSAGES) : [],
+    created_at: now,
+    updated_at: now,
+    parent_id: body.parent_id || null,
+    branch_from_index: body.branch_from_index ?? null,
+    profile: VALID_PROFILES.has(body.profile) ? body.profile : "think",
+    response_mode: body.response_mode === "workshop" ? "workshop" : "brief",
+  };
+  return writeChatThread(thread);
+}
+
+function chatThreadExcerpt(thread, maxMessages = 6) {
+  return (thread.messages || [])
+    .slice(-maxMessages)
+    .map((m) => {
+      const who = m.role === "user" ? "Human" : "Assistant";
+      return `${who}: ${String(m.text || "").trim()}`;
+    })
+    .filter((line) => line.length > 10)
+    .join("\n\n");
+}
+
+function promoteChatThreadToTask(threadId, payload = {}) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const excerpt = chatThreadExcerpt(thread, 8);
+  const ctx = thread.context || {};
+  const title =
+    String(payload.title || thread.title || "From chat")
+      .trim()
+      .slice(0, 300) || "From chat";
+  let body = String(payload.body || "").trim();
+  if (!body) {
+    body = `Promoted from chat thread ${threadId}.\n\n--- recent turns ---\n\n${excerpt}`.slice(0, 4000);
+  }
+  const tags = Array.isArray(payload.tags) ? payload.tags : ctx.campaign ? ["campaign", "general"] : ["general"];
+  return createUserTask({
+    title,
+    body,
+    tags,
+    project_id: payload.project_id || ctx.project_id || null,
+    context: {
+      campaign: ctx.campaign || null,
+      story_path: ctx.story_path || ctx.path || null,
+      chat_thread_id: threadId,
+    },
   });
-  const out = (stdout || stderr || "").trim();
-  return { reply: extractHermesReply(out), profile: prof, context_used: !!context };
+}
+
+function deleteChatThread(id) {
+  const thread = readChatThread(id);
+  if (!thread) throw new Error("thread_not_found");
+  try {
+    fs.unlinkSync(chatThreadFile(id));
+  } catch {
+    /* already gone */
+  }
+  const idx = readChatThreadsIndex();
+  writeChatThreadsIndex(idx.threads.filter((t) => t.id !== id));
+  return { ok: true, id };
+}
+
+function branchChatThread(id, fromIndex) {
+  const src = readChatThread(id);
+  if (!src) throw new Error("thread_not_found");
+  const idx = Number(fromIndex);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (src.messages || []).length) {
+    throw new Error("bad_branch_index");
+  }
+  const slice = (src.messages || []).slice(0, idx + 1);
+  const title = `${src.title} (branch)`.slice(0, 120);
+  return createChatThread({
+    title,
+    context: { ...src.context },
+    messages: slice.map((m) => ({ ...m })),
+    parent_id: src.id,
+    branch_from_index: idx,
+    profile: src.profile,
+    response_mode: src.response_mode,
+  });
+}
+
+function appendChatThreadMessage(id, role, text, isError = false, extras = {}) {
+  const thread = readChatThread(id);
+  if (!thread) throw new Error("thread_not_found");
+  const clean = String(text || "").trim().slice(0, CHAT_MAX_MESSAGE_CHARS);
+  if (!clean) return thread;
+  thread.messages = thread.messages || [];
+  const msg = { role, text: clean, error: !!isError, at: Date.now() };
+  if (Array.isArray(extras.artifacts) && extras.artifacts.length) {
+    msg.artifacts = extras.artifacts;
+  }
+  if (extras.promoted_task_id) msg.promoted_task_id = extras.promoted_task_id;
+  thread.messages.push(msg);
+  if (thread.messages.length > CHAT_MAX_MESSAGES) {
+    thread.messages = thread.messages.slice(-CHAT_MAX_MESSAGES);
+  }
+  thread.updated_at = Date.now();
+  return writeChatThread(thread);
+}
+
+function normalizeChatArtifact(raw, campaignId) {
+  if (!raw || typeof raw !== "object") return null;
+  const type = String(raw.type || "file").slice(0, 32);
+  const relPath = String(raw.path || "").replace(/\\/g, "/");
+  if (!relPath || relPath.includes("..")) return null;
+  const label = String(raw.label || path.basename(relPath)).slice(0, 200);
+  let url = raw.url ? String(raw.url) : null;
+  if (!url && type === "note" && relPath.startsWith(`campaigns/${campaignId}/`)) {
+    url = `/api/stories/doc?campaign=${encodeURIComponent(campaignId)}&path=${encodeURIComponent(relPath)}`;
+  }
+  return { type, path: relPath, label, url };
+}
+
+function patchChatMessage(threadId, msgIdx, patch = {}) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const idx = Number(msgIdx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+    throw new Error("bad_message_index");
+  }
+  const msg = thread.messages[idx];
+  if (patch.artifacts) {
+    msg.artifacts = Array.isArray(msg.artifacts) ? msg.artifacts : [];
+    for (const a of patch.artifacts) {
+      const norm = normalizeChatArtifact(a, thread.context?.campaign || "tropic-gooner");
+      if (norm) msg.artifacts.push(norm);
+    }
+  }
+  if (patch.promoted_task_id) msg.promoted_task_id = String(patch.promoted_task_id);
+  thread.messages[idx] = msg;
+  thread.updated_at = Date.now();
+  return writeChatThread(thread);
+}
+
+function prepareChatRegenerate(threadId, msgIdx) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const idx = Number(msgIdx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+    throw new Error("bad_message_index");
+  }
+  const target = thread.messages[idx];
+  if (!target || target.role !== "bot") throw new Error("bad_message_index");
+  let userIdx = idx - 1;
+  while (userIdx >= 0 && thread.messages[userIdx].role !== "user") userIdx -= 1;
+  if (userIdx < 0) throw new Error("no_prior_user_message");
+  const userText = String(thread.messages[userIdx].text || "").trim();
+  if (!userText) throw new Error("empty_user_message");
+  backupChatThread(thread);
+  thread.messages = thread.messages.slice(0, userIdx + 1);
+  thread.updated_at = Date.now();
+  writeChatThread(thread);
+  const history = chatHistoryFromThread(thread).slice(0, -1);
+  return { thread: readChatThread(threadId), userText, history };
+}
+
+function prepareChatEditAndRegen(threadId, msgIdx, newText) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const idx = Number(msgIdx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+    throw new Error("bad_message_index");
+  }
+  const target = thread.messages[idx];
+  if (!target || target.role !== "user") throw new Error("bad_message_index");
+  const userText = String(newText || "").trim().slice(0, CHAT_MAX_MESSAGE_CHARS);
+  if (!userText) throw new Error("empty_user_message");
+  backupChatThread(thread);
+  thread.messages[idx] = { ...target, text: userText, at: Date.now() };
+  thread.messages = thread.messages.slice(0, idx + 1);
+  thread.updated_at = Date.now();
+  writeChatThread(thread);
+  const history = chatHistoryFromThread(thread).slice(0, -1);
+  return { thread: readChatThread(threadId), userText, history, message_index: idx };
+}
+
+function resolveThreadCampaign(thread, bodyCampaign) {
+  const fromThread = thread?.context?.campaign;
+  if (fromThread && CAMPAIGNS[fromThread]) return fromThread;
+  const fromBody = String(bodyCampaign || "").trim();
+  if (fromBody && CAMPAIGNS[fromBody]) return fromBody;
+  return null;
+}
+
+function saveChatMessageNote(threadId, msgIdx) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const idx = Number(msgIdx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+    throw new Error("bad_message_index");
+  }
+  const msg = thread.messages[idx];
+  if (!msg || msg.role !== "bot" || msg.error) throw new Error("bad_message_index");
+  const campaign = thread.context?.campaign;
+  if (!campaign || !CAMPAIGNS[campaign]) throw new Error("no_campaign_context");
+  const notesDir = path.join(REPO, "campaigns", campaign, "notes");
+  fs.mkdirSync(notesDir, { recursive: true });
+  const ts = Date.now();
+  const filename = `chat-${threadId.slice(0, 8)}-${ts}.md`;
+  const relPath = `campaigns/${campaign}/notes/${filename}`;
+  const prior = (thread.messages || []).slice(Math.max(0, idx - 4), idx);
+  const lines = [
+    "# Chat note",
+    "",
+    `- Thread: \`${threadId}\``,
+    `- Saved: ${new Date(ts).toISOString()}`,
+    thread.title ? `- Title: ${thread.title}` : null,
+    "",
+    "## Context (recent turns)",
+    "",
+  ].filter(Boolean);
+  for (const m of prior) {
+    const who = m.role === "user" ? "Human" : "Assistant";
+    lines.push(`### ${who}`, "", String(m.text || "").trim(), "");
+  }
+  lines.push("## Assistant message", "", String(msg.text || "").trim(), "");
+  fs.writeFileSync(path.join(REPO, relPath), lines.join("\n"), "utf8");
+  const artifact = normalizeChatArtifact(
+    { type: "note", path: relPath, label: filename },
+    campaign
+  );
+  const updated = patchChatMessage(threadId, idx, { artifacts: [artifact] });
+  return { ok: true, artifact, message_index: idx, thread: updated };
+}
+
+function saveChatThreadNote(threadId, body = {}) {
+  let thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const campaign = resolveThreadCampaign(thread, body.campaign);
+  if (!campaign) throw new Error("no_campaign_context");
+  if (!thread.context?.campaign || thread.context.campaign !== campaign) {
+    thread = updateChatThreadMeta(threadId, { context: { campaign } });
+  }
+  const msgs = thread.messages || [];
+  if (!msgs.length) throw new Error("empty_thread");
+  const notesDir = path.join(REPO, "campaigns", campaign, "notes");
+  fs.mkdirSync(notesDir, { recursive: true });
+  const ts = Date.now();
+  const filename = `chat-${threadId.slice(0, 8)}-full-${ts}.md`;
+  const relPath = `campaigns/${campaign}/notes/${filename}`;
+  const lines = [
+    "# Chat transcript",
+    "",
+    `- Thread: \`${threadId}\``,
+    `- Saved: ${new Date(ts).toISOString()}`,
+    thread.title ? `- Title: ${thread.title}` : null,
+    `- Turns: ${msgs.length}`,
+    "",
+    "## Transcript",
+    "",
+  ].filter(Boolean);
+  for (const m of msgs) {
+    const who = m.role === "user" ? "Human" : "Assistant";
+    const err = m.error ? " (error)" : "";
+    lines.push(`### ${who}${err}`, "", String(m.text || "").trim(), "");
+  }
+  fs.writeFileSync(path.join(REPO, relPath), lines.join("\n"), "utf8");
+  const artifact = normalizeChatArtifact(
+    { type: "note", path: relPath, label: filename },
+    campaign
+  );
+  let attachIdx = -1;
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    if (msgs[i].role === "bot" && !msgs[i].error) {
+      attachIdx = i;
+      break;
+    }
+  }
+  let updated = thread;
+  if (attachIdx >= 0) {
+    updated = patchChatMessage(threadId, attachIdx, { artifacts: [artifact] });
+  }
+  return {
+    ok: true,
+    artifact,
+    message_index: attachIdx >= 0 ? attachIdx : null,
+    thread: updated,
+  };
+}
+
+function promoteChatMessageToTask(threadId, msgIdx, payload = {}) {
+  const thread = readChatThread(threadId);
+  if (!thread) throw new Error("thread_not_found");
+  const idx = Number(msgIdx);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= (thread.messages || []).length) {
+    throw new Error("bad_message_index");
+  }
+  const msg = thread.messages[idx];
+  if (!msg || msg.role !== "bot" || msg.error) throw new Error("bad_message_index");
+  const ctx = thread.context || {};
+  const excerpt = (thread.messages || [])
+    .slice(Math.max(0, idx - 3), idx + 1)
+    .map((m) => {
+      const who = m.role === "user" ? "Human" : "Assistant";
+      return `${who}: ${String(m.text || "").trim()}`;
+    })
+    .join("\n\n");
+  const title =
+    String(payload.title || thread.title || "From chat")
+      .trim()
+      .slice(0, 300) || "From chat";
+  let body = String(payload.body || "").trim();
+  if (!body) {
+    body = `Promoted from chat message #${idx + 1} in thread ${threadId}.\n\n--- context ---\n\n${excerpt}`.slice(
+      0,
+      4000
+    );
+  }
+  const tags = Array.isArray(payload.tags) ? payload.tags : ctx.campaign ? ["campaign", "general"] : ["general"];
+  const { task } = createUserTask({
+    title,
+    body,
+    tags,
+    project_id: payload.project_id || ctx.project_id || null,
+    context: {
+      campaign: ctx.campaign || null,
+      story_path: ctx.story_path || ctx.path || null,
+      chat_thread_id: threadId,
+    },
+  });
+  const taskArtifact = {
+    type: "task",
+    path: task.id,
+    label: task.title,
+    url: null,
+  };
+  patchChatMessage(threadId, idx, { promoted_task_id: task.id, artifacts: [taskArtifact] });
+  return { ok: true, task, message_index: idx, thread: readChatThread(threadId) };
+}
+
+function startRegenerateChatJob(threadId, msgIdx) {
+  const { thread, userText, history } = prepareChatRegenerate(threadId, msgIdx);
+  return startChatJob(userText, thread.profile || "think", thread.context || null, {
+    history,
+    responseMode: thread.response_mode || "brief",
+    threadId,
+    skipUserAppend: true,
+    messageIndex: Number(msgIdx),
+  });
+}
+
+function startEditChatJob(threadId, msgIdx, newText) {
+  const { thread, userText, history, message_index } = prepareChatEditAndRegen(
+    threadId,
+    msgIdx,
+    newText
+  );
+  return startChatJob(userText, thread.profile || "think", thread.context || null, {
+    history,
+    responseMode: thread.response_mode || "brief",
+    threadId,
+    skipUserAppend: true,
+    messageIndex: message_index,
+  });
+}
+
+function maybeAutoTitleThread(id, message) {
+  const thread = readChatThread(id);
+  if (!thread) return;
+  if (thread.title && thread.title !== "New chat" && !/^Task:/.test(thread.title)) return;
+  const t = String(message || "").trim().slice(0, 48);
+  if (!t) return;
+  thread.title = t + (message.length > 48 ? "…" : "");
+  thread.updated_at = Date.now();
+  writeChatThread(thread);
+}
+
+function updateChatThreadMeta(id, patch = {}) {
+  const thread = readChatThread(id);
+  if (!thread) throw new Error("thread_not_found");
+  if (patch.title) thread.title = String(patch.title).trim().slice(0, 120);
+  if (patch.context) thread.context = normalizeThreadContext({ ...thread.context, ...patch.context });
+  if (patch.profile && VALID_PROFILES.has(patch.profile)) thread.profile = patch.profile;
+  if (patch.response_mode) thread.response_mode = patch.response_mode === "workshop" ? "workshop" : "brief";
+  thread.updated_at = Date.now();
+  return writeChatThread(thread);
+}
+
+function chatHistoryFromThread(thread) {
+  return (thread.messages || [])
+    .filter((t) => t && (t.role === "user" || t.role === "bot") && String(t.text || "").trim())
+    .slice(-20)
+    .map((t) => ({ role: t.role, text: String(t.text).trim().slice(0, 1500) }));
+}
+
+const CHAT_JOBS = new Map();
+const CHAT_JOB_TTL_MS = 15 * 60 * 1000;
+const CHAT_JOB_TIMEOUT_MS = 4 * 60 * 1000;
+const CHAT_QUEUE = [];
+let chatWorkerBusy = false;
+
+function loadChatJobs() {
+  if (!fs.existsSync(CHAT_JOBS_FILE)) return;
+  try {
+    const data = JSON.parse(fs.readFileSync(CHAT_JOBS_FILE, "utf8"));
+    const jobs = data.jobs && typeof data.jobs === "object" ? data.jobs : {};
+    for (const [id, job] of Object.entries(jobs)) {
+      if (!job || typeof job !== "object") continue;
+      if (job.status === "pending" || job.status === "queued") {
+        job.status = "error";
+        job.error =
+          "Job lost when dashboard restarted — retry your message.";
+        job.finished_at = Date.now();
+      }
+      CHAT_JOBS.set(id, { job_id: id, ...job });
+    }
+  } catch {
+    /* ponytail: corrupt file — start fresh */
+  }
+}
+
+function persistChatJobs() {
+  try {
+    fs.mkdirSync(path.dirname(CHAT_JOBS_FILE), { recursive: true });
+    const jobs = {};
+    for (const [id, job] of CHAT_JOBS) jobs[id] = job;
+    fs.writeFileSync(CHAT_JOBS_FILE, JSON.stringify({ updated_at: new Date().toISOString(), jobs }, null, 2) + "\n", "utf8");
+  } catch {
+    /* non-fatal */
+  }
+}
+
+function updateChatJob(job, patch) {
+  Object.assign(job, patch);
+  persistChatJobs();
+}
+
+function pruneChatJobs() {
+  const cutoff = Date.now() - CHAT_JOB_TTL_MS;
+  let changed = false;
+  for (const [id, job] of CHAT_JOBS) {
+    if (job.created_at < cutoff) {
+      CHAT_JOBS.delete(id);
+      changed = true;
+    }
+  }
+  if (changed) persistChatJobs();
+}
+
+function failStaleChatJobs() {
+  const cutoff = Date.now() - CHAT_JOB_TIMEOUT_MS;
+  for (const job of CHAT_JOBS.values()) {
+    if (job.status !== "pending" && job.status !== "queued") continue;
+    const started = job.started_at || job.created_at;
+    if (started >= cutoff) continue;
+    updateChatJob(job, {
+      status: "error",
+      error: "Chat timed out (>4m). Hermes may be busy — retry with less context or wait a minute.",
+      finished_at: Date.now(),
+    });
+  }
+}
+
+function chatQueueDepth() {
+  return CHAT_QUEUE.length + (chatWorkerBusy ? 1 : 0);
+}
+
+function findInFlightChatJobForThread(threadId) {
+  if (!threadId) return null;
+  for (const job of CHAT_JOBS.values()) {
+    if (job.thread_id !== threadId) continue;
+    if (job.status === "pending" || job.status === "queued") return job;
+  }
+  for (const item of CHAT_QUEUE) {
+    if (item.threadId === threadId) return item.job;
+  }
+  if (chatWorkerBusy) {
+    const busy = [...CHAT_JOBS.values()].find(
+      (j) => j.thread_id === threadId && j.status === "pending" && j.started_at
+    );
+    if (busy) return busy;
+  }
+  return null;
+}
+
+function shouldSkipDuplicateBotAppend(threadId, text) {
+  const thread = readChatThread(threadId);
+  if (!thread) return false;
+  const last = (thread.messages || []).slice(-1)[0];
+  return last?.role === "bot" && String(last.text || "").trim() === String(text || "").trim();
+}
+
+function refreshQueuedJobDepths() {
+  let idx = 0;
+  if (chatWorkerBusy) idx = 1;
+  for (const item of CHAT_QUEUE) {
+    updateChatJob(item.job, { status: "queued", queue_depth: idx });
+    idx += 1;
+  }
+}
+
+function drainChatQueue() {
+  if (chatWorkerBusy || !CHAT_QUEUE.length) return;
+  const next = CHAT_QUEUE.shift();
+  if (!next) return;
+  chatWorkerBusy = true;
+  refreshQueuedJobDepths();
+  const { job, message, profile, context, history, responseMode, threadId } = next;
+  updateChatJob(job, { status: "pending", started_at: Date.now(), queue_depth: 0 });
+  runHermesChat(message, profile, context, { history, responseMode })
+    .then((result) => {
+      if (result.error) {
+        updateChatJob(job, { status: "error", error: result.error, finished_at: Date.now(), ...result });
+        if (threadId) {
+          try {
+            if (!shouldSkipDuplicateBotAppend(threadId, result.error)) {
+              appendChatThreadMessage(threadId, "bot", result.error, true);
+            }
+          } catch {
+            /* non-fatal */
+          }
+        }
+      } else {
+        updateChatJob(job, { status: "done", finished_at: Date.now(), ...result });
+        if (threadId) {
+          try {
+            const replyText = result.reply || "";
+            if (!shouldSkipDuplicateBotAppend(threadId, replyText)) {
+              appendChatThreadMessage(threadId, "bot", replyText, false);
+            }
+          } catch {
+            /* non-fatal */
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      updateChatJob(job, {
+        status: "error",
+        error: err.message || "chat_failed",
+        finished_at: Date.now(),
+      });
+    })
+    .finally(() => {
+      chatWorkerBusy = false;
+      drainChatQueue();
+    });
+}
+
+function startChatJob(message, profile, context, chatOpts = {}) {
+  pruneChatJobs();
+  const threadId = chatOpts.threadId || null;
+  const inFlight = findInFlightChatJobForThread(threadId);
+  if (inFlight) {
+    return inFlight.job_id;
+  }
+  const id = crypto.randomBytes(8).toString("hex");
+  const ahead = chatQueueDepth();
+  const job = {
+    job_id: id,
+    status: ahead ? "queued" : "pending",
+    created_at: Date.now(),
+    queue_depth: ahead,
+    thread_id: chatOpts.threadId || null,
+    message_index:
+      Number.isInteger(chatOpts.messageIndex) && chatOpts.messageIndex >= 0
+        ? chatOpts.messageIndex
+        : null,
+  };
+  CHAT_JOBS.set(id, job);
+  persistChatJobs();
+  CHAT_QUEUE.push({
+    job,
+    message,
+    profile,
+    context,
+    history: chatOpts.history || [],
+    responseMode: chatOpts.responseMode || "brief",
+    threadId: chatOpts.threadId || null,
+    skipUserAppend: !!chatOpts.skipUserAppend,
+  });
+  drainChatQueue();
+  return id;
+}
+
+loadChatJobs();
+setInterval(failStaleChatJobs, 30_000);
+
+function isOpenRouterDailyLimit(text) {
+  return /key limit exceeded|daily limit/i.test(String(text || ""));
+}
+
+async function runHermesChat(message, profile = "think", context = null, chatOpts = {}) {
+  const prof = resolveChatProfile(context, profile);
+  if (profile === "fast") {
+    return {
+      error:
+        "Chat uses the think lane (paid ops pool first). The fast profile is for background ticks only — select think · campaign brainstorm.",
+      profile: prof,
+      context_used: !!context,
+    };
+  }
+  let prompt;
+  try {
+    prompt = buildChatMessage(message, context, {
+      history: chatOpts.history,
+      responseMode: chatOpts.responseMode,
+    });
+  } catch (err) {
+    return {
+      error: err.message || "bad_context",
+      profile: prof,
+      context_used: !!context,
+    };
+  }
+
+  const paidChain = getChatRefusalFailoverChain(prof);
+  const freeChain = getChatFreeFailoverChain();
+  const triedModels = [];
+  let lastErr = "";
+  let lastModerationRefusal = false;
+  let hitDailyLimit = false;
+
+  async function tryModelChain(modelChain, { allowFree }) {
+    const execOpts = { maxTurns: 1, rejectQwenFallback: !allowFree };
+    for (const modelId of modelChain) {
+      triedModels.push(modelId);
+      try {
+        const result = await execHermesChatOnce(prof, prompt, modelId, execOpts);
+        if (result.error) {
+          lastErr = result.error;
+          if (isOpenRouterDailyLimit(result.raw || result.error)) {
+            recordChatModelUsage(modelId, "daily_limit");
+            hitDailyLimit = true;
+            // Same ops key across paid models — skip rest of paid lane.
+            if (!allowFree) return { kind: "daily_limit" };
+            continue;
+          }
+          if (result.moderation_refusal) {
+            recordChatModelUsage(modelId, "moderation");
+            lastModerationRefusal = true;
+            continue;
+          }
+          if (isOpenRouterRateLimit(result.raw || result.error)) {
+            recordChatModelUsage(modelId, "rate_limit");
+            continue;
+          }
+          if (isHermesModelFailure(result.raw || result.error)) {
+            recordChatModelUsage(modelId, "fail");
+            continue;
+          }
+          recordChatModelUsage(modelId, "fail");
+          return {
+            kind: "error",
+            payload: {
+              error: result.error,
+              profile: prof,
+              model: modelId,
+              context_used: !!context,
+              failover_tried: triedModels,
+              openrouter_daily_limit: hitDailyLimit || undefined,
+            },
+          };
+        }
+        let reply = result.reply;
+        if (isModelModerationRefusal(reply)) {
+          recordChatModelUsage(modelId, "moderation");
+          lastErr = MODERATION_REFUSAL_USER_MSG;
+          lastModerationRefusal = true;
+          continue;
+        }
+        if (isIntentOnlyChatReply(reply)) {
+          const retryPrompt = `${prompt}\n\n---\n\n[REJECTED: Your reply was intent-only without content ("${String(reply).slice(0, 100)}"). You CANNOT read or write files. Use the canon excerpt in this prompt. Respond NOW with substantive content — no "let me read/check" phrasing.]`;
+          const retryResult = await execHermesChatOnce(prof, retryPrompt, modelId, execOpts);
+          if (
+            retryResult.moderation_refusal ||
+            (retryResult.reply && isModelModerationRefusal(retryResult.reply))
+          ) {
+            recordChatModelUsage(modelId, "moderation");
+            lastErr = retryResult.error || MODERATION_REFUSAL_USER_MSG;
+            lastModerationRefusal = true;
+            continue;
+          }
+          if (
+            retryResult.reply &&
+            !isIntentOnlyChatReply(retryResult.reply) &&
+            !isModelModerationRefusal(retryResult.reply)
+          ) {
+            reply = retryResult.reply;
+          } else {
+            recordChatModelUsage(modelId, "fail");
+            return {
+              kind: "error",
+              payload: {
+                error:
+                  "Model returned empty intent (promised to read files but cannot). Click Regenerate or switch to Workshop mode.",
+                profile: prof,
+                model: modelId,
+                context_used: !!context,
+                intent_only: true,
+              },
+            };
+          }
+        }
+        recordChatModelUsage(modelId, "ok");
+        const retried = modelId !== modelChain[0] || triedModels.length > 1 || allowFree || hitDailyLimit;
+        return {
+          kind: "ok",
+          payload: {
+            reply,
+            profile: prof,
+            model: modelId,
+            context_used: !!context,
+            paid_retry: retried && !allowFree,
+            free_fallback: allowFree || undefined,
+            paid_retry_from: retried ? triedModels[0] : undefined,
+            failover: retried,
+            failover_from: retried ? triedModels[0] : undefined,
+            retried_models: triedModels.length > 1 ? triedModels : undefined,
+            openrouter_daily_limit: hitDailyLimit || undefined,
+          },
+        };
+      } catch (err) {
+        const detail = hermesChatCombinedOutput(err, "") || String(err.message || err);
+        lastErr = summarizeHermesFailure(detail);
+        if (isOpenRouterDailyLimit(detail)) {
+          recordChatModelUsage(modelId, "daily_limit");
+          hitDailyLimit = true;
+          if (!allowFree) return { kind: "daily_limit" };
+          continue;
+        }
+        if (isOpenRouterRateLimit(detail)) {
+          recordChatModelUsage(modelId, "rate_limit");
+          continue;
+        }
+        if (isHermesModelFailure(detail)) {
+          recordChatModelUsage(modelId, "fail");
+          continue;
+        }
+        recordChatModelUsage(modelId, "fail");
+        return {
+          kind: "error",
+          payload: {
+            error: lastErr,
+            profile: prof,
+            model: modelId,
+            context_used: !!context,
+            failover_tried: triedModels,
+            openrouter_daily_limit: hitDailyLimit || undefined,
+          },
+        };
+      }
+    }
+    return { kind: "exhausted" };
+  }
+
+  // Free-first (model-budget): paid only when free rate-limits / refuses / fails.
+  loadModelBudgetConfig();
+  const phases = CHAT_FREE_FIRST
+    ? [
+        { chain: freeChain, allowFree: true },
+        { chain: paidChain, allowFree: false },
+      ]
+    : [
+        { chain: paidChain, allowFree: false },
+        { chain: freeChain, allowFree: true },
+      ];
+
+  for (const phase of phases) {
+    if (!phase.chain.length) continue;
+    const result = await tryModelChain(phase.chain, { allowFree: phase.allowFree });
+    if (result.kind === "ok" || result.kind === "error") {
+      return result.payload;
+    }
+    // daily_limit / exhausted → next phase
+  }
+
+  if (hitDailyLimit) {
+    return {
+      error: `OpenRouter ops daily USD cap reached (policy target $${OPENROUTER_OPS_DAILY_USD}). Free models also exhausted or rate-limited — wait for UTC reset, top up, or raise key limit (set-openrouter-key-limit.sh).`,
+      profile: prof,
+      context_used: !!context,
+      failover_tried: triedModels,
+      openrouter_daily_limit: true,
+    };
+  }
+
+  return {
+    error: lastModerationRefusal
+      ? formatAllModelsRefusedError(triedModels)
+      : lastErr || formatAllModelsRefusedError(triedModels),
+    profile: prof,
+    context_used: !!context,
+    moderation_refusal: lastModerationRefusal,
+    failover_tried: triedModels,
+    retried_models: triedModels.length ? triedModels : undefined,
+    openrouter_daily_limit: hitDailyLimit || undefined,
+  };
+}
+
+function summarizeHermesFailure(raw) {
+  const s = String(raw).replace(/\x1b\[[0-9;]*m/g, "");
+  if (/key limit exceeded|daily limit/i.test(s)) {
+    return `OpenRouter daily USD limit on ops key (target $${OPENROUTER_OPS_DAILY_USD}/day). Cycling free→paid per model-budget; raise key limit in OpenRouter UI or set-openrouter-key-limit.sh.`;
+  }
+  if (/HTTP 429|rate.?limit|too many requests|Provider returned error/i.test(s)) {
+    return "Rate limited (HTTP 429) — trying next model in free→paid chain (model-budget).";
+  }
+  const tool404 = s.match(/No endpoints found that support tool use[^\n]*/i);
+  if (tool404) {
+    return `Model error: ${tool404[0].slice(0, 180)} (dashboard chat disables tools; retry once).`;
+  }
+  const m =
+    s.match(/API call failed[^\n]*/i) ||
+    s.match(/Error code:\s*40\d[^\n]*/i) ||
+    s.match(/HTTP 40[234][^\n]*/i) ||
+    s.match(/unavailable for free[^\n]*/i);
+  if (m) return `Model error: ${m[0].slice(0, 200)}. Use think lane; run install-hermes-profiles.sh on linuxbox if persistent.`;
+  if (/timed out|ETIMEDOUT/i.test(s)) return "Chat timed out (>3m). Try a shorter message or less context.";
+  const line = s
+    .split("\n")
+    .map((l) => l.trim())
+    .find((l) => l && !/^session_id:/i.test(l) && !/^Warning: Unknown toolsets/i.test(l));
+  return line?.slice(0, 240) || "Hermes chat failed";
 }
 
 function extractHermesReply(raw) {
@@ -949,7 +3375,8 @@ async function fetchStockQuotes(symbols) {
 
 async function fetchSocialFeeds(feeds) {
   const out = [];
-  for (const feed of feeds.slice(0, 8)) {
+  // Allow more social/news streams on Intel Social tab (was 8).
+  for (const feed of feeds.slice(0, 12)) {
     const slug = feedCacheSlug(feed);
     const cached = readRssCache(slug);
     const ttlMs = feed.platform === "reddit" ? REDDIT_CACHE_TTL_MS : RSS_CACHE_TTL_MS;
@@ -1141,6 +3568,8 @@ function listPublicReports() {
 //   DASHBOARD_ADMIN_USER     — Basic auth username for admin (default: admin)
 //   DASHBOARD_VIEWER_TOKEN   — viewer password (optional; enables read-only role)
 //   DASHBOARD_VIEWER_USER    — Basic auth username for viewer (default: viewer)
+//   OBSERVABILITY_KUMA_URL   — Uptime Kuma link in Active now (default MagicDNS :13001)
+//   OBSERVABILITY_GRAFANA_URL / GRAFANA_URL — optional Grafana link (off-box recommended)
 // Bitwarden: save https://abhinavall.net/Linuxbox/ with username admin|viewer + password.
 // ---------------------------------------------------------------------------
 function readEnvFile() {
@@ -1173,6 +3602,7 @@ const VIEWER_GET_PREFIXES = [
   "/",
   "/index.html",
   "/api/session",
+  "/api/agent",
   "/api/intel",
   "/api/news",
 ];
@@ -1370,6 +3800,7 @@ const server = http.createServer(async (req, res) => {
             agent_control: auth?.role === "admin",
             chat: auth?.role === "admin",
             inbox: auth?.role === "admin",
+            systems: auth?.role === "admin",
           },
         },
         publicMode
@@ -1384,12 +3815,107 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && pathname === "/api/agent") {
-      sendJson(res, 200, await collectAgentState(), publicMode);
+      const lite = auth?.role === "viewer" || shouldUseLiteAgentCollect();
+      sendJson(res, 200, await collectAgentStateCached({ lite }), publicMode);
+      return;
+    }
+
+    // Prometheus text — loopback/admin only (server binds 127.0.0.1; scrape via SSH tunnel).
+    if (req.method === "GET" && pathname === "/metrics") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const body = buildPrometheusMetrics();
+      res.writeHead(200, {
+        ...responseHeaders(publicMode),
+        "Content-Type": "text/plain; version=0.0.4; charset=utf-8",
+        "Cache-Control": "no-store",
+      });
+      res.end(body);
       return;
     }
 
     if (req.method === "GET" && pathname === "/api/inbox") {
       sendJson(res, 200, { updated_at: new Date().toISOString(), ...readHumanInbox() }, publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/systems") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, await collectSystemsState(), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/machines") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, await collectMachinesState(), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/chat/status") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const jobId = url.searchParams.get("job_id") || "";
+      const job = CHAT_JOBS.get(jobId);
+      if (!job) {
+        sendJson(res, 404, { error: "job_not_found" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, job, publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/chat/threads") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const filters = {
+        project_id: url.searchParams.get("project_id") || "",
+        task_id: url.searchParams.get("task_id") || "",
+        campaign: url.searchParams.get("campaign") || "",
+        story_path: url.searchParams.get("story_path") || "",
+      };
+      sendJson(res, 200, listChatThreads(filters), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname.startsWith("/api/chat/threads/")) {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const threadId = pathname.slice("/api/chat/threads/".length).split("/")[0];
+      const thread = readChatThread(threadId);
+      if (!thread) {
+        sendJson(res, 404, { error: "thread_not_found" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, thread, publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname.startsWith("/icons/") && pathname.endsWith(".svg")) {
+      const name = pathname.slice("/icons/".length);
+      if (!/^[a-z0-9-]+\.svg$/.test(name)) {
+        sendJson(res, 400, { error: "bad_icon" }, publicMode);
+        return;
+      }
+      const iconPath = path.join(STATIC_DIR, "icons", name);
+      if (!fs.existsSync(iconPath)) {
+        sendJson(res, 404, { error: "not_found" }, publicMode);
+        return;
+      }
+      sendFile(res, iconPath, "image/svg+xml", publicMode);
       return;
     }
 
@@ -1423,6 +3949,12 @@ const server = http.createServer(async (req, res) => {
       const campaignId = url.searchParams.get("campaign");
       const relPath = url.searchParams.get("path");
       sendJson(res, 200, readStoryDoc(campaignId, relPath), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/characters-registry") {
+      const campaignId = url.searchParams.get("campaign") || "tropic-gooner";
+      sendJson(res, 200, readCharactersRegistry(campaignId), publicMode);
       return;
     }
 
@@ -1466,6 +3998,32 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && pathname === "/api/garage") {
       sendJson(res, 200, readMazdaParts(), publicMode);
       return;
+    }
+
+    if (req.method === "GET" && pathname.startsWith("/api/campaigns/")) {
+      const rest = pathname.slice("/api/campaigns/".length);
+      const slash = rest.indexOf("/");
+      const campaignId = slash === -1 ? rest : rest.slice(0, slash);
+      const sub = slash === -1 ? "" : rest.slice(slash + 1);
+      if (sub === "map" && CAMPAIGNS[campaignId]) {
+        sendJson(res, 200, readCampaignMap(campaignId), publicMode);
+        return;
+      }
+      if (sub === "map-image" && CAMPAIGNS[campaignId]) {
+        const mapData = readCampaignMap(campaignId);
+        const rel = mapData.base_image;
+        if (!rel || rel.includes("..")) {
+          sendJson(res, 404, { error: "no_map_image" }, publicMode);
+          return;
+        }
+        const abs = path.join(REPO, "campaigns", campaignId, rel);
+        if (!fs.existsSync(abs)) {
+          sendJson(res, 404, { error: "map_image_missing" }, publicMode);
+          return;
+        }
+        sendFile(res, abs, "image/png", publicMode);
+        return;
+      }
     }
 
     if (req.method === "GET" && pathname.startsWith("/api/reports/")) {
@@ -1512,7 +4070,250 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === "/api/chat") {
-        sendJson(res, 200, await runHermesChat(body.message || "", body.profile || "think", body.context || null), publicMode);
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const message = String(body.message || "").trim();
+        if (!message) {
+          sendJson(res, 400, { error: "empty_message" }, publicMode);
+          return;
+        }
+        const threadId = String(body.thread_id || "").trim();
+        let context = body.context || null;
+        let profile = resolveChatProfile(body.context || null, body.profile || "think");
+        let responseMode = body.response_mode === "workshop" ? "workshop" : "brief";
+        let history = Array.isArray(body.history)
+          ? body.history
+              .filter((t) => t && (t.role === "user" || t.role === "bot") && String(t.text || "").trim())
+              .slice(-20)
+              .map((t) => ({
+                role: t.role,
+                text: String(t.text).trim().slice(0, 1500),
+              }))
+          : [];
+
+        if (threadId) {
+          const inFlight = findInFlightChatJobForThread(threadId);
+          if (inFlight) {
+            sendJson(
+              res,
+              202,
+              {
+                job_id: inFlight.job_id,
+                status: inFlight.status,
+                queue_depth: inFlight.queue_depth || 0,
+                thread_id: threadId,
+                deduped: true,
+              },
+              publicMode
+            );
+            return;
+          }
+          const thread = readChatThread(threadId);
+          if (!thread) {
+            sendJson(res, 404, { error: "thread_not_found" }, publicMode);
+            return;
+          }
+          context = thread.context || context;
+          profile = resolveChatProfile(context, body.profile || thread.profile || "think");
+          responseMode =
+            body.response_mode === "workshop" || body.response_mode === "brief"
+              ? body.response_mode
+              : thread.response_mode || "brief";
+          history = chatHistoryFromThread(thread);
+          try {
+            appendChatThreadMessage(threadId, "user", message, false);
+            maybeAutoTitleThread(threadId, message);
+            if (body.profile || body.response_mode) {
+              updateChatThreadMeta(threadId, {
+                profile: body.profile,
+                response_mode: body.response_mode,
+              });
+            }
+          } catch (err) {
+            sendJson(res, 400, { error: err.message || "thread_write_failed" }, publicMode);
+            return;
+          }
+        }
+
+        const jobId = startChatJob(message, profile, context, {
+          history,
+          responseMode,
+          threadId: threadId || null,
+        });
+        const job = CHAT_JOBS.get(jobId) || { status: "pending", queue_depth: 0 };
+        sendJson(
+          res,
+          202,
+          { job_id: jobId, status: job.status, queue_depth: job.queue_depth || 0, thread_id: threadId || null },
+          publicMode
+        );
+        return;
+      }
+
+      if (pathname === "/api/chat/threads") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        try {
+          const thread = createChatThread(body);
+          sendJson(res, 201, thread, publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "thread_create_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname.startsWith("/api/chat/threads/") && pathname.endsWith("/branch")) {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const parts = pathname.slice("/api/chat/threads/".length).split("/");
+        const srcId = parts[0];
+        try {
+          const branch = branchChatThread(srcId, body.from_index);
+          sendJson(res, 201, branch, publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "branch_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname.startsWith("/api/chat/threads/") && pathname.endsWith("/promote-task")) {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const threadId = pathname.slice("/api/chat/threads/".length).replace(/\/promote-task$/, "");
+        try {
+          sendJson(res, 201, promoteChatThreadToTask(threadId, body), publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "promote_failed" }, publicMode);
+        }
+        return;
+      }
+
+      const threadSaveNote = pathname.match(/^\/api\/chat\/threads\/([a-f0-9]{16})\/save-note$/);
+      if (threadSaveNote) {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        try {
+          sendJson(res, 201, saveChatThreadNote(threadSaveNote[1], body), publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "save_failed" }, publicMode);
+        }
+        return;
+      }
+
+      const chatMsgRoute = pathname.match(
+        /^\/api\/chat\/threads\/([a-f0-9]{16})\/messages\/(\d+)\/(save-note|regenerate|promote-task|edit)$/
+      );
+      if (chatMsgRoute) {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const threadId = chatMsgRoute[1];
+        const msgIdx = chatMsgRoute[2];
+        const action = chatMsgRoute[3];
+        try {
+          if (action === "save-note") {
+            sendJson(res, 201, saveChatMessageNote(threadId, msgIdx), publicMode);
+            return;
+          }
+          if (action === "promote-task") {
+            sendJson(res, 201, promoteChatMessageToTask(threadId, msgIdx, body), publicMode);
+            return;
+          }
+          if (action === "edit") {
+            const inFlight = findInFlightChatJobForThread(threadId);
+            if (inFlight) {
+              sendJson(
+                res,
+                409,
+                {
+                  error: "chat_job_in_flight",
+                  job_id: inFlight.job_id,
+                  status: inFlight.status,
+                  thread_id: threadId,
+                },
+                publicMode
+              );
+              return;
+            }
+            const jobId = startEditChatJob(threadId, msgIdx, body.text || body.message || "");
+            const job = CHAT_JOBS.get(jobId) || { status: "pending", queue_depth: 0 };
+            sendJson(
+              res,
+              202,
+              {
+                job_id: jobId,
+                status: job.status,
+                queue_depth: job.queue_depth || 0,
+                thread_id: threadId,
+                message_index: Number(msgIdx),
+              },
+              publicMode
+            );
+            return;
+          }
+          if (action === "regenerate") {
+            const inFlight = findInFlightChatJobForThread(threadId);
+            if (inFlight) {
+              sendJson(
+                res,
+                202,
+                {
+                  job_id: inFlight.job_id,
+                  status: inFlight.status,
+                  queue_depth: inFlight.queue_depth || 0,
+                  thread_id: threadId,
+                  message_index: Number(msgIdx),
+                  deduped: true,
+                },
+                publicMode
+              );
+              return;
+            }
+            const jobId = startRegenerateChatJob(threadId, msgIdx);
+            const job = CHAT_JOBS.get(jobId) || { status: "pending", queue_depth: 0 };
+            sendJson(
+              res,
+              202,
+              {
+                job_id: jobId,
+                status: job.status,
+                queue_depth: job.queue_depth || 0,
+                thread_id: threadId,
+                message_index: Number(msgIdx),
+              },
+              publicMode
+            );
+            return;
+          }
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "message_action_failed" }, publicMode);
+          return;
+        }
+      }
+
+      if (pathname.startsWith("/api/chat/threads/")) {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const threadId = pathname.slice("/api/chat/threads/".length).split("/")[0];
+        try {
+          const thread = updateChatThreadMeta(threadId, body);
+          sendJson(res, 200, thread, publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "thread_update_failed" }, publicMode);
+        }
         return;
       }
 
@@ -1522,7 +4323,48 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (pathname === "/api/inbox/reply") {
-        sendJson(res, 200, replyHumanInbox(body.id, body.answer || ""), publicMode);
+        try {
+          sendJson(res, 200, replyHumanInbox(body.id, body.answer || ""), publicMode);
+        } catch (e) {
+          sendJson(res, 400, { error: e.message || "inbox_reply_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/systems/control") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        try {
+          const result = await runSystemControl(body.system_id || "", body.action || "");
+          agentStateCache = null;
+          sendJson(res, 200, result, publicMode);
+        } catch (e) {
+          sendJson(res, 400, { error: e.message || "control_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry") {
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(res, 200, patchCharacterRegistry(campaignId, body), publicMode);
+        } catch (e) {
+          sendJson(res, 400, { error: e.message || "registry_error" }, publicMode);
+        }
+        return;
+      }
+    }
+
+    if (req.method === "DELETE") {
+      if (pathname.startsWith("/api/chat/threads/") && auth?.role === "admin") {
+        const threadId = pathname.slice("/api/chat/threads/".length).split("/")[0];
+        try {
+          sendJson(res, 200, deleteChatThread(threadId), publicMode);
+        } catch (err) {
+          sendJson(res, 404, { error: err.message || "thread_not_found" }, publicMode);
+        }
         return;
       }
     }
@@ -1551,4 +4393,6 @@ server.listen(LISTEN_PORT, LISTEN_HOST, () => {
     authMode = `${parts.join("; ")}; on-box loopback exempt`;
   } else authMode = `NO tokens configured -> public denied (set tokens in ${TOKEN_ENV_FILE})`;
   console.log(`auth: ${authMode}; public Intel https://abhinavall.net/Intel/`);
+  refreshAgentStateBackground(shouldUseLiteAgentCollect());
+  setInterval(() => refreshAgentStateBackground(shouldUseLiteAgentCollect()), 60_000);
 });
