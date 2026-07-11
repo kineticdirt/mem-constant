@@ -210,6 +210,12 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-11 (UTC)** — [PC] **Result:** Chat Hermes fail = free `hy3` ~180s timeout hard-stopped failover + ops OpenRouter **daily limit** (403). Fixed: retry timeouts/API/empty across chain; campaign **paid-first**; clearer Tried: errors; sidebar ✕ + **Delete chat**. Linuxbox **03cc703**; potato HEAD match; delete smoke OK; `:8790` 200.
+
+- **2026-07-11 (UTC)** — [PC] **Intent:** Dashboard Chat — Hermes "Hermes chat failed" + user wants **delete chats**. Diagnose potato jobs/Hermes/OpenRouter; fix replies; wire visible thread-delete (UI+API); deploy via push/bundle (not SCP-only). Touch: `linuxbox-status-server.js`, `linuxbox-status/index.html`.
+
+- **2026-07-11 (UTC)** — [PC] **Result:** Git-bundle sync potato `~/agent-dump` → **0c17fe9** (Linuxbox/main successor of SIGPIPE harden; a427890 was mem-constant master lineage). Thin bundle 57e66ab..0c17fe9 applied; dashboard files clean; `:8790` **200**. Note: `push-linuxbox-git-bundle.sh` expands local `$HOME` in ssh apply — ran apply manually.
+
 - **2026-07-11 (UTC)** — [PC] **Result:** CF 502 crash fix now in **git** (not SCP-only): `collectHealth`/`refreshAgentStateBackground` try/catch for `nousagent-health.sh` SIGPIPE. PC working tree md5 matched potato running file. **Next:** `push-linuxbox-git-bundle.sh` (or `push-linuxbox.sh --finished`) so potato **git** tree matches — running :8790 already patched; box `git status` still shows M until bundle.
 
 - **2026-07-11 (UTC)** — [PC] **Result:** `/Linuxbox/` 502 — `linuxbox-status` crashed 18:09 EDT (uncaught `nousagent-health.sh` SIGPIPE in background refresh). Systemd already restarted; patched `collectHealth`+`refreshAgentStateBackground` try/catch, redeployed, restart. Loopback :8790/:8780/Linuxbox **200**; public edge **401** Basic (origin up; CF Access/Basic as expected).
