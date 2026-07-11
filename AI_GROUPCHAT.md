@@ -78,6 +78,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-11 (UTC)** — [PC] **Result:** Hermes bash-spam RCA — session `20260711_180006_e5fc10` = dashboard Chat job `f8137c…` (think / `tencent/hy3:free`). **Not** terminal tools (`tool_turns=0`; `-t none` correctly empties tools). **Root cause:** `execHermesChatOnce` wrapped prompt in `bash -lc` + double quotes → markdown `` `path` `` in injected Tropic README/canon ran as command substitution. **Fix:** argv `execFile(hermes)` (no shell); strip `bash: line` / Unknown toolsets from replies. Deploy `--dashboard`.
+
+- **2026-07-11 (UTC)** — [PC] **Intent:** RCA+fix Hermes Chat flood of `bash: line 1: …: command not found` (session `20260711_180006_e5fc10` / Tropic paths). Hypothesis: `-t none` vs terminal toolsets — verify on potato; fix dashboard so tools stay off and shell does not expand prompt backticks.
+
 - **2026-07-11 (UTC)** — [PC] **Intent:** Raise OpenRouter ops key daily limit **$5 → $7**; Chat prefer **free models when possible** (free-first, paid on refusal/429/exhaustion); treat HTTP 429 as failover. Live key shows `limit=5 limit_remaining=0` — needs Management API or OpenRouter UI to PATCH. Deploy `--dashboard` + docs.
 
 - **2026-07-11 (UTC)** — [PC] **Result:** Free-first + **model-budget** control plane shipped. `agents/model-budget/config.json` (ops/RP **$7/day** targets, free-first); CLI `model-budget.py`; Chat tries free Qwen/hy3 first, paid only on 429/refusal/fail; usage mirrors to `model-budget.json`. Live OpenRouter key still **limit=5** until UI or `OPENROUTER_MANAGEMENT_API_KEY` + `set-openrouter-key-limit.sh 7`. Docs: CLAUDE/AGENTS/pods → $7. Deploy dashboard+agents+scripts.

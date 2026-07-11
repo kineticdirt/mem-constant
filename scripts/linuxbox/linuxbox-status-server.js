@@ -2068,19 +2068,26 @@ function isSessionIdOnlyReply(text) {
 }
 
 async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}) {
-  const wrapper = profile === "default" ? "hermes" : profile;
-  const flags = [];
-  if (modelId) flags.push(`-m ${JSON.stringify(modelId)}`);
-  if (execOpts.maxTurns != null) flags.push(`--max-turns ${Number(execOpts.maxTurns)}`);
+  // argv-only (no bash -lc): campaign canon has many `backticks`; bash would run each
+  // as command substitution → flood of `bash: line 1: …: command not found` on stderr.
+  const args = [];
+  if (profile && profile !== "default") args.push("-p", profile);
+  args.push("chat", "-Q", "-q", String(prompt ?? ""));
+  if (modelId) args.push("-m", String(modelId));
+  if (execOpts.maxTurns != null) args.push("--max-turns", String(Number(execOpts.maxTurns)));
   // ponytail: hermes-4-70b has no tool-use endpoints on OpenRouter; default hermes-cli
-  // toolset includes browser_* and 404s. `-t none` is unknown → effective empty tool list.
-  if (execOpts.disableTools !== false) flags.push(`-t none`);
-  const flagStr = flags.length ? ` ${flags.join(" ")}` : "";
-  const cmd = `export PATH="${path.dirname(HERMES_BIN)}:$PATH"; cd "${REPO}" && ${wrapper} chat -Q -q ${JSON.stringify(prompt)}${flagStr}`;
+  // includes terminal/browser. Unknown `-t none` → enabled=["none"] → zero resolved tools.
+  if (execOpts.disableTools !== false) args.push("-t", "none");
+  const hermesEnv = {
+    ...process.env,
+    PATH: `${path.dirname(HERMES_BIN)}${path.delimiter}${process.env.PATH || ""}`,
+  };
   let stdout = "";
   let stderr = "";
   try {
-    const result = await execFileAsync("bash", ["-lc", cmd], {
+    const result = await execFileAsync(HERMES_BIN, args, {
+      cwd: REPO,
+      env: hermesEnv,
       timeout: 180000,
       maxBuffer: 512 * 1024,
     });
@@ -3067,8 +3074,27 @@ function summarizeHermesFailure(raw) {
   const line = s
     .split("\n")
     .map((l) => l.trim())
-    .find((l) => l && !/^session_id:/i.test(l) && !/^Warning: Unknown toolsets/i.test(l));
+    .find(
+      (l) =>
+        l &&
+        !/^session_id:/i.test(l) &&
+        !/^Warning: Unknown toolsets/i.test(l) &&
+        !/^bash:\s*line\s+\d+:/i.test(l)
+    );
   return line?.slice(0, 240) || "Hermes chat failed";
+}
+
+function isHermesNoiseLine(line) {
+  const l = String(line || "").trim();
+  if (!l) return false;
+  return (
+    /^session_id:/i.test(l) ||
+    /^Warning: Unknown toolsets/i.test(l) ||
+    /^bash:\s*line\s+\d+:/i.test(l) ||
+    l.startsWith("Resume this session") ||
+    l.startsWith("hermes --resume") ||
+    /^(Session|Duration|Messages):/.test(l)
+  );
 }
 
 function extractHermesReply(raw) {
@@ -3083,20 +3109,13 @@ function extractHermesReply(raw) {
       const body = lines
         .slice(start + 1, end)
         .map((l) => l.replace(/[\u2502]/g, "").trim())
+        .filter((l) => !isHermesNoiseLine(l))
         .join("\n")
         .trim();
       if (body) return body;
     }
   }
-  return lines
-    .filter(
-      (l) =>
-        !l.startsWith("Resume this session") &&
-        !l.startsWith("hermes --resume") &&
-        !/^(Session|Duration|Messages):/.test(l.trim())
-    )
-    .join("\n")
-    .trim();
+  return lines.filter((l) => !isHermesNoiseLine(l)).join("\n").trim();
 }
 
 function situationKind(name) {
