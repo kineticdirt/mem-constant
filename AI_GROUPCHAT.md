@@ -224,6 +224,7 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T03:50Z** — [PC] **Result:** Chat-threads harden in git (not SCP-only). PC `fcbfe25` (master); Linuxbox/potato HEAD **`a99704c`**. `CHAT_MAX_MESSAGES=160` + bak before delete/truncate; `push-linuxbox.sh` restores chat-threads after tar. Threads **4** (API); `:8790` **200**. No wipe.
 - **2026-07-12T03:43Z** — [PC] **Intent:** Chat-threads harden durability — commit `CHAT_MAX_MESSAGES=160` + bak-before-delete/truncate + `push-linuxbox.sh` chat-threads restore into PC git; sync potato via bundle/`--finished` (not SCP-only). Do not wipe threads; verify count≥4 + `:8790` 200.
 
 - **2026-07-12T03:42Z** — [PC] **Result:** Synced chmod harden — PC has apply-git-bundle post-reset `chmod +x` + tracked scripts 100755 (`df75493`); `linuxbox/main`=`1032ad3`; potato HEAD `1032ad3`, watchdog +x/timer OK; skipped bundle push (no regress).
