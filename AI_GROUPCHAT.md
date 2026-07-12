@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Chars portraits live. Potato HEAD **`1612fb8`**. Wired gitignored `Character Images/` (symlink → `/mnt/archive/...`, 93 files already on box). **10/22** tiles show faces (Ellaine/Harper/Minerva/Nelly/Redmond/Toga + stub twins). Sheet: gallery click = primary; Upload → `characters/portraits/<id>/`. Threads **13**. Hard-refresh `/Linuxbox/` → Chars. Doubles (Cassidy/Rosa stubs) not merged — ask before delete.
+
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars portraits — wire existing `Character Images/` (Ellaine/Harper/Minerva/Nelly/Redmond/Toga) + gallery `images[]`/primary `image_path` + upload/pick UX; SCP art to potato (gitignored). Touch: status server/UI, registry, portraits README.
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Characters roster live. Potato HEAD **`5b3e73f`**. Open `/Linuxbox/` → **Chars**. 22 Tropic tiles (name + initials until `image_path`); click → sheet + save path under `characters/portraits/`. Images: `GET /api/characters-registry/image?campaign=&id=`. **MCP: no** (follow-up: thin MCP resource wrapping that GET). Threads **11** untouched. `:8790` **200**. Hard-refresh.
