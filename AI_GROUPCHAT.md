@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Chat Offload→laptop handoff enriched. PC commit **`7c5023b`**. On offload only: `[ops]/load]` user-task (mode/campaign/thread title + `agents/state/chat-threads/<id>.json` + excerpt) **and** `[LINUX]` Recent activity one-liner. Helper `chat-offload-handoff.js`. Potato: dashboard SCP overlay live (`linuxbox-status` **active**, `:8790` **200**); git HEAD still **`d5fede5`** (Linuxbox remote lag — runtime has overlay). Threads **13**. Hard-refresh Chat → Offload.
+
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chat Offload→laptop: keep `[ops]/load]` user-task **and** append one `[LINUX]` Recent activity line (only on offload). Enrich task with thread path/excerpt + mode/campaign. Touch: `linuxbox-status-server.js` (+ small handoff helper). Deploy git sync. No thread wipe. No Brief RP free-first change.
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat human-usable v1 live. Potato HEAD **`10098db`**. Modes (Brief RP/Workshop/Meta/Agent coding) + model catalog (est. $/tok + tok/s) + Offload→`[ops]/load]` task. Free-first default; picker on Meta/coding only. Mobile drawer CSS kept. Threads **13**. Plan: `agents/CHAT_HUMAN_USABLE_V1.md`. Hard-refresh `/Linuxbox/` → Chat.
@@ -248,7 +250,27 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
-- **2026-07-12T19:37Z** — [PC] **Result:** LAN vs Tailscale home A/B finalized → `docs/remote-pc-setup/lan-vs-tailscale-decision.md`. Potato **direct** via `192.168.4.23` (ICMP avg ~9 ms LAN vs ~22 ms 100.x; SSH ~0.75 s LAN vs ~1.1 s TS). Policy **(B):** LAN for home Moonlight/SSH; Tailscale away; exit node off on PC. Doc/`potato-lan` IP `192.168.1.191` dead — update HostName.
+- **2026-07-12T19:45Z** — [PC] **Result:** Chat Offload handoff = Tasks + ledger. Commit **`7c5023b`**; potato overlay (HEAD git **`d5fede5`**, files live); `:8790` **200**; threads **13**.
+
+- **2026-07-12T19:38Z** — [PC] **Result:** Updated `potato-lan`/`linuxbox` HostName `192.168.1.191`→`192.168.4.23` in `~/.ssh/config`; docs `ssh-le-potato-reference.md` + `android-tailscale-interface.md`; `ssh -G potato-lan` OK; known_hosts + connect smoke.
+
+- **2026-07-12T19:40Z** — [PC] **Intent:** Chars follow-up — Rosalina still shows partner art + RETIRED; Rosalinda STUB duplicate; unretire ALL Tropic registry `status:retired`. Root cause likely doc-attachment basename → other char dirs. Touch: `characters-registry.json`, `linuxbox-status-server.js` resolve scope; sync potato. No commit unless asked.
+
+- **2026-07-12T19:30Z** — [PC] **Result:** Portrait misattr cleanup (paths/registry only; no commit/deploy). Partner **Jinpei McLaren** named in Rosalinda sheet → 4 files under `jinpei-mclaren/`; misc cars/map → `_quarantine-rosalina-misattr/` (renamed from `_quarantine-twofell-misc`); `rosalina-bonetto` gallery/primary cleared. Ellaine: **not merged** with roommate; twin `ellaine`→`ellaine-mishpit` kept. Roommate imgs → `_quarantine-ellaine-roommate/` + `NPC Images/`; primary → `Character Images/Ellaine/IMG_3193.jpg`. Registry + potato portraits synced via scp json only. Open: Rosalina needs new faceclaim upload; roommate still unnamed NPC.
+
+- **2026-07-12T19:26Z** — [PC] **Intent:** Dry registry/files-only — clear misattributed `rosalina-bonetto` portraits (partner→Jinpei McLaren if named; else quarantine); fix `ellaine-mishpit` primary (roommate imgs out; pink-cat cue / Plot Timeline faceclaim); no merge Ellaine≠roommate; no invent/delete; no commit/deploy.
+
+- **2026-07-12T19:35Z** — [PC] **Result:** Chars upload+merge on PC tree (not deployed). Upload already worked — polished multi-file Add portraits + labels. New `POST /api/characters-registry/merge` + Chars **Merge characters** modal (soft-hide stubs + `canonical_id`, copy portraits, no deletes). Helper `scripts/linuxbox/chars-registry-merge.js`; self-check `node scripts/linuxbox/test-chars-registry-merge.js` → OK. No Rosa/Ellaine registry thrash; portraits-only (not Discord sheet articles). Potato: `push-linuxbox.sh --finished` + restart `linuxbox-status` when asked.
+
+- **2026-07-12T19:23Z** — [PC] **Intent:** Chars self-serve — reliable portrait **upload** (multi-image + primary) + **Merge characters** UI/API on `/Linuxbox/` Chars (registry soft-hide stubs like prior rosa→rosalina-bonetto). Touch: `linuxbox-status-server.js`, `linuxbox-status/index.html`, small merge helper + self-check. Avoid thrashing Rosa/Ellaine registry rows (other agent); portraits only (not Discord sheet articles). No commit/deploy unless asked.
+
+- **2026-07-12T19:05Z** — [PC] **Result:** Stories Discord sheets UI fix on PC tree (not deployed). Surface = **Stories** tab (`Discord · character sheets`), not Chars. Layout: story prose → min(90ch,100%) + default width 90ch. Parse: `preprocessDiscordSheetMd` converts untagged/broken ``` narration → blockquotes (ellaine.md had odd fence count / mid-line `~~…~~```); attachments → images when registry gallery resolves basename, else bold label. Verify: `node scripts/linuxbox/test-preprocess-discord-sheet-md.js`. Potato deploy still needed for `/Linuxbox/`.
+
+- **2026-07-12T19:00Z** — [PC] **Intent:** Fix Discord character sheets / articles viewer UI — content pane wastes width (narrow column + empty black); nested sheet body shows raw monospace markdown (`####`, `- attachment:`) instead of rendered HTML. Touch: `linuxbox-status` CSS/JS markdown path. No deploy until asked; no commit unless asked.
+
+- **2026-07-12T19:00Z** — [PC] **Result:** Rosa≡Rosalinda merged. Canonical **`rosalina-bonetto`** / display **Rosalinda Bonetto**; removed stub rows `rosa`+`rosalinda`; aliases include Rosa/Rosalinda/Rosalina (+ slugs). Portraits untouched (still under `rosalina-bonetto/`). Skipped `sync_character_registry.py --write` (PC lacks discord/*.md; would wipe curated v3). Leftover: hidden **`twofell`** author stub → same canonical. Not committed; not deployed to potato.
+
+- **2026-07-12T18:58Z** — [PC] **Intent:** Combine Rosa + Rosalinda registry entries (user authorized merge) — same person as Rosalina/Rosalinda Bonetto. Touch: `campaigns/tropic-gooner/characters-registry.json`; no portrait deletes; no commit unless asked.
 
 - **2026-07-12T18:45Z** — [PC] **Result:** Drafted LAN-vs-Tailscale home policy decision report → `docs/remote-pc-setup/lan-vs-tailscale-decision.md` (direct path to potato ~11ms; use LAN when home for Moonlight/SSH; exit node off at home).
 
