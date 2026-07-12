@@ -2175,6 +2175,191 @@ function uploadCharacterPortrait(campaignId, charId, filename, dataBase64) {
   return getCharactersRegistry(campaignId);
 }
 
+const CHAR_IMAGE_CT_EXT = {
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
+  "image/jpg": ".jpg",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/svg+xml": ".svg",
+};
+
+function isBlockedPortraitFetchHost(hostname) {
+  const host = String(hostname || "")
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "");
+  if (!host) return true;
+  if (host === "localhost" || host.endsWith(".localhost") || host === "0.0.0.0") return true;
+  if (host === "::1" || host === "0:0:0:0:0:0:0:1") return true;
+  // Literal IPv4 private / loopback / link-local / cloud metadata
+  const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (m) {
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (a === 10 || a === 127 || a === 0) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+  }
+  return false;
+}
+
+function assertPortraitFetchUrl(rawUrl) {
+  let parsed;
+  try {
+    parsed = new URL(String(rawUrl || "").trim());
+  } catch {
+    throw new Error("bad_url");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("url_http_https_only");
+  }
+  if (parsed.username || parsed.password) throw new Error("url_credentials_forbidden");
+  if (isBlockedPortraitFetchHost(parsed.hostname)) throw new Error("url_host_blocked");
+  return parsed;
+}
+
+function extFromContentType(ct) {
+  const base = String(ct || "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
+  return CHAR_IMAGE_CT_EXT[base] || "";
+}
+
+function portraitFilenameFromUrl(parsedUrl, contentType) {
+  let leaf = path.basename(parsedUrl.pathname || "") || "portrait";
+  try {
+    leaf = decodeURIComponent(leaf);
+  } catch {
+    /* keep raw */
+  }
+  leaf = leaf.split("?")[0].replace(/[^a-zA-Z0-9._-]+/g, "_") || "portrait";
+  let ext = path.extname(leaf).toLowerCase();
+  if (!CHAR_IMAGE_EXTS.has(ext)) {
+    ext = extFromContentType(contentType) || ".jpg";
+    leaf = `${path.basename(leaf, path.extname(leaf)) || "portrait"}${ext}`;
+  }
+  return leaf;
+}
+
+/**
+ * Server-side fetch of a remote image for portrait import (admin).
+ * Rejects non-http(s), private hosts, non-images, oversized bodies, timeouts.
+ */
+function fetchPortraitImageBuffer(imageUrl, timeoutMs = 15000) {
+  const maxRedirects = 3;
+
+  function getOnce(urlStr, redirectsLeft) {
+    const parsed = assertPortraitFetchUrl(urlStr);
+    return new Promise((resolve, reject) => {
+      const lib = parsed.protocol === "https:" ? https : http;
+      const req = lib.get(
+        parsed,
+        {
+          headers: {
+            "User-Agent": "linuxbox-status-portrait-import/1.0",
+            Accept: "image/*,*/*;q=0.8",
+          },
+          timeout: timeoutMs,
+        },
+        (res) => {
+          const code = res.statusCode || 0;
+          if (code >= 300 && code < 400 && res.headers.location) {
+            res.resume();
+            if (redirectsLeft <= 0) {
+              reject(new Error("too_many_redirects"));
+              return;
+            }
+            let next;
+            try {
+              next = new URL(res.headers.location, parsed).href;
+            } catch {
+              reject(new Error("bad_redirect"));
+              return;
+            }
+            getOnce(next, redirectsLeft - 1).then(resolve, reject);
+            return;
+          }
+          if (code === 403) {
+            res.resume();
+            reject(new Error("fetch_forbidden_403"));
+            return;
+          }
+          if (code === 404) {
+            res.resume();
+            reject(new Error("fetch_not_found_404"));
+            return;
+          }
+          if (code >= 400) {
+            res.resume();
+            reject(new Error(`fetch_http_${code}`));
+            return;
+          }
+          const ct = String(res.headers["content-type"] || "");
+          const ctBase = ct.split(";")[0].trim().toLowerCase();
+          if (ctBase && !ctBase.startsWith("image/")) {
+            res.resume();
+            reject(new Error("not_an_image"));
+            return;
+          }
+          const lenHdr = Number(res.headers["content-length"] || 0);
+          if (lenHdr > CHAR_PORTRAIT_UPLOAD_MAX) {
+            res.resume();
+            reject(new Error("image_too_large"));
+            return;
+          }
+          const chunks = [];
+          let total = 0;
+          res.on("data", (c) => {
+            total += c.length;
+            if (total > CHAR_PORTRAIT_UPLOAD_MAX) {
+              req.destroy();
+              reject(new Error("image_too_large"));
+              return;
+            }
+            chunks.push(c);
+          });
+          res.on("end", () => {
+            const buf = Buffer.concat(chunks);
+            if (!buf.length) {
+              reject(new Error("empty_image"));
+              return;
+            }
+            const ext = extFromContentType(ct) || path.extname(parsed.pathname).toLowerCase();
+            if (ctBase && !ctBase.startsWith("image/") && !CHAR_IMAGE_EXTS.has(ext)) {
+              reject(new Error("not_an_image"));
+              return;
+            }
+            // If server omitted Content-Type, require a known image extension in the URL.
+            if (!ctBase && !CHAR_IMAGE_EXTS.has(ext)) {
+              reject(new Error("not_an_image"));
+              return;
+            }
+            resolve({
+              buf,
+              filename: portraitFilenameFromUrl(parsed, ct),
+              contentType: ctBase || "",
+            });
+          });
+        }
+      );
+      req.on("error", (e) => reject(new Error(e.message || "fetch_failed")));
+      req.on("timeout", () => {
+        req.destroy();
+        reject(new Error("fetch_timeout"));
+      });
+    });
+  }
+
+  return getOnce(String(imageUrl || "").trim(), maxRedirects);
+}
+
+async function importCharacterPortraitFromUrl(campaignId, charId, imageUrl) {
+  const { buf, filename } = await fetchPortraitImageBuffer(imageUrl);
+  return uploadCharacterPortrait(campaignId, charId, filename, buf.toString("base64"));
+}
+
 /**
  * Copy sheet Attachment: refs from discord-export (or already-resolved paths)
  * into characters/portraits/<id>/ and set primary when missing.
@@ -5486,6 +5671,25 @@ const server = http.createServer(async (req, res) => {
           );
         } catch (e) {
           sendJson(res, 400, { error: e.message || "upload_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/import-image-url") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(
+            res,
+            200,
+            await importCharacterPortraitFromUrl(campaignId, body.id, body.url || body.image_url),
+            publicMode
+          );
+        } catch (e) {
+          sendJson(res, 400, { error: e.message || "import_failed" }, publicMode);
         }
         return;
       }

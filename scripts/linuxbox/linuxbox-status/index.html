@@ -3475,11 +3475,18 @@
           <input type="file" id="char-image-file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
           <button type="button" class="btn" id="char-image-upload">Upload</button>
         </div>
+        <div class="field admin-only">
+          <label for="char-image-url">Image URL</label>
+          <input type="text" id="char-image-url" placeholder="https://…/portrait.png" autocomplete="off" />
+        </div>
+        <div class="chars-upload-row admin-only">
+          <button type="button" class="btn" id="char-image-url-import">Import from link</button>
+        </div>
         <div class="field">
           <label for="char-image-path">Primary path (under campaigns/${esc(charsCampaignFilter)}/)</label>
           <input type="text" id="char-image-path" placeholder="Character Images/Name/file.jpg" value="${esc(row.image_path || "")}" />
         </div>
-        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Art folders are gitignored (~67MB). Sync with scp; uploads land in <code>characters/portraits/&lt;id&gt;/</code>.</p>
+        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Art folders are gitignored (~67MB). Sync with scp; uploads / URL imports land in <code>characters/portraits/&lt;id&gt;/</code>.</p>
         <div class="sheet-actions">
           <button type="button" class="btn primary" id="char-image-save">Save primary</button>
           <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
@@ -3581,6 +3588,58 @@
             if (next) renderCharacterSheet(next);
           } catch (e) {
             out.textContent = e.message || "Upload failed";
+          }
+        };
+      }
+      const urlImportBtn = document.getElementById("char-image-url-import");
+      if (urlImportBtn) {
+        urlImportBtn.onclick = async () => {
+          const urlInput = document.getElementById("char-image-url");
+          const url = (urlInput?.value || "").trim();
+          const out = document.getElementById("char-image-result");
+          if (!url) {
+            out.textContent = "Paste an image URL first";
+            return;
+          }
+          if (!/^https?:\/\//i.test(url)) {
+            out.textContent = "URL must start with http:// or https://";
+            return;
+          }
+          out.textContent = "Importing from link…";
+          try {
+            const res = await fetch(`${base}/api/characters-registry/import-image-url`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                campaign: charsCampaignFilter,
+                id: row.id,
+                url,
+              }),
+            });
+            const j = await res.json();
+            if (!res.ok) {
+              const err = j.error || "Import failed";
+              const hint = {
+                fetch_forbidden_403: "Remote blocked the fetch (403) — try another host or download+Upload",
+                fetch_not_found_404: "Image URL not found (404) — link may be expired",
+                fetch_timeout: "Fetch timed out — try again or Upload a file",
+                not_an_image: "URL did not return an image",
+                image_too_large: "Image over 4MB",
+                url_host_blocked: "That host is not allowed",
+                url_http_https_only: "Only http/https URLs",
+                bad_url: "Invalid URL",
+              }[err];
+              out.textContent = hint ? `${err} — ${hint}` : err;
+              return;
+            }
+            charsRegistry = j;
+            const next = (j.characters || []).find((c) => c.id === row.id);
+            out.textContent = "Imported from link";
+            selectedCharId = row.id;
+            renderCharactersRoster();
+            if (next) renderCharacterSheet(next);
+          } catch (e) {
+            out.textContent = e.message || "Import failed";
           }
         };
       }

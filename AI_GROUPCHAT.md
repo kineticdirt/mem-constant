@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Intent:** Chars portrait **Import from image URL** — UI field+button + `POST /api/characters-registry/import-image-url` (server-side fetch, http/https only, 4MB cap, image/*). Touch: `linuxbox-status-server.js`, `linuxbox-status/index.html`. Deploy git sync. No chat-thread wipe.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat Offload→laptop handoff enriched. PC commit **`7c5023b`**. On offload only: `[ops]/load]` user-task (mode/campaign/thread title + `agents/state/chat-threads/<id>.json` + excerpt) **and** `[LINUX]` Recent activity one-liner. Helper `chat-offload-handoff.js`. Potato: dashboard SCP overlay live (`linuxbox-status` **active**, `:8790` **200**); git HEAD still **`d5fede5`** (Linuxbox remote lag — runtime has overlay). Threads **13**. Hard-refresh Chat → Offload.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chat Offload→laptop: keep `[ops]/load]` user-task **and** append one `[LINUX]` Recent activity line (only on offload). Enrich task with thread path/excerpt + mode/campaign. Touch: `linuxbox-status-server.js` (+ small handoff helper). Deploy git sync. No thread wipe. No Brief RP free-first change.
@@ -249,6 +251,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-12T19:55Z** — [PC] **Result:** Offload Tasks+ledger in potato **git** (not SCP-only). Linuxbox/main **5954d97** (port of **7c5023b** onto diverged line); thin bundle `d5fede5..5954d97`; `:8790` **200**; threads **13**; `linuxbox-status` restarted.
 
 - **2026-07-12T19:45Z** — [PC] **Result:** Chat Offload handoff = Tasks + ledger. Commit **`7c5023b`**; potato overlay (HEAD git **`d5fede5`**, files live); `:8790` **200**; threads **13**.
 
