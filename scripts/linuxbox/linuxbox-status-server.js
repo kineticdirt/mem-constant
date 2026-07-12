@@ -2222,7 +2222,7 @@ async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}
 const CHAT_JOBS_FILE = path.join(REPO, "agents", "state", "chat-jobs.json");
 const CHAT_THREADS_DIR = path.join(REPO, "agents", "state", "chat-threads");
 const CHAT_THREADS_INDEX = path.join(CHAT_THREADS_DIR, "index.json");
-const CHAT_MAX_MESSAGES = 80;
+const CHAT_MAX_MESSAGES = 160; // raised 2026-07-12: 80 silently dropped early campaign turns
 // ponytail: 32k chars (~8k tokens) — enough for Workshop replies; Brief stays short via prompt, not hard chop
 const CHAT_MAX_MESSAGE_CHARS = 32_000;
 
@@ -2408,6 +2408,8 @@ function promoteChatThreadToTask(threadId, payload = {}) {
 function deleteChatThread(id) {
   const thread = readChatThread(id);
   if (!thread) throw new Error("thread_not_found");
+  // Keep .bak so accidental ✕ / API delete is recoverable (message-delete already backed up).
+  backupChatThread(thread);
   try {
     fs.unlinkSync(chatThreadFile(id));
   } catch {
@@ -2415,7 +2417,7 @@ function deleteChatThread(id) {
   }
   const idx = readChatThreadsIndex();
   writeChatThreadsIndex(idx.threads.filter((t) => t.id !== id));
-  return { ok: true, id };
+  return { ok: true, id, bak: true };
 }
 
 /**
@@ -2486,6 +2488,8 @@ function appendChatThreadMessage(id, role, text, isError = false, extras = {}) {
   if (extras.promoted_task_id) msg.promoted_task_id = extras.promoted_task_id;
   thread.messages.push(msg);
   if (thread.messages.length > CHAT_MAX_MESSAGES) {
+    // Snapshot before window slide — oldest turns were previously lost with no bak.
+    backupChatThread(thread);
     thread.messages = thread.messages.slice(-CHAT_MAX_MESSAGES);
   }
   thread.updated_at = Date.now();

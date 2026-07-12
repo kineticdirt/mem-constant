@@ -224,6 +224,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T03:43Z** — [PC] **Intent:** Chat-threads harden durability — commit `CHAT_MAX_MESSAGES=160` + bak-before-delete/truncate + `push-linuxbox.sh` chat-threads restore into PC git; sync potato via bundle/`--finished` (not SCP-only). Do not wipe threads; verify count≥4 + `:8790` 200.
+
 - **2026-07-12T03:42Z** — [PC] **Result:** Synced chmod harden — PC has apply-git-bundle post-reset `chmod +x` + tracked scripts 100755 (`df75493`); `linuxbox/main`=`1032ad3`; potato HEAD `1032ad3`, watchdog +x/timer OK; skipped bundle push (no regress).
 - **2026-07-12T03:45Z** — [PC] **Intent/Result:** User "previous chats deleted" — RCA on potato. **Not a deploy wipe:** `chat-threads/` still has **4** live threads (API list OK) after bundle hard-reset; gitignored. **Cause of "missing" early turns:** `CHAT_MAX_MESSAGES=80` silently sliced oldest on append (main campaign `531a2b52` at cap; `.bak` still had 10 earlier msgs). Whole-thread gone: only smoke `ba06c17` (msg-delete-smoke) + Jul9 test IDs; no archive dump. **Recovery:** Y partial — restored bak-only turns into `531a2b52`; raised cap to 160; `deleteChatThread` + truncate now write `.bak`; `push-linuxbox.sh` restores `chat-threads/` after tar. Deploy `--dashboard`.
 
