@@ -780,15 +780,133 @@
     body.role-viewer .rail .brand::after { content: " · viewer"; font-size: 0.55rem; color: var(--muted); margin-left: 0.35rem; font-weight: 400; }
     body.role-public .rail .brand::after { content: " · live"; font-size: 0.55rem; color: var(--ok); margin-left: 0.35rem; font-weight: 400; }
 
-    /* Systems control panel */
-    .sys-host { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .sys-host .kpi { min-width: 7rem; }
-    .sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.75rem; }
-    .sys-card { border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem; background: var(--surface); display: flex; flex-direction: column; gap: 0.5rem; }
+    /* Systems control panel — denser host intel */
+    .sys-host-panel {
+      border: 1px solid var(--line); padding: 0.85rem 1rem; background: var(--bg);
+      margin-bottom: 1rem;
+    }
+    .sys-host-panel > h2 {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.65rem;
+    }
+    .sys-host {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+      gap: 0.55rem; margin-bottom: 0.85rem;
+    }
+    .sys-host .kpi {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+      padding: 0.55rem 0.7rem; min-width: 0;
+    }
+    .sys-host .kpi .label {
+      font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+    }
+    .sys-host .kpi .value {
+      font-size: 1.2rem; font-weight: 700; margin-top: 0.2rem;
+      font-family: "IBM Plex Mono", monospace; line-height: 1.15;
+    }
+    .sys-host .kpi .value.ok { color: var(--ok); }
+    .sys-host .kpi .value.warn { color: var(--warn); }
+    .sys-host .kpi .value.bad { color: var(--bad); }
+    .sys-host .kpi .hint { font-size: 0.62rem; color: var(--muted); margin-top: 0.2rem; }
+    .sys-storage {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: 0.55rem; margin-bottom: 0.85rem;
+    }
+    .sys-tier {
+      border: 1px solid var(--line); border-radius: 4px; padding: 0.55rem 0.7rem;
+      background: var(--surface);
+    }
+    .sys-tier.missing { opacity: 0.55; }
+    .sys-tier-head {
+      display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline;
+      margin-bottom: 0.35rem;
+    }
+    .sys-tier-label { font-size: 0.78rem; font-weight: 600; }
+    .sys-tier-pct { font-size: 0.72rem; font-family: "IBM Plex Mono", monospace; color: var(--muted); }
+    .sys-tier-pct.warn { color: var(--warn); }
+    .sys-tier-pct.bad { color: var(--bad); }
+    .sys-bar {
+      height: 0.42rem; background: #12141a; border-radius: 2px; overflow: hidden; margin-bottom: 0.3rem;
+    }
+    .sys-bar > span {
+      display: block; height: 100%; background: var(--ok); border-radius: 2px; max-width: 100%;
+    }
+    .sys-bar.warn > span { background: var(--warn); }
+    .sys-bar.bad > span { background: var(--bad); }
+    .sys-tier-meta {
+      font-size: 0.62rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
+      line-height: 1.4;
+    }
+    .sys-procs-wrap {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;
+    }
+    @media (max-width: 900px) {
+      .sys-procs-wrap { grid-template-columns: 1fr; }
+    }
+    .sys-procs {
+      border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem 0.65rem;
+      background: var(--surface); overflow-x: auto;
+    }
+    .sys-procs h3 {
+      font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 0.4rem; font-weight: 600;
+    }
+    .sys-proc-table {
+      width: 100%; border-collapse: collapse; font-size: 0.68rem;
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .sys-proc-table th {
+      text-align: left; color: var(--muted); font-weight: 500; padding: 0.15rem 0.35rem 0.35rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .sys-proc-table td { padding: 0.22rem 0.35rem 0.22rem 0; vertical-align: top; }
+    .sys-proc-table td.num { text-align: right; white-space: nowrap; padding-right: 0.55rem; }
+    .sys-proc-table .cmd { max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sys-services-label {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin: 0.35rem 0 0.55rem;
+    }
+    .sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.75rem; }
+    .sys-card {
+      border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem;
+      background: var(--surface); display: flex; flex-direction: column; gap: 0.45rem;
+    }
     .sys-card.ok { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
     .sys-card.warn { border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
     .sys-card.down { border-color: color-mix(in srgb, var(--bad) 50%, var(--line)); }
     .sys-card.unknown { border-color: var(--line); }
+    .sys-card.expanded { grid-column: 1 / -1; }
+    .sys-card-toggle {
+      cursor: pointer; text-align: left; border: none; background: transparent;
+      padding: 0; color: inherit; width: 100%;
+    }
+    .sys-card-toggle:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+    .sys-about {
+      font-size: 0.72rem; color: var(--muted); line-height: 1.45; margin: 0;
+    }
+    .sys-detail {
+      display: none; margin-top: 0.35rem; padding-top: 0.55rem;
+      border-top: 1px solid var(--line); font-size: 0.7rem;
+    }
+    .sys-card.expanded .sys-detail { display: block; }
+    .sys-detail-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+      gap: 0.45rem 0.75rem; margin-bottom: 0.55rem;
+    }
+    .sys-detail-kv .k {
+      font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+    }
+    .sys-detail-kv .v {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; margin-top: 0.1rem;
+      word-break: break-word;
+    }
+    .sys-journal {
+      margin: 0; max-height: 11rem; overflow: auto; padding: 0.45rem 0.55rem;
+      background: #0a0a0c; border: 1px solid var(--line); border-radius: 4px;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; line-height: 1.4;
+      white-space: pre-wrap; color: var(--muted);
+    }
+    .sys-detail-loading, .sys-detail-err { color: var(--muted); font-size: 0.68rem; }
 
     /* Mobile — bottom tab bar, larger touch targets */
     @media (max-width: 720px) {
@@ -1011,7 +1129,13 @@
             <div id="sys-machines-list"><p class="empty">Loading…</p></div>
             <div class="machine-sync-meta" id="sys-machines-meta"></div>
           </div>
-          <div class="sys-host" id="sys-host"></div>
+          <div class="sys-host-panel" id="sys-host-panel">
+            <h2>Host resources</h2>
+            <div class="sys-host" id="sys-host"></div>
+            <div class="sys-storage" id="sys-storage"></div>
+            <div class="sys-procs-wrap" id="sys-procs"></div>
+          </div>
+          <h2 class="sys-services-label">Services</h2>
           <div class="sys-grid" id="sys-grid"><p class="empty">Loading…</p></div>
         </section>
 
@@ -3298,18 +3422,155 @@
     }
 
     let systemsData = null;
+    let expandedSystemId = null;
+    const systemDetailCache = {};
+
+    function hostPctClass(pct, warnAt, badAt) {
+      if (pct == null || !Number.isFinite(pct)) return "";
+      if (pct >= badAt) return "bad";
+      if (pct >= warnAt) return "warn";
+      return "ok";
+    }
+
+    function renderHostPanel(data) {
+      const host = data.host || {};
+      const telem = (data.resource || {}).telemetry || {};
+      const memHint =
+        host.mem_used_mb != null && host.mem_total_mb != null
+          ? `${host.mem_used_mb}/${host.mem_total_mb} MiB · avail ${host.mem_avail_mb ?? "?"} MiB`
+          : `avail ${host.mem_avail_mb ?? "?"} MiB`;
+      const swapHint =
+        host.swap_used_mb != null && host.swap_total_mb != null
+          ? `${host.swap_used_mb}/${host.swap_total_mb} MiB`
+          : "";
+      const cpuCls = hostPctClass(host.cpu_pct, 70, 90);
+      const memCls = hostPctClass(host.mem_used_pct, 75, 90);
+      const swapCls = hostPctClass(host.swap_used_pct, 50, 85);
+
+      document.getElementById("sys-host").innerHTML = [
+        ["CPU", host.cpu_pct != null ? `${host.cpu_pct}%` : "?", cpuCls, "150ms sample"],
+        ["RAM used", host.mem_used_pct != null ? `${host.mem_used_pct}%` : "?", memCls, memHint],
+        ["Swap", host.swap_used_pct != null ? `${host.swap_used_pct}%` : "?", swapCls, swapHint],
+        ["Load", host.load_avg || "?", "", "1 / 5 / 15"],
+        ["Last pod", data.resource?.chosen || telem.chosen || "—", "", ""],
+      ]
+        .map(
+          ([l, v, c, h]) =>
+            `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div>${
+              h ? `<div class="hint">${esc(h)}</div>` : ""
+            }</div>`
+        )
+        .join("");
+
+      const storageEl = document.getElementById("sys-storage");
+      const tiers = host.storage || [];
+      if (!tiers.length) {
+        storageEl.innerHTML = '<p class="empty">Storage tiers unavailable</p>';
+      } else {
+        storageEl.innerHTML = tiers
+          .map((t) => {
+            if (!t.present) {
+              return `<div class="sys-tier missing"><div class="sys-tier-head"><span class="sys-tier-label">${esc(
+                t.label || t.id
+              )}</span><span class="sys-tier-pct">not mounted</span></div><div class="sys-tier-meta">—</div></div>`;
+            }
+            const pct = t.used_pct;
+            const barCls = hostPctClass(pct, 75, 90);
+            const width = Math.min(100, Math.max(0, pct ?? 0));
+            return `<div class="sys-tier">
+              <div class="sys-tier-head">
+                <span class="sys-tier-label">${esc(t.label || t.id)}</span>
+                <span class="sys-tier-pct ${barCls}">${pct != null ? `${pct}%` : "?"}</span>
+              </div>
+              <div class="sys-bar ${barCls}"><span style="width:${width}%"></span></div>
+              <div class="sys-tier-meta">${esc(t.used_human || "?")} / ${esc(t.size_human || "?")} · free ${esc(
+                t.avail_human || "?"
+              )}<br/>${esc(t.mount || "")} · ${esc(t.device || "")}</div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      const top = host.top_processes || {};
+      const renderProcTable = (rows, cpuCol) => {
+        if (!rows || !rows.length) return '<p class="empty">None</p>';
+        const head = cpuCol
+          ? "<tr><th>PID</th><th>CPU%</th><th>RSS</th><th>CMD</th></tr>"
+          : "<tr><th>PID</th><th>RSS</th><th>CPU%</th><th>CMD</th></tr>";
+        const body = rows
+          .map((p) => {
+            if (cpuCol) {
+              return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(
+                String(p.cpu_pct)
+              )}</td><td class="num">${esc(String(p.rss_mb))}M</td><td class="cmd" title="${esc(
+                p.command || ""
+              )}">${esc(p.command || "")}</td></tr>`;
+            }
+            return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(
+              String(p.rss_mb)
+            )}M</td><td class="num">${esc(String(p.cpu_pct))}</td><td class="cmd" title="${esc(
+              p.command || ""
+            )}">${esc(p.command || "")}</td></tr>`;
+          })
+          .join("");
+        return `<table class="sys-proc-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+      };
+      document.getElementById("sys-procs").innerHTML = `
+        <div class="sys-procs"><h3>Top CPU</h3>${renderProcTable(top.by_cpu, true)}</div>
+        <div class="sys-procs"><h3>Top RSS</h3>${renderProcTable(top.by_rss, false)}</div>`;
+    }
+
+    function renderDetailBody(detail) {
+      if (!detail) return '<p class="sys-detail-loading">Loading…</p>';
+      const u = detail.unit_status || {};
+      const ports =
+        detail.ports && detail.ports.length ? detail.ports.map((p) => `:${p}`).join(" ") : "—";
+      const doing = detail.doing_now;
+      const doingHtml = doing
+        ? `<div class="sys-detail-kv"><div class="k">Doing now</div><div class="v">${esc(
+            doing.current_pod ? `pod ${doing.current_pod}` : "idle"
+          )}${doing.started_at ? ` · since ${esc(String(doing.started_at))}` : ""}</div></div>`
+        : "";
+      const urls = [
+        detail.health_url
+          ? `local ${detail.http_code ?? "?"} · ${detail.health_url}`
+          : null,
+        detail.public_url
+          ? `public ${detail.public_http_code ?? "?"} · ${detail.public_url}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      const journal = (detail.journal || []).join("\n") || "(no journal lines)";
+      return `
+        <div class="sys-detail-grid">
+          <div class="sys-detail-kv"><div class="k">Unit state</div><div class="v">${esc(
+            u.active_state || "?"
+          )} / ${esc(u.sub_state || "?")}</div></div>
+          <div class="sys-detail-kv"><div class="k">Main PID</div><div class="v">${esc(
+            u.main_pid != null ? String(u.main_pid) : "—"
+          )}</div></div>
+          <div class="sys-detail-kv"><div class="k">Restarts</div><div class="v">${esc(
+            u.n_restarts != null ? String(u.n_restarts) : "—"
+          )}</div></div>
+          <div class="sys-detail-kv"><div class="k">Result</div><div class="v">${esc(u.result || "—")}</div></div>
+          <div class="sys-detail-kv"><div class="k">Active since</div><div class="v">${esc(
+            u.active_enter || "—"
+          )}</div></div>
+          <div class="sys-detail-kv"><div class="k">Ports</div><div class="v">${esc(ports)}</div></div>
+          ${doingHtml}
+          <div class="sys-detail-kv" style="grid-column:1/-1"><div class="k">URLs</div><div class="v">${esc(
+            urls || "—"
+          )}</div></div>
+        </div>
+        <div class="sys-detail-kv" style="margin-bottom:0.35rem"><div class="k">Recent journal</div></div>
+        <pre class="sys-journal">${esc(journal)}</pre>`;
+    }
 
     function renderSystems(data) {
       if (!data) return;
       systemsData = data;
-      const host = data.host || {};
-      const telem = (data.resource || {}).telemetry || {};
-      document.getElementById("sys-host").innerHTML = [
-        ["Memory avail", `${host.mem_avail_mb ?? "?"} MiB`, host.mem_avail_mb < 250 ? "bad" : "ok"],
-        ["Swap used", `${host.swap_used_pct ?? "?"}%`, host.swap_used_pct >= 85 ? "warn" : "ok"],
-        ["Load", host.load_avg || "?", ""],
-        ["Last pod", data.resource?.chosen || telem.chosen || "—", ""],
-      ].map(([l, v, c]) => `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div></div>`).join("");
+      renderHostPanel(data);
 
       const grid = document.getElementById("sys-grid");
       const systems = data.systems || [];
@@ -3317,37 +3578,102 @@
         grid.innerHTML = '<p class="empty">No systems registered</p>';
         return;
       }
-      grid.innerHTML = systems.map((s) => {
-        const cls = s.health || "unknown";
-        const local = s.http_code ? `local ${s.http_code}` : s.active ? "active" : "inactive";
-        const pubNote =
-          s.public_http_code != null
-            ? ` · public ${s.public_http_code}`
-            : s.health_note === "local_ok_public_down"
-              ? " · public unreachable"
-              : "";
-        const code = `${local}${pubNote}`;
-        const pub = s.public_url ? `<a href="${esc(s.public_url)}" target="_blank" rel="noopener" class="sys-meta">${esc(s.public_url)}</a>` : "";
-        const btns = (s.controls || []).map((c) =>
-          `<button type="button" class="btn" data-sys-id="${esc(s.id)}" data-sys-action="${esc(c.action)}">${esc(c.action)}</button>`
-        ).join("");
-        return `<article class="sys-card ${cls}">
-          <div class="sys-head">
-            <img class="sys-icon" src="${base}/icons/${esc(s.icon)}.svg" alt="" width="36" height="36" />
-            <div>
-              <div class="sys-title">${esc(s.label)}</div>
-              <div class="sys-sub">${esc(s.subtitle || s.kind)} · ${esc(s.unit)}</div>
+      grid.innerHTML = systems
+        .map((s) => {
+          const cls = s.health || "unknown";
+          const expanded = expandedSystemId === s.id;
+          const local = s.http_code ? `local ${s.http_code}` : s.active ? "active" : "inactive";
+          const pubNote =
+            s.public_http_code != null
+              ? ` · public ${s.public_http_code}`
+              : s.health_note === "local_ok_public_down"
+                ? " · public unreachable"
+                : "";
+          const code = `${local}${pubNote}`;
+          const pub = s.public_url
+            ? `<a href="${esc(s.public_url)}" target="_blank" rel="noopener" class="sys-meta">${esc(
+                s.public_url
+              )}</a>`
+            : "";
+          const btns = (s.controls || [])
+            .map(
+              (c) =>
+                `<button type="button" class="btn" data-sys-id="${esc(s.id)}" data-sys-action="${esc(
+                  c.action
+                )}">${esc(c.action)}</button>`
+            )
+            .join("");
+          const detailInner = expanded
+            ? renderDetailBody(systemDetailCache[s.id])
+            : "";
+          return `<article class="sys-card ${cls}${expanded ? " expanded" : ""}" data-sys-card="${esc(s.id)}">
+          <button type="button" class="sys-card-toggle" data-sys-expand="${esc(s.id)}" aria-expanded="${
+            expanded ? "true" : "false"
+          }">
+            <div class="sys-head">
+              <img class="sys-icon" src="${base}/icons/${esc(s.icon)}.svg" alt="" width="36" height="36" />
+              <div>
+                <div class="sys-title">${esc(s.label)}</div>
+                <div class="sys-sub">${esc(s.subtitle || s.kind)} · ${esc(s.unit)}</div>
+              </div>
             </div>
-          </div>
-          <div class="sys-meta">${esc(code)} · ${esc(cls)}</div>
+          </button>
+          <p class="sys-about">${esc(s.about || s.role || "Click for unit status and journal.")}</p>
+          <div class="sys-meta">${esc(code)} · ${esc(cls)}${expanded ? " · details open" : " · click for details"}</div>
           ${pub}
-          <div class="sys-actions">${btns}</div>
+          <div class="sys-actions">${btns}<button type="button" class="btn" data-sys-expand="${esc(
+            s.id
+          )}">${expanded ? "Hide" : "Details"}</button></div>
+          <div class="sys-detail" id="sys-detail-${esc(s.id)}">${detailInner}</div>
         </article>`;
-      }).join("");
+        })
+        .join("");
 
       grid.querySelectorAll("button[data-sys-id]").forEach((btn) => {
-        btn.onclick = () => runSystemControl(btn.dataset.sysId, btn.dataset.sysAction);
+        btn.onclick = (ev) => {
+          ev.stopPropagation();
+          runSystemControl(btn.dataset.sysId, btn.dataset.sysAction);
+        };
       });
+      grid.querySelectorAll("[data-sys-expand]").forEach((el) => {
+        el.onclick = (ev) => {
+          ev.stopPropagation();
+          toggleSystemDetail(el.dataset.sysExpand);
+        };
+      });
+    }
+
+    async function refreshSystemDetail(systemId) {
+      const detailEl = document.getElementById(`sys-detail-${systemId}`);
+      if (detailEl && !systemDetailCache[systemId]) {
+        detailEl.innerHTML = '<p class="sys-detail-loading">Loading unit status…</p>';
+      }
+      try {
+        const res = await fetch(`${base}/api/systems/${encodeURIComponent(systemId)}/detail`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        systemDetailCache[systemId] = data;
+        if (expandedSystemId === systemId && systemsData) renderSystems(systemsData);
+      } catch (e) {
+        const detailEl2 = document.getElementById(`sys-detail-${systemId}`);
+        if (detailEl2) {
+          detailEl2.innerHTML = `<p class="sys-detail-err">Detail failed: ${esc(e.message)}</p>`;
+        }
+      }
+    }
+
+    async function toggleSystemDetail(systemId) {
+      if (expandedSystemId === systemId) {
+        expandedSystemId = null;
+        if (systemsData) renderSystems(systemsData);
+        return;
+      }
+      expandedSystemId = systemId;
+      if (systemsData) renderSystems(systemsData);
+      await refreshSystemDetail(systemId);
     }
 
     async function loadSystems() {
@@ -3355,6 +3681,10 @@
         const res = await fetch(`${base}/api/systems`, { credentials: "same-origin", cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         renderSystems(await res.json());
+        if (expandedSystemId) {
+          delete systemDetailCache[expandedSystemId];
+          await refreshSystemDetail(expandedSystemId);
+        }
       } catch (e) {
         document.getElementById("sys-grid").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
       }

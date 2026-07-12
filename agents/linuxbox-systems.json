@@ -1,0 +1,93 @@
+{
+  "_doc": "Registry for Hub Systems panel — health, icons, control actions. See docs/agents/linuxbox-systems-panel.md",
+  "schema_version": "1.0.0",
+  "registry_version": "1.0.0",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-07-07",
+      "changes": ["Initial semver fields; 8 systems (tunnels, apps, agents)"]
+    }
+  ],
+  "systems": [
+    {
+      "id": "tunnel-abhinavall",
+      "label": "abhinavall.net",
+      "subtitle": "Site · Hub · Intel",
+      "kind": "tunnel",
+      "icon": "tunnel-abhinavall",
+      "unit": "cloudflared-abhinavall.service",
+      "scope": "system",
+      "public_url": "https://abhinavall.net/",
+      "health_url": "http://127.0.0.1:8780/"
+    },
+    {
+      "id": "tunnel-tableslop",
+      "label": "map.tableslop.org",
+      "subtitle": "Isla Primavera map",
+      "kind": "tunnel",
+      "icon": "tunnel-tableslop",
+      "unit": "cloudflared-tableslop.service",
+      "scope": "system",
+      "public_url": "https://map.tableslop.org/health",
+      "health_url": "http://127.0.0.1:8765/health"
+    },
+    {
+      "id": "portfolio",
+      "label": "abhinavall.net origin",
+      "subtitle": ":3000 Node",
+      "kind": "app",
+      "icon": "portfolio",
+      "unit": "abhinav-portfolio.service",
+      "scope": "system",
+      "health_url": "http://127.0.0.1:3000/"
+    },
+    {
+      "id": "dashboard",
+      "label": "Linuxbox Hub",
+      "subtitle": ":8790",
+      "kind": "app",
+      "icon": "linuxbox",
+      "unit": "linuxbox-status.service",
+      "scope": "system",
+      "health_url": "http://127.0.0.1:8790/"
+    },
+    {
+      "id": "tableslop-app",
+      "label": "tableslop server",
+      "subtitle": ":8765",
+      "kind": "app",
+      "icon": "map",
+      "unit": "linuxbox-tableslop.service",
+      "scope": "system",
+      "health_url": "http://127.0.0.1:8765/health"
+    },
+    {
+      "id": "hermes-ops",
+      "label": "Hermes gateway",
+      "subtitle": "ops / think",
+      "kind": "agent",
+      "icon": "hermes",
+      "unit": "hermes-gateway.service",
+      "scope": "user"
+    },
+    {
+      "id": "hermes-hunter",
+      "label": "Hunter gateway",
+      "subtitle": "Discord RP",
+      "kind": "agent",
+      "icon": "hunter",
+      "unit": "hermes-gateway-hunter-reckoning.service",
+      "scope": "user"
+    },
+    {
+      "id": "pod-scheduler",
+      "label": "Agent scheduler",
+      "subtitle": "30s timer",
+      "kind": "agent",
+      "icon": "scheduler",
+      "unit": "agent-pod-scheduler.timer",
+      "scope": "system"
+    }
+  ]
+}

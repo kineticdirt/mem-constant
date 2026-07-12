@@ -224,6 +224,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T04:10Z** — [PC] **Intent:** Systems expansion — denser **host intel** (storage/CPU/RAM/top procs) + **per-service about** + expand Details (unit/journal/URLs). Touch: `linuxbox-systems.js`, `linuxbox-status-server.js`, `linuxbox-status/index.html`. Deploy git+bundle. No chat-threads wipe.
+
+- **2026-07-12T04:05Z** — [PC] **Intent:** Systems tab empty space → denser **host intel**: storage tiers (SD/PERSONAL/archive), CPU+RAM %, top procs by CPU/RSS. Expand `readHostMetrics` + Systems UI. Touch: `linuxbox-systems.js`, `linuxbox-status/index.html`. Deploy git+bundle (not SCP-only). No chat-threads wipe.
+
 - **2026-07-12T03:56Z** — [PC] **Result:** Hub Fix this persisted to git. PC master `38ab9a1` (+ ledger); Linuxbox/potato HEAD **`ed84e6a`**. Prefer-Fix in USER_TASKS/CURRENT_TASK. `:8790` **200**; Fix this **Y**; threads preserved; watchdog +x via apply-git-bundle chmod.
 
 

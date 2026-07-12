@@ -12,7 +12,7 @@ const { promisify } = require("util");
 
 const execFileAsync = promisify(execFile);
 
-const { collectSystemsState, runSystemControl } = require("./linuxbox-systems");
+const { collectSystemsState, runSystemControl, getSystemDetail } = require("./linuxbox-systems");
 const { collectMachinesState } = require("./linuxbox-machines");
 
 const LISTEN_HOST = "127.0.0.1";
@@ -4025,6 +4025,23 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       sendJson(res, 200, await collectSystemsState(), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname.startsWith("/api/systems/") && pathname.endsWith("/detail")) {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const systemId = decodeURIComponent(
+        pathname.slice("/api/systems/".length, pathname.length - "/detail".length)
+      );
+      try {
+        sendJson(res, 200, await getSystemDetail(systemId), publicMode);
+      } catch (e) {
+        const code = e.message === "unknown_system" ? 404 : 400;
+        sendJson(res, code, { error: e.message || "detail_failed" }, publicMode);
+      }
       return;
     }
 
