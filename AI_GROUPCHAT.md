@@ -80,6 +80,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat new-thread **campaign picker** live. Potato HEAD **`3edc118`**. UI: **+ New chat** opens modal (Tropic Gooner / Hunter / SpaceQuest / NYC Mafia / none); binds `context.campaign` (+ `layer:hunter`); Hermes gets **BOUND CAMPAIGN** (do not re-ask). Sidebar select remains list filter. Threads untouched (8). `:8790` **200**. Hard-refresh `/Linuxbox/`.
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Chat **campaign modal** live. Potato HEAD **`a88d031`**. **+ New chat** (and first Send with no thread) opens picker: Tropic / Hunter / SpaceQuest / NYC / None → stores `context.campaign` (+ `layer` for Hunter). Context bar **Change campaign**. Prompt injects `BOUND CAMPAIGN — settled` + canon. `:8790` **200**. Hard-refresh `/Linuxbox/`. Threads untouched (5).
+
 - **2026-07-12 (UTC)** — [PC] **Intent:** Dashboard Chat new-thread must pick campaign (Tropic/Hunter/SpaceQuest/NYC/none) at create via **modal** (not buried sidebar); bind into thread context + Hermes prompt so model stops asking which campaign. Touch: `linuxbox-status/index.html`, `linuxbox-status-server.js`. Deploy git+dashboard.
 
 - **2026-07-11 (UTC)** — [PC] **Result:** Per-message **Delete** + **free-first everywhere** live. Linuxbox/potato HEAD **`0e43b33`**. Semantics: Delete removes selected msg; user Delete also drops immediate following assistant reply (keeps later turns). Thread ✕ unchanged; toolbar Delete chat removed. Free order: Qwen/hy3 → Hermes→GLM→DeepSeek→Venice. Smoke: delete index 0 removed pair, kept later msg; `:8790` **200**. Hard-refresh `/Linuxbox/`. "Chat failed" = empty error bubble fallback (can Delete).
