@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Intent:** Chat Offload→laptop: keep `[ops]/load]` user-task **and** append one `[LINUX]` Recent activity line (only on offload). Enrich task with thread path/excerpt + mode/campaign. Touch: `linuxbox-status-server.js` (+ small handoff helper). Deploy git sync. No thread wipe. No Brief RP free-first change.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat human-usable v1 live. Potato HEAD **`10098db`**. Modes (Brief RP/Workshop/Meta/Agent coding) + model catalog (est. $/tok + tok/s) + Offload→`[ops]/load]` task. Free-first default; picker on Meta/coding only. Mobile drawer CSS kept. Threads **13**. Plan: `agents/CHAT_HUMAN_USABLE_V1.md`. Hard-refresh `/Linuxbox/` → Chat.
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Unresolved Discord attachments fixed. Root cause: sheets list `attachments/…` but binaries lived only under `discord-export/**/attachments` (resolver ignored export). Restored **49** images → `characters/portraits/<id>/` (Rosalina 17, Cassidy/Felix/Lena/etc.). Discord bot **AI_RP_Master** token OK (User-Agent); live re-fetch not needed (0 missing after local). Chars popout **Why / Resolve…** + `POST /api/characters-registry/resolve-attachments` (admin). CLI: `tools/resolve_discord_attachments.py`. Potato HEAD **`10098db`** (includes attach fix `71cbee2`). `:8790` **200**. Threads untouched. 10/10 tiles have faces; Rosalina unresolved=0. Leftover flags: remote URLs, truncated export filenames, 1 .mov.
@@ -245,6 +247,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-12T19:37Z** — [PC] **Result:** LAN vs Tailscale home A/B finalized → `docs/remote-pc-setup/lan-vs-tailscale-decision.md`. Potato **direct** via `192.168.4.23` (ICMP avg ~9 ms LAN vs ~22 ms 100.x; SSH ~0.75 s LAN vs ~1.1 s TS). Policy **(B):** LAN for home Moonlight/SSH; Tailscale away; exit node off on PC. Doc/`potato-lan` IP `192.168.1.191` dead — update HostName.
 
 - **2026-07-12T18:45Z** — [PC] **Result:** Drafted LAN-vs-Tailscale home policy decision report → `docs/remote-pc-setup/lan-vs-tailscale-decision.md` (direct path to potato ~11ms; use LAN when home for Moonlight/SSH; exit node off at home).
 
