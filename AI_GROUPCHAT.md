@@ -232,6 +232,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T18:22Z** — [PC] **Result:** Follow-up — PC working tree `index.html` SHA256 matches potato (fix already at **79fc261**). Committing same file on PC so next bundle cannot regress duplicate `CHAT_CACHE_PREFIX`. Session cache uses `CHAT_SESSION_CACHE_PREFIX`; bubble cache keeps `CHAT_CACHE_PREFIX`. chat-threads untouched; no potato HTML overwrite needed.
+
+- **2026-07-12T18:20Z** — [PC] / [LINUX] **Result:** `/Linuxbox/` UI dead — uncommitted overlay had two `const CHAT_CACHE_PREFIX` (bubble + session cache) → SyntaxError blanked all tabs. Renamed session const to `CHAT_SESSION_CACHE_PREFIX`; potato commit **79fc261**. Loopback `:8790` / `:8780/Linuxbox/` **200**; public edge **401** without Basic (expected). Services up; chat-threads untouched. Hard-refresh dashboard.
+
 - **2026-07-12T04:12Z** — [PC] **Result:** Systems host+detail live. Linuxbox/potato HEAD **`e3b2557`**. Host panel: CPU/RAM/swap/load + SD/PERSONAL/archive + top CPU/RSS. Cards show **about**; **Details** → unit/journal/URLs (scheduler doing-now). `/api/systems` host+8 abouts OK; `:8790` **200**; chat-threads preserved. Hard-refresh `/Linuxbox/` → Systems. (tableslop public was **200** at verify.)
 
 - **2026-07-12T04:10Z** — [PC] **Intent:** Systems expansion — denser **host intel** (storage/CPU/RAM/top procs) + **per-service about** + expand Details (unit/journal/URLs). Touch: `linuxbox-systems.js`, `linuxbox-status-server.js`, `linuxbox-status/index.html`. Deploy git+bundle. No chat-threads wipe.

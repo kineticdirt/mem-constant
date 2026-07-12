@@ -6,7 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
@@ -49,7 +50,7 @@
       letter-spacing: 0.04em; cursor: pointer; border-left: 2px solid transparent;
       font-family: inherit; text-transform: uppercase;
     }
-    .rail button.active { color: var(--text); border-left-color: var(--lime); background: #151518; }
+    .rail button.active { color: var(--accent); border-left-color: var(--lime); background: #151518; }
     .rail button .dot {
       display: block; width: 6px; height: 6px; border-radius: 50%;
       background: var(--warn); margin: 0.25rem auto 0;
@@ -199,7 +200,7 @@
     .intel-panel h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
     .stock-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 1rem; }
     .stock-table th, .stock-table td { border-bottom: 1px solid var(--line); padding: 0.45rem 0.55rem; text-align: left; }
-    .stock-table th { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .stock-table th { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
     .stock-up { color: var(--ok); font-family: "IBM Plex Mono", monospace; }
     .stock-down { color: var(--bad); font-family: "IBM Plex Mono", monospace; }
     .stock-flat { color: var(--muted); font-family: "IBM Plex Mono", monospace; }
@@ -232,6 +233,7 @@
       padding: 0.55rem 0.35rem; color: var(--text); cursor: pointer; font-size: 0.78rem;
     }
     .report-index button:hover, .report-index button.active { border-color: var(--accent); background: #151820; }
+    .report-index button:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
     .report-index .kind-rss { color: var(--accent); }
     .report-index .kind-digest { color: var(--lime); }
     .report-index .kind-stock { color: var(--warn); }
@@ -273,7 +275,7 @@
     .prose blockquote { border-left: 3px solid var(--lime); padding-left: 0.85rem; color: var(--muted); margin: 0.75rem 0; }
     .prose table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; font-size: 0.82rem; }
     .prose th, .prose td { border: 1px solid var(--line-bright); padding: 0.4rem 0.55rem; text-align: left; }
-    .prose th { background: var(--surface); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .prose th { background: var(--surface); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
 
     /* Inbox */
     .inbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: calc(100% - 2rem); }
@@ -335,6 +337,11 @@
       border: 1px solid var(--line); padding: 0.45rem 0.5rem;
     }
     .inbox-answer { resize: vertical; }
+    .inbox-saved-badge {
+      display: inline-block; font-size: 0.6rem; color: var(--ok); font-weight: 600;
+      padding: 0 0.35rem; margin-left: 0.35rem;
+      border: 1px solid #1f4d32; border-radius: 3px; background: #0d1f15; vertical-align: middle;
+    }
     .tag-check input[type="checkbox"] {
       width: 1rem; height: 1rem; margin: 0; padding: 0; flex-shrink: 0; accent-color: var(--accent-yellow);
     }
@@ -371,7 +378,7 @@
     .list { list-style: none; }
     .list li { font-size: 0.78rem; padding: 0.35rem 0; border-bottom: 1px solid var(--line); color: var(--muted); }
     .list li.done { text-decoration: line-through; opacity: 0.45; }
-    .list li.next { color: var(--text); border-left: 2px solid var(--lime); padding-left: 0.45rem; }
+    .list li.next { color: var(--accent); border-left: 2px solid var(--lime); padding-left: 0.45rem; }
 
     /* Chat */
     #chat.panel.fill.active {
@@ -937,7 +944,7 @@
       font-family: "IBM Plex Mono", monospace;
     }
     .sys-proc-table th {
-      text-align: left; color: var(--muted); font-weight: 500; padding: 0.15rem 0.35rem 0.35rem 0;
+      text-align: left; color: var(--accent); font-weight: 500; padding: 0.15rem 0.35rem 0.35rem 0;
       border-bottom: 1px solid var(--line);
     }
     .sys-proc-table td { padding: 0.22rem 0.35rem 0.22rem 0; vertical-align: top; }
@@ -990,7 +997,7 @@
     .sys-detail-loading, .sys-detail-err { color: var(--muted); font-size: 0.68rem; }
 
     /* Mobile — bottom tab bar, larger touch targets */
-    @media (max-width: 720px) {
+    @media (max-width: 768px) {
       html { font-size: calc(15px * var(--ui-scale)); }
       .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: 100dvh; }
       .rail {
@@ -1052,6 +1059,21 @@
       .chat-compose .chat-send-col .btn { min-width: 4.5rem; min-height: 2.75rem; }
       .chat-compose-controls { gap: 0.45rem; }
       .chat-compose-controls select { max-width: 100%; min-height: 2.25rem; }
+
+      /* Split-pane panels → single column on mobile (full width content) */
+      #reports.panel.fill.active,
+      #stories.panel.fill.active,
+      #tasks.panel.fill.active,
+      .intel-briefs-view.active {
+        grid-template-columns: 1fr;
+      }
+      #characters.panel.fill.active {
+        grid-template-columns: 1fr;
+      }
+      #characters.panel.fill.active .chars-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(auto, 1fr) minmax(auto, 1fr);
+      }
     }
     .sys-head { display: flex; gap: 0.6rem; align-items: flex-start; }
     .sys-icon { width: 2.25rem; height: 2.25rem; flex-shrink: 0; border-radius: 4px; background: #0a0a0c; }
@@ -1061,6 +1083,36 @@
     .sys-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.25rem; }
     .sys-actions .btn { font-size: 0.62rem; padding: 0.2rem 0.45rem; }
     .sys-flash { font-size: 0.72rem; margin-bottom: 0.5rem; min-height: 1.2em; }
+
+    @media (max-width: 767px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+      .rail {
+        flex-direction: row; border-right: none; border-top: 1px solid var(--line-bright);
+        padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        grid-row: 2; gap: 0;
+      }
+      .rail .brand { display: none; }
+      .rail button {
+        padding: 0.45rem 0.4rem; font-size: 0.5rem; border-left: none;
+        border-top: 2px solid transparent; flex-shrink: 0; letter-spacing: 0.02em;
+      }
+      .rail button.active { border-left-color: transparent; border-top-color: var(--lime); }
+      .topbar { padding: 0.4rem 0.75rem; }
+      .topbar h1 { font-size: 1.1rem; }
+      .topbar .lanes { gap: 0.3rem; }
+      .lane-chip { font-size: 0.58rem; padding: 0.15rem 0.35rem; }
+      .content .panel { padding: 0.75rem 0.75rem 1rem; }
+      #hub.panel.active { padding: 0.75rem; }
+      .ops-headline { padding: 0.6rem 0.75rem; }
+      .ops-card { padding: 0.6rem 0.75rem; }
+      .inbox-grid { gap: 0.5rem; }
+      .inbox-col { padding: 0.6rem; }
+      .fix-this { padding: 0.6rem 0.75rem; }
+      .kpi-primary .kpi { padding: 0.6rem 0.75rem; min-height: 72px; }
+      .kpi-secondary .kpi { padding: 0.45rem 0.55rem; }
+      .machines-bar { padding: 0.6rem 0.75rem; }
+      .report-list { padding: 0.6rem; }
+    }
   </style>
 </head>
 <body>
@@ -1363,6 +1415,7 @@
               </div>
               <button type="button" class="btn" id="chat-save-thread" disabled title="Save full transcript to campaign notes">+ Save chat</button>
               <button type="button" class="btn" id="chat-promote-task" disabled title="Create an open user task from this thread">+ Promote to task</button>
+              <button type="button" class="btn" id="chat-refresh-bubbles" title="Refresh chat from server (clears local cache)">↻ Refresh</button>
             </div>
             <div class="chat-context-bar" id="chat-context-bar">
               <span class="meta">Context:</span>
@@ -1705,12 +1758,13 @@
         if (activeTab === "reports") {
           if (sessionRole === "viewer") loadPublicReports();
           else renderReports(agentData);
+          setupReportKeyboardNav();
         }
         if (activeTab === "news") loadNews();
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
         if (activeTab === "stories") loadStories();
         if (activeTab === "characters") loadCharacters();
-        if (activeTab === "chat") { fillChatNewSelects(agentData); loadChatThreads().then(() => document.getElementById("chat-input")?.focus()); }
+        if (activeTab === "chat") { fillChatNewSelects(agentData); const cached = loadChatFromSessionCache(activeChatThreadId); if (cached && activeChatThreadId) { activeChatThread = { id: activeChatThreadId, messages: cached }; renderChatLog(activeChatThread, true); document.getElementById("chat-input")?.focus(); updateChatContextBar(activeChatThread); setChatComposerState(); renderChatThreadList(); } else { loadChatThreads().then(() => document.getElementById("chat-input")?.focus()); } }
         if (activeTab === "garage") loadGarage();
         if (activeTab === "systems") loadSystems();
         if (activeTab === "hub" && sessionRole !== "viewer") load();
@@ -1972,8 +2026,70 @@
       });
     }
 
+    /* ── Chat bubble sessionStorage cache ── */
+    const CHAT_CACHE_PREFIX = "chat-bubbles-";
+
+    function saveChatBubblesCache(id) {
+      const log = document.getElementById("chat-log");
+      if (!log || !id) return;
+      // Don't cache empty/placeholder states
+      const html = log.innerHTML.trim();
+      if (!html || html.includes('class="empty"')) {
+        sessionStorage.removeItem(CHAT_CACHE_PREFIX + id);
+        return;
+      }
+      try {
+        sessionStorage.setItem(CHAT_CACHE_PREFIX + id, html);
+      } catch (e) {
+        /* sessionStorage full or unavailable — non-critical */
+      }
+    }
+
+    function loadChatBubblesCache(id) {
+      if (!id) return false;
+      try {
+        const html = sessionStorage.getItem(CHAT_CACHE_PREFIX + id);
+        if (!html) return false;
+        const log = document.getElementById("chat-log");
+        if (!log) return false;
+        log.innerHTML = html;
+        log.scrollTop = log.scrollHeight;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function clearChatBubblesCache(id) {
+      if (id) {
+        sessionStorage.removeItem(CHAT_CACHE_PREFIX + id);
+      } else {
+        // Clear all chat bubble caches for this session
+        const keys = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const k = sessionStorage.key(i);
+          if (k && k.startsWith(CHAT_CACHE_PREFIX)) keys.push(k);
+        }
+        keys.forEach((k) => sessionStorage.removeItem(k));
+      }
+    }
+
     async function selectChatThread(id, remember = true, force = false) {
       if (chatWaiting && !force) return;
+      /* optimistic render from sessionStorage cache */
+      if (!force && id) {
+        const cached = loadChatFromSessionCache(id);
+        if (cached && cached.length) {
+          activeChatThreadId = id;
+          if (remember) localStorage.setItem("linuxbox-chat-active", id);
+          document.getElementById("chat-promote-task").disabled = false;
+          document.getElementById("chat-save-thread").disabled = false;
+          setChatComposerState();
+          renderChatThreadList();
+          renderChatLog({ id, messages: cached }, false);
+          setChatThreadsOpen(false);
+        }
+      }
       try {
         const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(id)}`, { credentials: "same-origin", cache: "no-store" });
         const thread = await parseApiJson(res);
@@ -2411,6 +2527,7 @@
         const j = await parseApiJson(res);
         if (!res.ok) throw new Error(j.error || "message_delete_failed");
         activeChatThread = j.thread || activeChatThread;
+        clearChatSessionCache(activeChatThreadId);
         await loadChatThreads();
         if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
       } catch (e) {
@@ -2691,10 +2808,48 @@
       } finally {
         chatWaiting = false;
         setChatComposerState();
+        clearChatSessionCache(activeChatThreadId);
         await loadChatThreads();
         if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
         const log = document.getElementById("chat-log");
         if (log) log.scrollTop = log.scrollHeight;
+      }
+    }
+
+    /* ── Chat sessionStorage cache ── */
+    const CHAT_SESSION_CACHE_PREFIX = "linuxbox-chat-log-";
+    function chatCacheKey(id) { return CHAT_SESSION_CACHE_PREFIX + (id || ""); }
+
+    function saveChatToSessionCache(id, messages) {
+      try {
+        if (id && Array.isArray(messages)) {
+          sessionStorage.setItem(chatCacheKey(id), JSON.stringify({ messages, ts: Date.now() }));
+        }
+      } catch { /* quota or other — silent */ }
+    }
+
+    function loadChatFromSessionCache(id) {
+      try {
+        if (!id) return null;
+        const raw = sessionStorage.getItem(chatCacheKey(id));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.messages)) return parsed.messages;
+        return null;
+      } catch { return null; }
+    }
+
+    function clearChatSessionCache(id) {
+      if (id) {
+        sessionStorage.removeItem(chatCacheKey(id));
+      } else {
+        /* clear all chat caches */
+        const toRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const k = sessionStorage.key(i);
+          if (k && k.startsWith(CHAT_SESSION_CACHE_PREFIX)) toRemove.push(k);
+        }
+        toRemove.forEach((k) => sessionStorage.removeItem(k));
       }
     }
 
@@ -2720,6 +2875,8 @@
         }
       });
       log.scrollTop = log.scrollHeight;
+      /* cache after rendering */
+      if (thread?.id) saveChatToSessionCache(thread.id, thread.messages);
     }
 
     async function branchChatFrom(fromIndex) {
@@ -3717,15 +3874,24 @@
         el.onclick = () => goTab(el.dataset.tab);
       });
 
-      document.getElementById("lane-bars").innerHTML = lanes.length ? lanes.map((l) => {
-        const st = laneState(l);
-        const name = l.name.replace("agent-cycle-", "");
-        return `<div class="lane-row">
-          <span class="lane-dot ${st}"></span>
-          <span class="lane-name">${esc(name)} · ${esc(l.schedule || "?")}</span>
-          <span class="lane-time">${l.last_run ? fmtEtTime(l.last_run) : "—"}</span>
-        </div>`;
-      }).join("") : '<p class="empty">No lanes</p>';
+      // Find first campaign with a pending task for "next up"
+      const nextCampaign = Object.values(data.campaigns || {}).find((c) => c.pending_count > 0 && c.next_item);
+      document.getElementById("lane-bars").innerHTML = nextCampaign
+        ? `<div class="next-up" style="margin:0 0 0.5rem">
+            <span style="display:block;font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em">Next up — ${esc(nextCampaign.label)}</span>
+            <span style="display:block;margin-top:0.2rem">${esc(nextCampaign.next_item.replace(/\*\*/g, ""))}</span>
+          </div>`
+        : lanes.length
+          ? lanes.map((l) => {
+              const st = laneState(l);
+              const name = l.name.replace("agent-cycle-", "");
+              return `<div class="lane-row">
+                <span class="lane-dot ${st}"></span>
+                <span class="lane-name">${esc(name)} · ${esc(l.schedule || "?")}</span>
+                <span class="lane-time">${l.last_run ? fmtEtTime(l.last_run) : "—"}</span>
+              </div>`;
+            }).join("")
+          : '<p class="empty">No lanes</p>';
 
       const actions = [];
       if (inboxN) actions.push({ tab: "inbox", label: `Answer inbox (${inboxN})`, emphasis: true });
@@ -4324,6 +4490,7 @@
 
     async function openReport(campaign, file, label) {
       selectedReport = { campaign, file };
+      try { sessionStorage.setItem(LAST_REPORT_KEY, JSON.stringify({ campaign, file, label })); } catch {}
       document.querySelectorAll(".report-index button").forEach((b) => b.classList.toggle("active", b.dataset.f === file && b.dataset.c === campaign));
       const reader = document.getElementById("report-reader");
       reader.innerHTML = '<div class="empty-state">Loading…</div>';
@@ -4349,10 +4516,65 @@
         if (selectedReport && selectedReport.file === b.dataset.f) b.classList.add("active");
       });
       if (!selectedReport && reports[0]) {
-        const r = reports[0];
+        // Restore last-open report from sessionStorage, fall back to first report
+        let restored = null;
+        try {
+          const saved = JSON.parse(sessionStorage.getItem(LAST_REPORT_KEY) || "null");
+          if (saved) {
+            const match = reports.find((r) => r.campaign === saved.campaign && r.name === saved.file);
+            if (match) restored = match;
+          }
+        } catch {}
+        const r = restored || reports[0];
         openReport(r.campaign, r.name, r.label);
       }
     }
+
+    /* — keyboard nav: j/k in report list (Docs tab) — */
+    let focusReportIdx = -1;
+    const REPORTS_PANEL = document.getElementById("reports");
+
+    function initReportKeyboardNav() {
+      const list = document.getElementById("report-list");
+      if (!list) return;
+      const btns = list.querySelectorAll("button");
+      btns.forEach((b, i) => { b.tabIndex = -1; });
+      if (btns.length) {
+        focusReportIdx = Math.min(focusReportIdx, btns.length - 1);
+        if (focusReportIdx < 0) focusReportIdx = 0;
+        btns[focusReportIdx].tabIndex = 0;
+      } else {
+        focusReportIdx = -1;
+      }
+    }
+    // Call after every renderReports
+    const _origRenderReports = renderReports;
+    renderReports = function(data) {
+      _origRenderReports(data);
+      initReportKeyboardNav();
+    };
+
+    REPORTS_PANEL.addEventListener("keydown", (e) => {
+      if (!REPORTS_PANEL.classList.contains("active")) return;
+      const btns = document.querySelectorAll("#report-list button");
+      if (!btns.length) return;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        if (focusReportIdx < 0) focusReportIdx = 0;
+        btns.forEach((b) => { b.tabIndex = -1; });
+        focusReportIdx = Math.min(focusReportIdx + 1, btns.length - 1);
+        btns[focusReportIdx].tabIndex = 0;
+        btns[focusReportIdx].focus();
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (focusReportIdx < 0) focusReportIdx = 0;
+        btns.forEach((b) => { b.tabIndex = -1; });
+        focusReportIdx = Math.max(focusReportIdx - 1, 0);
+        btns[focusReportIdx].tabIndex = 0;
+        btns[focusReportIdx].focus();
+      }
+      // Enter fires native click on focused button — no extra logic needed
+    });
 
     async function loadPublicReports() {
       const res = await fetch(`${base}/api/reports/public`, { cache: "no-store" });
@@ -4361,6 +4583,7 @@
     }
 
     const INBOX_DRAFT_KEY = "linuxbox-inbox-drafts";
+    const LAST_REPORT_KEY = "linuxbox-last-report";
 
     /* === INBOX MODULE — see docs/dashboard-ui-architecture.md §4 ===
      * State: sessionStorage drafts keyed by question id.
@@ -4539,13 +4762,13 @@
           const ansRoot = document.getElementById("inbox-answered");
           const row = document.createElement("div");
           row.className = "inbox-item";
-          row.innerHTML = `<div class="q">${esc(questionText)}</div><div class="from">→ ${esc(data.answer || answer)}</div>`;
+          row.innerHTML = `<div class="q">${esc(questionText)}</div><div class="from">→ ${esc(data.answer || answer)} <span class="inbox-saved-badge">Saved</span></div>`;
           if (ansRoot.querySelector(".empty")) ansRoot.innerHTML = "";
           ansRoot.prepend(row);
           const dot = document.getElementById("inbox-dot");
           const left = openRoot.querySelectorAll(".inbox-item").length;
           dot.classList.toggle("hidden", left === 0);
-          load();
+          // Inline "Saved" badge — no full re-render flash; next poll tick refreshes data
         } catch (e) {
           errEl.textContent = e.message || "Submit failed";
           errEl.classList.remove("hidden");
@@ -4944,6 +5167,7 @@
       bubble.classList.remove("is-loading");
       chatWaiting = false;
       setChatComposerState();
+      clearChatSessionCache(activeChatThreadId);
       await loadChatThreads();
       if (activeChatThreadId) await selectChatThread(activeChatThreadId, false);
       log.scrollTop = log.scrollHeight;
@@ -5022,6 +5246,16 @@
     };
 
     document.getElementById("chat-save-thread").onclick = () => saveChatThreadToCampaign();
+
+    document.getElementById("chat-refresh-bubbles").onclick = async () => {
+      if (chatWaiting) return;
+      clearChatSessionCache(activeChatThreadId);
+      if (activeChatThreadId) {
+        await selectChatThread(activeChatThreadId, false, true);
+      } else {
+        await loadChatThreads();
+      }
+    };
 
     document.getElementById("chat-new-project")?.addEventListener("change", () => onChatFilterChange());
     document.getElementById("chat-new-task")?.addEventListener("change", () => loadChatThreads());
@@ -5243,6 +5477,33 @@
       document.getElementById("backlog-text").value = "";
       load();
     };
+
+    // Keyboard nav for Docs/reports tab — j/k moves selection, Enter opens report
+    let reportNavIndex = -1;
+    document.addEventListener("keydown", (e) => {
+      if (activeTab !== "reports") return;
+      const list = document.getElementById("report-list");
+      if (!list) return;
+      const btns = [...list.querySelectorAll("button")];
+      if (!btns.length) return;
+
+      if (e.key === "j" || e.key === "k") {
+        e.preventDefault();
+        // Compute index from active button or last tracked position
+        if (reportNavIndex < 0 || reportNavIndex >= btns.length || !btns[reportNavIndex].classList.contains("active")) {
+          const active = list.querySelector("button.active");
+          reportNavIndex = active ? btns.indexOf(active) : 0;
+        }
+        if (e.key === "k") reportNavIndex = Math.max(reportNavIndex - 1, 0);   // up
+        if (e.key === "j") reportNavIndex = Math.min(reportNavIndex + 1, btns.length - 1); // down
+
+        btns[reportNavIndex].scrollIntoView({ block: "nearest" });
+        btns[reportNavIndex].focus();
+      } else if (e.key === "Enter" && reportNavIndex >= 0 && reportNavIndex < btns.length) {
+        e.preventDefault();
+        btns[reportNavIndex].click();
+      }
+    });
 
     boot();
     setInterval(() => {
