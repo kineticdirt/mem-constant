@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Chars dedupe live. Potato HEAD **`b4546c3`**. Default grid **10** (no Ellaine/Cassidy/Rosa/Minerva twins; GM chip for Wholesomeest Boi). Folder art only on canonicals; doc attachments basename-resolved or flagged unresolved. Threads untouched. Hard-refresh `/Linuxbox/` → Chars.
+
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars dedupe ship — hide thread twins/GM (Discord-informed canonicals), folder map only on sheet rows, doc-attachment basename resolve + unresolved note; git sync potato. No registry deletes.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars tab cleanup — hide/filter stub+GM duplicates (Wholesomeest Boi = GM; Ellaine stubs); resolve doc attachment images into `image_path`/gallery; git sync to potato. No registry deletes without OK. Touch: `characters-registry.json`, `linuxbox-status-server.js`, `linuxbox-status/index.html`, portraits wiring.
