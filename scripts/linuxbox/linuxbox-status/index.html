@@ -125,6 +125,16 @@
     @media (max-width: 700px) { .ops-grid { grid-template-columns: 1fr; } }
     .ops-card { background: var(--surface); padding: 0.85rem 1rem; overflow: hidden; display: flex; flex-direction: column; }
     .ops-card h2 { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
+    .fix-this {
+      margin-top: 1px; border: 1px solid var(--line-bright); background: var(--surface);
+      padding: 0.85rem 1rem; max-width: 720px;
+    }
+    .fix-this h2 { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.35rem; }
+    .fix-this .fix-this-lead { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.4; }
+    .fix-this .fix-this-urgency { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.35rem 0 0.65rem; }
+    .fix-this .fix-this-urgency .inbox-choice { width: auto; min-width: 0; }
+    .fix-this .fix-this-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.25rem; }
+    .fix-this #fix-this-result { margin: 0; font-size: 0.75rem; }
     .comp-row { margin-bottom: 0.75rem; }
     .comp-row:last-child { margin-bottom: 0; }
     .comp-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.3rem; }
@@ -957,6 +967,40 @@
               <div class="action-list" id="action-list"></div>
             </div>
           </div>
+          <section class="fix-this" id="fix-this" aria-label="Fix this ops queue">
+            <h2>Fix this</h2>
+            <p class="fix-this-lead">Ops meta queue — not Chat. Files an open user-task under LINUXBOX; think lane picks it up. No auto Hermes tick yet.</p>
+            <div class="field">
+              <label for="fix-this-title">What&rsquo;s broken</label>
+              <input type="text" id="fix-this-title" placeholder="Hermes HUNG, Chat 502, deploy drift…" maxlength="300" />
+            </div>
+            <div class="field">
+              <label for="fix-this-where">Where seen</label>
+              <select id="fix-this-where">
+                <option value="hub">Hub / status</option>
+                <option value="chat">Chat</option>
+                <option value="inbox">Inbox</option>
+                <option value="systems">Systems</option>
+                <option value="deploy">Deploy / git drift</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fix-this-detail">What you see / repro</label>
+              <textarea id="fix-this-detail" rows="3" placeholder="Symptoms, URLs, recent change, expected vs actual…"></textarea>
+            </div>
+            <div class="field">
+              <label>Urgency</label>
+              <div class="fix-this-urgency" role="radiogroup" aria-label="Urgency">
+                <label class="inbox-choice"><input type="radio" name="fix-this-urgency" value="soon" checked /><span>Soon (prefer this open task)</span></label>
+                <label class="inbox-choice"><input type="radio" name="fix-this-urgency" value="when-free" /><span>When free</span></label>
+              </div>
+            </div>
+            <div class="fix-this-actions">
+              <button type="button" class="btn primary" id="fix-this-submit">Queue fix</button>
+              <p class="empty" id="fix-this-result"></p>
+            </div>
+          </section>
           <details class="debug"><summary>Debug</summary><pre id="debug-json"></pre></details>
         </section>
 
@@ -3219,17 +3263,26 @@
       if (data.machines_sync?.open_channel?.awaiting_laptop) {
         actions.push({ tab: "hub", label: "Laptop handshake pending", emphasis: true });
       }
+      actions.push({ tab: "hub", label: "Fix this (ops queue)", focus: "fix-this" });
       actions.push({ tab: "news", label: "Intel · markets & news", mode: "markets" });
       actions.push({ tab: "reports", label: "Browse reports" });
       actions.push({ tab: "tasks", label: "Campaign queues" });
       actions.push({ tab: "chat", label: "Chat with agent" });
       document.getElementById("action-list").innerHTML = actions.map((a) =>
-        `<button type="button" class="action-link${a.emphasis ? " emphasis" : ""}" data-tab="${a.tab}"${a.mode ? ` data-mode="${a.mode}"` : ""}>${esc(a.label)}<span class="arrow">→</span></button>`
+        `<button type="button" class="action-link${a.emphasis ? " emphasis" : ""}" data-tab="${a.tab}"${a.mode ? ` data-mode="${a.mode}"` : ""}${a.focus ? ` data-focus="${a.focus}"` : ""}>${esc(a.label)}<span class="arrow">→</span></button>`
       ).join("");
       document.getElementById("action-list").querySelectorAll(".action-link").forEach((el) => {
         el.onclick = () => {
           goTab(el.dataset.tab);
           if (el.dataset.mode) setIntelMode(el.dataset.mode);
+          if (el.dataset.focus) {
+            const target = document.getElementById(el.dataset.focus);
+            if (target) {
+              target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              const title = document.getElementById("fix-this-title");
+              if (title) setTimeout(() => title.focus(), 50);
+            }
+          }
         };
       });
 
@@ -4432,6 +4485,68 @@
       document.getElementById("user-task-title").value = "";
       document.getElementById("user-task-body").value = "";
       load();
+    };
+
+    document.getElementById("fix-this-submit").onclick = async () => {
+      const titleRaw = document.getElementById("fix-this-title").value.trim();
+      const resultEl = document.getElementById("fix-this-result");
+      if (!titleRaw) {
+        resultEl.textContent = "Title required";
+        return;
+      }
+      const where = document.getElementById("fix-this-where").value || "other";
+      const detail = document.getElementById("fix-this-detail").value.trim();
+      const urgencyEl = document.querySelector('input[name="fix-this-urgency"]:checked');
+      const urgency = urgencyEl ? urgencyEl.value : "soon";
+      const whereLabel = {
+        hub: "Hub / status",
+        chat: "Chat",
+        inbox: "Inbox",
+        systems: "Systems",
+        deploy: "Deploy / git drift",
+        other: "Other",
+      }[where] || where;
+      const body = [
+        "## Fix this",
+        `Where: ${whereLabel}`,
+        `Urgency: ${urgency}`,
+        "Source: Hub Fix-this form (ops meta - not Chat)",
+        "",
+        "### Symptom / repro",
+        detail || "(none provided)",
+        "",
+        "### Agent instructions",
+        "Diagnose and fix on linuxbox when possible. Verify (curl/systemctl/Playwright).",
+        "Do not wipe chat-threads. Do not mix into campaign Chat.",
+        "Append one ledger line to AI_GROUPCHAT.md when done.",
+      ].join("\n");
+      const title = `[ops] ${titleRaw}`.slice(0, 300);
+      resultEl.textContent = "Queueing...";
+      try {
+        const res = await fetch(`${base}/api/tasks`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "user",
+            title,
+            body,
+            tags: ["bugfix", "maintenance"],
+            project_id: "linuxbox",
+            context: {},
+          }),
+        });
+        const j = await res.json();
+        if (!j.ok) {
+          resultEl.textContent = j.error || "Failed";
+          return;
+        }
+        resultEl.textContent = `Queued -> Tasks (${j.task?.id?.slice(0, 8) || "ok"})`;
+        document.getElementById("fix-this-title").value = "";
+        document.getElementById("fix-this-detail").value = "";
+        load();
+      } catch (err) {
+        resultEl.textContent = err.message || "Failed";
+      }
     };
 
     document.getElementById("task-add").onclick = async () => {

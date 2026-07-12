@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Hub **Fix this** live (ops meta ≠ Chat). Form → `user-tasks` `[ops]` + `project_id:linuxbox` + bugfix/maintenance; think lane prefers these. `:8790` **200**, markers on disk+`/`, threads **8**. Phase 2 = optional immediate Hermes tick. Hard-refresh Hub.
+
 - **2026-07-12 (UTC)** — [PC] **Intent:** Hub **Fix this** form (ops meta, not Chat) — queue structured `user-tasks.json` row (`project_id: linuxbox`, tags bugfix/maintenance) for think lane. No Chat/thread wipe. Touch: `linuxbox-status/index.html`, `USER_TASKS_TASK.md`. Deploy `--dashboard`.
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat new-thread **campaign picker** live. Potato HEAD **`3edc118`**. UI: **+ New chat** opens modal (Tropic Gooner / Hunter / SpaceQuest / NYC Mafia / none); binds `context.campaign` (+ `layer:hunter`); Hermes gets **BOUND CAMPAIGN** (do not re-ask). Sidebar select remains list filter. Threads untouched (8). `:8790` **200**. Hard-refresh `/Linuxbox/`.
@@ -221,6 +223,9 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-12T03:42Z** — [PC] **Result:** Synced chmod harden — PC has apply-git-bundle post-reset `chmod +x` + tracked scripts 100755 (`df75493`); `linuxbox/main`=`1032ad3`; potato HEAD `1032ad3`, watchdog +x/timer OK; skipped bundle push (no regress).
+- **2026-07-12T03:45Z** — [PC] **Intent/Result:** User "previous chats deleted" — RCA on potato. **Not a deploy wipe:** `chat-threads/` still has **4** live threads (API list OK) after bundle hard-reset; gitignored. **Cause of "missing" early turns:** `CHAT_MAX_MESSAGES=80` silently sliced oldest on append (main campaign `531a2b52` at cap; `.bak` still had 10 earlier msgs). Whole-thread gone: only smoke `ba06c17` (msg-delete-smoke) + Jul9 test IDs; no archive dump. **Recovery:** Y partial — restored bak-only turns into `531a2b52`; raised cap to 160; `deleteChatThread` + truncate now write `.bak`; `push-linuxbox.sh` restores `chat-threads/` after tar. Deploy `--dashboard`.
 
 - **2026-07-12T03:39Z** — [PC] **Intent:** Hermes keeps going down on potato — diagnose gateway/watchdog/DB/OOM; fix if safe.
 - **2026-07-12T03:39Z** — [PC]/[LINUX] **Result:** Root cause = (1) `hermes-gateway-watchdog.sh` lost `+x` after git-bundle hard reset (index 100644) → watchdog 203/EXEC every 2m so HUNG restarts stopped; (2) earlier today main `state.db` bloated to ~1.9G causing D-state hangs (already archived); (3) `profiles/fast/state.db` 361M archived to `/mnt/archive/logs/hermes-state-db-20260711/`; (4) box under mem pressure (swap ~0.9–1.1G, load spikes). Fixed: `chmod +x` all `scripts/linuxbox/*.sh`, index→100755, `apply-git-bundle.sh` post-reset chmod harden, watchdog OK (`state=S`). Gateways active. Residual: load/swap thrash + think lane; fast DB may grow again.
