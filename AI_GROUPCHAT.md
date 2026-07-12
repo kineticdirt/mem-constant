@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Chars **Import from link** live. PC commit **`b730494`**. `POST /api/characters-registry/import-image-url` (http/https, 4MB, image/*, private-host block). Verified: loopback → `url_host_blocked`; public w3c PNG → `portraits/rosalina/w3c-72x48.png`. Potato `:8790` **200**; git HEAD still **`5954d97`** (SCP overlay). Threads **13**. Hard-refresh `/Linuxbox/` → Chars → sheet → Image URL.
+
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars portrait **Import from image URL** — UI field+button + `POST /api/characters-registry/import-image-url` (server-side fetch, http/https only, 4MB cap, image/*). Touch: `linuxbox-status-server.js`, `linuxbox-status/index.html`. Deploy git sync. No chat-thread wipe.
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat Offload→laptop handoff enriched. PC commit **`7c5023b`**. On offload only: `[ops]/load]` user-task (mode/campaign/thread title + `agents/state/chat-threads/<id>.json` + excerpt) **and** `[LINUX]` Recent activity one-liner. Helper `chat-offload-handoff.js`. Potato: dashboard SCP overlay live (`linuxbox-status` **active**, `:8790` **200**); git HEAD still **`d5fede5`** (Linuxbox remote lag — runtime has overlay). Threads **13**. Hard-refresh Chat → Offload.
