@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Intent:** Dashboard **Characters** roster v1 — visual name+image (or initials placeholder) from `characters-registry.json`; click → simple sheet; optional `image_path`; MCP deferred. Touch: `linuxbox-status/index.html`, `linuxbox-status-server.js`, portraits README. Deploy git sync + `--dashboard`. No chat-thread wipe.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Hub **Fix this** live (ops meta ≠ Chat). Form → `user-tasks` `[ops]` + `project_id:linuxbox` + bugfix/maintenance; think lane prefers these. `:8790` **200**, markers on disk+`/`, threads **8**. Phase 2 = optional immediate Hermes tick. Hard-refresh Hub.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Hub **Fix this** form (ops meta, not Chat) — queue structured `user-tasks.json` row (`project_id: linuxbox`, tags bugfix/maintenance) for think lane. No Chat/thread wipe. Touch: `linuxbox-status/index.html`, `USER_TASKS_TASK.md`. Deploy `--dashboard`.

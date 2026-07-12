@@ -55,6 +55,7 @@
       background: var(--warn); margin: 0.25rem auto 0;
     }
     .rail button .dot.hidden { display: none; }
+    .hidden { display: none !important; }
     .workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
@@ -749,6 +750,72 @@
     .camp-pick-bar { margin-bottom: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
     .camp-pick-bar select { width: auto; min-width: 220px; font-size: 0.82rem; }
     .camp-pick-bar .meta { font-size: 0.72rem; }
+    /* Characters roster (name + image) */
+    #characters.panel.fill.active {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .chars-toolbar { padding: 0.65rem 1rem 0; }
+    .chars-layout {
+      display: grid;
+      grid-template-columns: 1fr minmax(260px, 36%);
+      min-height: 0;
+      overflow: hidden;
+      flex: 1;
+    }
+    @media (max-width: 820px) {
+      .chars-layout { grid-template-columns: 1fr; grid-template-rows: minmax(40vh, 1fr) minmax(40vh, 1fr); }
+    }
+    .chars-roster { overflow: auto; padding: 0.75rem 1rem 1.25rem; min-height: 0; }
+    .chars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 0.65rem;
+    }
+    .char-tile {
+      display: flex; flex-direction: column; align-items: stretch; gap: 0.4rem;
+      text-align: left; width: 100%; padding: 0.45rem; cursor: pointer;
+      border: 1px solid var(--line); background: var(--surface); color: var(--text);
+      font: inherit;
+    }
+    .char-tile:hover { border-color: var(--line-bright); }
+    .char-tile.active { border-color: var(--accent); background: #151820; }
+    .char-tile .char-avatar {
+      aspect-ratio: 1; width: 100%; border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      font-family: "IBM Plex Mono", monospace; font-size: 1.35rem; font-weight: 600;
+      color: #0a0a0c; overflow: hidden; background: var(--accent);
+    }
+    .char-tile .char-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .char-tile .char-name { font-size: 0.78rem; font-weight: 600; line-height: 1.25; }
+    .char-tile .char-meta { font-size: 0.62rem; color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+    .chars-sheet {
+      border-left: 1px solid var(--line-bright); overflow: auto; padding: 1rem 1.1rem 1.5rem;
+      background: #0d0d10; min-height: 0;
+    }
+    @media (max-width: 820px) { .chars-sheet { border-left: none; border-top: 1px solid var(--line-bright); } }
+    .chars-sheet .sheet-hero {
+      display: grid; grid-template-columns: 112px 1fr; gap: 0.85rem; align-items: start;
+      margin-bottom: 0.85rem;
+    }
+    .chars-sheet .sheet-avatar {
+      width: 112px; height: 112px; border: 1px solid var(--line-bright);
+      display: flex; align-items: center; justify-content: center;
+      font-family: "IBM Plex Mono", monospace; font-size: 2rem; font-weight: 600;
+      color: #0a0a0c; overflow: hidden; background: var(--accent);
+    }
+    .chars-sheet .sheet-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .chars-sheet h2 { font-size: 1.15rem; margin-bottom: 0.25rem; }
+    .chars-sheet .sheet-sub { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.35rem; }
+    .chars-sheet .sheet-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.75rem 0; }
+    .chars-sheet .sheet-blurb {
+      font-size: 0.78rem; color: var(--muted); line-height: 1.45;
+      border-left: 2px solid var(--accent); padding-left: 0.65rem; margin: 0.65rem 0;
+      max-height: 9rem; overflow: auto;
+    }
+    .chars-empty { color: var(--muted); font-size: 0.82rem; padding: 1.5rem 0.25rem; }
     .story-toolbar { padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; background: var(--surface); }
     .chat-context-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--lime); border: 1px solid var(--line); padding: 0.2rem 0.45rem; }
 
@@ -993,6 +1060,7 @@
       <button type="button" data-tab="news">News</button>
       <button type="button" class="admin-only" data-tab="campaigns">Camp</button>
       <button type="button" class="admin-only" data-tab="stories">Stories</button>
+      <button type="button" class="admin-only" data-tab="characters">Chars</button>
       <button type="button" class="admin-only" data-tab="chat">Chat</button>
       <button type="button" class="admin-only" data-tab="tasks">Tasks</button>
       <button type="button" class="admin-only" data-tab="garage">Build</button>
@@ -1229,6 +1297,27 @@
           </article>
         </section>
 
+        <section id="characters" class="panel fill admin-only">
+          <div class="chars-toolbar">
+            <div class="camp-pick-bar">
+              <label class="meta" for="chars-campaign">Campaign</label>
+              <select id="chars-campaign">
+                <option value="tropic-gooner">Tropic Gooner</option>
+              </select>
+              <span class="meta" id="chars-count">Roster · name + image</span>
+            </div>
+          </div>
+          <div class="chars-layout">
+            <div class="chars-roster">
+              <div id="chars-grid" class="chars-grid" data-marker="chars-grid"></div>
+            </div>
+            <article class="chars-sheet" id="chars-sheet">
+              <p class="chars-empty" id="chars-sheet-empty">Pick a character to see their sheet.</p>
+              <div id="chars-sheet-body" class="hidden"></div>
+            </article>
+          </div>
+        </section>
+
         <section id="chat" class="panel fill admin-only">
           <button type="button" class="chat-threads-backdrop" id="chat-threads-backdrop" aria-label="Close thread list" tabindex="-1"></button>
           <aside class="chat-sidebar" id="chat-sidebar">
@@ -1442,7 +1531,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "Hub", systems: "Systems", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
+    const titles = { hub: "Hub", systems: "Systems", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", characters: "Characters", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -1453,6 +1542,7 @@
     };
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
     let selectedStory = null, storyCatalog = null, selectedProjectId = "";
+    let charsRegistry = null, selectedCharId = "", charsCampaignFilter = localStorage.getItem("chars-campaign") || "tropic-gooner";
     let activeChatThreadId = localStorage.getItem("linuxbox-chat-active") || "";
     let chatThreads = [];
     let activeChatThread = null;
@@ -1605,6 +1695,7 @@
         if (activeTab === "news") loadNews();
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
         if (activeTab === "stories") loadStories();
+        if (activeTab === "characters") loadCharacters();
         if (activeTab === "chat") { fillChatNewSelects(agentData); loadChatThreads().then(() => document.getElementById("chat-input")?.focus()); }
         if (activeTab === "garage") loadGarage();
         if (activeTab === "systems") loadSystems();
@@ -2751,6 +2842,175 @@
         renderStoryList(storyCatalog);
       } catch (e) {
         document.getElementById("story-list").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
+    function charInitials(name) {
+      const parts = String(name || "?").replace(/[^\w\s-]/g, " ").trim().split(/[\s-]+/).filter(Boolean);
+      if (!parts.length) return "?";
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function charAvatarTone(id) {
+      let h = 0;
+      for (let i = 0; i < (id || "").length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+      const hues = [196, 84, 142, 48, 268, 18];
+      return `hsl(${hues[h % hues.length]} 55% 62%)`;
+    }
+
+    function charAvatarHtml(row, cls) {
+      const name = row.display_name || row.id || "?";
+      const initials = charInitials(name);
+      const tone = charAvatarTone(row.id || name);
+      if (row.has_image && row.image_url) {
+        return `<div class="${cls}" style="background:${tone}" data-initials="${esc(initials)}"><img src="${esc(base + row.image_url)}" alt="" loading="lazy" onerror="this.parentNode.textContent=this.parentNode.dataset.initials;this.remove()" /></div>`;
+      }
+      return `<div class="${cls}" style="background:${tone}">${esc(initials)}</div>`;
+    }
+
+    async function loadCharacters() {
+      const sel = document.getElementById("chars-campaign");
+      if (sel && !sel.dataset.ready) {
+        sel.dataset.ready = "1";
+        sel.onchange = () => {
+          charsCampaignFilter = sel.value;
+          localStorage.setItem("chars-campaign", charsCampaignFilter);
+          selectedCharId = "";
+          loadCharacters();
+        };
+      }
+      if (sel) sel.value = charsCampaignFilter;
+      const grid = document.getElementById("chars-grid");
+      grid.innerHTML = '<p class="chars-empty">Loading roster…</p>';
+      try {
+        const res = await fetch(
+          `${base}/api/characters-registry?campaign=${encodeURIComponent(charsCampaignFilter)}`,
+          { cache: "no-store" }
+        );
+        charsRegistry = await res.json();
+        renderCharactersRoster();
+      } catch (e) {
+        grid.innerHTML = `<p class="chars-empty">${esc(e.message)}</p>`;
+      }
+    }
+
+    function renderCharactersRoster() {
+      const grid = document.getElementById("chars-grid");
+      const countEl = document.getElementById("chars-count");
+      const chars = (charsRegistry?.characters || []).slice().sort((a, b) =>
+        String(a.display_name || a.id).localeCompare(String(b.display_name || b.id))
+      );
+      countEl.textContent = `${chars.length} characters · name + image`;
+      if (!chars.length) {
+        grid.innerHTML = '<p class="chars-empty">No registry for this campaign yet.</p>';
+        renderCharacterSheet(null);
+        return;
+      }
+      grid.innerHTML = chars.map((c) => {
+        const sub = c.player_name || c.discord_username || c.status || "";
+        return `<button type="button" class="char-tile${c.id === selectedCharId ? " active" : ""}" data-char-id="${esc(c.id)}">
+          ${charAvatarHtml(c, "char-avatar")}
+          <span class="char-name">${esc(c.display_name || c.id)}</span>
+          <span class="char-meta">${esc(sub)}</span>
+        </button>`;
+      }).join("");
+      grid.querySelectorAll(".char-tile").forEach((btn) => {
+        btn.onclick = () => {
+          selectedCharId = btn.dataset.charId;
+          renderCharactersRoster();
+          const row = chars.find((c) => c.id === selectedCharId);
+          renderCharacterSheet(row);
+        };
+      });
+      const selected = chars.find((c) => c.id === selectedCharId) || null;
+      renderCharacterSheet(selected);
+    }
+
+    function renderCharacterSheet(row) {
+      const empty = document.getElementById("chars-sheet-empty");
+      const body = document.getElementById("chars-sheet-body");
+      if (!row) {
+        empty.classList.remove("hidden");
+        body.classList.add("hidden");
+        body.innerHTML = "";
+        return;
+      }
+      empty.classList.add("hidden");
+      body.classList.remove("hidden");
+      const discord = row.discord_username
+        ? `${esc(row.discord_username)}${row.discord_user_id ? ` · <code>${esc(row.discord_user_id)}</code>` : ""}`
+        : "<span class=\"meta\">not linked</span>";
+      const aliases = (row.aliases || []).length
+        ? `<p class="sheet-sub">Also: ${(row.aliases || []).map((a) => esc(a)).join(", ")}</p>`
+        : "";
+      const notes = row.notes
+        ? `<div class="sheet-blurb">${esc(row.notes)}</div>`
+        : "";
+      body.innerHTML = `
+        <div class="sheet-hero">
+          ${charAvatarHtml(row, "sheet-avatar")}
+          <div>
+            <h2>${esc(row.display_name || row.id)}</h2>
+            <p class="sheet-sub"><code>${esc(row.id)}</code> · ${esc(row.status || "active")}</p>
+            <p class="sheet-sub">Player: ${esc(row.player_name || "—")}</p>
+            <p class="sheet-sub">Discord: ${discord}</p>
+            ${aliases}
+          </div>
+        </div>
+        ${notes}
+        <div class="field">
+          <label for="char-image-path">Image path (under campaigns/${esc(charsCampaignFilter)}/)</label>
+          <input type="text" id="char-image-path" placeholder="characters/portraits/name.webp" value="${esc(row.image_path || "")}" />
+        </div>
+        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Drop a portrait into <code>characters/portraits/</code>, then save the relative path here. No image → initials tile.</p>
+        <div class="sheet-actions">
+          <button type="button" class="btn primary" id="char-image-save">Save image path</button>
+          <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
+          <span class="meta" id="char-image-result"></span>
+        </div>`;
+      document.getElementById("char-image-save").onclick = async () => {
+        const image_path = document.getElementById("char-image-path").value.trim();
+        const out = document.getElementById("char-image-result");
+        out.textContent = "Saving…";
+        try {
+          const res = await fetch(`${base}/api/characters-registry`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              campaign: charsCampaignFilter,
+              id: row.id,
+              display_name: row.display_name,
+              story_path: row.story_path,
+              image_path,
+            }),
+          });
+          const j = await res.json();
+          if (!res.ok) {
+            out.textContent = j.error || "Save failed";
+            return;
+          }
+          charsRegistry = j;
+          out.textContent = j.characters?.find((c) => c.id === row.id)?.has_image
+            ? "Saved · image ok"
+            : "Saved · file missing (initials until present)";
+          const next = (j.characters || []).find((c) => c.id === row.id);
+          selectedCharId = row.id;
+          renderCharactersRoster();
+          if (next) renderCharacterSheet(next);
+        } catch (e) {
+          out.textContent = e.message || "Save failed";
+        }
+      };
+      const openBtn = document.getElementById("char-open-story");
+      if (openBtn && row.story_path) {
+        openBtn.onclick = () => {
+          storyCampaignFilter = charsCampaignFilter;
+          localStorage.setItem("story-campaign", storyCampaignFilter);
+          goTab("stories");
+          const name = row.display_name || row.id;
+          setTimeout(() => openStoryDoc(charsCampaignFilter, row.story_path, name, row.id), 200);
+        };
       }
     }
 

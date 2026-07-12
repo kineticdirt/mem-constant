@@ -1481,7 +1481,7 @@ function listStoryCatalog() {
     const groups = groupStoryFiles(files, id);
     campaigns[id] = { label: cfg.label, files, groups };
     if (cfg.charactersRegistry) {
-      registries[id] = readCharactersRegistry(id);
+      registries[id] = getCharactersRegistry(id);
     }
   }
   return { updated_at: new Date().toISOString(), campaigns, registries, tags: USER_TASK_TAGS };
@@ -1525,6 +1525,47 @@ function charactersRegistryPath(campaignId) {
   return path.join(REPO, cfg.charactersRegistry);
 }
 
+const CHAR_IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
+
+function characterImageAbs(campaignId, imagePath) {
+  if (!campaignId || !CAMPAIGNS[campaignId] || !imagePath || typeof imagePath !== "string") return null;
+  const normalized = imagePath.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!normalized || normalized.includes("..") || path.isAbsolute(normalized)) return null;
+  const ext = path.extname(normalized).toLowerCase();
+  if (!CHAR_IMAGE_EXTS.has(ext)) return null;
+  const abs = path.join(REPO, "campaigns", campaignId, normalized);
+  const root = path.join(REPO, "campaigns", campaignId);
+  if (!abs.startsWith(root + path.sep) && abs !== root) return null;
+  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return null;
+  return abs;
+}
+
+function characterImageContentType(absPath) {
+  const ext = path.extname(absPath).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".svg") return "image/svg+xml";
+  return "application/octet-stream";
+}
+
+function enrichCharactersRegistry(data, campaignId) {
+  const chars = (data.characters || []).map((c) => {
+    const imagePath = c.image_path || "";
+    const hasImage = Boolean(characterImageAbs(campaignId, imagePath));
+    return {
+      ...c,
+      image_path: imagePath,
+      has_image: hasImage,
+      image_url: hasImage
+        ? `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}`
+        : null,
+    };
+  });
+  return { ...data, campaign_id: data.campaign_id || campaignId, characters: chars };
+}
+
 function readCharactersRegistry(campaignId) {
   const abs = charactersRegistryPath(campaignId);
   if (!abs || !fs.existsSync(abs)) {
@@ -1537,6 +1578,10 @@ function readCharactersRegistry(campaignId) {
   } catch {
     return { version: 1, campaign_id: campaignId, characters: [], updated_at: null, error: "parse_failed" };
   }
+}
+
+function getCharactersRegistry(campaignId) {
+  return enrichCharactersRegistry(readCharactersRegistry(campaignId), campaignId);
 }
 
 function writeCharactersRegistry(campaignId, data) {
@@ -1583,11 +1628,22 @@ function patchCharacterRegistry(campaignId, patch) {
     "status",
     "can_proxy",
     "notes",
+    "image_path",
   ];
   for (const k of allowed) {
     if (patch[k] !== undefined) row[k] = patch[k];
   }
-  return writeCharactersRegistry(campaignId, registry);
+  if (row.image_path) {
+    const normalized = String(row.image_path).replace(/\\/g, "/").replace(/^\/+/, "");
+    if (normalized.includes("..") || path.isAbsolute(normalized)) {
+      throw new Error("bad_image_path");
+    }
+    const ext = path.extname(normalized).toLowerCase();
+    if (normalized && !CHAR_IMAGE_EXTS.has(ext)) throw new Error("bad_image_ext");
+    row.image_path = normalized;
+  }
+  writeCharactersRegistry(campaignId, registry);
+  return getCharactersRegistry(campaignId);
 }
 
 function readStoryDoc(campaignId, relPath) {
@@ -4149,7 +4205,25 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && pathname === "/api/characters-registry") {
       const campaignId = url.searchParams.get("campaign") || "tropic-gooner";
-      sendJson(res, 200, readCharactersRegistry(campaignId), publicMode);
+      sendJson(res, 200, getCharactersRegistry(campaignId), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/characters-registry/image") {
+      const campaignId = url.searchParams.get("campaign") || "tropic-gooner";
+      const charId = url.searchParams.get("id") || "";
+      const reg = readCharactersRegistry(campaignId);
+      const row = (reg.characters || []).find((c) => c.id === charId);
+      if (!row?.image_path) {
+        sendJson(res, 404, { error: "no_image" }, publicMode);
+        return;
+      }
+      const abs = characterImageAbs(campaignId, row.image_path);
+      if (!abs) {
+        sendJson(res, 404, { error: "image_missing" }, publicMode);
+        return;
+      }
+      sendFile(res, abs, characterImageContentType(abs), publicMode);
       return;
     }
 
