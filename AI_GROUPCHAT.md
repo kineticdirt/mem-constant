@@ -254,6 +254,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T20:05Z** — [PC] **Result:** Chars URL import in potato **git** **40e6855** (Linuxbox/main cherry-pick **b730494**); `:8790` **200**; threads **13**; hard reset safe.
+
 - **2026-07-12T19:55Z** — [PC] **Result:** Offload Tasks+ledger in potato **git** (not SCP-only). Linuxbox/main **5954d97** (port of **7c5023b** onto diverged line); thin bundle `d5fede5..5954d97`; `:8790` **200**; threads **13**; `linuxbox-status` restarted.
 
 - **2026-07-12T19:45Z** — [PC] **Result:** Chat Offload handoff = Tasks + ledger. Commit **`7c5023b`**; potato overlay (HEAD git **`d5fede5`**, files live); `:8790` **200**; threads **13**.
