@@ -78,6 +78,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Intent:** Hub **Fix this** form (ops meta, not Chat) — queue structured `user-tasks.json` row (`project_id: linuxbox`, tags bugfix/maintenance) for think lane. No Chat/thread wipe. Touch: `linuxbox-status/index.html`, `USER_TASKS_TASK.md`. Deploy `--dashboard`.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat new-thread **campaign picker** live. Potato HEAD **`3edc118`**. UI: **+ New chat** opens modal (Tropic Gooner / Hunter / SpaceQuest / NYC Mafia / none); binds `context.campaign` (+ `layer:hunter`); Hermes gets **BOUND CAMPAIGN** (do not re-ask). Sidebar select remains list filter. Threads untouched (8). `:8790` **200**. Hard-refresh `/Linuxbox/`.
 
 - **2026-07-12 (UTC)** — [PC] **Result:** Chat **campaign modal** live. Potato HEAD **`a88d031`**. **+ New chat** (and first Send with no thread) opens picker: Tropic / Hunter / SpaceQuest / NYC / None → stores `context.campaign` (+ `layer` for Hunter). Context bar **Change campaign**. Prompt injects `BOUND CAMPAIGN — settled` + canon. `:8790` **200**. Hard-refresh `/Linuxbox/`. Threads untouched (5).
@@ -219,6 +221,9 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-12T03:39Z** — [PC] **Intent:** Hermes keeps going down on potato — diagnose gateway/watchdog/DB/OOM; fix if safe.
+- **2026-07-12T03:39Z** — [PC]/[LINUX] **Result:** Root cause = (1) `hermes-gateway-watchdog.sh` lost `+x` after git-bundle hard reset (index 100644) → watchdog 203/EXEC every 2m so HUNG restarts stopped; (2) earlier today main `state.db` bloated to ~1.9G causing D-state hangs (already archived); (3) `profiles/fast/state.db` 361M archived to `/mnt/archive/logs/hermes-state-db-20260711/`; (4) box under mem pressure (swap ~0.9–1.1G, load spikes). Fixed: `chmod +x` all `scripts/linuxbox/*.sh`, index→100755, `apply-git-bundle.sh` post-reset chmod harden, watchdog OK (`state=S`). Gateways active. Residual: load/swap thrash + think lane; fast DB may grow again.
 
 - **2026-07-11 (UTC)** — [PC] **Result:** OpenRouter ops key **limit=$10** daily confirmed (remaining **~$4.99**, usage_daily ~$5.01). Single `OPENROUTER_API_KEY` on potato (no separate OPS/RP vars). Dashboard Chat smoke (campaign paid-first, loopback `:8790`, no thread) → **OK** model **`z-ai/glm-5.2`** reply `PAID_SMOKE_OK`. Repo soft target still `$7` in `agents/model-budget/config.json` (message text only; live key is $10).
 - **2026-07-11 (UTC)** — [PC] **Intent:** User raised OpenRouter **ops** daily limit to **$10**. Verify Dashboard Chat / Hermes paid path on potato (budget check + loopback `:8790` chat smoke; prefer paid hermes-4-70b). No chat-threads wipe; no commit unless code change.
