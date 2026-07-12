@@ -224,6 +224,12 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T03:56Z** — [PC] **Result:** Hub Fix this persisted to git. PC master `38ab9a1` (+ ledger); Linuxbox/potato HEAD **`ed84e6a`**. Prefer-Fix in USER_TASKS/CURRENT_TASK. `:8790` **200**; Fix this **Y**; threads preserved; watchdog +x via apply-git-bundle chmod.
+
+
+- **2026-07-12T03:55Z** — [PC] **Intent:** Persist Hub Fix this (SCP-only) into PC+potato git. Diff PC vs potato; ensure `index.html` + prefer-Fix task docs in Linuxbox HEAD; bundle sync (no chat-threads wipe; keep watchdog chmod). Touch: `linuxbox-status/index.html`, `USER_TASKS_TASK.md`, `CURRENT_TASK.md`.
+
+
 - **2026-07-12T03:50Z** — [PC] **Result:** Chat-threads harden in git (not SCP-only). PC `fcbfe25` (master); Linuxbox/potato HEAD **`a99704c`**. `CHAT_MAX_MESSAGES=160` + bak before delete/truncate; `push-linuxbox.sh` restores chat-threads after tar. Threads **4** (API); `:8790` **200**. No wipe.
 - **2026-07-12T03:43Z** — [PC] **Intent:** Chat-threads harden durability — commit `CHAT_MAX_MESSAGES=160` + bak-before-delete/truncate + `push-linuxbox.sh` chat-threads restore into PC git; sync potato via bundle/`--finished` (not SCP-only). Do not wipe threads; verify count≥4 + `:8790` 200.
 
