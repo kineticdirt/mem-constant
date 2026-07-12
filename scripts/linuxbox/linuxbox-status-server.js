@@ -1719,12 +1719,21 @@ function buildChatStylePreamble(responseMode, context) {
   const brief = responseMode !== "workshop";
   const lines = [CHAT_RUNTIME_GUARDRAIL, ""];
   const boundCamp = campaignDisplayLabel(context);
+  if (boundCamp) {
+    lines.push(
+      `[BOUND CAMPAIGN — settled]`,
+      `This chat is already locked to ${boundCamp}.`,
+      `Never ask "which campaign" / "where does this live" / list Tropic Gooner, Hunter, SpaceQuest, or NYC Mafia as choices.`,
+      `Ask only about missing lore details inside this campaign.`,
+      ""
+    );
+  }
   const styleLines = brief
     ? [
         "[Response style — Brief]",
         "Be concise: short paragraphs or bullets; no essays unless the user asks for depth.",
         boundCamp
-          ? "If a lore detail is missing, ask about that detail — never ask which campaign this thread belongs to (already bound below)."
+          ? "If a lore detail is missing, ask about that detail — never ask which campaign this thread belongs to (already bound above)."
           : "If the request is ambiguous, vague, or would require inventing canon, ask 1–2 specific clarifying questions before proposing lore or tasks.",
         "For RP/worldbuilding: think in rise/fall phases with nuance — not fill-in templates.",
         "The human is GM (creative authority); you are scribe/implementer — capture, brainstorm, note gaps; do not act as GM.",
@@ -1733,7 +1742,7 @@ function buildChatStylePreamble(responseMode, context) {
         "[Response style — Workshop]",
         "Longer form is OK when it helps — still prefer structure (sections/bullets) over walls of text.",
         boundCamp
-          ? "When facts are missing, ask about those facts — never ask which campaign (already bound below)."
+          ? "When facts are missing, ask about those facts — never ask which campaign (already bound above)."
           : "When facts are missing or the ask is ambiguous, ask 1–2 targeted clarifying questions before inventing canon.",
         "For RP/worldbuilding: rise/fall phases with nuance; the human is GM, you are scribe/implementer.",
       ];
@@ -1845,7 +1854,11 @@ function buildChatSystemStatusBlock(context = null) {
       const progress = parseProgress(fs.readFileSync(progPath, "utf8"));
       const pendingItems = progress.filter((p) => !p.done).length;
       if (pendingItems > 0) {
-        lines.push(`campaign ${id}: ${pendingItems} open`);
+        const label =
+          context?.campaign === id
+            ? `bound campaign queue (${CHAT_CAMPAIGN_LABELS[id] || id})`
+            : `campaign ${id}`;
+        lines.push(`${label}: ${pendingItems} open`);
       }
     }
 
@@ -2044,6 +2057,7 @@ The human is the GM (creative authority). You are the scribe/implementer: captur
       `[BOUND CAMPAIGN — already chosen by the human]
 This thread is locked to: ${campLabel} (id: ${context.campaign}${context.layer ? `, layer: ${context.layer}` : ""}).
 Do NOT ask which campaign this lives in. Do NOT offer Tropic Gooner / Hunter / SpaceQuest / NYC Mafia as alternatives.
+The campaign identity is settled — treat "${campLabel}" as given.
 Stay in this campaign only. If a detail is missing, ask about that detail — not the campaign identity.`
     );
     if (!hasStoryDoc) {
@@ -2749,7 +2763,12 @@ function updateChatThreadMeta(id, patch = {}) {
   const thread = readChatThread(id);
   if (!thread) throw new Error("thread_not_found");
   if (patch.title) thread.title = String(patch.title).trim().slice(0, 120);
-  if (patch.context) thread.context = normalizeThreadContext({ ...thread.context, ...patch.context });
+  if (patch.context) {
+    // Full replace when context_replace — needed to clear campaign/layer.
+    thread.context = patch.context_replace
+      ? normalizeThreadContext(patch.context)
+      : normalizeThreadContext({ ...thread.context, ...patch.context });
+  }
   if (patch.profile && VALID_PROFILES.has(patch.profile)) thread.profile = patch.profile;
   if (patch.response_mode) thread.response_mode = patch.response_mode === "workshop" ? "workshop" : "brief";
   thread.updated_at = Date.now();
@@ -4235,8 +4254,8 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         const threadId = String(body.thread_id || "").trim();
-        let context = body.context || null;
-        let profile = resolveChatProfile(body.context || null, body.profile || "think");
+        let context = body.context ? normalizeThreadContext(body.context) : null;
+        let profile = resolveChatProfile(context, body.profile || "think");
         let responseMode = body.response_mode === "workshop" ? "workshop" : "brief";
         let history = Array.isArray(body.history)
           ? body.history
@@ -4270,7 +4289,7 @@ const server = http.createServer(async (req, res) => {
             sendJson(res, 404, { error: "thread_not_found" }, publicMode);
             return;
           }
-          context = thread.context || context;
+          context = normalizeThreadContext(thread.context || context || {});
           profile = resolveChatProfile(context, body.profile || thread.profile || "think");
           responseMode =
             body.response_mode === "workshop" || body.response_mode === "brief"

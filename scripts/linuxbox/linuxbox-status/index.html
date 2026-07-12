@@ -381,6 +381,51 @@
     .chat-new-context select { font-size: 0.72rem; padding: 0.25rem 0.35rem; }
     .chat-filter-caption { font-size: 0.6rem; margin: 0; color: var(--muted); }
     .chat-filter-hint { font-size: 0.62rem; color: var(--lime); margin: 0; }
+    /* New-chat campaign picker (modal) — Family B-style choices, not a buried select */
+    .chat-campaign-modal {
+      display: none; position: fixed; inset: 0; z-index: 80;
+      align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.55); padding: 1rem;
+    }
+    .chat-campaign-modal.open { display: flex; }
+    .chat-campaign-modal-panel {
+      width: min(28rem, 100%); max-height: min(90vh, 36rem);
+      overflow: auto; background: var(--surface);
+      border: 1px solid var(--line-bright); border-radius: 4px;
+      padding: 1rem 1.1rem 1.1rem; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+    .chat-campaign-modal-panel h3 {
+      margin: 0 0 0.35rem; font-size: 1rem; font-weight: 700; color: var(--text);
+    }
+    .chat-campaign-modal-panel > .meta { margin: 0 0 0.85rem; line-height: 1.4; }
+    .chat-campaign-choices { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .chat-camp-choice {
+      display: flex; align-items: flex-start; gap: 0.55rem;
+      width: 100%; text-align: left; cursor: pointer;
+      padding: 0.65rem 0.75rem; border: 1px solid var(--line-bright);
+      border-radius: 3px; background: var(--bg); color: var(--text);
+      font-family: inherit; font-size: 0.82rem; line-height: 1.35;
+    }
+    .chat-camp-choice:hover { border-color: var(--accent); background: #151820; }
+    .chat-camp-choice[aria-checked="true"] {
+      border-color: var(--accent); background: #1a2838;
+      box-shadow: inset 2px 0 0 var(--accent);
+    }
+    .chat-camp-choice .camp-name { font-weight: 700; display: block; }
+    .chat-camp-choice .camp-desc { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; display: block; }
+    .chat-camp-choice .camp-radio {
+      flex: 0 0 auto; width: 0.85rem; height: 0.85rem; margin-top: 0.2rem;
+      border-radius: 50%; border: 2px solid var(--muted); background: transparent;
+    }
+    .chat-camp-choice[aria-checked="true"] .camp-radio {
+      border-color: var(--accent); background: var(--accent);
+      box-shadow: inset 0 0 0 2px var(--bg);
+    }
+    .chat-campaign-modal-actions {
+      display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap;
+    }
+    .chat-campaign-modal-actions .btn { width: auto; }
+    #chat-context-change-camp { font-size: 0.65rem; padding: 0.2rem 0.45rem; }
     .chat-thread-list { flex: 1; overflow-y: auto; padding: 0.35rem 0; }
     .chat-thread-item {
       position: relative;
@@ -1022,10 +1067,10 @@
             <div class="chat-sidebar-head">
               <button type="button" class="btn primary" id="chat-new">+ New chat</button>
               <div class="chat-new-context">
-                <p class="chat-filter-caption">Campaign for new chat (binds context · also filters list)</p>
-                <label class="meta" for="chat-new-campaign">Campaign</label>
-                <select id="chat-new-campaign" title="Bound to new chats — model will not ask which campaign">
-                  <option value="">— none / general —</option>
+                <p class="chat-filter-caption">Filter thread list (New chat opens a campaign picker)</p>
+                <label class="meta" for="chat-new-campaign">Filter</label>
+                <select id="chat-new-campaign" title="Filters the thread list; New chat still asks which campaign to bind">
+                  <option value="">— all / none —</option>
                   <option value="tropic-gooner">Tropic Gooner</option>
                   <option value="tropic-gooner|hunter">Hunter: The Reckoning</option>
                   <option value="spacequest">SpaceQuest</option>
@@ -1051,7 +1096,40 @@
             <div class="chat-context-bar" id="chat-context-bar">
               <span class="meta">Context:</span>
               <span class="chat-context-pill hidden" id="chat-context-pill"></span>
+              <button type="button" class="btn hidden" id="chat-context-change-camp" title="Bind or change campaign for this thread">Change campaign</button>
               <span class="meta" id="chat-thread-meta"></span>
+            </div>
+            <div id="chat-campaign-modal" class="chat-campaign-modal" aria-hidden="true">
+              <div class="chat-campaign-modal-panel" role="dialog" aria-modal="true" aria-labelledby="chat-campaign-modal-title">
+                <h3 id="chat-campaign-modal-title">Pick a campaign</h3>
+                <p class="meta">Binds this chat so the assistant uses that campaign’s canon and will not ask which campaign.</p>
+                <div class="chat-campaign-choices" id="chat-campaign-choices" role="radiogroup" aria-label="Campaign">
+                  <button type="button" class="chat-camp-choice" role="radio" aria-checked="true" data-camp="" data-layer="">
+                    <span class="camp-radio" aria-hidden="true"></span>
+                    <span><span class="camp-name">None / general</span><span class="camp-desc">Ops, dashboard, or no campaign binding</span></span>
+                  </button>
+                  <button type="button" class="chat-camp-choice" role="radio" aria-checked="false" data-camp="tropic-gooner" data-layer="">
+                    <span class="camp-radio" aria-hidden="true"></span>
+                    <span><span class="camp-name">Tropic Gooner</span><span class="camp-desc">WoD chronicle · Isla Primavera</span></span>
+                  </button>
+                  <button type="button" class="chat-camp-choice" role="radio" aria-checked="false" data-camp="tropic-gooner" data-layer="hunter">
+                    <span class="camp-radio" aria-hidden="true"></span>
+                    <span><span class="camp-name">Hunter: The Reckoning</span><span class="camp-desc">Hunter layer on the Tropic Gooner chronicle</span></span>
+                  </button>
+                  <button type="button" class="chat-camp-choice" role="radio" aria-checked="false" data-camp="spacequest" data-layer="">
+                    <span class="camp-radio" aria-hidden="true"></span>
+                    <span><span class="camp-name">SpaceQuest</span><span class="camp-desc">SpaceQuest worldbuilding</span></span>
+                  </button>
+                  <button type="button" class="chat-camp-choice" role="radio" aria-checked="false" data-camp="nyc-mafia-dnd" data-layer="">
+                    <span class="camp-radio" aria-hidden="true"></span>
+                    <span><span class="camp-name">NYC Mafia × D&amp;D</span><span class="camp-desc">NYC Mafia campaign</span></span>
+                  </button>
+                </div>
+                <div class="chat-campaign-modal-actions">
+                  <button type="button" class="btn" id="chat-campaign-modal-cancel">Cancel</button>
+                  <button type="button" class="btn primary" id="chat-campaign-modal-ok">Start chat</button>
+                </div>
+              </div>
             </div>
             <div class="chat-moderation-banner" id="chat-moderation-banner" role="alert" aria-live="polite"></div>
             <div class="chat-log" id="chat-log">
@@ -1655,17 +1733,157 @@
     function updateChatContextBar(thread) {
       const pill = document.getElementById("chat-context-pill");
       const meta = document.getElementById("chat-thread-meta");
+      const changeBtn = document.getElementById("chat-context-change-camp");
       const label = contextLabel(thread?.context, agentData);
       if (label) {
         pill.textContent = label;
         pill.classList.remove("hidden");
+      } else if (thread?.id) {
+        pill.textContent = "No campaign bound";
+        pill.classList.remove("hidden");
       } else {
         pill.classList.add("hidden");
+      }
+      if (changeBtn) {
+        if (thread?.id && !chatWaiting) {
+          changeBtn.classList.remove("hidden");
+          changeBtn.disabled = false;
+        } else {
+          changeBtn.classList.add("hidden");
+        }
       }
       const parts = [];
       if (thread?.parent_id) parts.push(`branched from ${thread.parent_id.slice(0, 8)}`);
       if (thread?.branch_from_index != null) parts.push(`@ msg ${thread.branch_from_index + 1}`);
       meta.textContent = parts.join(" · ");
+    }
+
+    let chatCampModalResolver = null;
+
+    function setChatCampModalSelection(value) {
+      const want = value || "";
+      document.querySelectorAll("#chat-campaign-choices .chat-camp-choice").forEach((btn) => {
+        const v = chatCampaignSelectValue(btn.dataset.camp || "", btn.dataset.layer || "");
+        const on = v === want;
+        btn.setAttribute("aria-checked", on ? "true" : "false");
+      });
+    }
+
+    function getChatCampModalSelection() {
+      const on = document.querySelector('#chat-campaign-choices .chat-camp-choice[aria-checked="true"]');
+      if (!on) return { campaign: "", layer: "", value: "" };
+      const campaign = on.dataset.camp || "";
+      const layer = on.dataset.layer || "";
+      return { campaign, layer, value: chatCampaignSelectValue(campaign, layer) };
+    }
+
+    function closeChatCampModal(result) {
+      const modal = document.getElementById("chat-campaign-modal");
+      if (modal) {
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+      const resolve = chatCampModalResolver;
+      chatCampModalResolver = null;
+      if (resolve) resolve(result);
+    }
+
+    /** Modal campaign picker. Resolves {campaign, layer, value} or null if cancelled. */
+    function openChatCampaignModal(opts = {}) {
+      return new Promise((resolve) => {
+        if (chatCampModalResolver) {
+          closeChatCampModal(null);
+        }
+        chatCampModalResolver = resolve;
+        const modal = document.getElementById("chat-campaign-modal");
+        const titleEl = document.getElementById("chat-campaign-modal-title");
+        const okBtn = document.getElementById("chat-campaign-modal-ok");
+        if (titleEl) titleEl.textContent = opts.title || "Pick a campaign";
+        if (okBtn) okBtn.textContent = opts.okLabel || "Start chat";
+        const initial =
+          opts.initialValue != null
+            ? opts.initialValue
+            : chatCampaignSelectValue(
+                opts.campaign || getChatFilter().campaign || "",
+                opts.layer || getChatFilter().layer || ""
+              );
+        setChatCampModalSelection(initial);
+        if (modal) {
+          modal.classList.add("open");
+          modal.setAttribute("aria-hidden", "false");
+        }
+        okBtn?.focus();
+      });
+    }
+
+    function applyCampaignToNewSelect(campaign, layer) {
+      const sel = document.getElementById("chat-new-campaign");
+      if (sel) sel.value = chatCampaignSelectValue(campaign, layer);
+      updateChatFilterHint();
+    }
+
+    async function createChatThreadWithCampaignPick(opts = {}) {
+      const picked = await openChatCampaignModal({
+        title: opts.title || "New chat — pick a campaign",
+        okLabel: opts.okLabel || "Start chat",
+        campaign: opts.campaign,
+        layer: opts.layer,
+        initialValue: opts.initialValue,
+      });
+      if (!picked) return null;
+      applyCampaignToNewSelect(picked.campaign, picked.layer);
+      const extra = { ...(opts.extra || {}) };
+      if (picked.campaign) {
+        extra.campaign = picked.campaign;
+        if (picked.layer) extra.layer = picked.layer;
+        else delete extra.layer;
+      } else {
+        delete extra.campaign;
+        delete extra.layer;
+      }
+      const label =
+        opts.threadTitle ||
+        contextLabel(
+          { campaign: picked.campaign, layer: picked.layer },
+          agentData
+        ) ||
+        "New chat";
+      return createChatThreadFromForm(extra, { title: label });
+    }
+
+    async function rebindActiveThreadCampaign() {
+      if (!activeChatThreadId || chatWaiting) return;
+      const cur = activeChatThread?.context || {};
+      const picked = await openChatCampaignModal({
+        title: "Change campaign for this chat",
+        okLabel: "Save campaign",
+        campaign: cur.campaign || "",
+        layer: cur.layer || "",
+        initialValue: chatCampaignSelectValue(cur.campaign || "", cur.layer || ""),
+      });
+      if (!picked) return;
+      const nextCtx = { ...(cur || {}) };
+      if (picked.campaign) {
+        nextCtx.campaign = picked.campaign;
+        if (picked.layer) nextCtx.layer = picked.layer;
+        else delete nextCtx.layer;
+      } else {
+        delete nextCtx.campaign;
+        delete nextCtx.layer;
+      }
+      const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context: nextCtx, context_replace: true }),
+      });
+      const thread = await parseApiJson(res);
+      if (!res.ok) throw new Error(thread.error || "campaign_update_failed");
+      applyCampaignToNewSelect(picked.campaign, picked.layer);
+      activeChatThread = thread;
+      updateChatContextBar(thread);
+      await loadChatThreads();
+      await selectChatThread(activeChatThreadId, false);
     }
 
     function buildChatContextFromForm(extra = {}) {
@@ -3930,7 +4148,11 @@
       if (!msg) return;
       if (!activeChatThreadId) {
         try {
-          await createChatThreadFromForm();
+          const thread = await createChatThreadWithCampaignPick({
+            title: "New chat — pick a campaign",
+            okLabel: "Start & send",
+          });
+          if (!thread) return;
         } catch (e) {
           alert(e.message);
           return;
@@ -4016,9 +4238,15 @@
       try {
         document.getElementById("chat-log").innerHTML =
           '<p class="empty">No messages yet — send one below.</p>';
-        const ctx = buildChatContextFromForm();
-        const title = contextLabel(ctx, agentData) || "New chat";
-        await createChatThreadFromForm({}, { title });
+        const thread = await createChatThreadWithCampaignPick({
+          title: "New chat — pick a campaign",
+          okLabel: "Start chat",
+        });
+        if (!thread) {
+          document.getElementById("chat-log").innerHTML =
+            '<p class="empty">Select a thread or start a new chat.</p>';
+          return;
+        }
         setChatThreadsOpen(false);
         document.getElementById("chat-input").focus();
       } catch (e) {
@@ -4070,6 +4298,39 @@
     document.getElementById("chat-new-project")?.addEventListener("change", () => onChatFilterChange());
     document.getElementById("chat-new-task")?.addEventListener("change", () => loadChatThreads());
     document.getElementById("chat-new-campaign")?.addEventListener("change", () => loadChatThreads());
+
+    document.getElementById("chat-campaign-choices")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chat-camp-choice");
+      if (!btn) return;
+      e.preventDefault();
+      setChatCampModalSelection(
+        chatCampaignSelectValue(btn.dataset.camp || "", btn.dataset.layer || "")
+      );
+    });
+    document.getElementById("chat-campaign-modal-ok")?.addEventListener("click", () => {
+      closeChatCampModal(getChatCampModalSelection());
+    });
+    document.getElementById("chat-campaign-modal-cancel")?.addEventListener("click", () => {
+      closeChatCampModal(null);
+    });
+    document.getElementById("chat-campaign-modal")?.addEventListener("click", (e) => {
+      if (e.target?.id === "chat-campaign-modal") closeChatCampModal(null);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      const modal = document.getElementById("chat-campaign-modal");
+      if (modal?.classList.contains("open")) {
+        e.preventDefault();
+        closeChatCampModal(null);
+      }
+    });
+    document.getElementById("chat-context-change-camp")?.addEventListener("click", async () => {
+      try {
+        await rebindActiveThreadCampaign();
+      } catch (err) {
+        alert(err.message || "Could not update campaign");
+      }
+    });
 
     document.getElementById("story-chat-btn").onclick = () => {
       if (!selectedStory) return;
