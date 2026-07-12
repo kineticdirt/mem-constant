@@ -815,6 +815,20 @@
       border-left: 2px solid var(--accent); padding-left: 0.65rem; margin: 0.65rem 0;
       max-height: 9rem; overflow: auto;
     }
+    .chars-gallery {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 0.75rem;
+    }
+    .chars-gallery button {
+      width: 56px; height: 56px; padding: 0; border: 2px solid var(--line);
+      background: #111; cursor: pointer; overflow: hidden; font: inherit;
+    }
+    .chars-gallery button:hover { border-color: var(--line-bright); }
+    .chars-gallery button.active { border-color: var(--accent); }
+    .chars-gallery button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .chars-upload-row {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.35rem 0 0.75rem;
+    }
+    .chars-upload-row input[type="file"] { font-size: 0.72rem; max-width: 100%; }
     .chars-empty { color: var(--muted); font-size: 0.82rem; padding: 1.5rem 0.25rem; }
     .story-toolbar { padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; background: var(--surface); }
     .chat-context-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--lime); border: 1px solid var(--line); padding: 0.2rem 0.45rem; }
@@ -2947,6 +2961,15 @@
       const notes = row.notes
         ? `<div class="sheet-blurb">${esc(row.notes)}</div>`
         : "";
+      const images = row.images || [];
+      const galleryHtml = images.length
+        ? `<div class="chars-gallery" id="char-gallery">${images.map((p, i) => {
+            const url = (row.gallery_urls && row.gallery_urls[i]) ||
+              `/api/characters-registry/image?campaign=${encodeURIComponent(charsCampaignFilter)}&id=${encodeURIComponent(row.id)}&path=${encodeURIComponent(p)}`;
+            const active = p === row.image_path ? " active" : "";
+            return `<button type="button" class="${active}" data-path="${esc(p)}" title="${esc(p)}"><img src="${esc(base + url)}" alt="" loading="lazy" /></button>`;
+          }).join("")}</div>`
+        : `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0">No images yet — upload below or drop files into <code>Character Images/</code> / <code>characters/portraits/${esc(row.id)}/</code>.</p>`;
       body.innerHTML = `
         <div class="sheet-hero">
           ${charAvatarHtml(row, "sheet-avatar")}
@@ -2959,18 +2982,24 @@
           </div>
         </div>
         ${notes}
-        <div class="field">
-          <label for="char-image-path">Image path (under campaigns/${esc(charsCampaignFilter)}/)</label>
-          <input type="text" id="char-image-path" placeholder="characters/portraits/name.webp" value="${esc(row.image_path || "")}" />
+        <label style="font-size:0.72rem;color:var(--muted)">Portraits — click to set primary</label>
+        ${galleryHtml}
+        <div class="chars-upload-row admin-only">
+          <input type="file" id="char-image-file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+          <button type="button" class="btn" id="char-image-upload">Upload</button>
         </div>
-        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Drop a portrait into <code>characters/portraits/</code>, then save the relative path here. No image → initials tile.</p>
+        <div class="field">
+          <label for="char-image-path">Primary path (under campaigns/${esc(charsCampaignFilter)}/)</label>
+          <input type="text" id="char-image-path" placeholder="Character Images/Name/file.jpg" value="${esc(row.image_path || "")}" />
+        </div>
+        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Art folders are gitignored (~67MB). Sync with scp; uploads land in <code>characters/portraits/&lt;id&gt;/</code>.</p>
         <div class="sheet-actions">
-          <button type="button" class="btn primary" id="char-image-save">Save image path</button>
+          <button type="button" class="btn primary" id="char-image-save">Save primary</button>
           <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
           <span class="meta" id="char-image-result"></span>
         </div>`;
-      document.getElementById("char-image-save").onclick = async () => {
-        const image_path = document.getElementById("char-image-path").value.trim();
+
+      async function savePrimaryPath(image_path) {
         const out = document.getElementById("char-image-result");
         out.textContent = "Saving…";
         try {
@@ -2991,17 +3020,73 @@
             return;
           }
           charsRegistry = j;
-          out.textContent = j.characters?.find((c) => c.id === row.id)?.has_image
-            ? "Saved · image ok"
-            : "Saved · file missing (initials until present)";
           const next = (j.characters || []).find((c) => c.id === row.id);
+          out.textContent = next?.has_image ? "Saved · primary set" : "Saved · file missing";
           selectedCharId = row.id;
           renderCharactersRoster();
           if (next) renderCharacterSheet(next);
         } catch (e) {
           out.textContent = e.message || "Save failed";
         }
+      }
+
+      document.getElementById("char-image-save").onclick = () => {
+        savePrimaryPath(document.getElementById("char-image-path").value.trim());
       };
+      const gallery = document.getElementById("char-gallery");
+      if (gallery) {
+        gallery.querySelectorAll("button[data-path]").forEach((btn) => {
+          btn.onclick = () => savePrimaryPath(btn.dataset.path);
+        });
+      }
+      const uploadBtn = document.getElementById("char-image-upload");
+      if (uploadBtn) {
+        uploadBtn.onclick = async () => {
+          const fileInput = document.getElementById("char-image-file");
+          const file = fileInput?.files?.[0];
+          const out = document.getElementById("char-image-result");
+          if (!file) {
+            out.textContent = "Choose a file first";
+            return;
+          }
+          if (file.size > 4 * 1024 * 1024) {
+            out.textContent = "Max 4MB";
+            return;
+          }
+          out.textContent = "Uploading…";
+          try {
+            const dataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error("read_failed"));
+              reader.readAsDataURL(file);
+            });
+            const res = await fetch(`${base}/api/characters-registry/upload`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                campaign: charsCampaignFilter,
+                id: row.id,
+                filename: file.name,
+                data_base64: dataUrl,
+              }),
+            });
+            const j = await res.json();
+            if (!res.ok) {
+              out.textContent = j.error || "Upload failed";
+              return;
+            }
+            charsRegistry = j;
+            const next = (j.characters || []).find((c) => c.id === row.id);
+            out.textContent = "Uploaded";
+            selectedCharId = row.id;
+            renderCharactersRoster();
+            if (next) renderCharacterSheet(next);
+          } catch (e) {
+            out.textContent = e.message || "Upload failed";
+          }
+        };
+      }
       const openBtn = document.getElementById("char-open-story");
       if (openBtn && row.story_path) {
         openBtn.onclick = () => {

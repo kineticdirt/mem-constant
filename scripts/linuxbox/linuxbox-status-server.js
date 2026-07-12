@@ -380,15 +380,18 @@ const SECURITY_HEADERS = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
-function readBody(req) {
+function readBody(req, maxBytes = 64 * 1024) {
   return new Promise((resolve, reject) => {
     const chunks = [];
+    let size = 0;
     req.on("data", (c) => {
-      chunks.push(c);
-      if (Buffer.concat(chunks).length > 64 * 1024) {
+      size += c.length;
+      if (size > maxBytes) {
         reject(new Error("body_too_large"));
         req.destroy();
+        return;
       }
+      chunks.push(c);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);
@@ -1526,11 +1529,32 @@ function charactersRegistryPath(campaignId) {
 }
 
 const CHAR_IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
+const CHAR_PORTRAIT_UPLOAD_MAX = 4 * 1024 * 1024;
+/** Map registry id → gitignored `Character Images/<Folder>/` on disk (PC + potato via scp). */
+const CHAR_IMAGE_FOLDER_BY_ID = {
+  ellaine: "Ellaine",
+  "ellaine-mishpit": "Ellaine",
+  "harper-maupin": "Harper",
+  minerva: "Minerva",
+  "sister-minerva": "Minerva",
+  nelly: "Nelly",
+  "nelly-stein": "Nelly",
+  red: "Redmond",
+  "redmond-red-gallagher": "Redmond",
+  toga: "Toga",
+};
+
+function normalizeCampaignRelPath(imagePath) {
+  if (!imagePath || typeof imagePath !== "string") return "";
+  const normalized = imagePath.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!normalized || normalized.includes("..") || path.isAbsolute(normalized)) return "";
+  return normalized;
+}
 
 function characterImageAbs(campaignId, imagePath) {
-  if (!campaignId || !CAMPAIGNS[campaignId] || !imagePath || typeof imagePath !== "string") return null;
-  const normalized = imagePath.replace(/\\/g, "/").replace(/^\/+/, "");
-  if (!normalized || normalized.includes("..") || path.isAbsolute(normalized)) return null;
+  if (!campaignId || !CAMPAIGNS[campaignId]) return null;
+  const normalized = normalizeCampaignRelPath(imagePath);
+  if (!normalized) return null;
   const ext = path.extname(normalized).toLowerCase();
   if (!CHAR_IMAGE_EXTS.has(ext)) return null;
   const abs = path.join(REPO, "campaigns", campaignId, normalized);
@@ -1550,17 +1574,65 @@ function characterImageContentType(absPath) {
   return "application/octet-stream";
 }
 
+function listImageFilesInAbsDir(absDir, relPrefix) {
+  if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) return [];
+  return fs
+    .readdirSync(absDir)
+    .filter((f) => CHAR_IMAGE_EXTS.has(path.extname(f).toLowerCase()))
+    .map((f) => `${relPrefix}/${f}`.replace(/\\/g, "/"))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function characterPortraitDirs(campaignId, charId) {
+  const campRoot = path.join(REPO, "campaigns", campaignId);
+  const rels = [];
+  const portraitDirRel = `characters/portraits/${charId}`;
+  rels.push(...listImageFilesInAbsDir(path.join(campRoot, portraitDirRel), portraitDirRel));
+  for (const ext of CHAR_IMAGE_EXTS) {
+    const leaf = `characters/portraits/${charId}${ext}`;
+    if (characterImageAbs(campaignId, leaf)) rels.push(leaf);
+  }
+  const folder = CHAR_IMAGE_FOLDER_BY_ID[charId];
+  if (folder) {
+    const folderRel = `Character Images/${folder}`;
+    rels.push(...listImageFilesInAbsDir(path.join(campRoot, folderRel), folderRel));
+  }
+  return [...new Set(rels)];
+}
+
+function preferStillPrimary(paths) {
+  const still = paths.filter((p) => /\.(jpe?g|png|webp)$/i.test(p));
+  return still[0] || paths[0] || "";
+}
+
+function resolveCharacterImages(campaignId, c) {
+  const fromRegistry = (Array.isArray(c.images) ? c.images : [])
+    .map(normalizeCampaignRelPath)
+    .filter((p) => p && characterImageAbs(campaignId, p));
+  const fromDisk = characterPortraitDirs(campaignId, c.id);
+  const images = [...new Set([...fromRegistry, ...fromDisk])];
+  let primary = normalizeCampaignRelPath(c.image_path || "");
+  if (primary && !characterImageAbs(campaignId, primary)) primary = "";
+  if (!primary) primary = fromRegistry.find((p) => characterImageAbs(campaignId, p)) || preferStillPrimary(images);
+  return { images, image_path: primary || "" };
+}
+
 function enrichCharactersRegistry(data, campaignId) {
   const chars = (data.characters || []).map((c) => {
-    const imagePath = c.image_path || "";
-    const hasImage = Boolean(characterImageAbs(campaignId, imagePath));
+    const resolved = resolveCharacterImages(campaignId, c);
+    const hasImage = Boolean(resolved.image_path && characterImageAbs(campaignId, resolved.image_path));
     return {
       ...c,
-      image_path: imagePath,
+      image_path: resolved.image_path,
+      images: resolved.images,
       has_image: hasImage,
       image_url: hasImage
         ? `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}`
         : null,
+      gallery_urls: resolved.images.map(
+        (p) =>
+          `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}&path=${encodeURIComponent(p)}`
+      ),
     };
   });
   return { ...data, campaign_id: data.campaign_id || campaignId, characters: chars };
@@ -1633,15 +1705,70 @@ function patchCharacterRegistry(campaignId, patch) {
   for (const k of allowed) {
     if (patch[k] !== undefined) row[k] = patch[k];
   }
-  if (row.image_path) {
-    const normalized = String(row.image_path).replace(/\\/g, "/").replace(/^\/+/, "");
-    if (normalized.includes("..") || path.isAbsolute(normalized)) {
-      throw new Error("bad_image_path");
-    }
-    const ext = path.extname(normalized).toLowerCase();
-    if (normalized && !CHAR_IMAGE_EXTS.has(ext)) throw new Error("bad_image_ext");
-    row.image_path = normalized;
+  if (patch.images !== undefined) {
+    if (!Array.isArray(patch.images)) throw new Error("bad_images");
+    row.images = patch.images
+      .map(normalizeCampaignRelPath)
+      .filter((p) => p && CHAR_IMAGE_EXTS.has(path.extname(p).toLowerCase()));
   }
+  if (row.image_path) {
+    const normalized = normalizeCampaignRelPath(row.image_path);
+    if (!normalized) throw new Error("bad_image_path");
+    const ext = path.extname(normalized).toLowerCase();
+    if (!CHAR_IMAGE_EXTS.has(ext)) throw new Error("bad_image_ext");
+    row.image_path = normalized;
+    const imgs = Array.isArray(row.images) ? row.images : [];
+    if (!imgs.includes(normalized)) row.images = [...imgs, normalized];
+  } else if (patch.image_path === "") {
+    row.image_path = "";
+  }
+  writeCharactersRegistry(campaignId, registry);
+  return getCharactersRegistry(campaignId);
+}
+
+function safePortraitFilename(name) {
+  const base = path.basename(String(name || "portrait")).replace(/[^a-zA-Z0-9._-]+/g, "_");
+  const ext = path.extname(base).toLowerCase();
+  if (!CHAR_IMAGE_EXTS.has(ext)) throw new Error("bad_image_ext");
+  const stem = path.basename(base, ext).slice(0, 80) || "portrait";
+  return `${stem}${ext}`;
+}
+
+function uploadCharacterPortrait(campaignId, charId, filename, dataBase64) {
+  if (!CAMPAIGNS[campaignId]) throw new Error("bad_campaign");
+  if (!charId || /[^a-zA-Z0-9._-]/.test(charId)) throw new Error("bad_id");
+  const safeName = safePortraitFilename(filename);
+  const raw = String(dataBase64 || "").replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
+  const buf = Buffer.from(raw, "base64");
+  if (!buf.length) throw new Error("empty_image");
+  if (buf.length > CHAR_PORTRAIT_UPLOAD_MAX) throw new Error("image_too_large");
+  const relDir = `characters/portraits/${charId}`;
+  const absDir = path.join(REPO, "campaigns", campaignId, relDir);
+  fs.mkdirSync(absDir, { recursive: true });
+  const relPath = `${relDir}/${safeName}`;
+  fs.writeFileSync(path.join(REPO, "campaigns", campaignId, relPath), buf);
+  const registry = readCharactersRegistry(campaignId);
+  let row = registry.characters.find((c) => c.id === charId);
+  if (!row) {
+    row = {
+      id: charId,
+      display_name: charId,
+      story_path: "",
+      discord_user_id: "",
+      discord_username: "",
+      player_name: "",
+      status: "active",
+      can_proxy: false,
+      notes: "",
+      images: [],
+      image_path: relPath,
+    };
+    registry.characters.push(row);
+  }
+  const imgs = Array.isArray(row.images) ? row.images.slice() : [];
+  if (!imgs.includes(relPath)) imgs.push(relPath);
+  row.images = imgs;
+  if (!row.image_path) row.image_path = relPath;
   writeCharactersRegistry(campaignId, registry);
   return getCharactersRegistry(campaignId);
 }
@@ -4212,13 +4339,32 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && pathname === "/api/characters-registry/image") {
       const campaignId = url.searchParams.get("campaign") || "tropic-gooner";
       const charId = url.searchParams.get("id") || "";
+      const pathParam = url.searchParams.get("path") || "";
       const reg = readCharactersRegistry(campaignId);
       const row = (reg.characters || []).find((c) => c.id === charId);
-      if (!row?.image_path) {
+      let rel = normalizeCampaignRelPath(pathParam);
+      if (rel) {
+        const allowed = new Set(resolveCharacterImages(campaignId, row || { id: charId, images: [] }).images);
+        if (row?.image_path) allowed.add(normalizeCampaignRelPath(row.image_path));
+        if (!allowed.has(rel) && !characterPortraitDirs(campaignId, charId).includes(rel)) {
+          // still allow any in-campaign image under Character Images/ or portraits/ for this id
+          const ok =
+            rel.startsWith(`characters/portraits/${charId}`) ||
+            (CHAR_IMAGE_FOLDER_BY_ID[charId] &&
+              rel.startsWith(`Character Images/${CHAR_IMAGE_FOLDER_BY_ID[charId]}/`));
+          if (!ok) {
+            sendJson(res, 403, { error: "path_not_allowed" }, publicMode);
+            return;
+          }
+        }
+      } else {
+        rel = resolveCharacterImages(campaignId, row || { id: charId }).image_path;
+      }
+      if (!rel) {
         sendJson(res, 404, { error: "no_image" }, publicMode);
         return;
       }
-      const abs = characterImageAbs(campaignId, row.image_path);
+      const abs = characterImageAbs(campaignId, rel);
       if (!abs) {
         sendJson(res, 404, { error: "image_missing" }, publicMode);
         return;
@@ -4303,7 +4449,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "POST") {
-      const raw = await readBody(req);
+      const maxBytes =
+        pathname === "/api/characters-registry/upload"
+          ? Math.ceil(CHAR_PORTRAIT_UPLOAD_MAX * 1.4) + 8 * 1024
+          : 64 * 1024;
+      const raw = await readBody(req, maxBytes);
       let body = {};
       try {
         body = raw ? JSON.parse(raw) : {};
@@ -4621,6 +4771,25 @@ const server = http.createServer(async (req, res) => {
           sendJson(res, 200, patchCharacterRegistry(campaignId, body), publicMode);
         } catch (e) {
           sendJson(res, 400, { error: e.message || "registry_error" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/upload") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(
+            res,
+            200,
+            uploadCharacterPortrait(campaignId, body.id, body.filename, body.data_base64 || body.data),
+            publicMode
+          );
+        } catch (e) {
+          sendJson(res, 400, { error: e.message || "upload_failed" }, publicMode);
         }
         return;
       }
