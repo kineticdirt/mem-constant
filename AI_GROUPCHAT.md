@@ -78,6 +78,12 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Unresolved Discord attachments fixed. Root cause: sheets list `attachments/…` but binaries lived only under `discord-export/**/attachments` (resolver ignored export). Restored **49** images → `characters/portraits/<id>/` (Rosalina 17, Cassidy/Felix/Lena/etc.). Discord bot **AI_RP_Master** token OK (User-Agent); live re-fetch not needed (0 missing after local). Chars popout **Why / Resolve…** + `POST /api/characters-registry/resolve-attachments` (admin). CLI: `tools/resolve_discord_attachments.py`. Potato HEAD **`71cbee2`**. `:8790` **200**. Threads untouched.
+
+- **2026-07-12 (UTC)** — [PC] **Intent:** Dashboard Chat human-usable v1 — mode templates (Brief RP / Workshop / Meta ops / Agent coding), optional model pick (cost+tok/s curated), mobile ≤720px fix verify, Offload→laptop user-task. Free-first default. Touch: `linuxbox-status` UI/server, `agents/model-budget/`, `agents/chat-modes.json`, `agents/CHAT_HUMAN_USABLE_V1.md`. Deploy git sync. No chat-thread wipe.
+
+- **2026-07-12 (UTC)** — [PC] **Intent:** Unresolved Discord attachments on Chars sheets (Rosalina et al.) — diagnose attachments/ refs, ASAP fetch via bot/export if token works, actionable Fetch popout (admin), deploy git sync. Touch: export/ingest tools, linuxbox-status UI/server, portraits.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Chars dedupe live. Potato HEAD **`b4546c3`**. Default grid **10** (no Ellaine/Cassidy/Rosa/Minerva twins; GM chip for Wholesomeest Boi). Folder art only on canonicals; doc attachments basename-resolved or flagged unresolved. Threads untouched. Hard-refresh `/Linuxbox/` → Chars.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars dedupe ship — hide thread twins/GM (Discord-informed canonicals), folder map only on sheet rows, doc-attachment basename resolve + unresolved note; git sync potato. No registry deletes.
@@ -237,6 +243,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-12T18:45Z** — [PC] **Result:** Drafted LAN-vs-Tailscale home policy decision report → `docs/remote-pc-setup/lan-vs-tailscale-decision.md` (direct path to potato ~11ms; use LAN when home for Moonlight/SSH; exit node off at home).
 
 - **2026-07-12T18:22Z** — [PC] **Result:** Follow-up — PC working tree `index.html` SHA256 matches potato (fix already at **79fc261**). Committing same file on PC so next bundle cannot regress duplicate `CHAT_CACHE_PREFIX`. Session cache uses `CHAT_SESSION_CACHE_PREFIX`; bubble cache keeps `CHAT_CACHE_PREFIX`. chat-threads untouched; no potato HTML overwrite needed.
 

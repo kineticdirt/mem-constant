@@ -73,11 +73,18 @@
         "campaigns/tropic-gooner/characters/discord/cassidy.md"
       ],
       "doc_attachments": [
+        "attachments/1000024253-removebg-preview-1.png",
         "attachments/1000024256-removebg-preview-2.png",
         "attachments/1000024259-removebg-preview-1.png",
-        "attachments/1000024253-removebg-preview-1.png",
         "attachments/SPOILER_SPOILER_SPOILER_1000024261-removebg-preview.png"
-      ]
+      ],
+      "images": [
+        "characters/portraits/cassidy-catharine-cece/1000024253-removebg-preview-1.png",
+        "characters/portraits/cassidy-catharine-cece/1000024256-removebg-preview-2.png",
+        "characters/portraits/cassidy-catharine-cece/1000024259-removebg-preview-1.png",
+        "characters/portraits/cassidy-catharine-cece/SPOILER_SPOILER_SPOILER_1000024261-removebg-preview.png"
+      ],
+      "image_path": "characters/portraits/cassidy-catharine-cece/1000024253-removebg-preview-1.png"
     },
     {
       "id": "deleted-user",
@@ -131,9 +138,24 @@
         "campaigns/tropic-gooner/characters/discord/myra-secretive-town.md",
         "campaigns/tropic-gooner/characters/discord/ellaine.md"
       ],
-      "image_path": "Character Images/Ellaine/IMG_3193.jpg",
+      "image_path": "Character Images/Ellaine/IMG_2718.jpg",
       "doc_attachments": [
-        "https://i.ytimg.com/vi/CQwBsk6UIu0/maxresdefault.jpg"
+        "attachments/IMG_4320.jpg",
+        "attachments/IMG_4324.jpg",
+        "attachments/IMG_4327.jpg",
+        "attachments/SPOILER_IMG_2718.png",
+        "attachments/SPOILER_IMG_5068.png",
+        "attachments/image.png"
+      ],
+      "images": [
+        "Character Images/Ellaine/IMG_2719.jpg",
+        "Character Images/Ellaine/IMG_2718.jpg",
+        "characters/portraits/ellaine-mishpit/IMG_4320.jpg",
+        "characters/portraits/ellaine-mishpit/IMG_4324.jpg",
+        "characters/portraits/ellaine-mishpit/IMG_4327.jpg",
+        "characters/portraits/ellaine-mishpit/SPOILER_IMG_2718.png",
+        "characters/portraits/ellaine-mishpit/SPOILER_IMG_5068.png",
+        "characters/portraits/ellaine-mishpit/image.png"
       ]
     },
     {
@@ -155,13 +177,22 @@
         "campaigns/tropic-gooner/characters/discord/deleted-user.md"
       ],
       "doc_attachments": [
-        "attachments/IMG_9035.jpg",
-        "attachments/IMG_9983.jpg",
         "attachments/IMG_8105.jpg",
-        "attachments/IMG_9038.jpg",
         "attachments/IMG_9033.jpg",
-        "attachments/IMG_9069.png"
-      ]
+        "attachments/IMG_9035.jpg",
+        "attachments/IMG_9038.jpg",
+        "attachments/IMG_9069.png",
+        "attachments/IMG_9983.jpg"
+      ],
+      "images": [
+        "characters/portraits/felix/IMG_8105.jpg",
+        "characters/portraits/felix/IMG_9033.jpg",
+        "characters/portraits/felix/IMG_9035.jpg",
+        "characters/portraits/felix/IMG_9038.jpg",
+        "characters/portraits/felix/IMG_9069.png",
+        "characters/portraits/felix/IMG_9983.jpg"
+      ],
+      "image_path": "characters/portraits/felix/IMG_8105.jpg"
     },
     {
       "id": "harper-maupin",
@@ -183,10 +214,16 @@
       ],
       "image_path": "Character Images/Harper/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
       "doc_attachments": [
-        "attachments/a66d9a9a153133cc116d2b9d1f268bf0.png",
         "attachments/13a4dded47d490ffb0c41df4378a7f1a.jpg",
+        "attachments/a66d9a9a153133cc116d2b9d1f268bf0.png",
         "attachments/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
         "attachments/sample_f52bb88502387daa8768e80118d1844c.jpg"
+      ],
+      "images": [
+        "characters/portraits/harper-maupin/13a4dded47d490ffb0c41df4378a7f1a.jpg",
+        "characters/portraits/harper-maupin/a66d9a9a153133cc116d2b9d1f268bf0.png",
+        "characters/portraits/harper-maupin/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
+        "characters/portraits/harper-maupin/sample_f52bb88502387daa8768e80118d1844c.jpg"
       ]
     },
     {
@@ -208,11 +245,20 @@
         "campaigns/tropic-gooner/characters/discord/bleep-boop.md"
       ],
       "doc_attachments": [
-        "attachments/a49d6d5067762a7257687e5eb345769b.png",
-        "attachments/47d65e515dfd210597a18af8121d97ea.png",
+        "attachments/1e9994a98f42e7f9753d7fa64a5249e3.png",
         "attachments/42b5926f693c77834cc4e322e2055a82.png",
-        "attachments/1e9994a98f42e7f9753d7fa64a5249e3.png"
-      ]
+        "attachments/47d65e515dfd210597a18af8121d97ea.png",
+        "attachments/a49d6d5067762a7257687e5eb345769b.png",
+        "attachments/lemuen_arknights_drawn_by_myticalcat__sample-40aa0bf8c5c35adbb51f7929172a3582.pn",
+        "attachments/lemuen_arknights_drawn_by_yuki_yuki_yu_owo__sample-a49d6d5067762a7257687e5eb3457"
+      ],
+      "images": [
+        "characters/portraits/lena-litzveil/1e9994a98f42e7f9753d7fa64a5249e3.png",
+        "characters/portraits/lena-litzveil/42b5926f693c77834cc4e322e2055a82.png",
+        "characters/portraits/lena-litzveil/47d65e515dfd210597a18af8121d97ea.png",
+        "characters/portraits/lena-litzveil/a49d6d5067762a7257687e5eb345769b.png"
+      ],
+      "image_path": "characters/portraits/lena-litzveil/1e9994a98f42e7f9753d7fa64a5249e3.png"
     },
     {
       "id": "minerva",
@@ -266,9 +312,13 @@
         "campaigns/tropic-gooner/characters/discord/ready-for-bed.md",
         "campaigns/tropic-gooner/characters/discord/nelly.md"
       ],
-      "image_path": "Character Images/Nelly/IMG_5538.jpg",
+      "image_path": "Character Images/Nelly/kobeni-by-me-v0-tue8e2rc80fc1.png",
       "doc_attachments": [
         "attachments/kobeni-by-me-v0-tue8e2rc80fc1.png"
+      ],
+      "images": [
+        "Character Images/Nelly/kobeni-by-me-v0-tue8e2rc80fc1.png",
+        "characters/portraits/nelly-stein/kobeni-by-me-v0-tue8e2rc80fc1.png"
       ]
     },
     {
@@ -307,9 +357,14 @@
         "campaigns/tropic-gooner/characters/discord/sean-he-him.md",
         "campaigns/tropic-gooner/characters/discord/red.md"
       ],
-      "image_path": "Character Images/Redmond/IMG_5807.jpg",
+      "image_path": "Character Images/Redmond/IMG_5795.jpg",
       "doc_attachments": [
         "attachments/IMG_5788.jpg"
+      ],
+      "images": [
+        "Character Images/Redmond/IMG_5795.jpg",
+        "Character Images/Redmond/IMG_5794.jpg",
+        "characters/portraits/redmond-red-gallagher/IMG_5788.jpg"
       ]
     },
     {
@@ -349,6 +404,45 @@
         "campaigns/tropic-gooner/characters/discord/rosa.md",
         "campaigns/tropic-gooner/characters/discord/rosalinda.md",
         "campaigns/tropic-gooner/characters/discord/twofell.md"
+      ],
+      "images": [
+        "characters/portraits/rosalina-bonetto/7bwbebejt7i31.png",
+        "characters/portraits/rosalina-bonetto/LmpwZw.png",
+        "characters/portraits/rosalina-bonetto/LmpwZw_1.png",
+        "characters/portraits/rosalina-bonetto/LmpwZw_2.png",
+        "characters/portraits/rosalina-bonetto/Mjc.png",
+        "characters/portraits/rosalina-bonetto/NDAsNjI2.png",
+        "characters/portraits/rosalina-bonetto/QjAyMTAwMy5wbmc.png",
+        "characters/portraits/rosalina-bonetto/SPOILER_IMG_5478.jpg",
+        "characters/portraits/rosalina-bonetto/VS5qcGc.png",
+        "characters/portraits/rosalina-bonetto/ZWJw.png",
+        "characters/portraits/rosalina-bonetto/cCZ3PTYwMA.png",
+        "characters/portraits/rosalina-bonetto/cHBlZC5qcGc.png",
+        "characters/portraits/rosalina-bonetto/caf854e2c6f115385535ee3b5ee5d157.png",
+        "characters/portraits/rosalina-bonetto/dC5qcGc.png",
+        "characters/portraits/rosalina-bonetto/sample_c76ccf6f2f13149ea3bd0520dd2b8d45.png",
+        "characters/portraits/rosalina-bonetto/sample_de13bc50c582523072102deacb1c8854.png",
+        "characters/portraits/rosalina-bonetto/vrforged-d10-gld-18in-toyota-gr-corolla-light-blue-1.png"
+      ],
+      "image_path": "characters/portraits/rosalina-bonetto/7bwbebejt7i31.png",
+      "doc_attachments": [
+        "attachments/7bwbebejt7i31.png",
+        "attachments/LmpwZw.png",
+        "attachments/LmpwZw_1.png",
+        "attachments/LmpwZw_2.png",
+        "attachments/Mjc.png",
+        "attachments/NDAsNjI2.png",
+        "attachments/QjAyMTAwMy5wbmc.png",
+        "attachments/SPOILER_IMG_5478.jpg",
+        "attachments/VS5qcGc.png",
+        "attachments/ZWJw.png",
+        "attachments/cCZ3PTYwMA.png",
+        "attachments/cHBlZC5qcGc.png",
+        "attachments/caf854e2c6f115385535ee3b5ee5d157.png",
+        "attachments/dC5qcGc.png",
+        "attachments/sample_c76ccf6f2f13149ea3bd0520dd2b8d45.png",
+        "attachments/sample_de13bc50c582523072102deacb1c8854.png",
+        "attachments/vrforged-d10-gld-18in-toyota-gr-corolla-light-blue-1.png"
       ]
     },
     {
@@ -390,7 +484,13 @@
       "image_path": "Character Images/Minerva/Minerva.jpg",
       "doc_attachments": [
         "attachments/Minerva.jpg",
+        "attachments/Minerva4.jpg",
         "attachments/MnervaPiercings.png"
+      ],
+      "images": [
+        "characters/portraits/sister-minerva/Minerva.jpg",
+        "characters/portraits/sister-minerva/Minerva4.jpg",
+        "characters/portraits/sister-minerva/MnervaPiercings.png"
       ]
     },
     {
@@ -411,7 +511,18 @@
       "duplicate_paths": [
         "campaigns/tropic-gooner/characters/discord/hiatus-cause-life.md"
       ],
-      "image_path": "Character Images/Toga/IMG_3524.jpg"
+      "image_path": "Character Images/Toga/IMG_3524.jpg",
+      "images": [
+        "characters/portraits/toga/01610508607e19008c22a6a64cd57c14.jpg",
+        "characters/portraits/toga/SPOILER_IMG_5478.jpg",
+        "characters/portraits/toga/dTEuanBn.png"
+      ],
+      "doc_attachments": [
+        "attachments/01610508607e19008c22a6a64cd57c14.jpg",
+        "attachments/SPOILER_IMG_5478.jpg",
+        "attachments/dTEuanBn.png",
+        "attachments/tweeload_uQJuhGRg.mov"
+      ]
     },
     {
       "id": "twofell",

@@ -443,6 +443,21 @@
       display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap;
     }
     .chat-campaign-modal-actions .btn { width: auto; }
+    /* Chars: unresolved Discord attachments popout (reuse campaign-modal shell) */
+    .chars-attach-warn {
+      margin: 0.35rem 0 0.5rem; padding: 0.55rem 0.65rem;
+      border: 1px solid var(--warn, #d4a017); border-radius: 3px;
+      background: rgba(212, 160, 23, 0.08); font-size: 0.72rem; line-height: 1.4;
+    }
+    .chars-attach-warn strong { color: var(--warn, #d4a017); font-weight: 700; }
+    .chars-attach-warn ul { margin: 0.35rem 0 0.45rem; padding-left: 1.1rem; }
+    .chars-attach-warn li { margin: 0.1rem 0; word-break: break-all; }
+    .chars-attach-modal-list {
+      max-height: 10rem; overflow: auto; margin: 0 0 0.75rem;
+      padding: 0.4rem 0.55rem; border: 1px solid var(--line-bright);
+      border-radius: 3px; font-size: 0.7rem; background: var(--bg);
+    }
+    .chars-attach-modal-list code { font-size: 0.68rem; }
     #chat-context-change-camp { font-size: 0.65rem; padding: 0.2rem 0.45rem; }
     .chat-thread-list { flex: 1; overflow-y: auto; padding: 0.35rem 0; }
     .chat-thread-item {
@@ -585,6 +600,20 @@
       display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;
     }
     .chat-compose-controls .meta { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .chat-compose-controls .chat-model-wrap[hidden],
+    .chat-compose-controls #chat-model-wrap[hidden] { display: none !important; }
+    .chat-offload-choice {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.72rem; color: var(--muted); cursor: pointer; user-select: none;
+    }
+    .chat-offload-choice input[type="checkbox"] {
+      width: 1rem; height: 1rem; margin: 0; padding: 0; flex-shrink: 0;
+      accent-color: var(--accent-yellow);
+    }
+    .chat-model-hint {
+      font-size: 0.58rem; color: var(--muted); width: 100%; margin: 0;
+      font-family: "IBM Plex Mono", monospace;
+    }
 
     .empty { color: var(--muted); font-size: 0.82rem; }
     .field { margin-bottom: 0.65rem; }
@@ -1041,7 +1070,7 @@
       .sys-actions .btn { min-height: 2.5rem; padding: 0.5rem 0.75rem; }
       .btn, button { min-height: 2.25rem; }
 
-      /* Chat: full-width pane + thread drawer (sidebar was minmax(200px) crushing composer) */
+      /* Chat: full-width pane + thread drawer (≤720px — sidebar was crushing composer) */
       #chat.panel.fill.active {
         grid-template-columns: 1fr;
         position: relative;
@@ -1060,11 +1089,14 @@
       }
       #chat.threads-open .chat-sidebar { transform: translateX(0); }
       #chat.threads-open .chat-threads-backdrop { display: block; }
-      .chat-main { min-width: 0; width: 100%; position: relative; z-index: 1; }
+      .chat-main {
+        min-width: 0; width: 100%; position: relative; z-index: 1;
+        display: grid; grid-template-rows: auto auto 1fr auto; min-height: 0;
+      }
       .chat-toolbar { padding: 0.45rem 0.65rem; justify-content: flex-start; position: relative; z-index: 2; }
       .chat-toolbar .btn { font-size: 0.68rem; padding: 0.35rem 0.55rem; }
       .chat-context-bar { padding: 0.4rem 0.65rem; }
-      .chat-log { padding: 0.75rem 0.85rem; min-width: 0; }
+      .chat-log { padding: 0.75rem 0.85rem; min-width: 0; overflow-y: auto; }
       .chat-bubble { max-width: 100%; word-break: break-word; overflow-wrap: anywhere; }
       .chat-bubble-actions .btn,
       .chat-action-btn,
@@ -1074,11 +1106,17 @@
         padding-bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
         grid-template-columns: 1fr auto;
         gap: 0.4rem 0.5rem;
+        position: sticky; bottom: 0; z-index: 3;
       }
       .chat-compose textarea { min-height: 2.75rem; font-size: 1rem; }
       .chat-compose .chat-send-col .btn { min-width: 4.5rem; min-height: 2.75rem; }
-      .chat-compose-controls { gap: 0.45rem; }
-      .chat-compose-controls select { max-width: 100%; min-height: 2.25rem; }
+      .chat-compose-controls {
+        gap: 0.4rem 0.55rem; align-items: flex-start;
+      }
+      .chat-compose-controls select {
+        max-width: 100%; min-height: 2.25rem; min-width: 0; flex: 1 1 8rem;
+      }
+      .chat-offload-choice { flex: 1 1 100%; min-height: 2.25rem; }
 
       /* Split-pane panels → single column on mobile (full width content) */
       #reports.panel.fill.active,
@@ -1405,6 +1443,21 @@
             <article class="chars-sheet" id="chars-sheet">
               <p class="chars-empty" id="chars-sheet-empty">Pick a character to see their sheet.</p>
               <div id="chars-sheet-body" class="hidden"></div>
+              <div id="chars-attach-modal" class="chat-campaign-modal" aria-hidden="true">
+                <div class="chat-campaign-modal-panel" role="dialog" aria-modal="true" aria-labelledby="chars-attach-modal-title">
+                  <h3 id="chars-attach-modal-title">Unresolved Discord attachments</h3>
+                  <p class="meta" id="chars-attach-modal-why">
+                    Sheet markdown lists <code>attachments/…</code> paths from the Discord export, but the image binaries were not linked into portraits.
+                    Old CDN URLs expire; the fix is restore from local <code>discord-export/**/attachments</code> or re-fetch via the bot.
+                  </p>
+                  <div class="chars-attach-modal-list" id="chars-attach-modal-list"></div>
+                  <p class="meta" id="chars-attach-modal-status" style="min-height:1.2em"></p>
+                  <div class="chat-campaign-modal-actions">
+                    <button type="button" class="btn" id="chars-attach-modal-close">Close</button>
+                    <button type="button" class="btn primary admin-only" id="chars-attach-modal-resolve">Resolve attachments</button>
+                  </div>
+                </div>
+              </div>
             </article>
           </div>
         </section>
@@ -1490,13 +1543,31 @@
                 <button type="button" class="btn primary" id="chat-send">Send</button>
               </div>
               <div class="chat-compose-controls">
-                <label class="meta" for="chat-profile">Lane</label>
-                <select id="chat-profile">
-                  <option value="think" selected>think · campaign brainstorm</option>
-                  <option value="meta">meta · dashboard coding</option>
+                <label class="meta" for="chat-mode">Mode</label>
+                <select id="chat-mode" title="Chat mode template">
+                  <option value="brief-rp" selected>Brief RP</option>
+                  <option value="workshop">Workshop</option>
+                  <option value="meta-ops">Meta ops</option>
+                  <option value="agent-coding">Agent coding</option>
                 </select>
-                <label class="meta" for="chat-response-mode">Style</label>
-                <select id="chat-response-mode">
+                <span id="chat-model-wrap" hidden>
+                  <label class="meta" for="chat-model">Model</label>
+                  <select id="chat-model" title="Optional model override (est. cost + tok/s)">
+                    <option value="auto">Auto · free-first</option>
+                  </select>
+                </span>
+                <label class="chat-offload-choice" for="chat-offload" title="Queue a laptop/PC task instead of running Hermes on potato">
+                  <input type="checkbox" id="chat-offload" />
+                  <span>Offload to laptop</span>
+                </label>
+                <p class="chat-model-hint" id="chat-mode-hint">Brief RP · free-first · no model pick</p>
+                <!-- Legacy hidden selects kept for any old callers -->
+                <select id="chat-profile" hidden aria-hidden="true">
+                  <option value="think" selected>think</option>
+                  <option value="meta">meta</option>
+                  <option value="code">code</option>
+                </select>
+                <select id="chat-response-mode" hidden aria-hidden="true">
                   <option value="brief" selected>Brief</option>
                   <option value="workshop">Workshop</option>
                 </select>
@@ -1635,8 +1706,108 @@
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
     let selectedStory = null, storyCatalog = null, selectedProjectId = "";
     let charsRegistry = null, selectedCharId = "", charsCampaignFilter = localStorage.getItem("chars-campaign") || "tropic-gooner";
+    const charsAttachModalShownFor = new Set();
+    let charsAttachModalRow = null;
     let charsShowHidden = localStorage.getItem("chars-show-hidden") === "1";
     let activeChatThreadId = localStorage.getItem("linuxbox-chat-active") || "";
+    const CHAT_MODE_DEFAULTS = [
+      { id: "brief-rp", label: "Brief RP", profile: "think", response_mode: "brief", show_model_picker: false, hint: "Brief RP · free-first · no model pick" },
+      { id: "workshop", label: "Workshop", profile: "think", response_mode: "workshop", show_model_picker: false, hint: "Workshop · free-first · no model pick" },
+      { id: "meta-ops", label: "Meta ops", profile: "meta", response_mode: "brief", show_model_picker: true, hint: "Meta ops · pick model or Auto free-first" },
+      { id: "agent-coding", label: "Agent coding", profile: "code", response_mode: "workshop", show_model_picker: true, hint: "Agent coding · pick model or Auto free-first" },
+    ];
+
+    function chatModesList() {
+      const modes = agentData?.chat_modes?.modes || agentData?.chat_catalog?.modes?.modes;
+      return Array.isArray(modes) && modes.length ? modes : CHAT_MODE_DEFAULTS;
+    }
+
+    function getChatModeDef(id) {
+      const modes = chatModesList();
+      return modes.find((m) => m.id === id) || modes[0] || CHAT_MODE_DEFAULTS[0];
+    }
+
+    function modeIdFromThread(thread) {
+      if (thread?.chat_mode) return thread.chat_mode;
+      if (thread?.profile === "code") return "agent-coding";
+      if (thread?.profile === "meta") return "meta-ops";
+      if (thread?.response_mode === "workshop") return "workshop";
+      return "brief-rp";
+    }
+
+    function formatChatModelOption(row) {
+      const costIn = row.relative_cost_in == null ? "?" : row.relative_cost_in;
+      const costOut = row.relative_cost_out == null ? "?" : row.relative_cost_out;
+      const tps = row.tokens_per_sec_est != null ? `~${row.tokens_per_sec_est} tok/s` : "tok/s ?";
+      const st = row.status && row.status !== "online" ? ` · ${row.status}` : "";
+      return `${row.label || row.id} · $${costIn}/$${costOut} · ${tps}${st} (est.)`;
+    }
+
+    function populateChatModelSelect(selectedId) {
+      const sel = document.getElementById("chat-model");
+      if (!sel) return;
+      const models = (agentData?.chat_catalog?.models || []).filter((m) => m && m.status !== "offline");
+      const prev = selectedId != null ? selectedId : sel.value;
+      sel.innerHTML = `<option value="auto">Auto · free-first</option>`;
+      for (const row of models) {
+        const opt = document.createElement("option");
+        opt.value = row.id;
+        opt.textContent = formatChatModelOption(row);
+        if (row.status === "degraded") opt.dataset.degraded = "1";
+        sel.appendChild(opt);
+      }
+      if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
+      else sel.value = "auto";
+    }
+
+    function syncChatModeUi(opts = {}) {
+      const modeEl = document.getElementById("chat-mode");
+      const modelWrap = document.getElementById("chat-model-wrap");
+      const hint = document.getElementById("chat-mode-hint");
+      const sendBtn = document.getElementById("chat-send");
+      const offload = document.getElementById("chat-offload");
+      if (!modeEl) return;
+      const mode = getChatModeDef(opts.modeId || modeEl.value);
+      modeEl.value = mode.id;
+      document.getElementById("chat-profile").value = mode.profile || "think";
+      document.getElementById("chat-response-mode").value =
+        mode.response_mode === "workshop" ? "workshop" : "brief";
+      if (modelWrap) modelWrap.hidden = !mode.show_model_picker;
+      if (mode.show_model_picker) {
+        populateChatModelSelect(opts.preferredModel);
+        if (opts.preferredModel) {
+          const sel = document.getElementById("chat-model");
+          if (sel && [...sel.options].some((o) => o.value === opts.preferredModel)) {
+            sel.value = opts.preferredModel;
+          }
+        }
+      } else {
+        const sel = document.getElementById("chat-model");
+        if (sel) sel.value = "auto";
+      }
+      if (hint) {
+        hint.textContent =
+          mode.hint ||
+          `${mode.label || mode.id} · ${mode.show_model_picker ? "model pick ok" : "no model pick"} · free-first default`;
+      }
+      if (sendBtn && !chatWaiting) {
+        sendBtn.textContent = offload?.checked ? "Queue offload" : "Send";
+      }
+    }
+
+    function chatRequestExtras() {
+      const mode = getChatModeDef(document.getElementById("chat-mode")?.value);
+      const preferred =
+        mode.show_model_picker && document.getElementById("chat-model")?.value !== "auto"
+          ? document.getElementById("chat-model").value
+          : null;
+      return {
+        chat_mode: mode.id,
+        profile: mode.profile || "think",
+        response_mode: mode.response_mode === "workshop" ? "workshop" : "brief",
+        preferred_model: preferred,
+      };
+    }
     let chatThreads = [];
     let activeChatThread = null;
     let storyCampaignFilter = localStorage.getItem("story-campaign") || "tropic-gooner";
@@ -2125,6 +2296,10 @@
         if (remember) localStorage.setItem("linuxbox-chat-active", id);
         document.getElementById("chat-profile").value = thread.profile || "think";
         document.getElementById("chat-response-mode").value = thread.response_mode || "brief";
+        syncChatModeUi({
+          modeId: modeIdFromThread(thread),
+          preferredModel: thread.preferred_model || "auto",
+        });
         document.getElementById("chat-promote-task").disabled = false;
         document.getElementById("chat-save-thread").disabled = false;
         setChatComposerState();
@@ -2336,8 +2511,7 @@
         body: JSON.stringify({
           title,
           context: ctx,
-          profile: document.getElementById("chat-profile").value,
-          response_mode: document.getElementById("chat-response-mode").value,
+          ...chatRequestExtras(),
         }),
       });
       const thread = await parseApiJson(res);
@@ -3066,6 +3240,86 @@
       return `<div class="${cls}" style="background:${tone}">${esc(initials)}</div>`;
     }
 
+    function closeCharsAttachModal() {
+      const modal = document.getElementById("chars-attach-modal");
+      if (!modal) return;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      charsAttachModalRow = null;
+    }
+
+    function openCharsAttachModal(row) {
+      const modal = document.getElementById("chars-attach-modal");
+      const list = document.getElementById("chars-attach-modal-list");
+      const status = document.getElementById("chars-attach-modal-status");
+      const title = document.getElementById("chars-attach-modal-title");
+      if (!modal || !row) return;
+      charsAttachModalRow = row;
+      const unresolved = row.unresolved_doc_attachments || [];
+      if (title) {
+        title.textContent = `Unresolved attachments · ${row.display_name || row.id} (${unresolved.length})`;
+      }
+      if (list) {
+        list.innerHTML = unresolved.length
+          ? `<ul style="margin:0;padding-left:1.1rem">${unresolved.map((u) => `<li><code>${esc(u.ref || u)}</code></li>`).join("")}</ul>`
+          : "<span class=\"meta\">None listed.</span>";
+      }
+      if (status) {
+        status.textContent =
+          "Resolve copies matching files from discord-export into characters/portraits/, then tries Discord bot for anything still missing.";
+      }
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    async function resolveCharsAttachments(scopeAll) {
+      const status = document.getElementById("chars-attach-modal-status");
+      const row = charsAttachModalRow;
+      if (!row && !scopeAll) return;
+      if (status) status.textContent = "Resolving… (local export first, then Discord if needed)";
+      try {
+        const res = await fetch(`${base}/api/characters-registry/resolve-attachments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaign: charsCampaignFilter,
+            id: scopeAll ? "" : row.id,
+            from_discord: true,
+          }),
+        });
+        const j = await res.json();
+        if (!res.ok) {
+          if (status) {
+            status.textContent = j.error === "admin_required"
+              ? "Admin login required to resolve attachments."
+              : (j.error || "Resolve failed");
+          }
+          return;
+        }
+        if (j.registry) charsRegistry = j.registry;
+        const discordNote = j.discord
+          ? (j.discord.skipped
+              ? " Discord fetch skipped (nothing missing after local restore)."
+              : j.discord.ok
+                ? ` Discord fetched ${j.discord.copied || 0}.`
+                : ` Discord: ${j.discord.message || j.discord.error || "failed"}${j.discord.fix ? ` — ${j.discord.fix}` : ""}`)
+          : "";
+        if (status) {
+          status.textContent = `Copied ${j.copied || 0}, already ${j.already || 0}, missing ${j.missing || 0}, skipped non-image ${j.skipped_non_image || 0}.${discordNote}`;
+        }
+        selectedCharId = row?.id || selectedCharId;
+        renderCharactersRoster();
+        const next = (charsRegistry?.characters || []).find((c) => c.id === selectedCharId);
+        if (next && !(next.unresolved_doc_attachments || []).length) {
+          setTimeout(() => closeCharsAttachModal(), 900);
+        } else if (next) {
+          openCharsAttachModal(next);
+        }
+      } catch (e) {
+        if (status) status.textContent = e.message || "Resolve failed";
+      }
+    }
+
     async function loadCharacters() {
       const sel = document.getElementById("chars-campaign");
       if (sel && !sel.dataset.ready) {
@@ -3184,8 +3438,14 @@
       const notes = row.notes
         ? `<div class="sheet-blurb">${esc(row.notes)}</div>`
         : "";
-      const unresolved = (row.unresolved_doc_attachments || []).length
-        ? `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0;color:var(--warn,#d4a017)">Doc has attachment not resolved (${row.unresolved_doc_attachments.length}): ${(row.unresolved_doc_attachments || []).slice(0, 4).map((u) => esc(u.ref || u)).join(", ")}${(row.unresolved_doc_attachments || []).length > 4 ? "…" : ""}</p>`
+      const unresolvedList = row.unresolved_doc_attachments || [];
+      const unresolved = unresolvedList.length
+        ? `<div class="chars-attach-warn" id="chars-attach-warn">
+            <strong>Unresolved attachments (${unresolvedList.length})</strong>
+            <p style="margin:0.25rem 0 0">Docs list Discord files that are not in portraits yet — not just “upload below”.</p>
+            <ul>${unresolvedList.slice(0, 6).map((u) => `<li><code>${esc(u.ref || u)}</code></li>`).join("")}${unresolvedList.length > 6 ? `<li>… +${unresolvedList.length - 6} more</li>` : ""}</ul>
+            <button type="button" class="btn" id="chars-attach-open" style="width:auto">Why / Resolve…</button>
+          </div>`
         : "";
       const images = row.images || [];
       const galleryHtml = images.length
@@ -3195,7 +3455,7 @@
             const active = p === row.image_path ? " active" : "";
             return `<button type="button" class="${active}" data-path="${esc(p)}" title="${esc(p)}"><img src="${esc(base + url)}" alt="" loading="lazy" /></button>`;
           }).join("")}</div>`
-        : `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0">No images yet — upload below or drop files into <code>Character Images/</code> / <code>characters/portraits/${esc(row.id)}/</code>.</p>`;
+        : `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0">No images yet — resolve Discord attachments, upload below, or drop files into <code>Character Images/</code> / <code>characters/portraits/${esc(row.id)}/</code>.</p>`;
       body.innerHTML = `
         <div class="sheet-hero">
           ${charAvatarHtml(row, "sheet-avatar")}
@@ -3225,6 +3485,16 @@
           <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
           <span class="meta" id="char-image-result"></span>
         </div>`;
+
+      if (unresolvedList.length) {
+        const openBtn = document.getElementById("chars-attach-open");
+        if (openBtn) openBtn.onclick = () => openCharsAttachModal(row);
+        // Auto-open once per character per page load so the issue is actionable, not a passive orange line.
+        if (!charsAttachModalShownFor.has(row.id)) {
+          charsAttachModalShownFor.add(row.id);
+          openCharsAttachModal(row);
+        }
+      }
 
       async function savePrimaryPath(image_path) {
         const out = document.getElementById("char-image-result");
@@ -4993,7 +5263,11 @@
           else renderReports(agentData);
         }
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
-        if (activeTab === "chat") fillChatNewSelects(agentData);
+        if (activeTab === "chat") {
+          fillChatNewSelects(agentData);
+          populateChatModelSelect();
+          syncChatModeUi();
+        }
         if (activeTab === "systems") loadSystems();
         document.getElementById("backlog-open").innerHTML = (agentData.dashboard_backlog_open || [])
           .map((t) => `<li>${esc(t)}</li>`).join("") || "<li class='empty'>Empty</li>";
@@ -5167,7 +5441,8 @@
       const input = document.getElementById("chat-input");
       const msg = input.value.trim();
       if (!msg) return;
-      if (!activeChatThreadId) {
+      const offload = document.getElementById("chat-offload")?.checked;
+      if (!activeChatThreadId && !offload) {
         try {
           const thread = await createChatThreadWithCampaignPick({
             title: "New chat — pick a campaign",
@@ -5186,50 +5461,79 @@
       chatWaiting = true;
       setChatComposerState();
       const bubble = document.createElement("div");
-      setChatBubbleLoading(bubble, "Sending…");
+      setChatBubbleLoading(bubble, offload ? "Queuing offload…" : "Sending…");
       log.appendChild(bubble);
       log.scrollTop = log.scrollHeight;
       try {
-        const res = await fetch(`${base}/api/chat`, {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: msg,
-            thread_id: activeChatThreadId,
-            profile: document.getElementById("chat-profile").value,
-            response_mode: document.getElementById("chat-response-mode").value,
-          }),
-        });
-        const j = await parseApiJson(res);
-        if (j.error && !j.job_id) {
-          setChatBubbleReply(bubble, j.error, true);
-        } else if (j.job_id) {
-          if (j.deduped) {
-            setChatBubbleLoading(bubble, chatLoadingLabel(j, 0));
-          } else {
-            setChatBubbleLoading(
-              bubble,
-              j.status === "queued"
-                ? chatLoadingLabel(j, 0)
-                : "Thinking… 0s (Hermes on linuxbox — usually 1–2 min)"
-            );
-          }
-          const result = await pollChatJob(j.job_id, bubble);
-          if (result.error) {
-            setChatBubbleReply(bubble, result.error, true);
-            if (result.moderation_refusal) setChatModerationBanner(true, result.error);
-          } else {
-            setChatModerationBanner(false);
-            setChatBubbleReply(bubble, result.reply || "", false, {
-            paidRetry: !!result.paid_retry,
-            freeFallback: !!result.free_fallback,
+        if (offload) {
+          const extras = chatRequestExtras();
+          const res = await fetch(`${base}/api/chat/offload`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: msg,
+              thread_id: activeChatThreadId || null,
+              chat_mode: extras.chat_mode,
+              context: activeChatThread?.context || null,
+            }),
           });
+          const j = await parseApiJson(res);
+          if (!res.ok || j.error) {
+            setChatBubbleReply(bubble, j.error || "Offload failed", true);
+          } else {
+            const tid = j.task?.id ? j.task.id.slice(0, 8) : "ok";
+            setChatBubbleReply(
+              bubble,
+              `Queued for laptop/PC (not running on potato).\nTask: ${j.task?.title || tid}\nOpen Tasks tab → filter offload/laptop.`,
+              false
+            );
+            document.getElementById("chat-offload").checked = false;
+            syncChatModeUi();
+            load();
           }
-        } else if (j.reply) {
-          setChatBubbleReply(bubble, j.reply, false);
         } else {
-          setChatBubbleReply(bubble, j.error || "Unexpected chat response", true);
+          const extras = chatRequestExtras();
+          const res = await fetch(`${base}/api/chat`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: msg,
+              thread_id: activeChatThreadId,
+              ...extras,
+            }),
+          });
+          const j = await parseApiJson(res);
+          if (j.error && !j.job_id) {
+            setChatBubbleReply(bubble, j.error, true);
+          } else if (j.job_id) {
+            if (j.deduped) {
+              setChatBubbleLoading(bubble, chatLoadingLabel(j, 0));
+            } else {
+              setChatBubbleLoading(
+                bubble,
+                j.status === "queued"
+                  ? chatLoadingLabel(j, 0)
+                  : "Thinking… 0s (Hermes on linuxbox — usually 1–2 min)"
+              );
+            }
+            const result = await pollChatJob(j.job_id, bubble);
+            if (result.error) {
+              setChatBubbleReply(bubble, result.error, true);
+              if (result.moderation_refusal) setChatModerationBanner(true, result.error);
+            } else {
+              setChatModerationBanner(false);
+              setChatBubbleReply(bubble, result.reply || "", false, {
+              paidRetry: !!result.paid_retry,
+              freeFallback: !!result.free_fallback,
+            });
+            }
+          } else if (j.reply) {
+            setChatBubbleReply(bubble, j.reply, false);
+          } else {
+            setChatBubbleReply(bubble, j.error || "Unexpected chat response", true);
+          }
         }
       } catch (e) {
         setChatBubbleReply(bubble, e.message, true);
@@ -5291,6 +5595,11 @@
       setChatThreadsOpen(false);
     };
 
+    document.getElementById("chat-mode")?.addEventListener("change", () => syncChatModeUi());
+    document.getElementById("chat-offload")?.addEventListener("change", () => syncChatModeUi());
+    document.getElementById("chat-model")?.addEventListener("change", () => syncChatModeUi());
+    syncChatModeUi();
+
     document.getElementById("chat-promote-task").onclick = async () => {
       if (!activeChatThreadId || chatWaiting) return;
       const title = activeChatThread?.title || "From chat";
@@ -5348,12 +5657,23 @@
     document.getElementById("chat-campaign-modal")?.addEventListener("click", (e) => {
       if (e.target?.id === "chat-campaign-modal") closeChatCampModal(null);
     });
+    document.getElementById("chars-attach-modal-close")?.addEventListener("click", () => closeCharsAttachModal());
+    document.getElementById("chars-attach-modal-resolve")?.addEventListener("click", () => resolveCharsAttachments(false));
+    document.getElementById("chars-attach-modal")?.addEventListener("click", (e) => {
+      if (e.target?.id === "chars-attach-modal") closeCharsAttachModal();
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
       const modal = document.getElementById("chat-campaign-modal");
       if (modal?.classList.contains("open")) {
         e.preventDefault();
         closeChatCampModal(null);
+        return;
+      }
+      const attachModal = document.getElementById("chars-attach-modal");
+      if (attachModal?.classList.contains("open")) {
+        e.preventDefault();
+        closeCharsAttachModal();
       }
     });
     document.getElementById("chat-context-change-camp")?.addEventListener("click", async () => {
@@ -5386,7 +5706,8 @@
         },
         `Workshop · ${selectedStory.name}`
       );
-      document.getElementById("chat-response-mode").value = "workshop";
+      document.getElementById("chat-mode").value = "workshop";
+      syncChatModeUi({ modeId: "workshop" });
       document.getElementById("chat-input").placeholder =
         "You're the GM — add ideas, theories, links. I'll note them and flag gaps.";
       document.getElementById("chat-input").focus();

@@ -112,7 +112,14 @@ const USER_TASK_TAGS = [
   "bugfix",
   "feature",
   "maintenance",
+  "offload",
+  "laptop",
 ];
+
+const CHAT_MODES_FILE = path.join(REPO, "agents", "chat-modes.json");
+const CHAT_CATALOG_FILE = path.join(REPO, "agents", "model-budget", "chat-catalog.json");
+let CHAT_MODES_DATA = null;
+let CHAT_CATALOG_DATA = null;
 
 const USER_PROJECT_KINDS = [
   { id: "research-dev", label: "Research & development" },
@@ -363,6 +370,176 @@ function chatModelUsageSummary() {
   }));
   rows.sort((a, b) => b.attempts - a.attempts);
   return { day: data.day, models: rows.slice(0, 16) };
+}
+
+function loadChatModes() {
+  if (CHAT_MODES_DATA) return CHAT_MODES_DATA;
+  try {
+    CHAT_MODES_DATA = JSON.parse(fs.readFileSync(CHAT_MODES_FILE, "utf8"));
+  } catch {
+    CHAT_MODES_DATA = {
+      default_mode: "brief-rp",
+      modes: [
+        {
+          id: "brief-rp",
+          label: "Brief RP",
+          profile: "think",
+          response_mode: "brief",
+          show_model_picker: false,
+          routing: "free_first",
+        },
+        {
+          id: "workshop",
+          label: "Workshop",
+          profile: "think",
+          response_mode: "workshop",
+          show_model_picker: false,
+          routing: "free_first",
+        },
+        {
+          id: "meta-ops",
+          label: "Meta ops",
+          profile: "meta",
+          response_mode: "brief",
+          show_model_picker: true,
+          routing: "free_first",
+        },
+        {
+          id: "agent-coding",
+          label: "Agent coding",
+          profile: "code",
+          response_mode: "workshop",
+          show_model_picker: true,
+          routing: "free_first",
+        },
+      ],
+    };
+  }
+  return CHAT_MODES_DATA;
+}
+
+function getChatMode(modeId) {
+  const data = loadChatModes();
+  const modes = Array.isArray(data.modes) ? data.modes : [];
+  const id = String(modeId || data.default_mode || "brief-rp").trim();
+  return modes.find((m) => m && m.id === id) || modes[0] || null;
+}
+
+function resolveChatModeSettings(modeId, body = {}) {
+  const mode = getChatMode(modeId);
+  const profile = resolveChatProfile(
+    body.context || null,
+    body.profile || (mode && mode.profile) || "think"
+  );
+  const responseMode =
+    body.response_mode === "workshop" || body.response_mode === "brief"
+      ? body.response_mode
+      : mode && mode.response_mode === "workshop"
+        ? "workshop"
+        : "brief";
+  return {
+    mode,
+    chatModeId: mode ? mode.id : "brief-rp",
+    profile,
+    responseMode,
+    showModelPicker: !!(mode && mode.show_model_picker),
+  };
+}
+
+function loadChatCatalog() {
+  if (CHAT_CATALOG_DATA) return CHAT_CATALOG_DATA;
+  try {
+    CHAT_CATALOG_DATA = JSON.parse(fs.readFileSync(CHAT_CATALOG_FILE, "utf8"));
+  } catch {
+    CHAT_CATALOG_DATA = { estimated: true, models: [] };
+  }
+  return CHAT_CATALOG_DATA;
+}
+
+/** Merge curated catalog with today's usage — skip offline; mark degraded on hard fails. */
+function getChatCatalogForUi() {
+  const catalog = loadChatCatalog();
+  const usage = readChatModelUsage();
+  const models = [];
+  for (const row of catalog.models || []) {
+    if (!row || !row.id) continue;
+    if (row.status === "offline") continue;
+    const u = usage.models && usage.models[row.id];
+    let status = row.status || "online";
+    if (u) {
+      const fails = (u.fail || 0) + (u.daily_limit || 0) + (u.rate_limit || 0);
+      const oks = u.ok || 0;
+      if (fails >= 3 && oks === 0) status = "degraded";
+      else if ((u.daily_limit || 0) >= 1 && oks === 0) status = "degraded";
+    }
+    models.push({
+      id: row.id,
+      label: row.label || row.id,
+      tier: row.tier || (String(row.id).includes(":free") ? "free" : "paid"),
+      relative_cost_in: row.relative_cost_in,
+      relative_cost_out: row.relative_cost_out,
+      tokens_per_sec_est: row.tokens_per_sec_est,
+      status,
+      note: row.note || "",
+      estimated: true,
+    });
+  }
+  return {
+    estimated: true,
+    relative_cost_unit: catalog.relative_cost_unit || "relative vs DeepSeek flash = 1.0",
+    models,
+    modes: loadChatModes(),
+  };
+}
+
+function allowedChatModelIds() {
+  const ids = new Set();
+  for (const m of getChatCatalogForUi().models || []) {
+    if (m.status !== "offline") ids.add(m.id);
+  }
+  for (const m of CHAT_FREE_LAST_RESORT) ids.add(m);
+  for (const m of CHAT_PAID_MODEL_FALLBACK) ids.add(m);
+  ids.add(CHAT_VENICE_LAST_RESORT);
+  return ids;
+}
+
+function resolvePreferredChatModel(raw) {
+  const id = String(raw || "").trim();
+  if (!id || id === "auto") return null;
+  if (!allowedChatModelIds().has(id)) return null;
+  return id;
+}
+
+function createChatOffloadTask(payload = {}) {
+  const message = String(payload.message || "").trim().slice(0, 4000);
+  if (!message) throw new Error("empty_message");
+  const threadId = String(payload.thread_id || "").trim() || null;
+  const mode = getChatMode(payload.chat_mode);
+  const titleBase = message.replace(/[\r\n]+/g, " ").slice(0, 80);
+  const title = `[ops]/load] ${titleBase}`.slice(0, 300);
+  const body = [
+    "## Offload to laptop / PC",
+    "Source: Dashboard Chat (potato RAM offload — NOT running on linuxbox)",
+    `Mode: ${(mode && mode.label) || payload.chat_mode || "n/a"}`,
+    threadId ? `Thread: ${threadId}` : "Thread: (none)",
+    "",
+    "### Request",
+    message,
+    "",
+    "### Agent instructions",
+    "Work on laptop or PC (Tailscale + git / Cursor). Do not assume this is already running remotely.",
+    "When done: mark task done; optional one ledger line in AI_GROUPCHAT.md.",
+  ].join("\n");
+  return createUserTask({
+    title,
+    body,
+    tags: ["offload", "laptop", "dashboard"],
+    project_id: "linuxbox",
+    context: {
+      campaign: payload.context?.campaign || null,
+      chat_thread_id: threadId,
+    },
+  });
 }
 
 function resolveChatProfile(context, requested) {
@@ -1166,6 +1343,8 @@ async function collectAgentState(lite = false) {
       ops_daily_usd_target: OPENROUTER_OPS_DAILY_USD,
       config: "agents/model-budget/config.json",
     },
+    chat_modes: loadChatModes(),
+    chat_catalog: getChatCatalogForUi(),
   };
 }
 
@@ -1544,13 +1723,42 @@ const CHAR_IMAGE_FOLDER_BY_ID = {
   toga: "Toga",
 };
 
-let charImageBasenameIndexCache = { mtimeMs: 0, byBase: new Map() };
+let charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
 
 function normalizeCampaignRelPath(imagePath) {
   if (!imagePath || typeof imagePath !== "string") return "";
   const normalized = imagePath.replace(/\\/g, "/").replace(/^\/+/, "");
   if (!normalized || normalized.includes("..") || path.isAbsolute(normalized)) return "";
   return normalized;
+}
+
+/* List discord-export/.../attachments dirs (binaries live here; sheets only keep paths). */
+function listDiscordExportAttachmentDirs(campRoot) {
+  const exportRoot = path.join(campRoot, "discord-export");
+  const out = [];
+  if (!fs.existsSync(exportRoot) || !fs.statSync(exportRoot).isDirectory()) return out;
+  function walk(abs) {
+    let entries;
+    try {
+      entries = fs.readdirSync(abs, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const ent of entries) {
+      if (!ent.isDirectory()) continue;
+      const child = path.join(abs, ent.name);
+      if (ent.name === "attachments") out.push(child);
+      else walk(child);
+    }
+  }
+  walk(exportRoot);
+  return out;
+}
+
+function discordExportRelFromAbs(campRoot, absFile) {
+  const rel = path.relative(campRoot, absFile).replace(/\\/g, "/");
+  if (!rel || rel.startsWith("..") || path.isAbsolute(rel)) return "";
+  return rel;
 }
 
 function characterImageAbs(campaignId, imagePath) {
@@ -1609,9 +1817,11 @@ function preferStillPrimary(paths) {
 
 function characterImageBasenameIndex(campaignId) {
   const campRoot = path.join(REPO, "campaigns", campaignId);
+  const exportAttDirs = listDiscordExportAttachmentDirs(campRoot);
   const roots = [
     path.join(campRoot, "Character Images"),
     path.join(campRoot, "characters", "portraits"),
+    ...exportAttDirs,
   ];
   let newest = 0;
   for (const root of roots) {
@@ -1622,7 +1832,8 @@ function characterImageBasenameIndex(campaignId) {
       /* ignore */
     }
   }
-  if (charImageBasenameIndexCache.byBase.size && charImageBasenameIndexCache.mtimeMs === newest) {
+  const fingerprint = `${newest}:${exportAttDirs.length}:${roots.length}`;
+  if (charImageBasenameIndexCache.byBase.size && charImageBasenameIndexCache.fingerprint === fingerprint) {
     return charImageBasenameIndexCache.byBase;
   }
   const byBase = new Map();
@@ -1640,13 +1851,33 @@ function characterImageBasenameIndex(campaignId) {
       if (st.isDirectory()) walk(abs, rel);
       else if (CHAR_IMAGE_EXTS.has(path.extname(name).toLowerCase())) {
         const key = name.toLowerCase();
+        // Prefer portraits / Character Images over discord-export when names collide.
         if (!byBase.has(key)) byBase.set(key, rel);
       }
     }
   }
-  walk(path.join(campRoot, "Character Images"), "Character Images");
+  // Priority: portraits + Character Images first, then export attachments.
   walk(path.join(campRoot, "characters", "portraits"), "characters/portraits");
-  charImageBasenameIndexCache = { mtimeMs: newest, byBase };
+  walk(path.join(campRoot, "Character Images"), "Character Images");
+  for (const absDir of exportAttDirs) {
+    const relPrefix = discordExportRelFromAbs(campRoot, absDir);
+    if (!relPrefix) continue;
+    if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) continue;
+    for (const name of fs.readdirSync(absDir)) {
+      const abs = path.join(absDir, name);
+      let st;
+      try {
+        st = fs.statSync(abs);
+      } catch {
+        continue;
+      }
+      if (!st.isFile()) continue;
+      if (!CHAR_IMAGE_EXTS.has(path.extname(name).toLowerCase())) continue;
+      const key = name.toLowerCase();
+      if (!byBase.has(key)) byBase.set(key, `${relPrefix}/${name}`.replace(/\\/g, "/"));
+    }
+  }
+  charImageBasenameIndexCache = { fingerprint, byBase };
   return byBase;
 }
 
@@ -1908,6 +2139,190 @@ function uploadCharacterPortrait(campaignId, charId, filename, dataBase64) {
   return getCharactersRegistry(campaignId);
 }
 
+/**
+ * Copy sheet Attachment: refs from discord-export (or already-resolved paths)
+ * into characters/portraits/<id>/ and set primary when missing.
+ * Optional Discord re-fetch for basenames still missing after local restore.
+ */
+async function resolveCharacterDocAttachments(campaignId, opts = {}) {
+  if (!CAMPAIGNS[campaignId]) throw new Error("bad_campaign");
+  const charId = opts.id ? String(opts.id) : "";
+  const fromDiscord = Boolean(opts.from_discord);
+  const campRoot = path.join(REPO, "campaigns", campaignId);
+  const registry = readCharactersRegistry(campaignId);
+  const targets = (registry.characters || []).filter((c) => {
+    if (charId) return c.id === charId;
+    return !c.hidden && c.role !== "gm";
+  });
+  if (charId && !targets.length) throw new Error("char_not_found");
+
+  charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
+  const index = characterImageBasenameIndex(campaignId);
+  const summary = {
+    campaign: campaignId,
+    chars: [],
+    copied: 0,
+    already: 0,
+    missing: 0,
+    skipped_non_image: 0,
+    discord: null,
+  };
+
+  for (const row of targets) {
+    const refs = extractDocAttachmentRefs(campaignId, row);
+    const charResult = {
+      id: row.id,
+      refs: refs.length,
+      copied: [],
+      already: [],
+      missing: [],
+      skipped_non_image: [],
+    };
+    const portraitDirRel = `characters/portraits/${row.id}`;
+    const portraitDirAbs = path.join(campRoot, portraitDirRel);
+    const imgs = Array.isArray(row.images) ? row.images.map(String) : [];
+
+    for (const ref of refs) {
+      if (/^https?:\/\//i.test(ref)) {
+        charResult.missing.push({ ref, reason: "remote_url" });
+        summary.missing += 1;
+        continue;
+      }
+      const base = path.basename(ref);
+      const ext = path.extname(base).toLowerCase();
+      if (!CHAR_IMAGE_EXTS.has(ext)) {
+        charResult.skipped_non_image.push(ref);
+        summary.skipped_non_image += 1;
+        continue;
+      }
+      const destRel = `${portraitDirRel}/${base}`;
+      const destAbs = path.join(campRoot, destRel);
+      if (fs.existsSync(destAbs) && fs.statSync(destAbs).isFile()) {
+        charResult.already.push(destRel);
+        summary.already += 1;
+        if (!imgs.includes(destRel)) imgs.push(destRel);
+        continue;
+      }
+      let srcAbs = null;
+      const norm = normalizeCampaignRelPath(ref);
+      if (norm) {
+        const abs = path.join(campRoot, norm);
+        if (fs.existsSync(abs) && fs.statSync(abs).isFile()) srcAbs = abs;
+      }
+      if (!srcAbs) {
+        const hit = index.get(base.toLowerCase());
+        if (hit) {
+          const abs = path.join(campRoot, hit);
+          if (fs.existsSync(abs) && fs.statSync(abs).isFile()) srcAbs = abs;
+        }
+      }
+      if (!srcAbs) {
+        charResult.missing.push({ ref, reason: "not_in_export" });
+        summary.missing += 1;
+        continue;
+      }
+      fs.mkdirSync(portraitDirAbs, { recursive: true });
+      fs.copyFileSync(srcAbs, destAbs);
+      charResult.copied.push(destRel);
+      summary.copied += 1;
+      if (!imgs.includes(destRel)) imgs.push(destRel);
+    }
+
+    row.images = imgs;
+    if (!row.image_path || !characterImageAbs(campaignId, row.image_path)) {
+      const primary = preferStillPrimary(imgs.filter((p) => characterImageAbs(campaignId, p)));
+      if (primary) row.image_path = primary;
+    }
+    if (refs.length) row.doc_attachments = refs;
+    summary.chars.push(charResult);
+  }
+
+  writeCharactersRegistry(campaignId, registry);
+  charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
+
+  if (fromDiscord) {
+    summary.discord = await fetchMissingAttachmentsFromDiscord(campaignId, summary);
+    if (summary.discord?.copied > 0) {
+      charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
+    }
+  }
+
+  const enriched = getCharactersRegistry(campaignId, { includeHidden: Boolean(charId) });
+  return { ...summary, registry: enriched };
+}
+
+async function fetchMissingAttachmentsFromDiscord(campaignId, summary) {
+  const script = path.join(
+    REPO,
+    "campaigns",
+    campaignId,
+    "tools",
+    "fetch_unresolved_attachments.py"
+  );
+  if (!fs.existsSync(script)) {
+    return {
+      ok: false,
+      error: "fetch_script_missing",
+      fix: `python campaigns/${campaignId}/tools/fetch_unresolved_attachments.py`,
+      hint: "Script not on disk; local export restore still ran.",
+    };
+  }
+  const stillMissing = [];
+  for (const c of summary.chars || []) {
+    for (const m of c.missing || []) {
+      if (m?.ref) stillMissing.push({ id: c.id, ref: m.ref });
+    }
+  }
+  if (!stillMissing.length) {
+    return { ok: true, skipped: true, reason: "nothing_missing_after_local", copied: 0 };
+  }
+  const tmp = path.join(REPO, "agents", "state", `attach-fetch-${Date.now()}.json`);
+  try {
+    fs.mkdirSync(path.dirname(tmp), { recursive: true });
+    fs.writeFileSync(tmp, JSON.stringify({ campaign: campaignId, missing: stillMissing }, null, 2));
+    const { stdout, stderr } = await execFileAsync(
+      "python3",
+      [script, "--job", tmp, "--batch", "4"],
+      {
+        cwd: path.join(REPO, "campaigns", campaignId),
+        timeout: 180000,
+        maxBuffer: 2 * 1024 * 1024,
+        env: { ...process.env },
+      }
+    );
+    let parsed = null;
+    try {
+      parsed = JSON.parse(String(stdout || "").trim().split("\n").filter(Boolean).pop() || "{}");
+    } catch {
+      parsed = null;
+    }
+    return {
+      ok: Boolean(parsed?.ok),
+      copied: parsed?.copied || 0,
+      failed: parsed?.failed || [],
+      token_ok: parsed?.token_ok,
+      message: parsed?.message || String(stderr || "").slice(0, 400),
+      fix: parsed?.fix || null,
+    };
+  } catch (e) {
+    const msg = String(e?.stderr || e?.message || e).slice(0, 400);
+    return {
+      ok: false,
+      error: "discord_fetch_failed",
+      message: msg,
+      fix:
+        "Ensure DISCORD_TOKEN/DISCORD_BOT_TOKEN in campaigns/tropic-gooner/.env or ~/.hermes/.env, Message Content Intent on, then: " +
+        `python3 campaigns/${campaignId}/tools/fetch_unresolved_attachments.py`,
+    };
+  } finally {
+    try {
+      fs.unlinkSync(tmp);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 function readStoryDoc(campaignId, relPath) {
   const cfg = CAMPAIGNS[campaignId];
   if (!cfg || !relPath || relPath.includes("..")) throw new Error("bad_request");
@@ -2033,9 +2448,13 @@ function isIntentOnlyChatReply(text) {
   return !hasSubstance;
 }
 
-function buildChatStylePreamble(responseMode, context) {
+function buildChatStylePreamble(responseMode, context, chatOpts = {}) {
   const brief = responseMode !== "workshop";
   const lines = [CHAT_RUNTIME_GUARDRAIL, ""];
+  const mode = chatOpts.chatMode || getChatMode(chatOpts.chatModeId);
+  if (mode?.system_extra) {
+    lines.push(`[Chat mode — ${mode.label || mode.id}]`, mode.system_extra, "");
+  }
   const boundCamp = campaignDisplayLabel(context);
   if (boundCamp) {
     lines.push(
@@ -2223,7 +2642,12 @@ function buildChatMessage(message, context, options = {}) {
   const clean = message.trim().slice(0, 2000);
   if (!clean) throw new Error("empty_message");
   const responseMode = options.responseMode === "workshop" ? "workshop" : "brief";
-  const blocks = [buildChatStylePreamble(responseMode, context)];
+  const blocks = [
+    buildChatStylePreamble(responseMode, context, {
+      chatModeId: options.chatModeId,
+      chatMode: options.chatMode,
+    }),
+  ];
   const statusBlock = buildChatSystemStatusBlock(context);
   if (statusBlock) blocks.push(statusBlock);
   const hist = formatChatHistory(options.history);
@@ -2670,6 +3094,13 @@ function createChatThread(body = {}) {
   const id = crypto.randomBytes(8).toString("hex");
   const now = Date.now();
   const context = normalizeThreadContext(body.context);
+  const modeSettings = resolveChatModeSettings(body.chat_mode, {
+    context,
+    profile: body.profile,
+    response_mode: body.response_mode,
+  });
+  const showPicker = !!modeSettings.showModelPicker;
+  const preferred = showPicker ? resolvePreferredChatModel(body.preferred_model) : null;
   const thread = {
     id,
     title: String(body.title || "New chat").trim().slice(0, 120) || "New chat",
@@ -2679,8 +3110,10 @@ function createChatThread(body = {}) {
     updated_at: now,
     parent_id: body.parent_id || null,
     branch_from_index: body.branch_from_index ?? null,
-    profile: VALID_PROFILES.has(body.profile) ? body.profile : "think",
-    response_mode: body.response_mode === "workshop" ? "workshop" : "brief",
+    profile: modeSettings.profile,
+    response_mode: modeSettings.responseMode,
+    chat_mode: modeSettings.chatModeId,
+    preferred_model: preferred,
   };
   return writeChatThread(thread);
 }
@@ -3093,6 +3526,14 @@ function updateChatThreadMeta(id, patch = {}) {
   }
   if (patch.profile && VALID_PROFILES.has(patch.profile)) thread.profile = patch.profile;
   if (patch.response_mode) thread.response_mode = patch.response_mode === "workshop" ? "workshop" : "brief";
+  if (patch.chat_mode) {
+    const mode = getChatMode(patch.chat_mode);
+    if (mode) thread.chat_mode = mode.id;
+  }
+  if (patch.preferred_model != null) {
+    const pref = resolvePreferredChatModel(patch.preferred_model);
+    thread.preferred_model = pref || null;
+  }
   thread.updated_at = Date.now();
   return writeChatThread(thread);
 }
@@ -3216,9 +3657,15 @@ function drainChatQueue() {
   if (!next) return;
   chatWorkerBusy = true;
   refreshQueuedJobDepths();
-  const { job, message, profile, context, history, responseMode, threadId } = next;
+  const { job, message, profile, context, history, responseMode, threadId, preferredModel, chatModeId } =
+    next;
   updateChatJob(job, { status: "pending", started_at: Date.now(), queue_depth: 0 });
-  runHermesChat(message, profile, context, { history, responseMode })
+  runHermesChat(message, profile, context, {
+    history,
+    responseMode,
+    preferredModel,
+    chatModeId,
+  })
     .then((result) => {
       if (result.error) {
         updateChatJob(job, { status: "error", error: result.error, finished_at: Date.now(), ...result });
@@ -3287,6 +3734,8 @@ function startChatJob(message, profile, context, chatOpts = {}) {
     context,
     history: chatOpts.history || [],
     responseMode: chatOpts.responseMode || "brief",
+    preferredModel: chatOpts.preferredModel || null,
+    chatModeId: chatOpts.chatModeId || null,
     threadId: chatOpts.threadId || null,
     skipUserAppend: !!chatOpts.skipUserAppend,
   });
@@ -3311,11 +3760,15 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
       context_used: !!context,
     };
   }
+  const chatMode = getChatMode(chatOpts.chatModeId);
+  const preferredModel = resolvePreferredChatModel(chatOpts.preferredModel);
   let prompt;
   try {
     prompt = buildChatMessage(message, context, {
       history: chatOpts.history,
       responseMode: chatOpts.responseMode,
+      chatModeId: chatOpts.chatModeId,
+      chatMode,
     });
   } catch (err) {
     return {
@@ -3473,23 +3926,29 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
     return { kind: "exhausted" };
   }
 
-  // Free-first everywhere (incl. campaign threads); paid only after free fails (429/timeout/empty/error).
+  // Explicit model pick → try first; then free-first (or paid-first) failover. No pick → free-first default.
   loadModelBudgetConfig();
   const preferFree = CHAT_FREE_FIRST;
-  const phases = preferFree
-    ? [
-        { chain: freeChain, allowFree: true },
-        { chain: paidChain, allowFree: false },
-      ]
-    : [
-        { chain: paidChain, allowFree: false },
-        { chain: freeChain, allowFree: true },
-      ];
+  const phases = [];
+  if (preferredModel) {
+    const pinnedIsFree = preferredModel.includes(":free");
+    phases.push({ chain: [preferredModel], allowFree: pinnedIsFree, pinned: true });
+  }
+  if (preferFree) {
+    phases.push({ chain: freeChain.filter((m) => m !== preferredModel), allowFree: true });
+    phases.push({ chain: paidChain.filter((m) => m !== preferredModel), allowFree: false });
+  } else {
+    phases.push({ chain: paidChain.filter((m) => m !== preferredModel), allowFree: false });
+    phases.push({ chain: freeChain.filter((m) => m !== preferredModel), allowFree: true });
+  }
 
   for (const phase of phases) {
     if (!phase.chain.length) continue;
     const result = await tryModelChain(phase.chain, { allowFree: phase.allowFree });
     if (result.kind === "ok" || result.kind === "error") {
+      if (result.kind === "ok" && preferredModel) {
+        result.payload.preferred_model = preferredModel;
+      }
       return result.payload;
     }
     // daily_limit / exhausted → next phase
@@ -4387,6 +4846,24 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/api/chat/modes") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, loadChatModes(), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/chat/models") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, getChatCatalogForUi(), publicMode);
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/chat/threads") {
       if (auth?.role !== "admin") {
         sendJson(res, 403, { error: "admin_required" }, publicMode);
@@ -4626,6 +5103,20 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (pathname === "/api/chat/offload") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        try {
+          const result = createChatOffloadTask(body);
+          sendJson(res, 201, { ...result, offload: true, note: "Queued for laptop/PC — not running on potato" }, publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "offload_failed" }, publicMode);
+        }
+        return;
+      }
+
       if (pathname === "/api/chat") {
         if (auth?.role !== "admin") {
           sendJson(res, 403, { error: "admin_required" }, publicMode);
@@ -4638,8 +5129,17 @@ const server = http.createServer(async (req, res) => {
         }
         const threadId = String(body.thread_id || "").trim();
         let context = body.context ? normalizeThreadContext(body.context) : null;
-        let profile = resolveChatProfile(context, body.profile || "think");
-        let responseMode = body.response_mode === "workshop" ? "workshop" : "brief";
+        const modeSettings = resolveChatModeSettings(body.chat_mode, {
+          context,
+          profile: body.profile,
+          response_mode: body.response_mode,
+        });
+        let profile = modeSettings.profile;
+        let responseMode = modeSettings.responseMode;
+        let chatModeId = modeSettings.chatModeId;
+        let preferredModel = resolvePreferredChatModel(body.preferred_model);
+        // Modes that hide the picker ignore a stale preferred_model from the client.
+        if (!modeSettings.showModelPicker) preferredModel = null;
         let history = Array.isArray(body.history)
           ? body.history
               .filter((t) => t && (t.role === "user" || t.role === "bot") && String(t.text || "").trim())
@@ -4673,21 +5173,34 @@ const server = http.createServer(async (req, res) => {
             return;
           }
           context = normalizeThreadContext(thread.context || context || {});
-          profile = resolveChatProfile(context, body.profile || thread.profile || "think");
-          responseMode =
-            body.response_mode === "workshop" || body.response_mode === "brief"
-              ? body.response_mode
-              : thread.response_mode || "brief";
+          const threadMode = resolveChatModeSettings(body.chat_mode || thread.chat_mode, {
+            context,
+            profile: body.profile || thread.profile,
+            response_mode:
+              body.response_mode || thread.response_mode,
+          });
+          profile = threadMode.profile;
+          responseMode = threadMode.responseMode;
+          chatModeId = threadMode.chatModeId;
+          if (body.preferred_model != null) {
+            preferredModel = threadMode.showModelPicker
+              ? resolvePreferredChatModel(body.preferred_model)
+              : null;
+          } else if (threadMode.showModelPicker) {
+            preferredModel = resolvePreferredChatModel(thread.preferred_model);
+          } else {
+            preferredModel = null;
+          }
           history = chatHistoryFromThread(thread);
           try {
             appendChatThreadMessage(threadId, "user", message, false);
             maybeAutoTitleThread(threadId, message);
-            if (body.profile || body.response_mode) {
-              updateChatThreadMeta(threadId, {
-                profile: body.profile,
-                response_mode: body.response_mode,
-              });
-            }
+            updateChatThreadMeta(threadId, {
+              profile,
+              response_mode: responseMode,
+              chat_mode: chatModeId,
+              preferred_model: preferredModel || "",
+            });
           } catch (err) {
             sendJson(res, 400, { error: err.message || "thread_write_failed" }, publicMode);
             return;
@@ -4697,13 +5210,22 @@ const server = http.createServer(async (req, res) => {
         const jobId = startChatJob(message, profile, context, {
           history,
           responseMode,
+          preferredModel,
+          chatModeId,
           threadId: threadId || null,
         });
         const job = CHAT_JOBS.get(jobId) || { status: "pending", queue_depth: 0 };
         sendJson(
           res,
           202,
-          { job_id: jobId, status: job.status, queue_depth: job.queue_depth || 0, thread_id: threadId || null },
+          {
+            job_id: jobId,
+            status: job.status,
+            queue_depth: job.queue_depth || 0,
+            thread_id: threadId || null,
+            chat_mode: chatModeId,
+            preferred_model: preferredModel || null,
+          },
           publicMode
         );
         return;
@@ -4928,6 +5450,24 @@ const server = http.createServer(async (req, res) => {
           );
         } catch (e) {
           sendJson(res, 400, { error: e.message || "upload_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/resolve-attachments") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          const result = await resolveCharacterDocAttachments(campaignId, {
+            id: body.id || "",
+            from_discord: body.from_discord !== false,
+          });
+          sendJson(res, 200, result, publicMode);
+        } catch (e) {
+          sendJson(res, 400, { error: e.message || "resolve_failed" }, publicMode);
         }
         return;
       }
