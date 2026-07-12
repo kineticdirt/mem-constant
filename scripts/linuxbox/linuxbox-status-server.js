@@ -1530,19 +1530,21 @@ function charactersRegistryPath(campaignId) {
 
 const CHAR_IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
 const CHAR_PORTRAIT_UPLOAD_MAX = 4 * 1024 * 1024;
-/** Map registry id → gitignored `Character Images/<Folder>/` on disk (PC + potato via scp). */
+/**
+ * Canonical registry id → gitignored `Character Images/<Folder>/` only.
+ * Thread twins (ellaine, nelly, red, minerva, …) must NOT share these folders —
+ * that caused duplicate faces on the Chars grid.
+ */
 const CHAR_IMAGE_FOLDER_BY_ID = {
-  ellaine: "Ellaine",
   "ellaine-mishpit": "Ellaine",
   "harper-maupin": "Harper",
-  minerva: "Minerva",
   "sister-minerva": "Minerva",
-  nelly: "Nelly",
   "nelly-stein": "Nelly",
-  red: "Redmond",
   "redmond-red-gallagher": "Redmond",
   toga: "Toga",
 };
+
+let charImageBasenameIndexCache = { mtimeMs: 0, byBase: new Map() };
 
 function normalizeCampaignRelPath(imagePath) {
   if (!imagePath || typeof imagePath !== "string") return "";
@@ -1605,37 +1607,170 @@ function preferStillPrimary(paths) {
   return still[0] || paths[0] || "";
 }
 
+function characterImageBasenameIndex(campaignId) {
+  const campRoot = path.join(REPO, "campaigns", campaignId);
+  const roots = [
+    path.join(campRoot, "Character Images"),
+    path.join(campRoot, "characters", "portraits"),
+  ];
+  let newest = 0;
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue;
+    try {
+      newest = Math.max(newest, fs.statSync(root).mtimeMs || 0);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (charImageBasenameIndexCache.byBase.size && charImageBasenameIndexCache.mtimeMs === newest) {
+    return charImageBasenameIndexCache.byBase;
+  }
+  const byBase = new Map();
+  function walk(absDir, relPrefix) {
+    if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) return;
+    for (const name of fs.readdirSync(absDir)) {
+      const abs = path.join(absDir, name);
+      let st;
+      try {
+        st = fs.statSync(abs);
+      } catch {
+        continue;
+      }
+      const rel = `${relPrefix}/${name}`.replace(/\\/g, "/");
+      if (st.isDirectory()) walk(abs, rel);
+      else if (CHAR_IMAGE_EXTS.has(path.extname(name).toLowerCase())) {
+        const key = name.toLowerCase();
+        if (!byBase.has(key)) byBase.set(key, rel);
+      }
+    }
+  }
+  walk(path.join(campRoot, "Character Images"), "Character Images");
+  walk(path.join(campRoot, "characters", "portraits"), "characters/portraits");
+  charImageBasenameIndexCache = { mtimeMs: newest, byBase };
+  return byBase;
+}
+
+function storyDocAbs(campaignId, storyPath) {
+  if (!storyPath || typeof storyPath !== "string") return null;
+  const norm = storyPath.replace(/\\/g, "/");
+  const prefix = `campaigns/${campaignId}/`;
+  const rel = norm.startsWith(prefix) ? norm.slice(prefix.length) : norm.replace(/^\/+/, "");
+  if (!rel || rel.includes("..")) return null;
+  const abs = path.join(REPO, "campaigns", campaignId, rel);
+  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return null;
+  return abs;
+}
+
+function extractDocAttachmentRefs(campaignId, c) {
+  const listed = Array.isArray(c.doc_attachments) ? c.doc_attachments.map(String) : [];
+  const fromFiles = [];
+  const paths = [c.story_path, ...(Array.isArray(c.duplicate_paths) ? c.duplicate_paths : [])].filter(Boolean);
+  for (const sp of paths) {
+    const abs = storyDocAbs(campaignId, sp);
+    if (!abs) continue;
+    let text = "";
+    try {
+      text = fs.readFileSync(abs, "utf8");
+    } catch {
+      continue;
+    }
+    for (const m of text.matchAll(/Attachment:\s*`([^`]+)`/gi)) fromFiles.push(m[1].trim());
+    for (const m of text.matchAll(/^\s*-\s*`?(attachments\/[^`\s]+)`?\s*$/gim)) fromFiles.push(m[1].trim());
+    for (const m of text.matchAll(/!\[\[([^\]|#]+\.(?:png|jpe?g|webp|gif))\]\]/gi)) fromFiles.push(m[1].trim());
+    for (const m of text.matchAll(/https?:\/\/[^\s)>\]]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s)>\]]*)?/gi)) {
+      fromFiles.push(m[0].trim());
+    }
+  }
+  return [...new Set([...listed, ...fromFiles])];
+}
+
+function resolveDocAttachments(campaignId, refs) {
+  const index = characterImageBasenameIndex(campaignId);
+  const resolved = [];
+  const unresolved = [];
+  for (const ref of refs) {
+    if (/^https?:\/\//i.test(ref)) {
+      unresolved.push({ ref, reason: "remote_url" });
+      continue;
+    }
+    const norm = normalizeCampaignRelPath(ref);
+    if (norm && characterImageAbs(campaignId, norm)) {
+      resolved.push(norm);
+      continue;
+    }
+    const base = path.basename(ref).toLowerCase();
+    const hit = index.get(base);
+    if (hit && characterImageAbs(campaignId, hit)) {
+      resolved.push(hit);
+      continue;
+    }
+    unresolved.push({ ref, reason: "doc_has_attachment_not_resolved" });
+  }
+  return { resolved: [...new Set(resolved)], unresolved };
+}
+
 function resolveCharacterImages(campaignId, c) {
   const fromRegistry = (Array.isArray(c.images) ? c.images : [])
     .map(normalizeCampaignRelPath)
     .filter((p) => p && characterImageAbs(campaignId, p));
-  const fromDisk = characterPortraitDirs(campaignId, c.id);
-  const images = [...new Set([...fromRegistry, ...fromDisk])];
+  const docRefs = extractDocAttachmentRefs(campaignId, c);
+  const docResolved = resolveDocAttachments(campaignId, docRefs);
+  const fromDisk = c.hidden || c.role === "gm" ? [] : characterPortraitDirs(campaignId, c.id);
+  const images = [...new Set([...fromRegistry, ...docResolved.resolved, ...fromDisk])];
   let primary = normalizeCampaignRelPath(c.image_path || "");
   if (primary && !characterImageAbs(campaignId, primary)) primary = "";
-  if (!primary) primary = fromRegistry.find((p) => characterImageAbs(campaignId, p)) || preferStillPrimary(images);
-  return { images, image_path: primary || "" };
+  if (!primary) {
+    primary =
+      fromRegistry.find((p) => characterImageAbs(campaignId, p)) ||
+      docResolved.resolved[0] ||
+      preferStillPrimary(images);
+  }
+  return {
+    images,
+    image_path: primary || "",
+    doc_attachments: docRefs,
+    unresolved_doc_attachments: docResolved.unresolved,
+  };
 }
 
-function enrichCharactersRegistry(data, campaignId) {
-  const chars = (data.characters || []).map((c) => {
-    const resolved = resolveCharacterImages(campaignId, c);
-    const hasImage = Boolean(resolved.image_path && characterImageAbs(campaignId, resolved.image_path));
-    return {
-      ...c,
-      image_path: resolved.image_path,
-      images: resolved.images,
-      has_image: hasImage,
-      image_url: hasImage
-        ? `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}`
-        : null,
-      gallery_urls: resolved.images.map(
-        (p) =>
-          `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}&path=${encodeURIComponent(p)}`
-      ),
-    };
-  });
-  return { ...data, campaign_id: data.campaign_id || campaignId, characters: chars };
+function enrichCharactersRegistry(data, campaignId, opts = {}) {
+  const includeHidden = Boolean(opts.includeHidden);
+  const chars = (data.characters || [])
+    .filter((c) => includeHidden || (!c.hidden && c.role !== "gm"))
+    .map((c) => {
+      const resolved = resolveCharacterImages(campaignId, c);
+      const hasImage = Boolean(resolved.image_path && characterImageAbs(campaignId, resolved.image_path));
+      return {
+        ...c,
+        image_path: resolved.image_path,
+        images: resolved.images,
+        has_image: hasImage,
+        doc_attachments: resolved.doc_attachments,
+        unresolved_doc_attachments: resolved.unresolved_doc_attachments,
+        image_url: hasImage
+          ? `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}`
+          : null,
+        gallery_urls: resolved.images.map(
+          (p) =>
+            `/api/characters-registry/image?campaign=${encodeURIComponent(campaignId)}&id=${encodeURIComponent(c.id)}&path=${encodeURIComponent(p)}`
+        ),
+      };
+    });
+  const gm = (data.characters || []).filter((c) => c.role === "gm");
+  const hiddenCount = (data.characters || []).filter((c) => c.hidden || c.role === "gm").length;
+  return {
+    ...data,
+    campaign_id: data.campaign_id || campaignId,
+    characters: chars,
+    gm_characters: gm.map((c) => ({
+      id: c.id,
+      display_name: c.display_name,
+      role: "gm",
+      notes: c.notes || "",
+    })),
+    hidden_count: hiddenCount,
+    include_hidden: includeHidden,
+  };
 }
 
 function readCharactersRegistry(campaignId) {
@@ -1652,8 +1787,8 @@ function readCharactersRegistry(campaignId) {
   }
 }
 
-function getCharactersRegistry(campaignId) {
-  return enrichCharactersRegistry(readCharactersRegistry(campaignId), campaignId);
+function getCharactersRegistry(campaignId, opts = {}) {
+  return enrichCharactersRegistry(readCharactersRegistry(campaignId), campaignId, opts);
 }
 
 function writeCharactersRegistry(campaignId, data) {
@@ -4332,7 +4467,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && pathname === "/api/characters-registry") {
       const campaignId = url.searchParams.get("campaign") || "tropic-gooner";
-      sendJson(res, 200, getCharactersRegistry(campaignId), publicMode);
+      const includeHidden =
+        url.searchParams.get("include_hidden") === "1" ||
+        url.searchParams.get("include_hidden") === "true";
+      sendJson(res, 200, getCharactersRegistry(campaignId, { includeHidden }), publicMode);
       return;
     }
 

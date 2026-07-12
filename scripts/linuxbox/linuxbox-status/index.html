@@ -765,6 +765,25 @@
       overflow: hidden;
     }
     .chars-toolbar { padding: 0.65rem 1rem 0; }
+    .chars-gm-row { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.45rem 0 0.15rem; }
+    .chars-gm-chip {
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      font-size: 0.68rem;
+      padding: 0.2rem 0.55rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .chars-gm-chip:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+    .char-tile .char-badge {
+      position: absolute; top: 0.35rem; right: 0.35rem;
+      font-size: 0.55rem; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 0.1rem 0.3rem; background: #111; border: 1px solid var(--line-bright); color: var(--muted);
+    }
+    .char-tile .char-badge.gm { border-color: var(--accent); color: var(--accent); }
+    .char-tile .char-badge.stub { opacity: 0.85; }
     .chars-layout {
       display: grid;
       grid-template-columns: 1fr minmax(260px, 36%);
@@ -782,6 +801,7 @@
       gap: 0.65rem;
     }
     .char-tile {
+      position: relative;
       display: flex; flex-direction: column; align-items: stretch; gap: 0.4rem;
       text-align: left; width: 100%; padding: 0.45rem; cursor: pointer;
       border: 1px solid var(--line); background: var(--surface); color: var(--text);
@@ -1371,7 +1391,12 @@
                 <option value="tropic-gooner">Tropic Gooner</option>
               </select>
               <span class="meta" id="chars-count">Roster · name + image</span>
+              <label class="meta" style="display:inline-flex;align-items:center;gap:0.35rem;margin-left:0.5rem">
+                <input type="checkbox" id="chars-show-hidden" />
+                Show stubs
+              </label>
             </div>
+            <div id="chars-gm-row" class="chars-gm-row" hidden></div>
           </div>
           <div class="chars-layout">
             <div class="chars-roster">
@@ -1610,6 +1635,7 @@
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
     let selectedStory = null, storyCatalog = null, selectedProjectId = "";
     let charsRegistry = null, selectedCharId = "", charsCampaignFilter = localStorage.getItem("chars-campaign") || "tropic-gooner";
+    let charsShowHidden = localStorage.getItem("chars-show-hidden") === "1";
     let activeChatThreadId = localStorage.getItem("linuxbox-chat-active") || "";
     let chatThreads = [];
     let activeChatThread = null;
@@ -3052,13 +3078,24 @@
         };
       }
       if (sel) sel.value = charsCampaignFilter;
+      const hideToggle = document.getElementById("chars-show-hidden");
+      if (hideToggle && !hideToggle.dataset.ready) {
+        hideToggle.dataset.ready = "1";
+        hideToggle.checked = charsShowHidden;
+        hideToggle.onchange = () => {
+          charsShowHidden = hideToggle.checked;
+          localStorage.setItem("chars-show-hidden", charsShowHidden ? "1" : "0");
+          selectedCharId = "";
+          loadCharacters();
+        };
+      }
+      if (hideToggle) hideToggle.checked = charsShowHidden;
       const grid = document.getElementById("chars-grid");
       grid.innerHTML = '<p class="chars-empty">Loading roster…</p>';
       try {
-        const res = await fetch(
-          `${base}/api/characters-registry?campaign=${encodeURIComponent(charsCampaignFilter)}`,
-          { cache: "no-store" }
-        );
+        const q = new URLSearchParams({ campaign: charsCampaignFilter });
+        if (charsShowHidden) q.set("include_hidden", "1");
+        const res = await fetch(`${base}/api/characters-registry?${q}`, { cache: "no-store" });
         charsRegistry = await res.json();
         renderCharactersRoster();
       } catch (e) {
@@ -3069,10 +3106,34 @@
     function renderCharactersRoster() {
       const grid = document.getElementById("chars-grid");
       const countEl = document.getElementById("chars-count");
+      const gmRow = document.getElementById("chars-gm-row");
       const chars = (charsRegistry?.characters || []).slice().sort((a, b) =>
         String(a.display_name || a.id).localeCompare(String(b.display_name || b.id))
       );
-      countEl.textContent = `${chars.length} characters · name + image`;
+      const hiddenN = charsRegistry?.hidden_count || 0;
+      countEl.textContent = `${chars.length} characters${hiddenN ? ` · ${hiddenN} stubs/GM collapsed` : ""}`;
+      if (gmRow) {
+        const gms = charsRegistry?.gm_characters || [];
+        if (gms.length && !charsShowHidden) {
+          gmRow.hidden = false;
+          gmRow.innerHTML = gms.map((g) =>
+            `<button type="button" class="chars-gm-chip" data-gm-id="${esc(g.id)}" title="${esc(g.notes || "GM")}">GM · ${esc(g.display_name || g.id)}</button>`
+          ).join("");
+          gmRow.querySelectorAll("[data-gm-id]").forEach((btn) => {
+            btn.onclick = async () => {
+              charsShowHidden = true;
+              localStorage.setItem("chars-show-hidden", "1");
+              const t = document.getElementById("chars-show-hidden");
+              if (t) t.checked = true;
+              selectedCharId = btn.dataset.gmId;
+              await loadCharacters();
+            };
+          });
+        } else {
+          gmRow.hidden = true;
+          gmRow.innerHTML = "";
+        }
+      }
       if (!chars.length) {
         grid.innerHTML = '<p class="chars-empty">No registry for this campaign yet.</p>';
         renderCharacterSheet(null);
@@ -3080,7 +3141,12 @@
       }
       grid.innerHTML = chars.map((c) => {
         const sub = c.player_name || c.discord_username || c.status || "";
+        let badge = "";
+        if (c.role === "gm") badge = '<span class="char-badge gm">GM</span>';
+        else if (c.hidden || c.role === "thread-twin" || c.role === "author-stub") badge = '<span class="char-badge stub">stub</span>';
+        else if (c.status === "retired") badge = '<span class="char-badge">retired</span>';
         return `<button type="button" class="char-tile${c.id === selectedCharId ? " active" : ""}" data-char-id="${esc(c.id)}">
+          ${badge}
           ${charAvatarHtml(c, "char-avatar")}
           <span class="char-name">${esc(c.display_name || c.id)}</span>
           <span class="char-meta">${esc(sub)}</span>
@@ -3118,6 +3184,9 @@
       const notes = row.notes
         ? `<div class="sheet-blurb">${esc(row.notes)}</div>`
         : "";
+      const unresolved = (row.unresolved_doc_attachments || []).length
+        ? `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0;color:var(--warn,#d4a017)">Doc has attachment not resolved (${row.unresolved_doc_attachments.length}): ${(row.unresolved_doc_attachments || []).slice(0, 4).map((u) => esc(u.ref || u)).join(", ")}${(row.unresolved_doc_attachments || []).length > 4 ? "…" : ""}</p>`
+        : "";
       const images = row.images || [];
       const galleryHtml = images.length
         ? `<div class="chars-gallery" id="char-gallery">${images.map((p, i) => {
@@ -3131,14 +3200,15 @@
         <div class="sheet-hero">
           ${charAvatarHtml(row, "sheet-avatar")}
           <div>
-            <h2>${esc(row.display_name || row.id)}</h2>
-            <p class="sheet-sub"><code>${esc(row.id)}</code> · ${esc(row.status || "active")}</p>
+            <h2>${esc(row.display_name || row.id)}${row.role === "gm" ? " <span class=\"meta\">(GM)</span>" : ""}</h2>
+            <p class="sheet-sub"><code>${esc(row.id)}</code> · ${esc(row.status || "active")}${row.role ? ` · ${esc(row.role)}` : ""}</p>
             <p class="sheet-sub">Player: ${esc(row.player_name || "—")}</p>
             <p class="sheet-sub">Discord: ${discord}</p>
             ${aliases}
           </div>
         </div>
         ${notes}
+        ${unresolved}
         <label style="font-size:0.72rem;color:var(--muted)">Portraits — click to set primary</label>
         ${galleryHtml}
         <div class="chars-upload-row admin-only">

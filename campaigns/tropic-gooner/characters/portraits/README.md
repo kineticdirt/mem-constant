@@ -1,33 +1,48 @@
 # Character portraits
 
-Portraits are served by the Linuxbox dashboard **Chars** tab via
+Dashboard Chars tab serves images via
 `/api/characters-registry/image`.
 
-## Where files live (gitignored binaries)
+## Sources (checked in order)
 
-| Location | Purpose |
-|----------|---------|
-| `campaigns/tropic-gooner/Character Images/<Name>/` | Existing campaign art (Ellaine, Harper, Minerva, Nelly, Redmond, Toga, NPC Images). **Gitignored** (~67MB). |
-| `campaigns/tropic-gooner/characters/portraits/<id>/` | Per-character uploads from the dashboard (also keep large files out of git when possible). |
+| Path | Role |
+|------|------|
+| `image_path` / `images[]` on the registry row | Explicit primary / gallery |
+| Doc refs in `story_path` (+ `duplicate_paths`) | `Attachment: \`…\``, Obsidian `![[file.jpg]]`, http(s) image URLs — resolved by **basename** under `Character Images/` or `characters/portraits/` when the binary exists |
+| `characters/portraits/<id>/` | Per-character uploads from the dashboard |
+| `Character Images/<Folder>/` | Campaign art folders — **only for canonical ids** (see below) |
 
-Sync art to potato with scp (not git):
+## Canonical folder map (no twin sharing)
+
+| Registry id | Folder |
+|-------------|--------|
+| `ellaine-mishpit` | `Ellaine/` |
+| `harper-maupin` | `Harper/` |
+| `sister-minerva` | `Minerva/` |
+| `nelly-stein` | `Nelly/` |
+| `redmond-red-gallagher` | `Redmond/` |
+| `toga` | `Toga/` |
+
+Thread twins (`ellaine`, `nelly`, `red`, `minerva`, `rosa`, …), author stubs, and the GM (`wholesomeest-boi`) are `hidden` / `role: gm` and do **not** inherit these folders (that was the duplicate-face bug).
+
+## Sync art to potato (gitignored)
 
 ```bash
 scp -r "campaigns/tropic-gooner/Character Images" potato:~/agent-dump/campaigns/tropic-gooner/
 ```
 
-## How to set / change a face
+Or symlink on-box to `/mnt/archive/...` if already archived.
 
-1. Open `/Linuxbox/` → **Chars** → pick a character.
+## Dashboard UX
+
+1. Default grid = non-hidden PCs only; **GM · …** chip opens the GM row; **Show stubs** reveals collapsed twins.
 2. **Click a gallery thumb** to set the primary (writes `image_path` + keeps `images[]`).
 3. Or **Upload** a file (admin) — saved under `characters/portraits/<id>/`.
-4. Or type a relative path under `campaigns/tropic-gooner/` and **Save primary**.
+4. Sheet shows **Doc has attachment not resolved** when a markdown attachment/URL has no matching local file.
 
-Registry fields:
+## Registry fields
 
 - `image_path` — primary portrait (shown on roster tiles)
-- `images[]` — optional explicit list; disk folders are always scanned and merged
-
-Folder → registry id map (server): Ellaine→`ellaine`/`ellaine-mishpit`, Harper→`harper-maupin`, Minerva→`minerva`/`sister-minerva`, Nelly→`nelly`/`nelly-stein`, Redmond→`red`/`redmond-red-gallagher`, Toga→`toga`.
-
-No file → colored initials tile.
+- `images[]` — optional explicit gallery paths
+- `doc_attachments` — known doc refs (also scanned live from story markdown)
+- `hidden` / `role` / `canonical_id` — collapse twins without deleting rows

@@ -78,6 +78,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Intent:** Chars dedupe ship — hide thread twins/GM (Discord-informed canonicals), folder map only on sheet rows, doc-attachment basename resolve + unresolved note; git sync potato. No registry deletes.
+
+- **2026-07-12 (UTC)** — [PC] **Intent:** Chars tab cleanup — hide/filter stub+GM duplicates (Wholesomeest Boi = GM; Ellaine stubs); resolve doc attachment images into `image_path`/gallery; git sync to potato. No registry deletes without OK. Touch: `characters-registry.json`, `linuxbox-status-server.js`, `linuxbox-status/index.html`, portraits wiring.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Chars portraits live. Potato HEAD **`1612fb8`**. Wired gitignored `Character Images/` (symlink → `/mnt/archive/...`, 93 files already on box). **10/22** tiles show faces (Ellaine/Harper/Minerva/Nelly/Redmond/Toga + stub twins). Sheet: gallery click = primary; Upload → `characters/portraits/<id>/`. Threads **13**. Hard-refresh `/Linuxbox/` → Chars. Doubles (Cassidy/Rosa stubs) not merged — ask before delete.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars portraits — wire existing `Character Images/` (Ellaine/Harper/Minerva/Nelly/Redmond/Toga) + gallery `images[]`/primary `image_path` + upload/pick UX; SCP art to potato (gitignored). Touch: status server/UI, registry, portraits README.
