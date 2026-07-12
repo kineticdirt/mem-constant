@@ -224,6 +224,8 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-12T04:12Z** — [PC] **Result:** Systems host+detail live. Linuxbox/potato HEAD **`e3b2557`**. Host panel: CPU/RAM/swap/load + SD/PERSONAL/archive + top CPU/RSS. Cards show **about**; **Details** → unit/journal/URLs (scheduler doing-now). `/api/systems` host+8 abouts OK; `:8790` **200**; chat-threads preserved. Hard-refresh `/Linuxbox/` → Systems. (tableslop public was **200** at verify.)
+
 - **2026-07-12T04:10Z** — [PC] **Intent:** Systems expansion — denser **host intel** (storage/CPU/RAM/top procs) + **per-service about** + expand Details (unit/journal/URLs). Touch: `linuxbox-systems.js`, `linuxbox-status-server.js`, `linuxbox-status/index.html`. Deploy git+bundle. No chat-threads wipe.
 
 - **2026-07-12T04:05Z** — [PC] **Intent:** Systems tab empty space → denser **host intel**: storage tiers (SD/PERSONAL/archive), CPU+RAM %, top procs by CPU/RSS. Expand `readHostMetrics` + Systems UI. Touch: `linuxbox-systems.js`, `linuxbox-status/index.html`. Deploy git+bundle (not SCP-only). No chat-threads wipe.
