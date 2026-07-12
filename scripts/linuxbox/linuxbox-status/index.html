@@ -1022,18 +1022,19 @@
             <div class="chat-sidebar-head">
               <button type="button" class="btn primary" id="chat-new">+ New chat</button>
               <div class="chat-new-context">
-                <p class="chat-filter-caption">Filter threads · context for new chats</p>
+                <p class="chat-filter-caption">Campaign for new chat (binds context · also filters list)</p>
+                <label class="meta" for="chat-new-campaign">Campaign</label>
+                <select id="chat-new-campaign" title="Bound to new chats — model will not ask which campaign">
+                  <option value="">— none / general —</option>
+                  <option value="tropic-gooner">Tropic Gooner</option>
+                  <option value="tropic-gooner|hunter">Hunter: The Reckoning</option>
+                  <option value="spacequest">SpaceQuest</option>
+                  <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
+                </select>
                 <label class="meta" for="chat-new-project">Project</label>
                 <select id="chat-new-project"><option value="">— any project —</option></select>
                 <label class="meta" for="chat-new-task">Task</label>
                 <select id="chat-new-task"><option value="">— optional task —</option></select>
-                <label class="meta" for="chat-new-campaign">Campaign</label>
-                <select id="chat-new-campaign">
-                  <option value="">— none —</option>
-                  <option value="spacequest">SpaceQuest</option>
-                  <option value="tropic-gooner">Tropic Gooner</option>
-                  <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
-                </select>
                 <p class="chat-filter-hint hidden" id="chat-filter-hint"></p>
               </div>
             </div>
@@ -1376,11 +1377,43 @@
     }
 
     function getChatFilter() {
+      const campRaw = document.getElementById("chat-new-campaign")?.value || "";
+      const { campaign, layer } = parseChatCampaignSelect(campRaw);
       return {
         project_id: document.getElementById("chat-new-project")?.value || "",
         task_id: document.getElementById("chat-new-task")?.value || "",
-        campaign: document.getElementById("chat-new-campaign")?.value || "",
+        campaign,
+        layer,
       };
+    }
+
+    /** Parse select value: "tropic-gooner" or "tropic-gooner|hunter". */
+    function parseChatCampaignSelect(raw) {
+      const s = String(raw || "");
+      if (!s) return { campaign: "", layer: "" };
+      if (s.includes("|")) {
+        const [campaign, layer] = s.split("|");
+        return { campaign: campaign || "", layer: layer || "" };
+      }
+      return { campaign: s, layer: "" };
+    }
+
+    function chatCampaignSelectValue(campaign, layer) {
+      if (!campaign) return "";
+      if (layer === "hunter" && campaign === "tropic-gooner") return "tropic-gooner|hunter";
+      return campaign;
+    }
+
+    const CHAT_CAMPAIGN_UI_LABELS = {
+      spacequest: "SpaceQuest",
+      "nyc-mafia-dnd": "NYC Mafia × D&D",
+      "tropic-gooner": "Tropic Gooner",
+    };
+
+    function chatCampaignUiLabel(campaign, layer) {
+      if (!campaign) return "";
+      if (layer === "hunter" && campaign === "tropic-gooner") return "Hunter: The Reckoning";
+      return CHAT_CAMPAIGN_UI_LABELS[campaign] || campaign;
     }
 
     function chatFilterIsActive(filter = getChatFilter()) {
@@ -1390,21 +1423,25 @@
     function chatFilterLabel(filter = getChatFilter()) {
       const pmap = projectMap(agentData);
       const parts = [];
+      if (filter.campaign) parts.push(chatCampaignUiLabel(filter.campaign, filter.layer) || filter.campaign);
       if (filter.project_id) parts.push(pmap[filter.project_id]?.name || filter.project_id);
       if (filter.task_id) {
         const task = (agentData?.user_tasks || []).find((t) => t.id === filter.task_id);
         parts.push(task ? task.title.slice(0, 28) : filter.task_id);
       }
-      if (filter.campaign) parts.push(filter.campaign);
       return parts.join(" · ");
     }
 
     function updateChatFilterHint() {
       const hint = document.getElementById("chat-filter-hint");
       if (!hint) return;
-      const label = chatFilterLabel();
+      const filter = getChatFilter();
+      const label = chatFilterLabel(filter);
       if (label) {
-        hint.textContent = `Showing threads: ${label}`;
+        const campBit = filter.campaign
+          ? `New chats → ${chatCampaignUiLabel(filter.campaign, filter.layer)}. `
+          : "";
+        hint.textContent = `${campBit}Showing threads: ${label}`;
         hint.classList.remove("hidden");
       } else {
         hint.textContent = "";
@@ -1450,7 +1487,7 @@
         const task = (data?.user_tasks || []).find((t) => t.id === ctx.task_id);
         chips.push(task ? `task:${task.title.slice(0, 24)}` : "task");
       }
-      if (ctx.campaign) chips.push(`camp:${ctx.campaign}`);
+      if (ctx.campaign) chips.push(`camp:${chatCampaignUiLabel(ctx.campaign, ctx.layer) || ctx.campaign}`);
       if (ctx.story_path || ctx.path) chips.push(`story:${(ctx.story_path || ctx.path || "").split("/").pop()}`);
       if (ctx.inbox_id) chips.push(`inbox:${ctx.inbox_id.slice(0, 12)}`);
       if (ctx.type === "character") chips.push("character");
@@ -1468,7 +1505,7 @@
       }
       if (ctx?.project_id && pmap[ctx.project_id]) return `Project · ${pmap[ctx.project_id].name}`;
       if (ctx?.type === "story" && ctx.path) return `Story · ${ctx.path.split("/").pop()}`;
-      if (ctx?.campaign) return `Campaign · ${ctx.campaign}`;
+      if (ctx?.campaign) return `Campaign · ${chatCampaignUiLabel(ctx.campaign, ctx.layer) || ctx.campaign}`;
       if (ctx?.inbox_id) return `Inbox · ${ctx.inbox_id}`;
       return "";
     }
@@ -1634,7 +1671,7 @@
     function buildChatContextFromForm(extra = {}) {
       const ctx = {};
       const keys = [
-        "project_id", "task_id", "campaign", "story_path", "type", "path",
+        "project_id", "task_id", "campaign", "layer", "story_path", "type", "path",
         "character_id", "inbox_id", "workshop_mode", "ask_human",
       ];
       for (const key of keys) {
@@ -1643,10 +1680,16 @@
       if (Array.isArray(extra.tags) && extra.tags.length) ctx.tags = extra.tags.filter(Boolean).slice(0, 12);
       const proj = document.getElementById("chat-new-project")?.value;
       const task = document.getElementById("chat-new-task")?.value;
-      const camp = document.getElementById("chat-new-campaign")?.value;
+      const { campaign, layer } = parseChatCampaignSelect(
+        document.getElementById("chat-new-campaign")?.value
+      );
       if (proj) ctx.project_id = proj;
       if (task) ctx.task_id = task;
-      if (camp) ctx.campaign = camp;
+      if (campaign) {
+        ctx.campaign = campaign;
+        if (layer) ctx.layer = layer;
+        else delete ctx.layer;
+      }
       return ctx;
     }
 
@@ -1682,7 +1725,12 @@
       fillChatNewSelects(agentData);
       if (ctx.project_id) document.getElementById("chat-new-project").value = ctx.project_id;
       if (ctx.task_id) document.getElementById("chat-new-task").value = ctx.task_id;
-      if (ctx.campaign) document.getElementById("chat-new-campaign").value = ctx.campaign;
+      if (ctx.campaign) {
+        document.getElementById("chat-new-campaign").value = chatCampaignSelectValue(
+          ctx.campaign,
+          ctx.layer
+        );
+      }
       fillChatNewSelects(agentData);
       updateChatFilterHint();
       await createChatThreadFromForm({ ...ctx, title: label || contextLabel(ctx, agentData) || "New chat" });
@@ -1699,7 +1747,7 @@
     }
 
     function chatCampaignForThread(thread) {
-      return thread?.context?.campaign || document.getElementById("chat-new-campaign")?.value || "";
+      return thread?.context?.campaign || getChatFilter().campaign || "";
     }
 
     function renderChatArtifactsPanel(bubble, msg, thread, msgIdx) {
@@ -3968,7 +4016,9 @@
       try {
         document.getElementById("chat-log").innerHTML =
           '<p class="empty">No messages yet — send one below.</p>';
-        await createChatThreadFromForm({}, { title: "New chat" });
+        const ctx = buildChatContextFromForm();
+        const title = contextLabel(ctx, agentData) || "New chat";
+        await createChatThreadFromForm({}, { title });
         setChatThreadsOpen(false);
         document.getElementById("chat-input").focus();
       } catch (e) {

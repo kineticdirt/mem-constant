@@ -86,6 +86,21 @@ You may reference injected system/task status; you cannot run shell — use inje
 Never say "let me read/check/look on disk" or promise to open files — answer substantively in one message using injected context and conversation history.
 If facts are missing, ask 1–2 targeted questions or draft from what you know; the human can use Save to campaign after you produce content.`;
 
+/** Friendly labels for chat campaign binding (UI + prompts). */
+const CHAT_CAMPAIGN_LABELS = {
+  spacequest: "SpaceQuest",
+  "nyc-mafia-dnd": "NYC Mafia × D&D",
+  "tropic-gooner": "Tropic Gooner",
+};
+
+function campaignDisplayLabel(context) {
+  if (!context?.campaign || !CAMPAIGNS[context.campaign]) return null;
+  if (context.layer === "hunter" && context.campaign === "tropic-gooner") {
+    return "Hunter: The Reckoning (Tropic Gooner chronicle)";
+  }
+  return CHAT_CAMPAIGN_LABELS[context.campaign] || CAMPAIGNS[context.campaign].label;
+}
+
 const CHAT_STATUS_MAX_CHARS = 2800;
 
 const USER_TASK_TAGS = [
@@ -1703,18 +1718,23 @@ function isIntentOnlyChatReply(text) {
 function buildChatStylePreamble(responseMode, context) {
   const brief = responseMode !== "workshop";
   const lines = [CHAT_RUNTIME_GUARDRAIL, ""];
+  const boundCamp = campaignDisplayLabel(context);
   const styleLines = brief
     ? [
         "[Response style — Brief]",
         "Be concise: short paragraphs or bullets; no essays unless the user asks for depth.",
-        "If the request is ambiguous, vague, or would require inventing canon, ask 1–2 specific clarifying questions before proposing lore or tasks.",
+        boundCamp
+          ? "If a lore detail is missing, ask about that detail — never ask which campaign this thread belongs to (already bound below)."
+          : "If the request is ambiguous, vague, or would require inventing canon, ask 1–2 specific clarifying questions before proposing lore or tasks.",
         "For RP/worldbuilding: think in rise/fall phases with nuance — not fill-in templates.",
         "The human is GM (creative authority); you are scribe/implementer — capture, brainstorm, note gaps; do not act as GM.",
       ]
     : [
         "[Response style — Workshop]",
         "Longer form is OK when it helps — still prefer structure (sections/bullets) over walls of text.",
-        "When facts are missing or the ask is ambiguous, ask 1–2 targeted clarifying questions before inventing canon.",
+        boundCamp
+          ? "When facts are missing, ask about those facts — never ask which campaign (already bound below)."
+          : "When facts are missing or the ask is ambiguous, ask 1–2 targeted clarifying questions before inventing canon.",
         "For RP/worldbuilding: rise/fall phases with nuance; the human is GM, you are scribe/implementer.",
       ];
   lines.push(...styleLines);
@@ -1727,7 +1747,7 @@ function buildChatStylePreamble(responseMode, context) {
 }
 
 /** Cheap read-only snapshot for chat prompts — no secrets, capped size. */
-function buildChatSystemStatusBlock() {
+function buildChatSystemStatusBlock(context = null) {
   const lines = ["[System / running tasks — injected, read-only]"];
   try {
     try {
@@ -1811,7 +1831,15 @@ function buildChatSystemStatusBlock() {
       if (pods.length) lines.push(`recent pods: ${pods.join(", ")}`);
     }
 
-    for (const [id, cfg] of Object.entries(CAMPAIGNS)) {
+    // When a thread is bound to a campaign, only report that campaign's queue —
+    // listing every campaign invites the model to ask "which campaign?".
+    const campIds =
+      context?.campaign && CAMPAIGNS[context.campaign]
+        ? [context.campaign]
+        : Object.keys(CAMPAIGNS);
+    for (const id of campIds) {
+      const cfg = CAMPAIGNS[id];
+      if (!cfg) continue;
       const progPath = path.join(REPO, cfg.progress);
       if (!fs.existsSync(progPath)) continue;
       const progress = parseProgress(fs.readFileSync(progPath, "utf8"));
@@ -1865,7 +1893,7 @@ function buildChatMessage(message, context, options = {}) {
   if (!clean) throw new Error("empty_message");
   const responseMode = options.responseMode === "workshop" ? "workshop" : "brief";
   const blocks = [buildChatStylePreamble(responseMode, context)];
-  const statusBlock = buildChatSystemStatusBlock();
+  const statusBlock = buildChatSystemStatusBlock(context);
   if (statusBlock) blocks.push(statusBlock);
   const hist = formatChatHistory(options.history);
   if (hist) blocks.push(hist);
@@ -2007,15 +2035,22 @@ The human is the GM (creative authority). You are the scribe/implementer: captur
     }
   }
   if (context.campaign && CAMPAIGNS[context.campaign]) {
+    const campLabel = campaignDisplayLabel(context);
     const hasStoryDoc =
       (context.type === "story" && context.path) ||
       (context.type === "character" && context.path) ||
       (context.story_path && context.type !== "story" && context.type !== "character");
+    blocks.push(
+      `[BOUND CAMPAIGN — already chosen by the human]
+This thread is locked to: ${campLabel} (id: ${context.campaign}${context.layer ? `, layer: ${context.layer}` : ""}).
+Do NOT ask which campaign this lives in. Do NOT offer Tropic Gooner / Hunter / SpaceQuest / NYC Mafia as alternatives.
+Stay in this campaign only. If a detail is missing, ask about that detail — not the campaign identity.`
+    );
     if (!hasStoryDoc) {
       const canon = buildCampaignContextExcerpt(context.campaign);
       if (canon) blocks.push(canon);
       blocks.push(
-        `[Campaign — ${CAMPAIGNS[context.campaign].label}]\nUse injected canon above plus this thread. Deliver substantive worldbuilding in one reply — no "let me read files" meta.`
+        `[Campaign — ${campLabel}]\nUse injected canon above plus this thread. Deliver substantive worldbuilding in one reply — no "let me read files" meta.`
       );
     }
   }
@@ -2225,6 +2260,7 @@ function normalizeThreadContext(raw) {
     "project_id",
     "task_id",
     "campaign",
+    "layer",
     "story_path",
     "type",
     "path",
@@ -2235,6 +2271,13 @@ function normalizeThreadContext(raw) {
   ]) {
     if (raw[key] != null && raw[key] !== "") ctx[key] = raw[key];
   }
+  // Hunter is a layer on the Tropic Gooner chronicle — coerce aliases to tropic-gooner + layer.
+  if (ctx.campaign === "hunter" || ctx.campaign === "hunter-reckoning") {
+    ctx.campaign = "tropic-gooner";
+    ctx.layer = "hunter";
+  }
+  if (ctx.layer === "hunter" && !ctx.campaign) ctx.campaign = "tropic-gooner";
+  if (ctx.campaign && !CAMPAIGNS[ctx.campaign]) delete ctx.campaign;
   if (Array.isArray(raw.tags) && raw.tags.length) ctx.tags = raw.tags.filter(Boolean).slice(0, 12);
   return ctx;
 }
