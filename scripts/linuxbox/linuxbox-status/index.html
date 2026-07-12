@@ -5483,9 +5483,11 @@
             setChatBubbleReply(bubble, j.error || "Offload failed", true);
           } else {
             const tid = j.task?.id ? j.task.id.slice(0, 8) : "ok";
+            const ledgerOk = j.ledger?.ok !== false;
+            const threadPtr = j.ledger?.thread_file ? `\nThread: ${j.ledger.thread_file}` : "";
             setChatBubbleReply(
               bubble,
-              `Queued for laptop/PC (not running on potato).\nTask: ${j.task?.title || tid}\nOpen Tasks tab → filter offload/laptop.`,
+              `Queued for laptop/PC (not running on potato).\nTask: ${j.task?.title || tid}\nLedger: ${ledgerOk ? "AI_GROUPCHAT Recent activity" : "ledger write failed — see task body"}${threadPtr}\nOpen Tasks → filter offload/laptop.`,
               false
             );
             document.getElementById("chat-offload").checked = false;

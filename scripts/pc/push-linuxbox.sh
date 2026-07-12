@@ -27,6 +27,9 @@ AGENT_PATHS=(
   agents/hermes-model-registry.json
   agents/model-budget/config.json
   agents/model-budget/README.md
+  agents/model-budget/chat-catalog.json
+  agents/chat-modes.json
+  agents/CHAT_HUMAN_USABLE_V1.md
   agents/agent-pods.manifest.json
   agents/system-integrity-config.json
   agents/system-integrity-progress.md
@@ -100,6 +103,8 @@ DASHBOARD_PATHS=(
   scripts/linuxbox/linuxbox-status/index.html
   scripts/linuxbox/linuxbox-machines.js
   scripts/linuxbox/linuxbox-systems.js
+  scripts/linuxbox/chat-offload-handoff.js
+  scripts/linuxbox/chars-registry-merge.js
   agents/machine-registry.json
 )
 

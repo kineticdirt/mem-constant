@@ -1,0 +1,39 @@
+{
+  "_doc": "When PC work on a bundle is DONE, run: bash scripts/pc/push-linuxbox.sh --finished. PC is not the deployment target — linuxbox is.",
+  "policy": "Finish local task → push matching bundle(s) → verify → [PC] Result in AI_GROUPCHAT.md. Gitignored binaries use scp bundles, not git pull alone.",
+  "bundles": [
+    {
+      "id": "agent-config",
+      "label": "Agent lanes, archive meta, linuxbox scripts",
+      "push": { "script": "scripts/pc/push-linuxbox.sh", "args": ["--all"] },
+      "paths_hint": [
+        "agents/archive-meta.json",
+        "scripts/linuxbox/lib/archive-paths.sh",
+        "CLAUDE.md"
+      ]
+    },
+    {
+      "id": "dashboard",
+      "label": "linuxbox-status admin dashboard (:8790)",
+      "push": { "script": "scripts/pc/push-linuxbox.sh", "args": ["--dashboard"] },
+      "paths_hint": [
+        "scripts/linuxbox/linuxbox-status-server.js",
+        "scripts/linuxbox/linuxbox-status/index.html",
+        "scripts/linuxbox/chat-offload-handoff.js"
+      ],
+      "restart": "linuxbox-status",
+      "verify_url": "http://127.0.0.1:8790/"
+    },
+    {
+      "id": "tableslop-map",
+      "label": "Isla Primavera map + viewer (map.tableslop.org)",
+      "push": { "script": "scripts/linuxbox/push-tableslop-map.sh", "args": [] },
+      "paths_hint": [
+        "campaigns/tropic-gooner/map/master-enhanced.png",
+        "scripts/linuxbox/tableslop-server.js"
+      ],
+      "restart": "linuxbox-tableslop",
+      "verify_url": "http://127.0.0.1:8765/"
+    }
+  ]
+}

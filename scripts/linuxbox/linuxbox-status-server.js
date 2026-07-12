@@ -14,6 +14,12 @@ const execFileAsync = promisify(execFile);
 
 const { collectSystemsState, runSystemControl, getSystemDetail } = require("./linuxbox-systems");
 const { collectMachinesState } = require("./linuxbox-machines");
+const {
+  buildOffloadTaskBody,
+  buildOffloadLedgerLine,
+  appendGroupchatRecentActivity,
+  threadRelPath,
+} = require("./chat-offload-handoff");
 
 const LISTEN_HOST = "127.0.0.1";
 const LISTEN_PORT = 8790;
@@ -514,32 +520,62 @@ function createChatOffloadTask(payload = {}) {
   const message = String(payload.message || "").trim().slice(0, 4000);
   if (!message) throw new Error("empty_message");
   const threadId = String(payload.thread_id || "").trim() || null;
-  const mode = getChatMode(payload.chat_mode);
+  const thread = threadId ? readChatThread(threadId) : null;
+  const mode = getChatMode(payload.chat_mode || thread?.chat_mode);
+  const ctx = {
+    ...(thread?.context || {}),
+    ...(payload.context && typeof payload.context === "object" ? payload.context : {}),
+  };
+  const campaign =
+    (ctx.campaign && CAMPAIGNS[ctx.campaign] ? ctx.campaign : null) ||
+    (payload.context?.campaign && CAMPAIGNS[payload.context.campaign]
+      ? payload.context.campaign
+      : null);
+  const layer = ctx.layer || null;
+  const threadTitle = thread?.title || null;
+  const modeLabel = (mode && mode.label) || payload.chat_mode || thread?.chat_mode || "n/a";
+  const excerpt = thread ? chatThreadExcerpt(thread, 6) : "";
   const titleBase = message.replace(/[\r\n]+/g, " ").slice(0, 80);
   const title = `[ops]/load] ${titleBase}`.slice(0, 300);
-  const body = [
-    "## Offload to laptop / PC",
-    "Source: Dashboard Chat (potato RAM offload — NOT running on linuxbox)",
-    `Mode: ${(mode && mode.label) || payload.chat_mode || "n/a"}`,
-    threadId ? `Thread: ${threadId}` : "Thread: (none)",
-    "",
-    "### Request",
+  const body = buildOffloadTaskBody({
     message,
-    "",
-    "### Agent instructions",
-    "Work on laptop or PC (Tailscale + git / Cursor). Do not assume this is already running remotely.",
-    "When done: mark task done; optional one ledger line in AI_GROUPCHAT.md.",
-  ].join("\n");
-  return createUserTask({
+    modeLabel,
+    chatModeId: mode?.id || payload.chat_mode || null,
+    threadId: thread ? threadId : null,
+    threadTitle,
+    campaign,
+    layer,
+    excerpt,
+  });
+  const result = createUserTask({
     title,
     body,
     tags: ["offload", "laptop", "dashboard"],
     project_id: "linuxbox",
     context: {
-      campaign: payload.context?.campaign || null,
-      chat_thread_id: threadId,
+      campaign,
+      chat_thread_id: thread ? threadId : null,
     },
   });
+  const ledgerLine = buildOffloadLedgerLine({
+    taskId: result.task?.id,
+    threadId: thread ? threadId : null,
+    threadTitle,
+    messagePreview: titleBase,
+    modeLabel,
+    campaign,
+    layer,
+  });
+  const ledger = appendGroupchatRecentActivity(REPO, ledgerLine);
+  return {
+    ...result,
+    ledger: {
+      ok: !!ledger.ok,
+      error: ledger.error || null,
+      line: ledgerLine,
+      thread_file: threadRelPath(thread ? threadId : null),
+    },
+  };
 }
 
 function resolveChatProfile(context, requested) {
