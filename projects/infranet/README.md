@@ -25,8 +25,10 @@ A **purely decentralized** blockchain-based network for digital storage and iden
 
 ## Documentation
 
-- **[docs/infranet/INFRANET-COMBINED-BRIEF.md](../../docs/infranet/INFRANET-COMBINED-BRIEF.md)**: **Canonical** story-first pitch brief — problem → garage-compute + identity + services idea → compute-token metering → objections → prior art & why now → PoC → roadmap & ask. Pointers: [PROPOSAL.md](./PROPOSAL.md), `docs/infranet-proposal.md`. Former split docs are stubs only.
-- **[PLANNING.md](./PLANNING.md)**: Comprehensive system architecture, cryptographic design, and phased implementation plan
+- **[docs/infranet/INFRANET-COMBINED-BRIEF.md](../../docs/infranet/INFRANET-COMBINED-BRIEF.md)**: **Canonical** pitch brief — **V1 = compute marketplace** (eBay-for-shared-compute; matching, metering, settlement, first-party seed services), **V2 = identity + walled-garden communities** (this README's identity/FHE/MPC/ZKP material is V2 research). Pointers: [PROPOSAL.md](./PROPOSAL.md), `docs/infranet-proposal.md`. Former split docs are stubs only.
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)**: V1 platform engineering notes — VM airgap vs containers, "pay someone to run your virus" threat model, restricted pure-math tier, routed guest egress, latency zones, cold start
+- **[poc/](./poc/)**: Runnable PoC v0 — job → sandboxed subprocess → CPU/wall metering → SQLite double-entry token ledger + smoke test (`poc/README.md` for the real/placeholder split)
+- **[PLANNING.md](./PLANNING.md)**: Comprehensive system architecture, cryptographic design, and phased implementation plan (V2 identity layer)
 - **[RESEARCH.md](./RESEARCH.md)**: Research on identity verification, privacy-preserving methods, and blockchain architecture
 - **[COMPUTE_REWARDS.md](./COMPUTE_REWARDS.md)**: Distributed compute marketplace and verification reward mechanism design
 - **[BLOCKCHAIN_PLATFORM.md](./BLOCKCHAIN_PLATFORM.md)**: Ethereum-like smart contract platform optimized for identity, storage, and verification

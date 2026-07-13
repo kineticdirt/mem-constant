@@ -78,6 +78,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-13 (UTC)** — [PC] **Result:** Infranet V1/V2 revision shipped. Brief restructured at `docs/infranet/INFRANET-COMBINED-BRIEF.md` (+ `.html`/`.pdf` 12 pp regenerated via committed `docs/infranet/build-brief.py`): V1 = compute marketplace only (eBay analogy leads; matching/metering/settlement + first-party seed services), ALL identity/age-verification content now in labeled "V2 — identity and walled-garden communities" section; Money section kept as approved (deeper-fit para points to V2); new "Running strangers' code" section (VM airgap via micro-VMs, containers rejected as primary isolation, pay-to-run-your-virus threat model + requester-side pre-screening + restricted pure-math tier, routed guest egress w/ policy open item, AZ-style latency domains + privacy flag, cold start). Fuller engineering in new `projects/infranet/ARCHITECTURE.md`. PoC v0 RUNS at `projects/infranet/poc/` (stdlib Python: job → `python -I` sandbox subprocess → CPU/wall meter → SQLite double-entry token ledger; demo 4 jobs incl. sleeper/crasher/runaway; `smoke_test.py` SMOKE OK — 3 jobs metered, 127 tokens moved, ledger balanced+conserved). README repointed; stubs unchanged; nothing deleted under `projects/infranet/`.
+
+- **2026-07-13 (UTC)** — [PC] **Intent:** Infranet revision per founder feedback: V1 = compute marketplace only (eBay-for-shared-compute), ALL identity/age-gating content → clearly-labeled V2 roadmap section; Money section kept as approved (points forward to V2); fold engineering discussion into brief + `projects/infranet/ARCHITECTURE.md` (VM airgap vs containers, pay-to-run-your-virus threat model + requester-side screening, restricted pure-math tier, AZ-style latency groups + privacy tradeoff, cold start); start runnable PoC v0 at `projects/infranet/poc/` (job → isolated process → CPU/wall metering → SQLite token ledger + assert smoke test). Regenerate HTML/PDF via markdown+Edge pipeline; commit local.
+
 - **2026-07-13 (UTC)** — [PC] **Result:** Infranet brief rewritten story-first at `docs/infranet/INFRANET-COMBINED-BRIEF.md` (+ regenerated `.html`/`.pdf`, 10 pp via Edge headless). Problem on p.1 → garage-compute + identity + walled-garden communities (LLM platform framing withdrawn; LLM apps = customers) → watt-hour compute-token metering (efficiency incentive; meter-neutral hallucination answer) → wallets piggyback Skyfire/AP2/ACP + stablecoins (Cequence warm path noted) → honest prior art (BOINC/Golem/Render/Akash) + why-now (age-verification regs, agentic rails) → honest PoC (demos are placeholders; smallest real PoC = 3–5 machines, 3 services, SQLite ledger, credential-gated community) → roadmap + ask. Stubs/README repointed; `projects/infranet/` untouched. ~3.7k words, prose-first, 3 tables.
 
 - **2026-07-13 (UTC)** — [PC] **Intent:** Rewrite `docs/infranet/INFRANET-COMBINED-BRIEF.md` as story-first pitch memo per founder feedback: problem first, prose over tables, scope corrected to garage-compute + services/identity (NOT an LLM platform), watt-hour-style metering, agentic-wallet rails (Skyfire/AP2/ACP), honest prior art (BOINC/Golem/Render/Akash), PoC + ask. Sources: PC + potato `projects/infranet/` (BASELINE.md) + web research. Regenerate HTML/PDF; commit local.
@@ -268,6 +272,12 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-13T04:20Z** — [PC] **Result:** Chars Tropic upgrades shipped + potato deploy. A) Unretire/Retire + status select in detail (API status patch). B) Full edit form + prev/next + Clear gallery. C) +Add character + Merge modals. D) relations[{to_id,type,label}] + UI links. E) Discord mine → Alisa Stein (Nelly twin), Jinpei↔Rosa fwb, ellaine-roommate stub; Harper sister + roommate name → inbox-seeds. Root fix: isGalleryIntentionallyEmpty so Rosalina empty gallery does not re-scrape Jinpei/map. Potato verify: :8790 200; Harper/Rosalina active; Rosalina has_image false. No commit.
+
+
+- **2026-07-13T03:55Z** — [PC] **Intent:** Chars major upgrades (Tropic): status Unretire/Retire in detail pane; click-through edit (fields+gallery+prev/next); Add side/NPC + relations schema/UI; Discord mine for side chars; deploy potato. Touch: characters-registry.json, linuxbox-status-server.js, linuxbox-status/index.html. No commit unless asked.
+
 
 - **2026-07-13 (UTC)** — [PC] **Result:** Infranet combined brief at `docs/infranet/INFRANET-COMBINED-BRIEF.md` (+ `.html` + `.pdf` via Chrome headless). Design + business stubs point to combined; skim 0.05–0.5%, entry fees Phase 3 / $50–500 example, proceed-with-conditions. Research under `projects/infranet/` untouched.
 
