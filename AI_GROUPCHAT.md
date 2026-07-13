@@ -258,6 +258,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-13 (UTC)** — [PC] **Intent:** Promote/expand Infranet formal proposal to `docs/infranet-proposal.md` (research PC+potato+laptop-kit; pointer in `projects/infranet/PROPOSAL.md`). Commit local. No deploy.
+
+- **2026-07-13 (UTC)** — [PC] **Result:** Infranet formal proposal written → `docs/infranet-proposal.md` (pointer `projects/infranet/PROPOSAL.md`). Incorporated COMPUTE_REWARDS/PLANNING/BLOCKCHAIN/COST + potato BASELINE; no laptop-kit notes found. Commit local. No deploy.
+
 - **2026-07-12T20:05Z** — [PC] **Result:** Chars URL import in potato **git** **40e6855** (Linuxbox/main cherry-pick **b730494**); `:8790` **200**; threads **13**; hard reset safe.
 
 - **2026-07-12T19:55Z** — [PC] **Result:** Offload Tasks+ledger in potato **git** (not SCP-only). Linuxbox/main **5954d97** (port of **7c5023b** onto diverged line); thin bundle `d5fede5..5954d97`; `:8790` **200**; threads **13**; `linuxbox-status` restarted.

@@ -25,14 +25,12 @@ A **purely decentralized** blockchain-based network for digital storage and iden
 
 ## Documentation
 
-- **[PROPOSAL.md](./PROPOSAL.md)**: Formal proposal — compute tokens, cashless exchange, LLM/service layer (directional north star; not claimed as built)
 - **[PLANNING.md](./PLANNING.md)**: Comprehensive system architecture, cryptographic design, and phased implementation plan
 - **[RESEARCH.md](./RESEARCH.md)**: Research on identity verification, privacy-preserving methods, and blockchain architecture
 - **[COMPUTE_REWARDS.md](./COMPUTE_REWARDS.md)**: Distributed compute marketplace and verification reward mechanism design
 - **[BLOCKCHAIN_PLATFORM.md](./BLOCKCHAIN_PLATFORM.md)**: Ethereum-like smart contract platform optimized for identity, storage, and verification
 - **[DEMO.md](./DEMO.md)**: How to run and use the system demo with logging
 - **[COST_ANALYSIS.md](./COST_ANALYSIS.md)**: Comprehensive cost analysis of compute operations and system usage
-- **[AGENT-CHARTER.md](./AGENT-CHARTER.md)**: R&D scope and agent notes for this project
 
 ## Running the System
 
