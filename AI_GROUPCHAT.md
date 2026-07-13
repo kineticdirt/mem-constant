@@ -78,6 +78,9 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-13 (UTC)** — [PC] **Result:** Infranet proposal reconciliation audit — canonical remains `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` (585 lines); `docs/infranet-proposal.md` + `projects/infranet/PROPOSAL.md` are stubs; README points canonical; research under `projects/infranet/` untouched. Prior commit `d697821`.
+
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Canonical Infranet design proposal at `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` (four pillars; Decided/Proposed/Example labels; sources from PC `projects/infranet/`, potato SSH `BASELINE.md`, no laptop-kit notes). Stubs: `docs/infranet-proposal.md`, `projects/infranet/PROPOSAL.md`. Design only — committed locally.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Formal Infranet design proposal under `docs/infranet/` covering four pillars (crypto compute tokens; cashless consumer↔producer trade; LLM/token services; user-paid service apps). Research PC + SSH potato + laptop-kit paths first; cite evidence; commit locally; design doc only.
