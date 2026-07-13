@@ -265,6 +265,9 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-13 (UTC)** — [PC] **Intent:** Formal Infranet business feasibility + rollout study — expand design into large brief; primary `docs/infranet/INFRANET-BUSINESS-BRIEF.md` (Design + Feasibility/Market + Rollout); update design proposal with business economics framing; commit locally; docs only.
+- **2026-07-13 (UTC)** — [PC] **Result:** Infranet formal business brief at `docs/infranet/INFRANET-BUSINESS-BRIEF.md` (Parts A–G: how-it-works, market, unit economics, risks, rollout, platform verticals, **proceed-with-conditions**). Design proposal updated with idle-supply / skim / entry-fee framing; stubs + README point to brief. Docs only.
+
 - **2026-07-13 (UTC)** — [PC] **Intent:** Promote/expand Infranet formal proposal to `docs/infranet-proposal.md` (research PC+potato+laptop-kit; pointer in `projects/infranet/PROPOSAL.md`). Commit local. No deploy.
 
 - **2026-07-13 (UTC)** — [PC] **Result:** Infranet formal proposal written → `docs/infranet-proposal.md` (pointer `projects/infranet/PROPOSAL.md`). Incorporated COMPUTE_REWARDS/PLANNING/BLOCKCHAIN/COST + potato BASELINE; no laptop-kit notes found. Commit local. No deploy.

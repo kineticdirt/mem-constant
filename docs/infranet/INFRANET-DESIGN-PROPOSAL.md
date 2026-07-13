@@ -3,12 +3,13 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Proposal / Draft — **not implemented as a live network** |
-| **Date** | 2026-07-12 |
+| **Date** | 2026-07-12 (business framing updated same day) |
 | **Audience** | Human review + multi-agent coordination |
 | **Canonical path** | `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` |
+| **Business brief (feasibility + rollout)** | [`INFRANET-BUSINESS-BRIEF.md`](INFRANET-BUSINESS-BRIEF.md) — **primary for business review** |
 | **Project tree** | `projects/infranet/` (R&D code + earlier architecture notes) |
 | **Project id** | `infranet` (see `agents/user-tasks.json`) |
-| **Earlier drafts** | `docs/infranet-proposal.md`, `projects/infranet/PROPOSAL.md` (pointers to this file) |
+| **Earlier drafts** | `docs/infranet-proposal.md`, `projects/infranet/PROPOSAL.md` (pointers) |
 
 **How to read labels in this document**
 
@@ -18,17 +19,19 @@
 | **Proposed** | Design choice for review; may change before any build |
 | **Example** | Illustrative only — not a commitment to ship that product |
 
-This is a **design proposal**. Demos under `projects/infranet/` are research spikes. Homelab pieces (linuxbox Hermes, free-first model routing, resource governance) are **related practice**, not the product itself.
+This is the **technical design proposal**. For market feasibility, unit economics, competitive landscape, and go/no-go recommendation, read the **[Formal Business Brief](INFRANET-BUSINESS-BRIEF.md)**. Demos under `projects/infranet/` are research spikes. Homelab pieces (linuxbox Hermes, free-first model routing, resource governance) are **related practice**, not the product itself.
 
 ---
 
 ## Executive summary
 
-**Infranet** is proposed as a settlement and marketplace layer whose unit of account is **attested compute** (and related network work: storage, verification, relay). Cryptography and a shared ledger define how compute tokens are **minted, owned, escrowed, and spent**. Producers earn tokens by completing verified jobs; consumers spend tokens to buy work—especially **LLM and agent jobs**—so useful capacity can circulate **without every hop requiring cash**. Optional fiat on/off-ramps sit beside the exchange, not inside every service call.
+**Infranet** is proposed as a settlement and marketplace layer whose unit of account is **attested compute** (and related network work: storage, verification, relay). Cryptography and a shared ledger define how compute tokens are **minted, owned, escrowed, and spent**. Producers earn tokens by completing verified jobs on **hardware they already own** (idle/underused PCs and GPUs); consumers spend tokens to buy work—especially **LLM and agent jobs**—so useful capacity can circulate **without every hop requiring cash**. Optional fiat on/off-ramps sit beside the exchange, not inside every service call.
+
+**Platform economics (**Proposed**):** Infranet corp / founder does **not** buy a large hardware fleet. Growth = more idle capacity online. The company takes a **thin skim** (order of a **small fraction of a percent to low tenths of a percent** of settled volume — illustrative band **0.05%–0.5%**) for coordination, settlement, and support — plus **paid application entry fees** (cheap but not free-subsidized). Apps settle SKUs in compute tokens.
 
 On top of that currency, anyone can publish **user-defined paid services** (decentralized social, short-range road/awareness meshes, agent-powered todos, arts crowdfunding, and later verticals). Each service prices SKUs in the same token and fulfills via the same job/escrow pattern.
 
-Earlier Infranet writing already covered identity, black-box verification, a compute marketplace for crypto work, and a contract platform. This proposal answers the next question: **how compute becomes a tradable currency for real services people pay for.**
+Earlier Infranet writing already covered identity, black-box verification, a compute marketplace for crypto work, and a contract platform. This proposal answers: **how compute becomes a tradable currency for real services**. The business brief answers: **whether that is a viable platform bet and how to roll it out.**
 
 ---
 
@@ -62,11 +65,27 @@ Those docs answer *how nodes earn for network work*. This proposal answers *how 
 
 ---
 
+## Business model framing (founder lens)
+
+*Condensed from the business brief; numbers are **Proposed** starting points, not locked policy.*
+
+| Lever | Intent |
+|-------|--------|
+| **Decentralized supply** | Utilize unused/underused hardware people already have (e.g. overnight idle GPUs). Producers **earn**; company does **not** CAPEX a fleet. |
+| **Platform skim** | Tiny % of settled job volume for infrastructure (match, escrow, dispute, support)—illustrative **0.05%–0.5%**. Not a 15–30% marketplace cut. |
+| **Scale via supply** | More nodes online → more capacity; company cost stays software/ops/compliance. |
+| **Paid apps** | Registry **entry fee** (relatively cheap, not free). Apps settle in tokens; may take their own retail margin. |
+| **Cash at the edge** | On/off-ramps optional; daily loop is token ↔ attested work. |
+
+**Near-term revenue honesty:** at modest GMV, skim alone is thin — early oxygen is **entry fees + focused gateway usage**. Skim is alignment and long-term upside. Full TAM/SAM/SOM, competitors, and risks: [business brief Parts B–D](INFRANET-BUSINESS-BRIEF.md).
+
+---
+
 ## Vision
 
 In plain terms:
 
-> You should be able to **earn** compute by offering capacity, **spend** it on LLM/agents and other services, and **build new paid apps** on the same unit—without forcing a card swipe for every like, relay, or agent run.
+> You should be able to **earn** compute by offering capacity you already own, **spend** it on LLM/agents and other services, and **build new paid apps** on the same unit—without forcing a card swipe for every like, relay, or agent run—while the platform takes only a thin coordination skim.
 
 **Proposed** long-term shape:
 
@@ -136,7 +155,7 @@ Two issuance modes can coexist; Phase 1 should pick one primary story:
 1. **Escrow-transfer model (preferred for marketplace):** Consumer locks tokens → producer delivers attested work → escrow releases. Net supply unchanged; tokens move from consumer to producer (minus optional protocol fee).
 2. **Work-mint model (protocol bootstrap):** Protocol mints a capped amount to producers on attested completion of *network-internal* work (verification, consensus, storage integrity)—the spirit of `COMPUTE_REWARDS.md` §3–§6.
 
-**Burn / sinks (**Proposed**):** small protocol fee on settled jobs; optional burn on spam posts or slash events. No hidden inflation: if the protocol mints, document *why* and *caps*. Exact percentages **TBD**—`COMPUTE_REWARDS.md` §6.1 suggests a 40/30/15/10/5 split for *network-internal* rewards; treat that as historical sketch, not locked economics for the service marketplace.
+**Burn / sinks (**Proposed**):** small **platform / protocol skim** on settled jobs (business target: fraction-of-a-percent order; see business brief §C.2); optional burn on spam posts or slash events. No hidden inflation: if the protocol mints, document *why* and *caps*. Exact percentages **TBD**—`COMPUTE_REWARDS.md` §6.1 suggests a 40/30/15/10/5 split for *network-internal* rewards; treat that as historical sketch, not locked economics for the service marketplace or corporate P&L.
 
 ### Token classes (**Proposed**; Phase 1 may collapse)
 
@@ -318,6 +337,7 @@ Deliberate **service registry** pattern:
 
 - Manifest: name, SKU schema, job-class ids, payment addresses, policy URLs
 - Versioned interfaces so new verticals do not fork the token
+- **Paid entry fee** to list (cheap, not free-subsidized)—filters spam and funds early platform ops
 - Experimental services on testnets / home-stack first (charter: R&D, not surprise production deploys)
 
 ### Payment flows (shared pattern)
@@ -581,5 +601,6 @@ This proposal **complements** COMPUTE_REWARDS / PLANNING / BLOCKCHAIN_PLATFORM. 
 |-------|-------|
 | Title | Infranet — Design Proposal |
 | Canonical path | `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` |
-| Supersedes as north-star draft | `docs/infranet-proposal.md`, `projects/infranet/PROPOSAL.md` (content folded here; stubs remain) |
+| Business feasibility / rollout | [`INFRANET-BUSINESS-BRIEF.md`](INFRANET-BUSINESS-BRIEF.md) |
+| Supersedes as design north-star | `docs/infranet-proposal.md`, `projects/infranet/PROPOSAL.md` (stubs remain) |
 | Implementation status | **Proposal only** |
