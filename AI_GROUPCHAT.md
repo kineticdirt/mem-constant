@@ -265,6 +265,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Recent activity
 
+- **2026-07-13 (UTC)** — [PC] **Result:** Infranet combined brief at `docs/infranet/INFRANET-COMBINED-BRIEF.md` (+ `.html` + `.pdf` via Chrome headless). Design + business stubs point to combined; skim 0.05–0.5%, entry fees Phase 3 / $50–500 example, proceed-with-conditions. Research under `projects/infranet/` untouched.
+
+- **2026-07-13 (UTC)** — [PC] **Intent:** Combine `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` + `INFRANET-BUSINESS-BRIEF.md` into one reconciled formal brief (`INFRANET-COMBINED-BRIEF.md`); stub old paths; try PDF via pandoc/Chrome; commit locally. Research under `projects/infranet/` untouched.
+
 - **2026-07-13 (UTC)** — [PC] **Intent:** Formal Infranet business feasibility + rollout study — expand design into large brief; primary `docs/infranet/INFRANET-BUSINESS-BRIEF.md` (Design + Feasibility/Market + Rollout); update design proposal with business economics framing; commit locally; docs only.
 - **2026-07-13 (UTC)** — [PC] **Result:** Infranet formal business brief at `docs/infranet/INFRANET-BUSINESS-BRIEF.md` (Parts A–G: how-it-works, market, unit economics, risks, rollout, platform verticals, **proceed-with-conditions**). Design proposal updated with idle-supply / skim / entry-fee framing; stubs + README point to brief. Docs only.
 
