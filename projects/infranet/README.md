@@ -25,7 +25,7 @@ A **purely decentralized** blockchain-based network for digital storage and iden
 
 ## Documentation
 
-- **[docs/infranet-proposal.md](../../docs/infranet-proposal.md)**: Formal proposal — compute tokens, cashless exchange, LLM/service layer (canonical; not claimed as built). Pointer: [PROPOSAL.md](./PROPOSAL.md)
+- **[docs/infranet/INFRANET-DESIGN-PROPOSAL.md](../../docs/infranet/INFRANET-DESIGN-PROPOSAL.md)**: Formal design proposal — compute tokens, cashless exchange, LLM/service layer (canonical; not claimed as built). Pointers: [PROPOSAL.md](./PROPOSAL.md), `docs/infranet-proposal.md`
 - **[PLANNING.md](./PLANNING.md)**: Comprehensive system architecture, cryptographic design, and phased implementation plan
 - **[RESEARCH.md](./RESEARCH.md)**: Research on identity verification, privacy-preserving methods, and blockchain architecture
 - **[COMPUTE_REWARDS.md](./COMPUTE_REWARDS.md)**: Distributed compute marketplace and verification reward mechanism design

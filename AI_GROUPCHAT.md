@@ -78,6 +78,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Canonical Infranet design proposal at `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` (four pillars; Decided/Proposed/Example labels; sources from PC `projects/infranet/`, potato SSH `BASELINE.md`, no laptop-kit notes). Stubs: `docs/infranet-proposal.md`, `projects/infranet/PROPOSAL.md`. Design only — committed locally.
+
+- **2026-07-12 (UTC)** — [PC] **Intent:** Formal Infranet design proposal under `docs/infranet/` covering four pillars (crypto compute tokens; cashless consumer↔producer trade; LLM/token services; user-paid service apps). Research PC + SSH potato + laptop-kit paths first; cite evidence; commit locally; design doc only.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Wrote formal Infranet proposal at `projects/infranet/PROPOSAL.md` (compute tokens, cashless trade, LLM + extensible paid services). Linked from README. Proposal only — not claiming built.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Formal Infranet proposal design doc — compute-token crypto definition, cashless consumer↔producer exchange, service layer (esp. LLM), user-payment services (social / on-road comms / agent tools / arts funding + extensibility). Path under `projects/infranet/` to match existing project.
