@@ -78,6 +78,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-12 (UTC)** — [PC] **Result:** Wrote formal Infranet proposal at `projects/infranet/PROPOSAL.md` (compute tokens, cashless trade, LLM + extensible paid services). Linked from README. Proposal only — not claiming built.
+
+- **2026-07-12 (UTC)** — [PC] **Intent:** Formal Infranet proposal design doc — compute-token crypto definition, cashless consumer↔producer exchange, service layer (esp. LLM), user-payment services (social / on-road comms / agent tools / arts funding + extensibility). Path under `projects/infranet/` to match existing project.
+
 - **2026-07-12 (UTC)** — [PC] **Result:** Chars **Import from link** live. PC commit **`b730494`**. `POST /api/characters-registry/import-image-url` (http/https, 4MB, image/*, private-host block). Verified: loopback → `url_host_blocked`; public w3c PNG → `portraits/rosalina/w3c-72x48.png`. Potato `:8790` **200**; git HEAD still **`5954d97`** (SCP overlay). Threads **13**. Hard-refresh `/Linuxbox/` → Chars → sheet → Image URL.
 
 - **2026-07-12 (UTC)** — [PC] **Intent:** Chars portrait **Import from image URL** — UI field+button + `POST /api/characters-registry/import-image-url` (server-side fetch, http/https only, 4MB cap, image/*). Touch: `linuxbox-status-server.js`, `linuxbox-status/index.html`. Deploy git sync. No chat-thread wipe.
