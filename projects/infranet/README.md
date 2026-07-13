@@ -25,7 +25,7 @@ A **purely decentralized** blockchain-based network for digital storage and iden
 
 ## Documentation
 
-- **[docs/infranet/INFRANET-COMBINED-BRIEF.md](../../docs/infranet/INFRANET-COMBINED-BRIEF.md)**: **Canonical** formal brief — design (how it works) + business feasibility, unit economics, rollout, **proceed-with-conditions** recommendation. Pointers: [PROPOSAL.md](./PROPOSAL.md), `docs/infranet-proposal.md`. Former split docs are stubs only.
+- **[docs/infranet/INFRANET-COMBINED-BRIEF.md](../../docs/infranet/INFRANET-COMBINED-BRIEF.md)**: **Canonical** story-first pitch brief — problem → garage-compute + identity + services idea → compute-token metering → objections → prior art & why now → PoC → roadmap & ask. Pointers: [PROPOSAL.md](./PROPOSAL.md), `docs/infranet-proposal.md`. Former split docs are stubs only.
 - **[PLANNING.md](./PLANNING.md)**: Comprehensive system architecture, cryptographic design, and phased implementation plan
 - **[RESEARCH.md](./RESEARCH.md)**: Research on identity verification, privacy-preserving methods, and blockchain architecture
 - **[COMPUTE_REWARDS.md](./COMPUTE_REWARDS.md)**: Distributed compute marketplace and verification reward mechanism design

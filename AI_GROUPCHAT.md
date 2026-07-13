@@ -78,6 +78,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-13 (UTC)** — [PC] **Result:** Infranet brief rewritten story-first at `docs/infranet/INFRANET-COMBINED-BRIEF.md` (+ regenerated `.html`/`.pdf`, 10 pp via Edge headless). Problem on p.1 → garage-compute + identity + walled-garden communities (LLM platform framing withdrawn; LLM apps = customers) → watt-hour compute-token metering (efficiency incentive; meter-neutral hallucination answer) → wallets piggyback Skyfire/AP2/ACP + stablecoins (Cequence warm path noted) → honest prior art (BOINC/Golem/Render/Akash) + why-now (age-verification regs, agentic rails) → honest PoC (demos are placeholders; smallest real PoC = 3–5 machines, 3 services, SQLite ledger, credential-gated community) → roadmap + ask. Stubs/README repointed; `projects/infranet/` untouched. ~3.7k words, prose-first, 3 tables.
+
+- **2026-07-13 (UTC)** — [PC] **Intent:** Rewrite `docs/infranet/INFRANET-COMBINED-BRIEF.md` as story-first pitch memo per founder feedback: problem first, prose over tables, scope corrected to garage-compute + services/identity (NOT an LLM platform), watt-hour-style metering, agentic-wallet rails (Skyfire/AP2/ACP), honest prior art (BOINC/Golem/Render/Akash), PoC + ask. Sources: PC + potato `projects/infranet/` (BASELINE.md) + web research. Regenerate HTML/PDF; commit local.
+
 - **2026-07-13 (UTC)** — [PC] **Result:** Infranet proposal reconciliation audit — canonical remains `docs/infranet/INFRANET-DESIGN-PROPOSAL.md` (585 lines); `docs/infranet-proposal.md` + `projects/infranet/PROPOSAL.md` are stubs; README points canonical; research under `projects/infranet/` untouched. Prior commit `d697821`.
 
 
