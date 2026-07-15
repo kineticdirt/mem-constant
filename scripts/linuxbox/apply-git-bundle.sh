@@ -39,8 +39,36 @@ git branch -M "${BRANCH}" 2>/dev/null || true
 # HARD reset: mixed reset left ancient working-tree files dirty; the next
 # git-pull-and-deploy stash/pop then re-applied the old dashboard over HEAD.
 # Runtime dirs (chat-threads, human-inbox) are gitignored — survive --hard.
+# Preserve campaigns/*/characters-registry.json across --hard: GM bumps live on
+# potato; committed HEAD can lag (v3 wipe). Keep local if version >= post-reset.
+CHARS_PRESERVE="${TMPDIR:-/tmp}/linuxbox-chars-registry-preserve-$$"
+mkdir -p "${CHARS_PRESERVE}"
+while IFS= read -r -d '' reg; do
+  rel="${reg#"${REPO}"/}"
+  mkdir -p "${CHARS_PRESERVE}/$(dirname "${rel}")"
+  cp -a "${reg}" "${CHARS_PRESERVE}/${rel}"
+done < <(find "${REPO}/campaigns" -type f -name 'characters-registry.json' -print0 2>/dev/null || true)
+
 git reset --hard "origin/${BRANCH}"
 rm -f "${BUNDLE}"
+
+if [[ -d "${CHARS_PRESERVE}" ]]; then
+  while IFS= read -r -d '' saved; do
+    rel="${saved#"${CHARS_PRESERVE}"/}"
+    dest="${REPO}/${rel}"
+    local_ver="$(python3 -c 'import json,sys; print(int(json.load(open(sys.argv[1])).get("version") or 0))' "${saved}" 2>/dev/null || echo 0)"
+    head_ver=0
+    if [[ -f "${dest}" ]]; then
+      head_ver="$(python3 -c 'import json,sys; print(int(json.load(open(sys.argv[1])).get("version") or 0))' "${dest}" 2>/dev/null || echo 0)"
+    fi
+    if [[ "${local_ver}" -ge "${head_ver}" ]] && [[ "${local_ver}" -gt 0 ]]; then
+      mkdir -p "$(dirname "${dest}")"
+      cp -a "${saved}" "${dest}"
+      echo "apply-git-bundle: preserved ${rel} (local v${local_ver} >= head v${head_ver})"
+    fi
+  done < <(find "${CHARS_PRESERVE}" -type f -name 'characters-registry.json' -print0 2>/dev/null || true)
+  rm -rf "${CHARS_PRESERVE}"
+fi
 
 # Windows/git-bundle often lands scripts as 100644; systemd ExecStart then fails 203/EXEC.
 # Evidence 2026-07-12: hermes-gateway-watchdog Permission denied every 2m until chmod +x.

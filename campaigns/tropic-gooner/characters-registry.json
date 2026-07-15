@@ -1,9 +1,9 @@
 {
-  "version": 3,
+  "version": 28,
   "campaign_id": "tropic-gooner",
-  "updated_at": "2026-07-12",
+  "updated_at": "2026-07-14T20:37:11.352Z",
   "goal_doc": "docs/campaign-player-continuity-goals.md",
-  "notes": "v3: hide Discord RP-thread twins + GM/author stubs from default Chars grid. Canonical rows keep sheet display names; duplicate_paths retain thread docs. No registry deletes.",
+  "notes": "v3: hide Discord RP-thread twins + GM/author stubs from default Chars grid. Canonical rows keep sheet display names; duplicate_paths retain thread docs. No registry deletes. v3: hide Discord RP-thread twins + GM/author stubs from default Chars grid. Canonical rows keep sheet display names; duplicate_paths retain thread docs. No registry deletes. v3: hide Discord RP-thread twins + GM/author stubs from default Chars grid. Canonical rows keep sheet display names; duplicate_paths retain thread docs. No registry deletes. v3: hide Discord RP-thread twins + GM/author stubs from default Chars grid. 2026-07-12: removed rosa + rosalinda stub rows (merged into rosalina-bonetto). 2026-07-12: Rosalina gallery cleared (partner→jinpei-mclaren; misc→_quarantine-rosalina-misattr). Ellaine primary→IMG_3193; roommate imgs quarantined (not merged). 2026-07-12: unretired all status:retired; Rosalina doc_attachments cleared (sheet Attachment basenames were re-resolving to jinpei portraits). 2026-07-13: Chars relations schema; Alisa Stein + Ellaine roommate NPCs; Jinpei↔Rosalina fwb; gallery-cleared honor on server. 2026-07-14: harper-sister unnamed NPC + sister↔harper-maupin; re-verified twin/roommate/fwb links. 2026-07-14b: restored GM NPC celine (separate NPC); roommate named Sofia per GM Inbox answer — never wipe potatoregistry over user-created rows without merge. 2026-07-14: union-merge potato∪PC (preserve GM ids; restore side NPCs; bump version). 2026-07-14: union-merge potato∪PC (preserve GM ids; restore side NPCs; bump version). 2026-07-14: union-merge potato∪PC (preserve GM ids; restore side NPCs; bump version).",
   "characters": [
     {
       "id": "age",
@@ -18,7 +18,39 @@
       "can_proxy": false,
       "notes": "GM sheet template post — not a character. Hidden from Chars grid.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
+    },
+    {
+      "id": "alisa-stein",
+      "display_name": "Alisa Stein",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Nelly Stein's twin sister (named in Discord Intro/Nelly sheet). Hospitalized / occult plot. No portrait yet — do not invent art.",
+      "aliases": [
+        "Alisa",
+        "alisa"
+      ],
+      "duplicate_paths": [],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "nelly-stein",
+          "type": "twin_sister",
+          "label": "twin sister of Nelly"
+        }
+      ]
     },
     {
       "id": "bleep-boop",
@@ -34,7 +66,11 @@
       "can_proxy": false,
       "notes": "Discord author stub for Lena Litzveil — collapsed into lena-litzveil.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "cassidy",
@@ -50,7 +86,11 @@
       "can_proxy": false,
       "notes": "RP intro thread twin of Cassidy Catharine (Cece). Hidden — use sheet row.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "cassidy-catharine-cece",
@@ -84,7 +124,73 @@
         "characters/portraits/cassidy-catharine-cece/1000024259-removebg-preview-1.png",
         "characters/portraits/cassidy-catharine-cece/SPOILER_SPOILER_SPOILER_1000024261-removebg-preview.png"
       ],
-      "image_path": "characters/portraits/cassidy-catharine-cece/1000024253-removebg-preview-1.png"
+      "image_path": "characters/portraits/cassidy-catharine-cece/1000024253-removebg-preview-1.png",
+      "relations": []
+    },
+    {
+      "id": "celine",
+      "display_name": "Celine",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "GM-created NPC (Chars +Add, 2026-07-13 ~21:38 ET). Registry row wiped by PC SCP 21:58 ET; restored 2026-07-14. Relations/details not recorded before wipe - GM to fill in. Roommate NPC is Sofia (separate). Never hard-delete GM/user-created chars without ask.",
+      "aliases": [
+        "celine"
+      ],
+      "duplicate_paths": [],
+      "images": [
+        "characters/portraits/celine/paste-1783997386126.png",
+        "characters/portraits/celine/paste-1783997417303.png",
+        "characters/portraits/celine/paste-1783997434961.png",
+        "characters/portraits/celine/paste-1783997465095.png",
+        "characters/portraits/celine/paste-1783997539658.png",
+        "characters/portraits/celine/paste-1783997519557.png",
+        "characters/portraits/celine/paste-1783997505476.png",
+        "characters/portraits/celine/paste-1783997590946.png",
+        "characters/portraits/celine/paste-1783997607500.png",
+        "characters/portraits/celine/paste-1783997637138.png",
+        "characters/portraits/celine/paste-1783997719198.png",
+        "characters/portraits/celine/paste-1783997686414.png",
+        "characters/portraits/celine/paste-1783997738023.png",
+        "characters/portraits/celine/paste-1783997874461.png",
+        "characters/portraits/celine/paste-1783995988639.png",
+        "characters/portraits/celine/paste-1783996019898.png",
+        "characters/portraits/celine/paste-1783996008482.png",
+        "characters/portraits/celine/paste-1783996000103.png",
+        "characters/portraits/celine/paste-1783996030822.png",
+        "characters/portraits/celine/paste-1783996042083.png",
+        "characters/portraits/celine/paste-1783996112347.png",
+        "characters/portraits/celine/paste-1783996309816.png",
+        "characters/portraits/celine/paste-1783996367365.png",
+        "characters/portraits/celine/paste-1783996339226.png",
+        "characters/portraits/celine/paste-1783996378325.png",
+        "characters/portraits/celine/paste-1783996413846.png",
+        "characters/portraits/celine/paste-1783996403983.png",
+        "characters/portraits/celine/paste-1783996436193.png",
+        "characters/portraits/celine/paste-1783996426247.png",
+        "characters/portraits/celine/paste-1783996469085.png",
+        "characters/portraits/celine/paste-1783996493011.png",
+        "characters/portraits/celine/paste-1783996725413.png",
+        "characters/portraits/celine/paste-1783997010552.png",
+        "characters/portraits/celine/paste-1783997029186.png",
+        "characters/portraits/celine/paste-1783997047714.png",
+        "characters/portraits/celine/paste-1783997065215.png",
+        "characters/portraits/celine/paste-1783997087690.png",
+        "characters/portraits/celine/paste-1783997111503.png",
+        "characters/portraits/celine/paste-1783997126919.png",
+        "characters/portraits/celine/paste-1783997142543.png",
+        "characters/portraits/celine/paste-1783997160328.png",
+        "characters/portraits/celine/paste-1783997180215.png",
+        "characters/portraits/celine/paste-1783997193580.png"
+      ],
+      "image_path": "characters/portraits/celine/paste-1783997874461.png",
+      "doc_attachments": [],
+      "relations": []
     },
     {
       "id": "deleted-user",
@@ -100,7 +206,11 @@
       "can_proxy": false,
       "notes": "Author stub sharing Felix faceclaim attachments. Hidden.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "ellaine",
@@ -116,7 +226,11 @@
       "can_proxy": false,
       "notes": "RP thread twin of Ellaine Mishpit (Myra). Do not map Character Images/Ellaine here — that caused duplicate faces.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "ellaine-mishpit",
@@ -155,7 +269,67 @@
         "characters/portraits/ellaine-mishpit/IMG_4327.jpg",
         "characters/portraits/ellaine-mishpit/SPOILER_IMG_2718.png",
         "characters/portraits/ellaine-mishpit/SPOILER_IMG_5068.png",
-        "characters/portraits/ellaine-mishpit/image.png"
+        "characters/portraits/ellaine-mishpit/image.png",
+        "Character Images/Ellaine/IMG_3193.jpg",
+        "Character Images/Ellaine/16443a480a66d10a47d139cb538e6475.gif",
+        "Character Images/Ellaine/1a62303f3cdd30e479a4ee8cba6d4417.png",
+        "Character Images/Ellaine/5c7b1c5312501c07a87f085bad723375.png",
+        "Character Images/Ellaine/765f5e80b1b17dbffff97083423ace1f.png",
+        "Character Images/Ellaine/__zentreya_and_zentreya_vshojo_drawn_by_cubeskar__sample-7149de7581f134f1fbc2e9b5820b172b.jpg",
+        "Character Images/Ellaine/d56a5709b85ccacdde1a7e10c8ec047b.png",
+        "Character Images/Ellaine/IMG_2683.jpg",
+        "Character Images/Ellaine/IMG_2687.jpg",
+        "Character Images/Ellaine/IMG_3188.jpg",
+        "Character Images/Ellaine/IMG_3189.jpg",
+        "Character Images/Ellaine/maxresdefault.jpg",
+        "Character Images/Ellaine/sample_0af84c79195cbad17c8fe9e16bf2e190.png",
+        "Character Images/Ellaine/sample_2c1d3d133df784994b5e563ae500e651.png",
+        "Character Images/Ellaine/sample_8ee8fdf68912f3e2cd9ddaf120daf00e.png",
+        "Character Images/Ellaine/sample_92508cb8a96aa3630898072379d9668c.png",
+        "Character Images/Ellaine/sample_a1378a13dfde4bf8dddf17d76f07cdb2.png",
+        "Character Images/Ellaine/sample_a7972cb57f87c9d21cb5d67a39b423f4.png",
+        "Character Images/Ellaine/sample_c2fc437d0d90d17e5ea1fd0398e8a33b.png",
+        "Character Images/Ellaine/sample_f1075126935010a157ee20b279f4b0a8.png"
+      ],
+      "relations": [
+        {
+          "to_id": "ellaine-roommate",
+          "type": "roommate",
+          "label": "roommate"
+        }
+      ]
+    },
+    {
+      "id": "ellaine-roommate",
+      "display_name": "Sofia",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Ellaine Mishpit's roommate. GM named her Sofia via Inbox answer 2026-07-13. Primary/gallery: characters/portraits/ellaine-roommate/sofia-poses-*.png (user pose sheets 2026-07-14). Older dumps under characters/portraits/_quarantine-ellaine-roommate/. Never hard-delete GM/user-created chars without ask.",
+      "aliases": [
+        "sofia",
+        "roommate",
+        "roomie"
+      ],
+      "duplicate_paths": [],
+      "images": [
+        "characters/portraits/ellaine-roommate/sofia-poses-athletic.png",
+        "characters/portraits/ellaine-roommate/sofia-poses-pool.png",
+        "characters/portraits/ellaine-roommate/sofia-poses-casual.png"
+      ],
+      "image_path": "characters/portraits/ellaine-roommate/sofia-poses-pool.png",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "ellaine-mishpit",
+          "type": "roommate",
+          "label": "roommate"
+        }
       ]
     },
     {
@@ -192,7 +366,8 @@
         "characters/portraits/felix/IMG_9069.png",
         "characters/portraits/felix/IMG_9983.jpg"
       ],
-      "image_path": "characters/portraits/felix/IMG_8105.jpg"
+      "image_path": "characters/portraits/felix/IMG_8105.jpg",
+      "relations": []
     },
     {
       "id": "harper-maupin",
@@ -224,6 +399,74 @@
         "characters/portraits/harper-maupin/a66d9a9a153133cc116d2b9d1f268bf0.png",
         "characters/portraits/harper-maupin/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
         "characters/portraits/harper-maupin/sample_f52bb88502387daa8768e80118d1844c.jpg"
+      ],
+      "relations": [
+        {
+          "to_id": "harper-sister",
+          "type": "sister",
+          "label": "little sister (unnamed)"
+        }
+      ]
+    },
+    {
+      "id": "harper-sister",
+      "display_name": "Harper's sister (unnamed)",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Harper Maupin's little sister (Discord sheet / inbox chars-npc-harper-sister-20260713). Name not established — do not invent. No separate daughter NPC unless sheets document one. No portrait — do not invent art.",
+      "aliases": [
+        "Harper's sister",
+        "Harper sister"
+      ],
+      "duplicate_paths": [],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "harper-maupin",
+          "type": "sister",
+          "label": "sister of Harper"
+        }
+      ]
+    },
+    {
+      "id": "jinpei-mclaren",
+      "display_name": "Jinpei McLaren",
+      "story_path": "campaigns/tropic-gooner/characters/discord/rosalinda.md",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "In-fiction partner/mechanic of Rosalinda Bonetto (named in Rosalinda intro thread). No dedicated Discord sheet — portraits reassigned from misattributed rosalina-bonetto gallery 2026-07-12.",
+      "aliases": [
+        "Jinpei",
+        "jinpei",
+        "McLaren"
+      ],
+      "duplicate_paths": [],
+      "images": [
+        "characters/portraits/jinpei-mclaren/7bwbebejt7i31.png",
+        "characters/portraits/jinpei-mclaren/caf854e2c6f115385535ee3b5ee5d157.png",
+        "characters/portraits/jinpei-mclaren/sample_c76ccf6f2f13149ea3bd0520dd2b8d45.png",
+        "characters/portraits/jinpei-mclaren/sample_de13bc50c582523072102deacb1c8854.png"
+      ],
+      "image_path": "characters/portraits/jinpei-mclaren/sample_de13bc50c582523072102deacb1c8854.png",
+      "relations": [
+        {
+          "to_id": "rosalina-bonetto",
+          "type": "fwb",
+          "label": "FWB / situationship (mechanic partner)"
+        }
       ]
     },
     {
@@ -258,7 +501,8 @@
         "characters/portraits/lena-litzveil/47d65e515dfd210597a18af8121d97ea.png",
         "characters/portraits/lena-litzveil/a49d6d5067762a7257687e5eb345769b.png"
       ],
-      "image_path": "characters/portraits/lena-litzveil/1e9994a98f42e7f9753d7fa64a5249e3.png"
+      "image_path": "characters/portraits/lena-litzveil/1e9994a98f42e7f9753d7fa64a5249e3.png",
+      "relations": []
     },
     {
       "id": "minerva",
@@ -274,7 +518,11 @@
       "can_proxy": false,
       "notes": "RP twin of Sister Minerva (Mayday). Hidden — do not share Minerva portrait folder.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "nelly",
@@ -290,7 +538,11 @@
       "can_proxy": false,
       "notes": "RP twin of Nelly Stein. Hidden — Character Images/Nelly belongs to nelly-stein only.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "nelly-stein",
@@ -319,6 +571,13 @@
       "images": [
         "Character Images/Nelly/kobeni-by-me-v0-tue8e2rc80fc1.png",
         "characters/portraits/nelly-stein/kobeni-by-me-v0-tue8e2rc80fc1.png"
+      ],
+      "relations": [
+        {
+          "to_id": "alisa-stein",
+          "type": "twin_sister",
+          "label": "twin sister (Alisa)"
+        }
       ]
     },
     {
@@ -335,7 +594,11 @@
       "can_proxy": false,
       "notes": "RP twin of Redmond Gallagher. Hidden — Redmond folder only on canonical.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "redmond-red-gallagher",
@@ -365,7 +628,8 @@
         "Character Images/Redmond/IMG_5795.jpg",
         "Character Images/Redmond/IMG_5794.jpg",
         "characters/portraits/redmond-red-gallagher/IMG_5788.jpg"
-      ]
+      ],
+      "relations": []
     },
     {
       "id": "rosa",
@@ -381,7 +645,11 @@
       "can_proxy": false,
       "notes": "GM-narrated Rosa scenes for Twofell's Rosalinda/Rosalina — same person. Hidden.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "rosalina-bonetto",
@@ -398,7 +666,10 @@
       "aliases": [
         "rosa",
         "rosalinda",
-        "twofell"
+        "twofell",
+        "Rosalina",
+        "Rosalina Bonetto",
+        "Rosalinda Bonetto"
       ],
       "duplicate_paths": [
         "campaigns/tropic-gooner/characters/discord/rosa.md",
@@ -443,6 +714,13 @@
         "attachments/sample_c76ccf6f2f13149ea3bd0520dd2b8d45.png",
         "attachments/sample_de13bc50c582523072102deacb1c8854.png",
         "attachments/vrforged-d10-gld-18in-toyota-gr-corolla-light-blue-1.png"
+      ],
+      "relations": [
+        {
+          "to_id": "jinpei-mclaren",
+          "type": "fwb",
+          "label": "FWB / situationship (mechanic partner)"
+        }
       ]
     },
     {
@@ -459,7 +737,11 @@
       "can_proxy": false,
       "notes": "Intro thread twin of Rosalina Bonetto (Twofell). Hidden.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "sister-minerva",
@@ -491,7 +773,8 @@
         "characters/portraits/sister-minerva/Minerva.jpg",
         "characters/portraits/sister-minerva/Minerva4.jpg",
         "characters/portraits/sister-minerva/MnervaPiercings.png"
-      ]
+      ],
+      "relations": []
     },
     {
       "id": "toga",
@@ -522,7 +805,8 @@
         "attachments/SPOILER_IMG_5478.jpg",
         "attachments/dTEuanBn.png",
         "attachments/tweeload_uQJuhGRg.mov"
-      ]
+      ],
+      "relations": []
     },
     {
       "id": "twofell",
@@ -538,7 +822,11 @@
       "can_proxy": false,
       "notes": "Discord author stub for Rosalina Bonetto. Hidden.",
       "aliases": [],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     },
     {
       "id": "wholesomeest-boi",
@@ -556,7 +844,12 @@
         "wholesome-boi",
         "WHOLESOMEest Boi"
       ],
-      "duplicate_paths": []
+      "duplicate_paths": [],
+      "relations": [],
+      "doc_attachments": [],
+      "images": [],
+      "image_path": ""
     }
-  ]
+  ],
+  "revision": 28
 }
