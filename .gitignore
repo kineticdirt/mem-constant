@@ -26,3 +26,19 @@ build/
 .pytest_cache/
 __pycache__/
 *.pyc
+
+# Runtime truth — potato-owned, mutated by live services/agents; never carried
+# by git so deploy resets cannot revert it (docs/runtime-state-protection.md).
+campaigns/*/characters-registry.json
+agents/user-tasks.json
+agents/archive-meta.json
+agents/swarm-queue.json
+agents/dashboard-lane-state.json
+agents/state/*
+!agents/state/.gitkeep
+!agents/state/multitask-locks/
+agents/state/multitask-locks/*
+!agents/state/multitask-locks/.gitkeep
+campaigns/*/characters/portraits/**
+!campaigns/*/characters/portraits/README.md
+backups/state/

@@ -16,14 +16,15 @@ MANIFEST="${REPO}/agents/linuxbox-deploy-manifest.json"
 
 MODE="${1:---all}"
 
+# Runtime-truth files (user-tasks, swarm-queue, archive-meta, agents/state/**)
+# are potato-owned and MUST NOT be pushed from PC — see
+# docs/runtime-state-protection.md + agents/protected-runtime-paths.json.
 AGENT_PATHS=(
   agents/CURRENT_TASK.md
-  agents/archive-meta.json
   agents/deepsec-config.json
   agents/inbox-seeds.json
   agents/USER_TASKS_TASK.md
   agents/swarm-experts.json
-  agents/swarm-queue.json
   agents/hermes-model-registry.json
   agents/model-budget/config.json
   agents/model-budget/README.md
@@ -42,12 +43,13 @@ AGENT_PATHS=(
   scripts/situation_monitor/daily_situation_monitor.py
   scripts/situation_monitor/run-daily-brief.sh
   agents/linuxbox-deploy-manifest.json
+  agents/protected-runtime-paths.json
   agents/machine-registry.json
-  agents/user-tasks.json
   agents/resource-governor.json
   agents/intent
   agents/AGENT_LOOPS_INTENT.md
-  agents/state
+  agents/state/.gitkeep
+  agents/state/multitask-locks/.gitkeep
   agents/meta-harness/eval-tasks.json
   agents/meta-harness/domain_spec.md
   agents/meta-harness/runs/README.md
@@ -59,10 +61,15 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/align-agent-dump-linuxbox.sh
   scripts/linuxbox/repoint-agent-dump-remote.sh
   scripts/linuxbox/git-pull-and-deploy.sh
+  scripts/linuxbox/protected-paths.py
+  scripts/linuxbox/verify-runtime-state.sh
+  scripts/linuxbox/backup-registries.sh
+  agents/protected-runtime-paths.json
   scripts/linuxbox/swarm-dispatch.sh
   scripts/linuxbox/install-swarm-dispatch-timer.sh
   scripts/linuxbox/agent-cycle-fast-tick.sh
   scripts/linuxbox/agent-cycle-think-tick.sh
+  scripts/linuxbox/agent-cycle-has-work.py
   scripts/linuxbox/kill-stale-chromium.sh
   scripts/linuxbox/tableslop-server.js
   scripts/linuxbox/agent-pod-scheduler.sh
@@ -105,7 +112,17 @@ DASHBOARD_PATHS=(
   scripts/linuxbox/linuxbox-systems.js
   scripts/linuxbox/chat-offload-handoff.js
   scripts/linuxbox/chars-registry-merge.js
+  scripts/linuxbox/chars-registry-persist.js
+  scripts/linuxbox/multitask-lock.js
+  scripts/linuxbox/multitask-lock-cli.js
+  scripts/linuxbox/multitask-lock.sh
+  scripts/linuxbox/restore-chars-side-npcs.js
+  scripts/linuxbox/test-multitask-lock.js
+  scripts/linuxbox/test-chars-registry-persist.js
   agents/machine-registry.json
+  agents/state/multitask-locks/.gitkeep
+  docs/multitask-shared-state-lock.md
+  docs/chars-registry-versioning.md
 )
 
 normalize_sh() {
@@ -114,10 +131,33 @@ normalize_sh() {
   done
 }
 
+# Hub once shipped with literal "\r" (backslash+r) instead of CRLF → browser JS parse fail → stuck Loading…
+normalize_dashboard_text() {
+  for p in "$@"; do
+    case "${p}" in
+      *.html|*.js)
+        sed -i -e 's/\\r$//' -e 's/\r$//' "${REPO}/${p}" 2>/dev/null || true
+        ;;
+    esac
+  done
+}
+
 push_tarball() {
   local -n _paths=$1
   local restart_svc="${2:-}"
   local verify_url="${3:-}"
+
+  # Defense in depth: never ship protected runtime paths, even if a future
+  # edit re-adds one to a path list (docs/runtime-state-protection.md).
+  local _py
+  _py="$(command -v python3 || command -v python)"
+  if [[ -n "${_py}" && -f "${REPO}/agents/protected-runtime-paths.json" ]]; then
+    local _filtered=()
+    while IFS= read -r p; do
+      [[ -n "${p}" ]] && _filtered+=("${p}")
+    done < <(printf '%s\n' "${_paths[@]}" | PROTECTED_REPO="${REPO}" "${_py}" "${REPO}/scripts/linuxbox/protected-paths.py" filter-stdin)
+    _paths=("${_filtered[@]}")
+  fi
 
   if [[ ${#_paths[@]} -eq 0 ]]; then
     echo "nothing to push" >&2
@@ -125,6 +165,7 @@ push_tarball() {
   fi
 
   normalize_sh "${_paths[@]}"
+  normalize_dashboard_text "${_paths[@]}"
   tar -czf "${TARBALL}" -C "${REPO}" "${_paths[@]}"
   echo "uploading $(du -h "${TARBALL}" | cut -f1) → ${HOST}:${REMOTE} …"
   scp "${SSH_OPTS[@]}" "${TARBALL}" "${HOST}:/tmp/linuxbox-push.tgz"
@@ -199,6 +240,13 @@ if [[ -n "${restart_svc}" ]]; then
 fi
 if [[ -n "${verify_url}" ]]; then
   curl -s -o /dev/null -w "verify:%{http_code}\n" "${verify_url}" || true
+fi
+# Fail-loud runtime verification after any service-affecting push.
+if [[ -n "${restart_svc}" && -f "${REMOTE}/scripts/linuxbox/verify-runtime-state.sh" ]]; then
+  bash "${REMOTE}/scripts/linuxbox/verify-runtime-state.sh" --context pc-push || {
+    echo "push-linuxbox: VERIFY FAILED on box — see agents/state/dashboard-deploy-alerts.jsonl" >&2
+    exit 1
+  }
 fi
 echo "remote: archive=\$(test -d /mnt/archive/logs && echo ok || echo missing)"
 EOF

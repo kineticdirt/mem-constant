@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
+  <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
+  <meta name="dash-build" content="db-20260715-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -15,7 +17,7 @@
       --text: #eeeef2; --muted: #888894; --accent: #6ec8ff; --lime: #b8e986;
       --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
       --ui-scale: 1;
-      --rail-width: 56px;
+      --rail-width: 64px;
       --prose-size: 0.9rem;
       --prose-max: 68ch;
       --report-split: minmax(260px, 34%);
@@ -46,14 +48,37 @@
     }
     .rail button {
       border: none; background: transparent; color: var(--muted);
-      padding: 0.65rem 0; font-size: 0.62rem; font-weight: 600;
+      padding: 0.55rem 0.15rem; font-size: 0.58rem; font-weight: 600;
       letter-spacing: 0.04em; cursor: pointer; border-left: 2px solid transparent;
       font-family: inherit; text-transform: uppercase;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.2rem; line-height: 1.15;
     }
+    /* Rail icons: always visible (desktop + mobile). Meta "icon bar" was layout-only before. */
+    .rail button::before {
+      content: "";
+      display: block;
+      width: 1.15rem; height: 1.15rem; flex-shrink: 0;
+      background: currentColor;
+      -webkit-mask: var(--rail-ico) center / contain no-repeat;
+      mask: var(--rail-ico) center / contain no-repeat;
+    }
+    .rail button[data-tab="hub"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10.5 12 3l9 7.5'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="systems"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2'/%3E%3Cpath d='M9 9h6v6H9z'/%3E%3Cpath d='M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="inbox"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16v12H4z'/%3E%3Cpath d='m4 7 8 6 8-6'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="reports"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h7l5 5v13H7z'/%3E%3Cpath d='M14 3v5h5M9 13h6M9 17h6'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="news"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h12v10H4z'/%3E%3Cpath d='M16 8h4v10a2 2 0 0 1-2 2H6'/%3E%3Cpath d='M7 9h6M7 12h6'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="campaigns"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V4'/%3E%3Cpath d='M5 4h9l-1.5 3.5L14 11H5'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="stories"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H5z'/%3E%3Cpath d='M19 4h-6a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h6z'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="characters"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.5'/%3E%3Cpath d='M5 20a7 7 0 0 1 14 0'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="chat"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 6h14v10H9l-4 3z'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="tasks"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6h11M9 12h11M9 18h11'/%3E%3Cpath d='m4 6 1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="garage"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 6.5a3 3 0 0 0 3 3L20 12l-2 2-2.5-2.5a3 3 0 0 0-3-3L8 4 6 6l4.5 4.5'/%3E%3Cpath d='m5 19 5-5'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="backlog"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/%3E%3C/svg%3E"); }
     .rail button.active { color: var(--accent); border-left-color: var(--lime); background: #151518; }
     .rail button .dot {
       display: block; width: 6px; height: 6px; border-radius: 50%;
-      background: var(--warn); margin: 0.25rem auto 0;
+      background: var(--warn); margin: 0 auto;
     }
     .rail button .dot.hidden { display: none; }
     .hidden { display: none !important; }
@@ -119,6 +144,77 @@
     .kpi-secondary .kpi .label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
     .kpi-secondary .kpi .value { font-size: 0.88rem; font-weight: 600; margin-top: 0.2rem; font-family: "IBM Plex Mono", monospace; color: var(--text); }
     .kpi-secondary .kpi .value.warn { color: var(--warn); }
+    /* Hub Task Manager–style resource bars (marker: hub-resources) */
+    .hub-resources {
+      border: 1px solid var(--line-bright); background: var(--surface);
+      padding: 0.65rem 0.85rem 0.75rem; margin: 0 0 1px;
+    }
+    .hub-resources-head {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem;
+      margin-bottom: 0.55rem;
+    }
+    .hub-resources-head h2 {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin: 0; font-weight: 600;
+    }
+    .hub-resources-open {
+      width: auto; font-size: 0.68rem; padding: 0.2rem 0.55rem;
+      border: 1px solid var(--line-bright); background: var(--bg); color: var(--accent);
+      font-family: inherit; cursor: pointer; border-radius: 2px;
+    }
+    .hub-resources-open:hover { border-color: var(--accent); }
+    .hub-res-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem 1rem;
+    }
+    @media (max-width: 700px) { .hub-res-grid { grid-template-columns: 1fr; } }
+    .hub-res-row {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      border: 0; background: transparent; padding: 0; color: inherit; font-family: inherit;
+    }
+    .hub-res-row:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+    .hub-res-head {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;
+      margin-bottom: 0.28rem;
+    }
+    .hub-res-label { font-size: 0.72rem; font-weight: 600; }
+    .hub-res-pct {
+      font-size: 0.72rem; font-family: "IBM Plex Mono", monospace; color: var(--muted);
+    }
+    .hub-res-pct.ok { color: var(--ok); }
+    .hub-res-pct.warn { color: var(--warn); }
+    .hub-res-pct.bad { color: var(--bad); }
+    .hub-res-pct.muted { color: var(--muted); }
+    .hub-res-hint {
+      font-size: 0.62rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
+      margin-top: 0.22rem; line-height: 1.35;
+    }
+    .cpu-cores {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(3.2rem, 1fr));
+      gap: 0.28rem 0.4rem; margin-top: 0.4rem;
+    }
+    .cpu-core {
+      display: flex; flex-direction: column; gap: 0.12rem; min-width: 0;
+    }
+    .cpu-core-lab {
+      font-size: 0.55rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
+      display: flex; justify-content: space-between; gap: 0.2rem;
+    }
+    .cpu-core .sys-bar { height: 5px; }
+    .hub-cpu-wrap, .sys-cpu-wrap { margin-top: 0.15rem; }
+    .hub-host-meta {
+      font-size: 0.62rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
+      margin: 0.45rem 0 0; line-height: 1.4;
+    }
+    .hub-resources-modal-panel {
+      width: min(40rem, 100%); max-height: min(90vh, 42rem);
+    }
+    .hub-res-modal-meta {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+      margin: 0 0 0.85rem; font-size: 0.72rem;
+    }
+    @media (max-width: 600px) { .hub-res-modal-meta { grid-template-columns: 1fr; } }
+    .hub-res-modal-meta .k { color: var(--muted); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .hub-res-modal-meta .v { font-family: "IBM Plex Mono", monospace; margin-top: 0.15rem; }
     .ops-grid {
       display: grid; grid-template-columns: 1fr 1fr  minmax(220px, 0.85fr); gap: 1px;
       background: var(--line-bright); border: 1px solid var(--line-bright); flex: 1; min-height: 180px;
@@ -716,6 +812,72 @@
     }
     .hub-running-now.live { border-left: 3px solid var(--warn); }
     .hub-running-now.live .aw-label { color: var(--warn); }
+    .hub-last-completed {
+      margin-top: 0.55rem; padding: 0.5rem 0.65rem 0.45rem;
+      border: 1px solid var(--line); border-left: 3px solid var(--ok);
+      background: #0e1410; font-size: 0.78rem; line-height: 1.45;
+    }
+    .hub-last-completed .aw-label {
+      margin-bottom: 0.3rem; color: var(--ok);
+      font-size: 0.68rem; letter-spacing: 0.08em;
+    }
+    .hub-last-completed .aw-line { color: var(--fg); }
+    .hub-last-completed .aw-line .meta { margin-left: 0.35rem; color: var(--muted); }
+    .hub-last-completed .aw-kind {
+      display: block; margin-top: 0.15rem;
+      font-size: 0.68rem; color: var(--muted);
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .hub-last-completed .hub-last-run-secondary {
+      margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px dashed var(--line);
+      font-size: 0.72rem; color: var(--muted);
+    }
+    .hub-recent-ticks {
+      margin-top: 0.35rem; font-size: 0.72rem; color: var(--muted);
+    }
+    .hub-recent-ticks .aw-row { margin: 0.15rem 0; }
+    .machines-bar details.machine-handshake {
+      margin-top: 0.55rem; font-size: 0.72rem; color: var(--muted);
+    }
+    .machines-bar details.machine-handshake summary {
+      cursor: pointer; list-style: none; color: var(--muted);
+      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
+    }
+    .machines-bar details.machine-handshake summary::-webkit-details-marker { display: none; }
+    .machines-bar details.machine-handshake[open] summary { margin-bottom: 0.35rem; color: var(--fg); }
+    .meta-panel-lead {
+      border: 1px solid var(--line); background: var(--surface);
+      padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; max-width: 52rem;
+    }
+    .meta-panel-lead h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin: 0 0 0.4rem;
+    }
+    .meta-panel-lead p { margin: 0; font-size: 0.82rem; line-height: 1.45; color: var(--fg); max-width: 40rem; }
+    .meta-panel-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.55rem; margin-bottom: 0.85rem; max-width: 52rem;
+    }
+    .meta-card {
+      border: 1px solid var(--line); background: var(--surface);
+      padding: 0.55rem 0.65rem; font-size: 0.78rem;
+    }
+    .meta-card .aw-label {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .meta-card .meta-paths {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem;
+      color: var(--muted); margin-top: 0.35rem; line-height: 1.5;
+    }
+    .meta-backlog-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 0.75rem; margin-bottom: 0.45rem; max-width: 52rem;
+    }
+    .meta-backlog-head h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin: 0;
+    }
     .task-col-head {
       padding: 0.75rem 1rem; border-bottom: 1px solid var(--line-bright); background: var(--surface);
     }
@@ -874,18 +1036,63 @@
     .chars-gallery {
       display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 0.75rem;
     }
-    .chars-gallery button {
-      width: 56px; height: 56px; padding: 0; border: 2px solid var(--line);
-      background: #111; cursor: pointer; overflow: hidden; font: inherit;
+    .chars-gallery .chars-gal-thumb {
+      position: relative; width: 56px; height: 56px; flex: 0 0 auto;
     }
-    .chars-gallery button:hover { border-color: var(--line-bright); }
-    .chars-gallery button.active { border-color: var(--accent); }
-    .chars-gallery button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .chars-gallery .chars-gal-pick {
+      width: 100%; height: 100%; padding: 0; border: 2px solid var(--line);
+      background: #111; cursor: pointer; overflow: hidden; font: inherit; display: block;
+    }
+    .chars-gallery .chars-gal-pick:hover { border-color: var(--line-bright); }
+    .chars-gallery .chars-gal-thumb.is-primary .chars-gal-pick { border-color: var(--accent); }
+    .chars-gallery .chars-gal-pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .chars-gallery .chars-gal-del {
+      position: absolute; top: 1px; right: 1px; z-index: 2;
+      width: 1.15rem; height: 1.15rem; padding: 0; margin: 0;
+      border: 1px solid var(--line-bright); background: rgba(10, 10, 12, 0.85);
+      color: #f5f5f5; font: 700 0.72rem/1 "IBM Plex Mono", monospace;
+      cursor: pointer; opacity: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .chars-gallery .chars-gal-thumb:hover .chars-gal-del,
+    .chars-gallery .chars-gal-del:focus {
+      opacity: 1;
+    }
+    .chars-gallery .chars-gal-del:hover { background: #8b1a1a; border-color: #c44; }
     .chars-upload-row {
       display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.35rem 0 0.75rem;
     }
     .chars-upload-row input[type="file"] { font-size: 0.72rem; max-width: 100%; }
+    .chars-paste-hint {
+      font-size: 0.72rem; color: var(--lime); margin: 0.15rem 0 0.45rem; padding: 0.35rem 0.5rem;
+      border: 1px dashed color-mix(in srgb, var(--lime) 45%, var(--line)); border-radius: 4px;
+      background: color-mix(in srgb, var(--lime) 8%, transparent);
+    }
+    .chars-url-import-row {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: end; margin: 0.35rem 0 0.75rem;
+    }
+    .chars-url-import-row .field { flex: 1 1 12rem; margin: 0; min-width: 8rem; }
     .chars-empty { color: var(--muted); font-size: 0.82rem; padding: 1.5rem 0.25rem; }
+    .chars-nav {
+      display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; margin: 0 0 0.65rem;
+    }
+    .chars-relations {
+      margin: 0.55rem 0 0.75rem; padding: 0.45rem 0.55rem; border: 1px solid var(--line);
+      border-radius: 6px; background: color-mix(in srgb, var(--panel) 80%, transparent);
+    }
+    .chars-relations h3 { font-size: 0.78rem; margin: 0 0 0.35rem; color: var(--muted); font-weight: 600; }
+    .chars-relations ul { margin: 0; padding-left: 1.05rem; font-size: 0.78rem; }
+    .chars-relations li { margin: 0.15rem 0; }
+    .chars-relations button.linkish {
+      background: none; border: none; color: var(--accent); cursor: pointer; padding: 0;
+      font: inherit; text-decoration: underline;
+    }
+    .chars-rel-add { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: end; margin-top: 0.45rem; }
+    .chars-rel-add .field { margin: 0; flex: 1 1 6rem; min-width: 5rem; }
+    .chars-edit-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem 0.65rem; margin: 0.5rem 0;
+    }
+    @media (max-width: 640px) { .chars-edit-grid { grid-template-columns: 1fr; } }
+    .chars-edit-grid .field-span { grid-column: 1 / -1; }
     .story-toolbar { padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; background: var(--surface); }
     .chat-context-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--lime); border: 1px solid var(--line); padding: 0.2rem 0.45rem; }
 
@@ -1044,6 +1251,31 @@
       white-space: pre-wrap; color: var(--muted);
     }
     .sys-detail-loading, .sys-detail-err { color: var(--muted); font-size: 0.68rem; }
+    .sys-metrics {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+      gap: 0.4rem 0.55rem; margin: 0 0 0.65rem;
+      padding: 0.55rem 0.65rem; border: 1px solid var(--line); background: var(--bg);
+    }
+    .sys-metrics .m-k {
+      font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+    }
+    .sys-metrics .m-v {
+      font-size: 0.78rem; font-family: "IBM Plex Mono", monospace; margin-top: 0.12rem;
+    }
+    .sys-metrics .m-v.ok { color: var(--ok); }
+    .sys-metrics .m-v.warn { color: var(--warn); }
+    .sys-metrics .m-v.bad { color: var(--bad); }
+    .sys-host-snap {
+      margin: 0 0 0.65rem; padding: 0.55rem 0.65rem; border: 1px solid var(--line); background: var(--bg);
+    }
+    .sys-host-snap h4 {
+      margin: 0 0 0.4rem; font-size: 0.58rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); font-weight: 600;
+    }
+    .sys-host-snap-meta {
+      font-size: 0.62rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
+      margin-bottom: 0.4rem; line-height: 1.4;
+    }
 
     /* Mobile — bottom tab bar, larger touch targets */
     @media (max-width: 768px) {
@@ -1256,12 +1488,27 @@
           </div>
           <div class="hub-running-now" id="hub-running-now" aria-label="Running now"></div>
           <div class="kpi-primary" id="kpi-primary"></div>
+          <div class="hub-resources" id="hub-resources" aria-label="Host resources"></div>
           <div class="kpi-secondary" id="kpi-secondary"></div>
+          <div id="hub-resources-modal" class="chat-campaign-modal" aria-hidden="true">
+            <div class="chat-campaign-modal-panel hub-resources-modal-panel" role="dialog" aria-modal="true" aria-labelledby="hub-resources-modal-title">
+              <h3 id="hub-resources-modal-title">Resources</h3>
+              <p class="meta">linuxbox · live sample (Hub poll). Light ps + /proc — not a profiler.</p>
+              <div id="hub-resources-modal-body"></div>
+              <div class="chat-campaign-modal-actions">
+                <button type="button" class="btn" id="hub-resources-modal-close">Close</button>
+                <button type="button" class="btn" id="hub-resources-goto-systems" data-tab="systems">Systems →</button>
+              </div>
+            </div>
+          </div>
           <div class="machines-bar admin-only" id="machines-bar">
             <h2>Machines &amp; sync</h2>
             <div id="machines-list"><p class="empty">Loading…</p></div>
             <div class="machine-sync-meta" id="machines-sync-meta"></div>
-            <ol class="machine-steps" id="machines-laptop-steps"></ol>
+            <details class="machine-handshake" id="machines-handshake">
+              <summary>Laptop handshake steps</summary>
+              <ol class="machine-steps" id="machines-laptop-steps"></ol>
+            </details>
           </div>
           <div class="ops-grid">
             <div class="ops-card">
@@ -1433,6 +1680,9 @@
                 <input type="checkbox" id="chars-show-hidden" />
                 Show stubs
               </label>
+              <button type="button" class="btn admin-only" id="chars-add-btn" style="width:auto;margin-left:0.5rem">+ Add character</button>
+              <button type="button" class="btn admin-only" id="chars-merge-btn" style="width:auto">Merge…</button>
+              <span class="meta" style="margin-left:0.5rem" title="docs/chars-registry-versioning.md">vN on roster · conflict → auto-reload then retry</span>
             </div>
             <div id="chars-gm-row" class="chars-gm-row" hidden></div>
           </div>
@@ -1455,6 +1705,53 @@
                   <div class="chat-campaign-modal-actions">
                     <button type="button" class="btn" id="chars-attach-modal-close">Close</button>
                     <button type="button" class="btn primary admin-only" id="chars-attach-modal-resolve">Resolve attachments</button>
+                  </div>
+                </div>
+              </div>
+              <div id="chars-add-modal" class="chat-campaign-modal" aria-hidden="true">
+                <div class="chat-campaign-modal-panel" role="dialog" aria-modal="true" aria-labelledby="chars-add-modal-title">
+                  <h3 id="chars-add-modal-title">Add character</h3>
+                  <p class="meta">Side / NPC / PC row. No AI faces — upload art later if you have it.</p>
+                  <div class="field"><label for="chars-add-name">Name</label><input type="text" id="chars-add-name" autocomplete="off" /></div>
+                  <div class="field"><label for="chars-add-type">Type</label>
+                    <select id="chars-add-type">
+                      <option value="npc">npc</option>
+                      <option value="side">side</option>
+                      <option value="pc">pc</option>
+                    </select>
+                  </div>
+                  <div class="field"><label for="chars-add-related">Related to (optional)</label>
+                    <select id="chars-add-related"><option value="">— none —</option></select>
+                  </div>
+                  <div class="field"><label for="chars-add-rel-type">Relation</label>
+                    <select id="chars-add-rel-type">
+                      <option value="related">related</option>
+                      <option value="twin_sister">twin_sister</option>
+                      <option value="fwb">fwb</option>
+                      <option value="partner">partner</option>
+                      <option value="roommate">roommate</option>
+                      <option value="sibling">sibling</option>
+                    </select>
+                  </div>
+                  <div class="field"><label for="chars-add-rel-label">Relation label</label><input type="text" id="chars-add-rel-label" placeholder="e.g. twin sister" autocomplete="off" /></div>
+                  <div class="field"><label for="chars-add-notes">Notes</label><textarea id="chars-add-notes" rows="2"></textarea></div>
+                  <p class="meta" id="chars-add-modal-status" style="min-height:1.2em"></p>
+                  <div class="chat-campaign-modal-actions">
+                    <button type="button" class="btn" id="chars-add-modal-close">Cancel</button>
+                    <button type="button" class="btn primary" id="chars-add-modal-save">Create</button>
+                  </div>
+                </div>
+              </div>
+              <div id="chars-merge-modal" class="chat-campaign-modal" aria-hidden="true">
+                <div class="chat-campaign-modal-panel" role="dialog" aria-modal="true" aria-labelledby="chars-merge-modal-title">
+                  <h3 id="chars-merge-modal-title">Merge characters</h3>
+                  <p class="meta">Soft-hide stubs into a primary (copies portraits; does not delete).</p>
+                  <div class="field"><label for="chars-merge-primary">Keep (primary)</label><select id="chars-merge-primary"></select></div>
+                  <div class="field"><label for="chars-merge-secondary">Merge away (secondary)</label><select id="chars-merge-secondary"></select></div>
+                  <p class="meta" id="chars-merge-modal-status" style="min-height:1.2em"></p>
+                  <div class="chat-campaign-modal-actions">
+                    <button type="button" class="btn" id="chars-merge-modal-close">Cancel</button>
+                    <button type="button" class="btn primary" id="chars-merge-modal-save">Merge</button>
                   </div>
                 </div>
               </div>
@@ -1682,8 +1979,18 @@
         </section>
 
         <section id="backlog" class="panel admin-only">
+          <div class="meta-panel-lead" id="meta-lead">
+            <h2>What Meta does</h2>
+            <p id="meta-blurb">Loading…</p>
+          </div>
+          <div class="meta-panel-grid" id="meta-cards"></div>
+          <div class="meta-backlog-head">
+            <h2>Open backlog</h2>
+            <span class="meta" id="meta-backlog-count"></span>
+          </div>
           <ul class="list" id="backlog-open"></ul>
           <div class="field" style="margin-top:1rem;max-width:480px">
+            <label for="backlog-text">Add dashboard idea</label>
             <textarea id="backlog-text" rows="2" placeholder="Dashboard idea…"></textarea>
           </div>
           <button type="button" class="btn" id="backlog-add">Add</button>
@@ -1706,6 +2013,7 @@
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
     let selectedStory = null, storyCatalog = null, selectedProjectId = "";
     let charsRegistry = null, selectedCharId = "", charsCampaignFilter = localStorage.getItem("chars-campaign") || "tropic-gooner";
+    let charsPasteUploadFn = null; // set while character detail is open (admin upload)
     const charsAttachModalShownFor = new Set();
     let charsAttachModalRow = null;
     let charsShowHidden = localStorage.getItem("chars-show-hidden") === "1";
@@ -1965,6 +2273,7 @@
         if (activeTab === "garage") loadGarage();
         if (activeTab === "systems") loadSystems();
         if (activeTab === "hub" && sessionRole !== "viewer") load();
+        syncHubResourcesPolling();
       });
     });
 
@@ -3353,7 +3662,13 @@
         charsRegistry = await res.json();
         renderCharactersRoster();
       } catch (e) {
-        grid.innerHTML = `<p class="chars-empty">${esc(e.message)}</p>`;
+        // Non-JSON body = Cloudflare Access re-auth page or server mid-restart,
+        // not data loss — say so instead of dumping the parse error.
+        const nonJson = e instanceof SyntaxError;
+        const msg = nonJson
+          ? "Roster API returned a non-JSON page (session expired or server restarting). Hard-refresh (Ctrl+Shift+R) — if it persists, re-login via Cloudflare Access."
+          : e.message;
+        grid.innerHTML = `<p class="chars-empty">${esc(msg)}</p>`;
       }
     }
 
@@ -3365,7 +3680,8 @@
         String(a.display_name || a.id).localeCompare(String(b.display_name || b.id))
       );
       const hiddenN = charsRegistry?.hidden_count || 0;
-      countEl.textContent = `${chars.length} characters${hiddenN ? ` · ${hiddenN} stubs/GM collapsed` : ""}`;
+      const ver = charsRegistry?.version != null ? ` · v${charsRegistry.version}` : "";
+      countEl.textContent = `${chars.length} characters${hiddenN ? ` · ${hiddenN} stubs/GM collapsed` : ""}${ver}`;
       if (gmRow) {
         const gms = charsRegistry?.gm_characters || [];
         if (gms.length && !charsShowHidden) {
@@ -3418,10 +3734,119 @@
       renderCharacterSheet(selected);
     }
 
+    function visibleCharsList() {
+      return (charsRegistry?.characters || []).slice().sort((a, b) =>
+        String(a.display_name || a.id).localeCompare(String(b.display_name || b.id))
+      );
+    }
+
+    function selectCharById(id) {
+      selectedCharId = id || "";
+      renderCharactersRoster();
+    }
+
+    function charOptionsHtml(selectedId, includeBlank) {
+      const chars = visibleCharsList();
+      const blank = includeBlank ? `<option value="">— none —</option>` : "";
+      return blank + chars.map((c) =>
+        `<option value="${esc(c.id)}"${c.id === selectedId ? " selected" : ""}>${esc(c.display_name || c.id)}</option>`
+      ).join("");
+    }
+
+    function applyCharsRegistry(j, preferId) {
+      charsRegistry = j;
+      if (preferId) selectedCharId = preferId;
+      renderCharactersRoster();
+      const next = (j.characters || []).find((c) => c.id === selectedCharId);
+      if (next) renderCharacterSheet(next);
+      return next;
+    }
+
+    async function reloadCharsAfterConflict(extraMsg) {
+      const diskHint =
+        extraMsg && (extraMsg.disk_version != null || extraMsg.diskVersion != null)
+          ? ` (disk v${extraMsg.disk_version ?? extraMsg.diskVersion})`
+          : "";
+      try {
+        await loadCharacters();
+      } catch (e) {
+        return `Version conflict${diskHint} — reload failed: ${e.message || e}. Hard-refresh Chars.`;
+      }
+      const v = charsRegistry && charsRegistry.version;
+      return `Roster reloaded to v${v != null ? v : "?"}${diskHint} — retry your action (no overwrite)`;
+    }
+
+    async function patchCharRow(payload) {
+      const body = {
+        campaign: charsCampaignFilter,
+        include_hidden: charsShowHidden ? 1 : 0,
+        base_version: charsRegistry && charsRegistry.version,
+        ...payload,
+      };
+      const res = await fetch(`${base}/api/characters-registry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        if (j.error === "version_conflict") {
+          throw new Error(await reloadCharsAfterConflict(j));
+        }
+        throw new Error(j.error || "Save failed");
+      }
+      return j;
+    }
+
+    function openCharsAddModal() {
+      const modal = document.getElementById("chars-add-modal");
+      const related = document.getElementById("chars-add-related");
+      if (related) related.innerHTML = charOptionsHtml(selectedCharId || "", true);
+      const status = document.getElementById("chars-add-modal-status");
+      if (status) status.textContent = "";
+      const name = document.getElementById("chars-add-name");
+      if (name) name.value = "";
+      const notes = document.getElementById("chars-add-notes");
+      if (notes) notes.value = "";
+      if (modal) {
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    function closeCharsAddModal() {
+      const modal = document.getElementById("chars-add-modal");
+      if (!modal) return;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function openCharsMergeModal() {
+      const modal = document.getElementById("chars-merge-modal");
+      const primary = document.getElementById("chars-merge-primary");
+      const secondary = document.getElementById("chars-merge-secondary");
+      if (primary) primary.innerHTML = charOptionsHtml(selectedCharId || "", false);
+      if (secondary) secondary.innerHTML = charOptionsHtml("", false);
+      const status = document.getElementById("chars-merge-modal-status");
+      if (status) status.textContent = "";
+      if (modal) {
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    function closeCharsMergeModal() {
+      const modal = document.getElementById("chars-merge-modal");
+      if (!modal) return;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
     function renderCharacterSheet(row) {
       const empty = document.getElementById("chars-sheet-empty");
       const body = document.getElementById("chars-sheet-body");
       if (!row) {
+        charsPasteUploadFn = null;
         empty.classList.remove("hidden");
         body.classList.add("hidden");
         body.innerHTML = "";
@@ -3429,15 +3854,10 @@
       }
       empty.classList.add("hidden");
       body.classList.remove("hidden");
-      const discord = row.discord_username
-        ? `${esc(row.discord_username)}${row.discord_user_id ? ` · <code>${esc(row.discord_user_id)}</code>` : ""}`
-        : "<span class=\"meta\">not linked</span>";
-      const aliases = (row.aliases || []).length
-        ? `<p class="sheet-sub">Also: ${(row.aliases || []).map((a) => esc(a)).join(", ")}</p>`
-        : "";
-      const notes = row.notes
-        ? `<div class="sheet-blurb">${esc(row.notes)}</div>`
-        : "";
+      const chars = visibleCharsList();
+      const idx = chars.findIndex((c) => c.id === row.id);
+      const prev = idx > 0 ? chars[idx - 1] : null;
+      const nextNav = idx >= 0 && idx < chars.length - 1 ? chars[idx + 1] : null;
       const unresolvedList = row.unresolved_doc_attachments || [];
       const unresolved = unresolvedList.length
         ? `<div class="chars-attach-warn" id="chars-attach-warn">
@@ -3452,83 +3872,193 @@
         ? `<div class="chars-gallery" id="char-gallery">${images.map((p, i) => {
             const url = (row.gallery_urls && row.gallery_urls[i]) ||
               `/api/characters-registry/image?campaign=${encodeURIComponent(charsCampaignFilter)}&id=${encodeURIComponent(row.id)}&path=${encodeURIComponent(p)}`;
-            const active = p === row.image_path ? " active" : "";
-            return `<button type="button" class="${active}" data-path="${esc(p)}" title="${esc(p)}"><img src="${esc(base + url)}" alt="" loading="lazy" /></button>`;
+            const active = p === row.image_path ? " is-primary" : "";
+            return `<div class="chars-gal-thumb${active}" data-path="${esc(p)}">
+              <button type="button" class="chars-gal-pick" data-path="${esc(p)}" title="${esc(p)}"><img src="${esc(base + url)}" alt="" loading="lazy" /></button>
+              <button type="button" class="chars-gal-del admin-only" data-path="${esc(p)}" title="Remove this portrait" aria-label="Remove portrait">×</button>
+            </div>`;
           }).join("")}</div>`
         : `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0">No images yet — resolve Discord attachments, upload below, or drop files into <code>Character Images/</code> / <code>characters/portraits/${esc(row.id)}/</code>.</p>`;
+      const allChars = charsRegistry?.characters || chars;
+      const rels = Array.isArray(row.relations) ? row.relations : [];
+      const relList = rels.length
+        ? `<ul>${rels.map((r) => {
+            const other = allChars.find((c) => c.id === r.to_id);
+            const label = r.label || r.type || "related";
+            const name = other ? (other.display_name || other.id) : r.to_id;
+            return `<li><button type="button" class="linkish" data-rel-id="${esc(r.to_id)}">${esc(name)}</button> · ${esc(label)} <code>${esc(r.type || "")}</code></li>`;
+          }).join("")}</ul>`
+        : `<p class="meta" style="margin:0;font-size:0.72rem">No relations yet.</p>`;
+      const statusOpts = ["active", "hiatus", "retired", "npc", "side", "stub"]
+        .map((s) => `<option value="${s}"${(row.status || "active") === s ? " selected" : ""}>${s}</option>`)
+        .join("");
+      const roleOpts = ["pc", "npc", "side", "gm", "stub", "thread-twin", "author-stub"]
+        .map((s) => `<option value="${s}"${(row.role || "pc") === s ? " selected" : ""}>${s}</option>`)
+        .join("");
+      const retireLabel = row.status === "retired" ? "Unretire" : "Retire";
       body.innerHTML = `
+        <div class="chars-nav">
+          <button type="button" class="btn" id="char-prev" ${prev ? "" : "disabled"} style="width:auto">← Prev</button>
+          <button type="button" class="btn" id="char-next" ${nextNav ? "" : "disabled"} style="width:auto">Next →</button>
+          <span class="meta">${idx + 1} / ${chars.length}</span>
+          <button type="button" class="btn" id="char-retire-toggle" style="width:auto;margin-left:auto">${retireLabel}</button>
+        </div>
         <div class="sheet-hero">
           ${charAvatarHtml(row, "sheet-avatar")}
           <div>
             <h2>${esc(row.display_name || row.id)}${row.role === "gm" ? " <span class=\"meta\">(GM)</span>" : ""}</h2>
             <p class="sheet-sub"><code>${esc(row.id)}</code> · ${esc(row.status || "active")}${row.role ? ` · ${esc(row.role)}` : ""}</p>
-            <p class="sheet-sub">Player: ${esc(row.player_name || "—")}</p>
-            <p class="sheet-sub">Discord: ${discord}</p>
-            ${aliases}
           </div>
         </div>
-        ${notes}
+        <div class="chars-edit-grid">
+          <div class="field"><label for="char-edit-name">Name</label><input type="text" id="char-edit-name" value="${esc(row.display_name || "")}" /></div>
+          <div class="field"><label for="char-edit-player">Player</label><input type="text" id="char-edit-player" value="${esc(row.player_name || "")}" /></div>
+          <div class="field"><label for="char-edit-discord">Discord</label><input type="text" id="char-edit-discord" value="${esc(row.discord_username || "")}" /></div>
+          <div class="field"><label for="char-edit-discord-id">Discord ID</label><input type="text" id="char-edit-discord-id" value="${esc(row.discord_user_id || "")}" /></div>
+          <div class="field"><label for="char-edit-status">Status</label><select id="char-edit-status">${statusOpts}</select></div>
+          <div class="field"><label for="char-edit-role">Type / role</label><select id="char-edit-role">${roleOpts}</select></div>
+          <div class="field field-span"><label for="char-edit-aliases">Aliases (comma-separated)</label><input type="text" id="char-edit-aliases" value="${esc((row.aliases || []).join(", "))}" /></div>
+          <div class="field field-span"><label for="char-edit-notes">Notes</label><textarea id="char-edit-notes" rows="3">${esc(row.notes || "")}</textarea></div>
+        </div>
+        <div class="sheet-actions">
+          <button type="button" class="btn primary" id="char-edit-save">Save fields</button>
+          <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
+          <span class="meta" id="char-edit-result"></span>
+        </div>
+        <div class="chars-relations">
+          <h3>Relations</h3>
+          ${relList}
+          <div class="chars-rel-add">
+            <div class="field"><label for="char-rel-to">Link to</label><select id="char-rel-to">${charOptionsHtml("", true)}</select></div>
+            <div class="field"><label for="char-rel-type">Type</label>
+              <select id="char-rel-type">
+                <option value="related">related</option>
+                <option value="twin_sister">twin_sister</option>
+                <option value="fwb">fwb</option>
+                <option value="partner">partner</option>
+                <option value="roommate">roommate</option>
+                <option value="sibling">sibling</option>
+              </select>
+            </div>
+            <div class="field"><label for="char-rel-label">Label</label><input type="text" id="char-rel-label" placeholder="optional" /></div>
+            <button type="button" class="btn" id="char-rel-add" style="width:auto">Add link</button>
+          </div>
+        </div>
         ${unresolved}
-        <label style="font-size:0.72rem;color:var(--muted)">Portraits — click to set primary</label>
+        <label style="font-size:0.72rem;color:var(--muted)">Portraits — click to set primary · hover × to remove one</label>
         ${galleryHtml}
+        <p class="chars-paste-hint admin-only" id="char-paste-hint">Paste image: Ctrl+V / Cmd+V (Chars tab · character open) · or Choose File / Add from URL below</p>
         <div class="chars-upload-row admin-only">
           <input type="file" id="char-image-file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
           <button type="button" class="btn" id="char-image-upload">Upload</button>
         </div>
-        <div class="field admin-only">
-          <label for="char-image-url">Image URL</label>
-          <input type="text" id="char-image-url" placeholder="https://…/portrait.png" autocomplete="off" />
-        </div>
-        <div class="chars-upload-row admin-only">
-          <button type="button" class="btn" id="char-image-url-import">Import from link</button>
+        <div class="chars-url-import-row admin-only" id="char-url-import-row">
+          <div class="field">
+            <label for="char-image-url">Add from URL (direct image link)</label>
+            <input type="text" id="char-image-url" placeholder="https://…/image.jpg — not the post page" autocomplete="off" />
+          </div>
+          <button type="button" class="btn primary" id="char-image-url-import">Add from URL</button>
         </div>
         <div class="field">
           <label for="char-image-path">Primary path (under campaigns/${esc(charsCampaignFilter)}/)</label>
           <input type="text" id="char-image-path" placeholder="Character Images/Name/file.jpg" value="${esc(row.image_path || "")}" />
         </div>
-        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Art folders are gitignored (~67MB). Sync with scp; uploads / URL imports land in <code>characters/portraits/&lt;id&gt;/</code>.</p>
+        <p class="meta" style="font-size:0.65rem;margin:0.25rem 0 0.5rem">Art folders are gitignored. Clear gallery = empty primary + empty images (server will not re-scrape sheet attachments).</p>
         <div class="sheet-actions">
           <button type="button" class="btn primary" id="char-image-save">Save primary</button>
-          <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
+          <button type="button" class="btn" id="char-gallery-clear" style="width:auto">Clear gallery</button>
           <span class="meta" id="char-image-result"></span>
         </div>`;
 
       if (unresolvedList.length) {
         const openBtn = document.getElementById("chars-attach-open");
         if (openBtn) openBtn.onclick = () => openCharsAttachModal(row);
-        // Auto-open once per character per page load so the issue is actionable, not a passive orange line.
         if (!charsAttachModalShownFor.has(row.id)) {
           charsAttachModalShownFor.add(row.id);
           openCharsAttachModal(row);
         }
       }
 
+      document.getElementById("char-prev")?.addEventListener("click", () => { if (prev) selectCharById(prev.id); });
+      document.getElementById("char-next")?.addEventListener("click", () => { if (nextNav) selectCharById(nextNav.id); });
+      body.querySelectorAll("[data-rel-id]").forEach((btn) => {
+        btn.onclick = () => selectCharById(btn.dataset.relId);
+      });
+
+      document.getElementById("char-retire-toggle").onclick = async () => {
+        const out = document.getElementById("char-edit-result");
+        out.textContent = "Updating status…";
+        try {
+          const status = row.status === "retired" ? "active" : "retired";
+          const j = await patchCharRow({ id: row.id, status });
+          applyCharsRegistry(j, row.id);
+          out.textContent = status === "active" ? "Unretired" : "Retired";
+        } catch (e) {
+          out.textContent = e.message || "Status failed";
+        }
+      };
+
+      document.getElementById("char-edit-save").onclick = async () => {
+        const out = document.getElementById("char-edit-result");
+        out.textContent = "Saving…";
+        try {
+          const aliases = document.getElementById("char-edit-aliases").value
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const j = await patchCharRow({
+            id: row.id,
+            display_name: document.getElementById("char-edit-name").value.trim(),
+            player_name: document.getElementById("char-edit-player").value.trim(),
+            discord_username: document.getElementById("char-edit-discord").value.trim(),
+            discord_user_id: document.getElementById("char-edit-discord-id").value.trim(),
+            status: document.getElementById("char-edit-status").value,
+            role: document.getElementById("char-edit-role").value,
+            aliases,
+            notes: document.getElementById("char-edit-notes").value,
+            story_path: row.story_path || "",
+          });
+          applyCharsRegistry(j, row.id);
+          out.textContent = "Saved";
+        } catch (e) {
+          out.textContent = e.message || "Save failed";
+        }
+      };
+
+      document.getElementById("char-rel-add").onclick = async () => {
+        const out = document.getElementById("char-edit-result");
+        const toId = document.getElementById("char-rel-to").value;
+        if (!toId) {
+          out.textContent = "Pick a character to link";
+          return;
+        }
+        out.textContent = "Linking…";
+        try {
+          const j = await patchCharRow({
+            id: row.id,
+            related_to: toId,
+            relation_type: document.getElementById("char-rel-type").value,
+            relation_label: document.getElementById("char-rel-label").value.trim(),
+          });
+          applyCharsRegistry(j, row.id);
+          out.textContent = "Linked";
+        } catch (e) {
+          out.textContent = e.message || "Link failed";
+        }
+      };
+
       async function savePrimaryPath(image_path) {
         const out = document.getElementById("char-image-result");
         out.textContent = "Saving…";
         try {
-          const res = await fetch(`${base}/api/characters-registry`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              campaign: charsCampaignFilter,
-              id: row.id,
-              display_name: row.display_name,
-              story_path: row.story_path,
-              image_path,
-            }),
+          const j = await patchCharRow({
+            id: row.id,
+            display_name: row.display_name,
+            story_path: row.story_path,
+            image_path,
           });
-          const j = await res.json();
-          if (!res.ok) {
-            out.textContent = j.error || "Save failed";
-            return;
-          }
-          charsRegistry = j;
-          const next = (j.characters || []).find((c) => c.id === row.id);
-          out.textContent = next?.has_image ? "Saved · primary set" : "Saved · file missing";
-          selectedCharId = row.id;
-          renderCharactersRoster();
-          if (next) renderCharacterSheet(next);
+          const nextRow = applyCharsRegistry(j, row.id);
+          out.textContent = nextRow?.has_image ? "Saved · primary set" : "Saved · file missing / empty";
         } catch (e) {
           out.textContent = e.message || "Save failed";
         }
@@ -3537,12 +4067,112 @@
       document.getElementById("char-image-save").onclick = () => {
         savePrimaryPath(document.getElementById("char-image-path").value.trim());
       };
+      document.getElementById("char-gallery-clear").onclick = async () => {
+        const out = document.getElementById("char-image-result");
+        out.textContent = "Clearing gallery…";
+        try {
+          const j = await patchCharRow({
+            id: row.id,
+            image_path: "",
+            images: [],
+            doc_attachments: [],
+          });
+          applyCharsRegistry(j, row.id);
+          out.textContent = "Gallery cleared (won’t re-scrape sheet attachments)";
+        } catch (e) {
+          out.textContent = e.message || "Clear failed";
+        }
+      };
       const gallery = document.getElementById("char-gallery");
       if (gallery) {
-        gallery.querySelectorAll("button[data-path]").forEach((btn) => {
+        gallery.querySelectorAll("button.chars-gal-pick[data-path]").forEach((btn) => {
           btn.onclick = () => savePrimaryPath(btn.dataset.path);
         });
+        gallery.querySelectorAll("button.chars-gal-del[data-path]").forEach((btn) => {
+          btn.onclick = async (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const p = btn.dataset.path;
+            if (!p) return;
+            const short = p.split("/").pop() || p;
+            if (!confirm(`Remove this portrait?\n\n${short}\n\nHey — are you sure? This deletes that image file if it’s under this character’s portraits folder. The character stays.`)) {
+              return;
+            }
+            const out = document.getElementById("char-image-result");
+            out.textContent = "Removing portrait…";
+            try {
+              const res = await fetch(`${base}/api/characters-registry/remove-image`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  campaign: charsCampaignFilter,
+                  id: row.id,
+                  path: p,
+                  base_version: charsRegistry && charsRegistry.version,
+                }),
+              });
+              const j = await res.json();
+              if (!res.ok) {
+                out.textContent =
+                  j.error === "version_conflict"
+                    ? await reloadCharsAfterConflict(j)
+                    : j.error || "Remove failed";
+                return;
+              }
+              applyCharsRegistry(j, row.id);
+              out.textContent = j.deleted_file ? "Portrait removed (file deleted)" : "Portrait removed from gallery";
+            } catch (e) {
+              out.textContent = e.message || "Remove failed";
+            }
+          };
+        });
       }
+      async function uploadPortraitBlob(file, successLabel) {
+        const out = document.getElementById("char-image-result");
+        if (!file) {
+          out.textContent = "No image";
+          return false;
+        }
+        if (file.size > 4 * 1024 * 1024) {
+          out.textContent = "Max 4MB";
+          return false;
+        }
+        out.textContent = "Uploading…";
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("read_failed"));
+            reader.readAsDataURL(file);
+          });
+          const res = await fetch(`${base}/api/characters-registry/upload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              campaign: charsCampaignFilter,
+              id: row.id,
+              filename: file.name || "paste.png",
+              data_base64: dataUrl,
+              base_version: charsRegistry && charsRegistry.version,
+            }),
+          });
+          const j = await res.json();
+          if (!res.ok) {
+            out.textContent =
+              j.error === "version_conflict"
+                ? await reloadCharsAfterConflict(j)
+                : j.error || "Upload failed";
+            return false;
+          }
+          applyCharsRegistry(j, row.id);
+          out.textContent = successLabel || "Uploaded";
+          return true;
+        } catch (e) {
+          out.textContent = e.message || "Upload failed";
+          return false;
+        }
+      }
+
       const uploadBtn = document.getElementById("char-image-upload");
       if (uploadBtn) {
         uploadBtn.onclick = async () => {
@@ -3553,42 +4183,7 @@
             out.textContent = "Choose a file first";
             return;
           }
-          if (file.size > 4 * 1024 * 1024) {
-            out.textContent = "Max 4MB";
-            return;
-          }
-          out.textContent = "Uploading…";
-          try {
-            const dataUrl = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = () => reject(new Error("read_failed"));
-              reader.readAsDataURL(file);
-            });
-            const res = await fetch(`${base}/api/characters-registry/upload`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                campaign: charsCampaignFilter,
-                id: row.id,
-                filename: file.name,
-                data_base64: dataUrl,
-              }),
-            });
-            const j = await res.json();
-            if (!res.ok) {
-              out.textContent = j.error || "Upload failed";
-              return;
-            }
-            charsRegistry = j;
-            const next = (j.characters || []).find((c) => c.id === row.id);
-            out.textContent = "Uploaded";
-            selectedCharId = row.id;
-            renderCharactersRoster();
-            if (next) renderCharacterSheet(next);
-          } catch (e) {
-            out.textContent = e.message || "Upload failed";
-          }
+          await uploadPortraitBlob(file, "Uploaded");
         };
       }
       const urlImportBtn = document.getElementById("char-image-url-import");
@@ -3598,14 +4193,14 @@
           const url = (urlInput?.value || "").trim();
           const out = document.getElementById("char-image-result");
           if (!url) {
-            out.textContent = "Paste an image URL first";
+            out.textContent = "Paste a direct image URL first";
             return;
           }
           if (!/^https?:\/\//i.test(url)) {
             out.textContent = "URL must start with http:// or https://";
             return;
           }
-          out.textContent = "Importing from link…";
+          out.textContent = "Fetching image from URL…";
           try {
             const res = await fetch(`${base}/api/characters-registry/import-image-url`, {
               method: "POST",
@@ -3614,16 +4209,22 @@
                 campaign: charsCampaignFilter,
                 id: row.id,
                 url,
+                base_version: charsRegistry && charsRegistry.version,
               }),
             });
             const j = await res.json();
             if (!res.ok) {
               const err = j.error || "Import failed";
+              if (err === "version_conflict") {
+                out.textContent = await reloadCharsAfterConflict(j);
+                return;
+              }
               const hint = {
-                fetch_forbidden_403: "Remote blocked the fetch (403) — try another host or download+Upload",
+                fetch_forbidden_403: "Remote blocked the fetch (403) — try another direct image host or paste/Upload",
                 fetch_not_found_404: "Image URL not found (404) — link may be expired",
                 fetch_timeout: "Fetch timed out — try again or Upload a file",
                 not_an_image: "URL did not return an image",
+                need_direct_image_url: "Got an HTML page — use a direct image URL (…/file.jpg), not the post page",
                 image_too_large: "Image over 4MB",
                 url_host_blocked: "That host is not allowed",
                 url_http_https_only: "Only http/https URLs",
@@ -3632,17 +4233,15 @@
               out.textContent = hint ? `${err} — ${hint}` : err;
               return;
             }
-            charsRegistry = j;
-            const next = (j.characters || []).find((c) => c.id === row.id);
-            out.textContent = "Imported from link";
-            selectedCharId = row.id;
-            renderCharactersRoster();
-            if (next) renderCharacterSheet(next);
+            applyCharsRegistry(j, row.id);
+            out.textContent = "Added from URL";
           } catch (e) {
             out.textContent = e.message || "Import failed";
           }
         };
       }
+      // Clipboard paste while this character sheet is open (handler set once below also covers Chars tab).
+      charsPasteUploadFn = (file) => uploadPortraitBlob(file, "Pasted");
       const openBtn = document.getElementById("char-open-story");
       if (openBtn && row.story_path) {
         openBtn.onclick = () => {
@@ -3654,7 +4253,6 @@
         };
       }
     }
-
     function initStoryCampaignPicker(catalog) {
       const sel = document.getElementById("story-campaign");
       if (!sel) return;
@@ -3944,6 +4542,94 @@
       };
     }
 
+    /** Prefer meaningful campaign/meta work; else latest tick — server builds data.last_run. */
+    function pickLastCompleted(data) {
+      const lr = data?.last_run;
+      if (lr?.primary) return lr.primary;
+      const pods = data?.recent_pods || [];
+      const work = pods.find((p) => p.meaningful) || pods.find((p) => !p.idle) || pods[0];
+      if (work) return work;
+      const think = data?.lanes?.["agent-cycle-think"];
+      const fast = data?.lanes?.["agent-cycle-fast"];
+      const thinkTs = think?.last_run ? new Date(think.last_run).getTime() : 0;
+      const fastTs = fast?.last_run ? new Date(fast.last_run).getTime() : 0;
+      if (!thinkTs && !fastTs) return null;
+      const useThink = thinkTs >= fastTs;
+      const lane = useThink ? think : fast;
+      return {
+        name: useThink ? "think" : "fast",
+        label: useThink ? "Think / ops lane" : "Fast lane",
+        kind: "tick",
+        kind_label: useThink ? "last think tick" : "last fast tick",
+        ts: lane.last_run,
+        summary: lane.status || "tick",
+        exit: null,
+        idle: false,
+        outcome: "ok",
+        detail: "",
+        meaningful: false,
+      };
+    }
+
+    function outcomeChip(p) {
+      const o = p?.outcome || (p?.idle ? "idle" : p?.exit != null && p.exit !== 0 ? "fail" : "ok");
+      if (o === "idle") return `<span class="aw-chip muted">IDLE</span>`;
+      if (o === "fail") {
+        const bit = p?.exit === -1 ? "timeout" : `exit ${esc(String(p?.exit ?? "?"))}`;
+        return `<span class="aw-chip warn">${bit}</span>`;
+      }
+      return `<span class="aw-chip ok">ok</span>`;
+    }
+
+    function hubLastCompletedHtml(data) {
+      const last = pickLastCompleted(data);
+      const lr = data?.last_run || {};
+      if (!last) {
+        return `<div class="hub-last-completed" id="hub-last-run">
+          <div class="aw-label">Last run</div>
+          <div class="running-now-idle">No run-index / lane ticks yet</div>
+        </div>`;
+      }
+      const what = last.label || last.name || "?";
+      const detail = last.detail
+        ? `<span class="meta">${esc(String(last.detail).slice(0, 100))}</span>`
+        : "";
+      const kind = last.kind_label
+        ? `<span class="aw-kind">${esc(last.kind_label)}</span>`
+        : "";
+      // If we preferred meaningful over a newer tick, show the tick as secondary
+      let secondary = "";
+      if (lr.preferred_meaningful && lr.latest && lr.latest.name !== last.name) {
+        const t = lr.latest;
+        secondary = `<div class="hub-last-run-secondary">
+          Also: ${outcomeChip(t)} <strong>${esc(t.label || t.name)}</strong>
+          <span class="aw-time">${esc(t.ts ? fmtEtTime(t.ts) : "—")}</span>
+          <span class="aw-kind" style="display:inline;margin-left:0.35rem">${esc(t.kind_label || "latest tick")}</span>
+        </div>`;
+      } else if (!last.meaningful && lr.meaningful && lr.meaningful.ts !== last.ts) {
+        const m = lr.meaningful;
+        secondary = `<div class="hub-last-run-secondary">
+          Last meaningful: ${outcomeChip(m)} <strong>${esc(m.label || m.name)}</strong>
+          <span class="aw-time">${esc(m.ts ? fmtEt(m.ts) : "—")}</span>
+        </div>`;
+      }
+      const recent = (data?.recent_pods || []).slice(0, 3).map((p) => {
+        const chip = outcomeChip(p);
+        const when = p.ts ? `<span class="aw-time">${esc(fmtEtTime(p.ts))}</span>` : "";
+        const lab = esc(p.label || p.name);
+        return `<div class="aw-row">${chip}<strong>${lab}</strong>${when}</div>`;
+      }).join("");
+      return `<div class="hub-last-completed" id="hub-last-run">
+        <div class="aw-label">Last run</div>
+        <div class="aw-line">${outcomeChip(last)}<strong>${esc(what)}</strong>
+          <span class="aw-time">${esc(last.ts ? fmtEt(last.ts) : "—")}</span>${detail}
+        </div>
+        ${kind}
+        ${secondary}
+        ${recent ? `<div class="hub-recent-ticks">${recent}</div>` : ""}
+      </div>`;
+    }
+
     function renderRunningNow(data, mode) {
       const info = collectRunningNow(data);
       if (mode === "chrome") {
@@ -3974,13 +4660,14 @@
       if (mode === "hub") {
         const el = document.getElementById("hub-running-now");
         if (!el) return;
+        const lastBlock = hubLastCompletedHtml(data);
         if (!info.anything) {
           el.className = "hub-running-now";
-          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">Nothing running right now</div>`;
+          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">Nothing running right now</div>${lastBlock}`;
           return;
         }
         el.className = "hub-running-now live";
-        el.innerHTML = `<div class="aw-label">Running now</div>${rowsHtml}`;
+        el.innerHTML = `<div class="aw-label">Running now</div>${rowsHtml}${lastBlock}`;
         return;
       }
 
@@ -4156,7 +4843,7 @@
         ? (oc.awaiting_laptop ? "OPEN CHANNEL · awaiting [LAPTOP] reply" : "OPEN CHANNEL · laptop replied")
         : "no OPEN CHANNEL";
       const metaCls = oc.awaiting_laptop ? "machine-sync-meta warn" : "machine-sync-meta";
-      const metaHtml = `${esc(gitLine)} · ${esc(channelLine)}`;
+      const metaHtml = `Sync · ${gitLine} · ${channelLine}`;
 
       const listId = opts.listId || "machines-list";
       const metaId = opts.metaId || "machines-sync-meta";
@@ -4175,11 +4862,473 @@
       }
     }
 
+    function renderMeta(data) {
+      const m = data?.meta_lane || {};
+      const blurbEl = document.getElementById("meta-blurb");
+      if (blurbEl) {
+        blurbEl.textContent = m.blurb
+          || "Dashboard self-improvement lane: backlog → one task → verify → Done.";
+      }
+      const countEl = document.getElementById("meta-backlog-count");
+      if (countEl) {
+        const n = m.open_count ?? (data?.dashboard_backlog_open || []).length;
+        countEl.textContent = `${n} open`;
+      }
+      const cardsEl = document.getElementById("meta-cards");
+      if (cardsEl) {
+        const next = m.next_item
+          || (data?.dashboard_backlog_open || [])[0]
+          || null;
+        const lastDone = m.last_done;
+        const smoke = m.smoke;
+        const metaRun = m.last_meta_run;
+        const smokeLine = smoke
+          ? (smoke.failed != null
+            ? `${smoke.failed === 0 ? "pass" : "fail"} · ${smoke.passed ?? "?"} ok · ${smoke.warned ?? "?"} warn · ${smoke.date || "?"}`
+            : smoke.date || "report present")
+          : "no smoke report";
+        const lastDoneLine = lastDone
+          ? `${(lastDone.text || "").replace(/\*\*/g, "").slice(0, 100)}${lastDone.date ? ` · ${lastDone.date}` : ""}`
+          : "—";
+        const metaRunLine = metaRun
+          ? `${metaRun.label || metaRun.name}${metaRun.ts ? ` · ${fmtEt(metaRun.ts)}` : ""}${metaRun.outcome ? ` · ${metaRun.outcome}` : ""}${metaRun.detail ? ` — ${String(metaRun.detail).slice(0, 60)}` : (metaRun.summary ? ` — ${String(metaRun.summary).slice(0, 60)}` : "")}`
+          : "no meta/dashboard tick in recent run-index";
+        cardsEl.innerHTML = `
+          <div class="meta-card">
+            <div class="aw-label">Next meta task</div>
+            <div>${next ? esc(String(next).replace(/\*\*/g, "").slice(0, 140)) : '<span class="meta">Backlog clear</span>'}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">Last Done</div>
+            <div>${esc(lastDoneLine)}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">Last meta-ish tick</div>
+            <div>${esc(metaRunLine)}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">UI smoke</div>
+            <div>${esc(smokeLine)}</div>
+            <div class="meta-paths">${esc(smoke?.path || "reports/dashboard-ui-smoke/latest.json")}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">Paths</div>
+            <div class="meta-paths">${esc(m.backlog_path || "agents/LINUXBOX_DASHBOARD_BACKLOG.md")}<br>${esc(m.task_path || "agents/LINUXBOX_DASHBOARD_TASK.md")}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">Update gate</div>
+            <div>${esc(m.update_gate || "safe-update-check.sh → SAFE")}</div>
+            <div class="meta-paths">${esc(m.update_targets || "agents/update-targets.json")}</div>
+          </div>`;
+      }
+      const list = document.getElementById("backlog-open");
+      if (list) {
+        const items = (m.open_preview && m.open_preview.length)
+          ? m.open_preview
+          : (data?.dashboard_backlog_open || []);
+        list.innerHTML = items.length
+          ? items.map((t) => `<li>${esc(String(t).replace(/\*\*/g, ""))}</li>`).join("")
+          : "<li class='empty'>Empty</li>";
+      }
+    }
+
     function laneState(l) {
       const st = l?.status || "pending";
       if (st.startsWith("ok") || st === "active") return "ok";
       if (st === "pending") return "warn";
       return "bad";
+    }
+
+    let hubResourcesModalOpen = false;
+    let hubResourcesPollTimer = null;
+    let hubResourcesProcsAt = 0;
+    let hubResourcesInFlight = false;
+    const HUB_RESOURCES_MS = 1000;
+    const HUB_PROCS_MS = 8000;
+    const HUB_AGENT_MS = 20000;
+
+    function hostPctClass(pct, warnAt, badAt) {
+      if (pct == null || !Number.isFinite(pct)) return "";
+      if (pct >= badAt) return "bad";
+      if (pct >= warnAt) return "warn";
+      return "ok";
+    }
+
+    function setBarFill(barEl, pct, warnAt, badAt) {
+      if (!barEl) return;
+      const width = Math.min(100, Math.max(0, pct ?? 0));
+      const cls = hostPctClass(pct, warnAt, badAt);
+      barEl.classList.remove("ok", "warn", "bad");
+      if (cls) barEl.classList.add(cls);
+      const span = barEl.querySelector("span");
+      if (span) span.style.width = `${width}%`;
+    }
+
+    function setPctLabel(el, pct, warnAt, badAt) {
+      if (!el) return;
+      const cls = hostPctClass(pct, warnAt, badAt);
+      el.classList.remove("ok", "warn", "bad", "muted");
+      if (cls) el.classList.add(cls);
+      el.textContent = pct != null && Number.isFinite(pct) ? `${pct}%` : "?";
+    }
+
+    function cpuCoresBarsHtml(cores, warnAt, badAt) {
+      if (!Array.isArray(cores) || !cores.length) return "";
+      return `<div class="cpu-cores" id="hub-cpu-cores" title="Per-core utilization (rolling /proc/stat)">${cores
+        .map((c) => {
+          const pct = c.pct;
+          const cls = hostPctClass(pct, warnAt, badAt);
+          const width = Math.min(100, Math.max(0, pct ?? 0));
+          const lab = pct != null && Number.isFinite(pct) ? `${pct}%` : "?";
+          return `<div class="cpu-core" data-core-id="${esc(String(c.id))}">
+            <div class="cpu-core-lab"><span>c${esc(String(c.id))}</span><span class="cpu-core-pct ${cls}">${esc(lab)}</span></div>
+            <div class="sys-bar ${cls}"><span style="width:${width}%"></span></div>
+          </div>`;
+        })
+        .join("")}</div>`;
+    }
+
+    function patchCpuCoresBars(root, cores, warnAt, badAt) {
+      if (!root || !Array.isArray(cores) || !cores.length) return;
+      let wrap = root.querySelector("#hub-cpu-cores, .cpu-cores");
+      if (!wrap) {
+        wrap = document.createElement("div");
+        wrap.innerHTML = cpuCoresBarsHtml(cores, warnAt, badAt);
+        const node = wrap.firstElementChild;
+        if (node) {
+          const insertAt = root.querySelector(".hub-cpu-wrap") || root;
+          if (insertAt.classList?.contains("hub-cpu-wrap")) {
+            insertAt.innerHTML = "";
+            insertAt.appendChild(node);
+          } else {
+            root.appendChild(node);
+          }
+        }
+        return;
+      }
+      for (const c of cores) {
+        const row = wrap.querySelector(`[data-core-id="${String(c.id)}"]`);
+        if (!row) continue;
+        setPctLabel(row.querySelector(".cpu-core-pct"), c.pct, warnAt, badAt);
+        setBarFill(row.querySelector(".sys-bar"), c.pct, warnAt, badAt);
+      }
+    }
+
+    function hubResBarHtml(label, pct, hint, warnAt, badAt, unavailable, extraHtml, resKey) {
+      const key = resKey || label.toLowerCase();
+      if (unavailable) {
+        return `<button type="button" class="hub-res-row" data-open-resources data-res="${esc(key)}" title="Open resource detail">
+          <div class="hub-res-head"><span class="hub-res-label">${esc(label)}</span><span class="hub-res-pct muted" data-res-pct>N/A</span></div>
+          <div class="sys-bar" data-res-bar><span style="width:0%"></span></div>
+          <div class="hub-res-hint" data-res-hint>${esc(hint || "unavailable")}</div>
+        </button>`;
+      }
+      const cls = hostPctClass(pct, warnAt, badAt);
+      const width = Math.min(100, Math.max(0, pct ?? 0));
+      const pctLabel = pct != null && Number.isFinite(pct) ? `${pct}%` : "?";
+      return `<button type="button" class="hub-res-row" data-open-resources data-res="${esc(key)}" title="Open resource detail">
+        <div class="hub-res-head"><span class="hub-res-label">${esc(label)}</span><span class="hub-res-pct ${cls}" data-res-pct>${esc(pctLabel)}</span></div>
+        <div class="sys-bar ${cls}" data-res-bar><span style="width:${width}%"></span></div>
+        ${extraHtml || ""}
+        <div class="hub-res-hint" data-res-hint>${esc(hint || "")}</div>
+      </button>`;
+    }
+
+    function mergeHostResourcesIntoAgent(hr) {
+      if (!hr) return;
+      if (!agentData) agentData = {};
+      const prev = agentData.host_resources || {};
+      agentData.host_resources = {
+        ...prev,
+        ...hr,
+        // Keep heavier fields unless the light payload includes them
+        top_processes: hr.top_processes || prev.top_processes,
+        gpu: hr.gpu || prev.gpu,
+        storage: hr.storage || prev.storage,
+      };
+    }
+
+    function patchHubResourceBars(hr) {
+      const el = document.getElementById("hub-resources");
+      if (!el || !hr) return;
+      const cpuRow = el.querySelector('[data-res="cpu"]');
+      if (cpuRow) {
+        setPctLabel(cpuRow.querySelector("[data-res-pct]"), hr.cpu_pct, 70, 90);
+        setBarFill(cpuRow.querySelector("[data-res-bar]"), hr.cpu_pct, 70, 90);
+        const hint = cpuRow.querySelector("[data-res-hint]");
+        if (hint) {
+          hint.textContent = hr.cpu_warmup
+            ? "warming up…"
+            : hr.load_avg
+              ? `load ${hr.load_avg}`
+              : "live /proc";
+        }
+        const wrap = cpuRow.querySelector(".hub-cpu-wrap") || cpuRow;
+        patchCpuCoresBars(wrap, hr.cpu_cores, 70, 90);
+      }
+      const ramRow = el.querySelector('[data-res="ram"]');
+      if (ramRow) {
+        setPctLabel(ramRow.querySelector("[data-res-pct]"), hr.mem_used_pct, 75, 90);
+        setBarFill(ramRow.querySelector("[data-res-bar]"), hr.mem_used_pct, 75, 90);
+        const hint = ramRow.querySelector("[data-res-hint]");
+        if (hint) {
+          hint.textContent =
+            hr.mem_used_mb != null && hr.mem_total_mb != null
+              ? `${hr.mem_used_mb}/${hr.mem_total_mb} MiB`
+              : hr.mem_avail_mb != null
+                ? `avail ${hr.mem_avail_mb} MiB`
+                : "";
+        }
+      }
+      const meta = el.querySelector(".hub-host-meta");
+      if (meta && hr.hostname) {
+        const n = Array.isArray(hr.cpu_cores) ? hr.cpu_cores.length : 0;
+        meta.textContent = n ? `host ${hr.hostname} · ${n} cores` : `host ${hr.hostname}`;
+      }
+    }
+
+    function patchHubResourcesModalLive(hr) {
+      if (!hubResourcesModalOpen || !hr) return;
+      const body = document.getElementById("hub-resources-modal-body");
+      if (!body) return;
+      // Prefer surgical updates when structure already rendered
+      const metaCpu = body.querySelector('[data-hr-k="cpu"] .v');
+      const metaRam = body.querySelector('[data-hr-k="ram"] .v');
+      const metaLoad = body.querySelector('[data-hr-k="load"] .v');
+      const metaSwap = body.querySelector('[data-hr-k="swap"] .v');
+      if (metaCpu) {
+        const cores =
+          Array.isArray(hr.cpu_cores) && hr.cpu_cores.length ? ` · ${hr.cpu_cores.length} cores` : "";
+        metaCpu.textContent = `${hr.cpu_pct != null ? `${hr.cpu_pct}%` : "?"}${cores}`;
+      }
+      if (metaRam) {
+        const memHint =
+          hr.mem_used_mb != null && hr.mem_total_mb != null
+            ? ` · ${hr.mem_used_mb}/${hr.mem_total_mb} MiB`
+            : "";
+        metaRam.textContent = `${hr.mem_used_pct != null ? `${hr.mem_used_pct}%` : "?"}${memHint}`;
+      }
+      if (metaLoad) metaLoad.textContent = hr.load_avg || "?";
+      if (metaSwap) metaSwap.textContent = hr.swap_used_pct != null ? `${hr.swap_used_pct}%` : "?";
+      patchCpuCoresBars(body, hr.cpu_cores, 70, 90);
+      const sampled = body.querySelector("[data-hr-sampled]");
+      if (sampled) {
+        sampled.textContent = `Sampled ${hr.sampled_at || "?"}${hr.cached ? " · cached" : ""}${
+          hr.light ? " · light" : ""
+        }`;
+      }
+    }
+
+    function renderHubResourcesModalBody(data) {
+      const body = document.getElementById("hub-resources-modal-body");
+      if (!body) return;
+      const hr = data.host_resources || {};
+      const gpu = hr.gpu || {};
+      const top = hr.top_processes || {};
+      const rn = data.running_now || {};
+      const memHint =
+        hr.mem_used_mb != null && hr.mem_total_mb != null
+          ? `${hr.mem_used_mb}/${hr.mem_total_mb} MiB`
+          : "";
+      const gpuLine = gpu.available
+        ? `${gpu.name || "GPU"} · ${gpu.used_pct != null ? `${gpu.used_pct}%` : "?"}`
+        : gpu.name
+          ? `${gpu.name} · ${gpu.note || "N/A"}`
+          : gpu.note || "N/A";
+      const runningBits = [];
+      if (rn.pod) {
+        const podLabel =
+          typeof rn.pod === "string"
+            ? rn.pod
+            : rn.pod.name || rn.pod.pod || rn.pod.id || "pod";
+        runningBits.push(`pod ${podLabel}`);
+      }
+      if (Array.isArray(rn.chat_jobs) && rn.chat_jobs.length) {
+        runningBits.push(`${rn.chat_jobs.length} chat job(s)`);
+      }
+      const runningLine = runningBits.length ? runningBits.join(" · ") : "Nothing running right now";
+
+      const renderProcTable = (rows, cpuFirst) => {
+        if (!rows || !rows.length) return '<p class="empty">None</p>';
+        const head = cpuFirst
+          ? "<tr><th>PID</th><th>CPU%</th><th>MEM%</th><th>RSS</th><th>CMD</th></tr>"
+          : "<tr><th>PID</th><th>RSS</th><th>MEM%</th><th>CPU%</th><th>CMD</th></tr>";
+        const bodyRows = rows
+          .map((p) => {
+            if (cpuFirst) {
+              return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(String(p.cpu_pct))}</td><td class="num">${esc(String(p.mem_pct))}</td><td class="num">${esc(String(p.rss_mb))}M</td><td class="cmd" title="${esc(p.command || "")}">${esc(p.command || "")}</td></tr>`;
+            }
+            return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(String(p.rss_mb))}M</td><td class="num">${esc(String(p.mem_pct))}</td><td class="num">${esc(String(p.cpu_pct))}</td><td class="cmd" title="${esc(p.command || "")}">${esc(p.command || "")}</td></tr>`;
+          })
+          .join("");
+        return `<table class="sys-proc-table"><thead>${head}</thead><tbody>${bodyRows}</tbody></table>`;
+      };
+
+      body.innerHTML = `
+        <div class="hub-res-modal-meta">
+          <div data-hr-k="host"><div class="k">Host</div><div class="v">${esc(hr.hostname || "?")}</div></div>
+          <div data-hr-k="cpu"><div class="k">CPU</div><div class="v">${esc(hr.cpu_pct != null ? `${hr.cpu_pct}%` : "?")}${
+            Array.isArray(hr.cpu_cores) && hr.cpu_cores.length
+              ? ` · ${hr.cpu_cores.length} cores`
+              : ""
+          }</div></div>
+          <div data-hr-k="ram"><div class="k">RAM</div><div class="v">${esc(hr.mem_used_pct != null ? `${hr.mem_used_pct}%` : "?")}${memHint ? ` · ${esc(memHint)}` : ""}</div></div>
+          <div data-hr-k="gpu"><div class="k">GPU</div><div class="v">${esc(gpuLine)}</div></div>
+          <div data-hr-k="load"><div class="k">Load</div><div class="v">${esc(hr.load_avg || "?")}</div></div>
+          <div data-hr-k="swap"><div class="k">Swap</div><div class="v">${esc(hr.swap_used_pct != null ? `${hr.swap_used_pct}%` : "?")}</div></div>
+          <div data-hr-k="active"><div class="k">Active</div><div class="v">${esc(runningLine)}</div></div>
+        </div>
+        ${
+          Array.isArray(hr.cpu_cores) && hr.cpu_cores.length
+            ? `<div class="hub-cpu-wrap" style="margin-bottom:0.75rem"><div class="k" style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:0.25rem">Per-core CPU</div>${cpuCoresBarsHtml(
+                hr.cpu_cores,
+                70,
+                90
+              )}</div>`
+            : ""
+        }
+        <div class="sys-procs-wrap">
+          <div class="sys-procs"><h3>Top CPU</h3>${renderProcTable(top.by_cpu, true)}</div>
+          <div class="sys-procs"><h3>Top RSS</h3>${renderProcTable(top.by_rss, false)}</div>
+        </div>
+        <p class="meta" data-hr-sampled style="margin-top:0.75rem">Sampled ${esc(hr.sampled_at || "?")}${hr.cached ? " · cached" : ""}${hr.light ? " · light" : ""}</p>`;
+    }
+
+    function openHubResourcesModal() {
+      const modal = document.getElementById("hub-resources-modal");
+      if (!modal) return;
+      hubResourcesModalOpen = true;
+      hubResourcesProcsAt = 0; // force procs refresh on open
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      if (agentData) renderHubResourcesModalBody(agentData);
+      pollHubResources(true);
+    }
+
+    function closeHubResourcesModal() {
+      const modal = document.getElementById("hub-resources-modal");
+      if (!modal) return;
+      hubResourcesModalOpen = false;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      syncHubResourcesPolling();
+    }
+
+    function renderHubResources(data) {
+      const el = document.getElementById("hub-resources");
+      if (!el) return;
+      const hr = data.host_resources || {};
+      const gpu = hr.gpu || {};
+      const memHint =
+        hr.mem_used_mb != null && hr.mem_total_mb != null
+          ? `${hr.mem_used_mb}/${hr.mem_total_mb} MiB`
+          : hr.mem_avail_mb != null
+            ? `avail ${hr.mem_avail_mb} MiB`
+            : "";
+      const gpuUnavailable = !gpu.available;
+      const gpuHint = gpu.available
+        ? gpu.name || "GPU"
+        : gpu.name
+          ? `${gpu.name} · ${gpu.note || "no counter"}`
+          : gpu.note || "No GPU / unavailable";
+
+      const coresHtml = cpuCoresBarsHtml(hr.cpu_cores, 70, 90);
+      const hostMeta = hr.hostname
+        ? `<p class="hub-host-meta">host ${esc(hr.hostname)}${
+            Array.isArray(hr.cpu_cores) && hr.cpu_cores.length
+              ? ` · ${hr.cpu_cores.length} cores`
+              : ""
+          }</p>`
+        : "";
+
+      const cpuHint = hr.cpu_warmup
+        ? "warming up…"
+        : hr.load_avg
+          ? `load ${hr.load_avg}`
+          : "live /proc";
+
+      el.innerHTML = `
+        <div class="hub-resources-head">
+          <h2>Resources</h2>
+          <button type="button" class="hub-resources-open" id="hub-resources-open" data-open-resources>Detail</button>
+        </div>
+        <div class="hub-res-grid">
+          ${hubResBarHtml(
+            "CPU",
+            hr.cpu_pct,
+            cpuHint,
+            70,
+            90,
+            false,
+            coresHtml ? `<div class="hub-cpu-wrap">${coresHtml}</div>` : "",
+            "cpu"
+          )}
+          ${hubResBarHtml("RAM", hr.mem_used_pct, memHint, 75, 90, false, "", "ram")}
+          ${hubResBarHtml("GPU", gpu.used_pct, gpuHint, 70, 90, gpuUnavailable, "", "gpu")}
+        </div>
+        ${hostMeta}`;
+
+      el.querySelectorAll("[data-open-resources]").forEach((btn) => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          openHubResourcesModal();
+        };
+      });
+      if (hubResourcesModalOpen) renderHubResourcesModalBody(data);
+    }
+
+    function shouldPollHubResources() {
+      if (sessionRole === "viewer") return false;
+      if (document.visibilityState === "hidden") return false;
+      return activeTab === "hub" || hubResourcesModalOpen;
+    }
+
+    async function pollHubResources(forceProcs) {
+      if (!shouldPollHubResources() || hubResourcesInFlight) return;
+      hubResourcesInFlight = true;
+      try {
+        const wantProcs =
+          forceProcs === true ||
+          (hubResourcesModalOpen && Date.now() - hubResourcesProcsAt >= HUB_PROCS_MS);
+        const qs = wantProcs ? "?procs=1" : "";
+        const res = await fetch(`${base}/api/host-resources${qs}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!res.ok) return;
+        const hr = await res.json();
+        mergeHostResourcesIntoAgent(hr);
+        const el = document.getElementById("hub-resources");
+        if (el && !el.querySelector('[data-res="cpu"]')) {
+          // First paint / after full Hub rebuild gap — structural render once
+          if (agentData) renderHubResources(agentData);
+        } else {
+          patchHubResourceBars(hr);
+        }
+        if (hubResourcesModalOpen) {
+          if (wantProcs && hr.top_processes) {
+            hubResourcesProcsAt = Date.now();
+            if (agentData) renderHubResourcesModalBody(agentData);
+          } else {
+            patchHubResourcesModalLive(hr);
+          }
+        }
+      } catch {
+        /* ignore transient */
+      } finally {
+        hubResourcesInFlight = false;
+      }
+    }
+
+    function syncHubResourcesPolling() {
+      const on = shouldPollHubResources();
+      if (on && !hubResourcesPollTimer) {
+        pollHubResources(false);
+        hubResourcesPollTimer = setInterval(() => pollHubResources(false), HUB_RESOURCES_MS);
+      } else if (!on && hubResourcesPollTimer) {
+        clearInterval(hubResourcesPollTimer);
+        hubResourcesPollTimer = null;
+      }
     }
 
     function renderHub(data) {
@@ -4246,10 +5395,12 @@
         el.onclick = () => goTab(el.dataset.tab);
       });
 
+      renderHubResources(data);
+
       document.getElementById("kpi-secondary").innerHTML = [
         ["USB", data.usb_mounted === "yes" ? "mounted" : data.usb_mounted || "?", data.usb_mounted === "yes" ? "" : "warn"],
-        ["Memory free", `${data.mem_available || "?"} MiB`, ""],
         ["Disk free", data.root_free || "?", ""],
+        ["Swap", data.host_resources?.swap_used_pct != null ? `${data.host_resources.swap_used_pct}%` : "?", hostPctClass(data.host_resources?.swap_used_pct, 50, 85)],
         ["API keys", data.openrouter_key === "set" ? "set" : "missing", data.openrouter_key === "set" ? "" : "warn"],
       ].map(([l, v, c]) => `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(v)}</div></div>`).join("");
 
@@ -4335,16 +5486,10 @@
     let expandedSystemId = null;
     const systemDetailCache = {};
 
-    function hostPctClass(pct, warnAt, badAt) {
-      if (pct == null || !Number.isFinite(pct)) return "";
-      if (pct >= badAt) return "bad";
-      if (pct >= warnAt) return "warn";
-      return "ok";
-    }
-
     function renderHostPanel(data) {
       const host = data.host || {};
       const telem = (data.resource || {}).telemetry || {};
+      const gpu = host.gpu || {};
       const memHint =
         host.mem_used_mb != null && host.mem_total_mb != null
           ? `${host.mem_used_mb}/${host.mem_total_mb} MiB · avail ${host.mem_avail_mb ?? "?"} MiB`
@@ -4356,21 +5501,48 @@
       const cpuCls = hostPctClass(host.cpu_pct, 70, 90);
       const memCls = hostPctClass(host.mem_used_pct, 75, 90);
       const swapCls = hostPctClass(host.swap_used_pct, 50, 85);
+      const gpuVal = gpu.available
+        ? gpu.used_pct != null
+          ? `${gpu.used_pct}%`
+          : "?"
+        : "N/A";
+      const gpuCls = gpu.available ? hostPctClass(gpu.used_pct, 70, 90) : "";
+      const gpuHint = gpu.available
+        ? gpu.name || ""
+        : gpu.name
+          ? `${gpu.name} · ${gpu.note || "no counter"}`
+          : gpu.note || "unavailable";
 
-      document.getElementById("sys-host").innerHTML = [
-        ["CPU", host.cpu_pct != null ? `${host.cpu_pct}%` : "?", cpuCls, "150ms sample"],
-        ["RAM used", host.mem_used_pct != null ? `${host.mem_used_pct}%` : "?", memCls, memHint],
-        ["Swap", host.swap_used_pct != null ? `${host.swap_used_pct}%` : "?", swapCls, swapHint],
-        ["Load", host.load_avg || "?", "", "1 / 5 / 15"],
-        ["Last pod", data.resource?.chosen || telem.chosen || "—", "", ""],
-      ]
-        .map(
-          ([l, v, c, h]) =>
-            `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div>${
-              h ? `<div class="hint">${esc(h)}</div>` : ""
-            }</div>`
-        )
-        .join("");
+      const coresHtml = cpuCoresBarsHtml(host.cpu_cores, 70, 90);
+      const cpuCell = `
+        <div class="kpi">
+          <div class="label">CPU</div>
+          <div class="value ${cpuCls}">${esc(host.cpu_pct != null ? `${host.cpu_pct}%` : "?")}</div>
+          <div class="hint">150ms sample${
+            Array.isArray(host.cpu_cores) && host.cpu_cores.length
+              ? ` · ${host.cpu_cores.length} cores`
+              : ""
+          }</div>
+          ${coresHtml ? `<div class="sys-cpu-wrap">${coresHtml}</div>` : ""}
+        </div>`;
+
+      document.getElementById("sys-host").innerHTML =
+        cpuCell +
+        [
+          ["Hostname", host.hostname || "?", "", host.platform || "os.hostname()"],
+          ["RAM used", host.mem_used_pct != null ? `${host.mem_used_pct}%` : "?", memCls, memHint],
+          ["GPU", gpuVal, gpuCls, gpuHint],
+          ["Swap", host.swap_used_pct != null ? `${host.swap_used_pct}%` : "?", swapCls, swapHint],
+          ["Load", host.load_avg || "?", "", "1 / 5 / 15"],
+          ["Last pod", data.resource?.chosen || telem.chosen || "—", "", "scheduler (not hostname)"],
+        ]
+          .map(
+            ([l, v, c, h]) =>
+              `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div>${
+                h ? `<div class="hint">${esc(h)}</div>` : ""
+              }</div>`
+          )
+          .join("");
 
       const storageEl = document.getElementById("sys-storage");
       const tiers = host.storage || [];
@@ -4433,6 +5605,8 @@
     function renderDetailBody(detail) {
       if (!detail) return '<p class="sys-detail-loading">Loading…</p>';
       const u = detail.unit_status || {};
+      const proc = detail.process || null;
+      const snap = detail.host_snapshot || null;
       const ports =
         detail.ports && detail.ports.length ? detail.ports.map((p) => `:${p}`).join(" ") : "—";
       const doing = detail.doing_now;
@@ -4452,7 +5626,63 @@
         .filter(Boolean)
         .join("\n");
       const journal = (detail.journal || []).join("\n") || "(no journal lines)";
+
+      const metricBits = [];
+      if (proc) {
+        metricBits.push(
+          ["MainPID CPU", proc.cpu_pct != null ? `${proc.cpu_pct}%` : "?", hostPctClass(proc.cpu_pct, 40, 80)],
+          ["MainPID RSS", proc.rss_mb != null ? `${proc.rss_mb} MiB` : "?", ""],
+          ["MainPID MEM%", proc.mem_pct != null ? `${proc.mem_pct}%` : "?", hostPctClass(proc.mem_pct, 10, 25)],
+          ["Etime", proc.etime || "—", ""]
+        );
+      } else if (u.main_pid) {
+        metricBits.push(["MainPID", String(u.main_pid), ""], ["Process", "ps unavailable", ""]);
+      }
+      if (detail.health_url) {
+        const lat = detail.http_latency_ms;
+        metricBits.push([
+          "Local HTTP",
+          `${detail.http_code ?? "?"}${lat != null ? ` · ${lat}ms` : ""}`,
+          localOkCls(detail.http_code),
+        ]);
+      }
+      if (detail.public_url) {
+        const lat = detail.public_latency_ms;
+        metricBits.push([
+          "Public HTTP",
+          `${detail.public_http_code ?? "?"}${lat != null ? ` · ${lat}ms` : ""}`,
+          localOkCls(detail.public_http_code),
+        ]);
+      }
+      const metricsHtml = metricBits.length
+        ? `<div class="sys-metrics">${metricBits
+            .map(
+              ([k, v, c]) =>
+                `<div><div class="m-k">${esc(k)}</div><div class="m-v ${c || ""}">${esc(String(v))}</div></div>`
+            )
+            .join("")}</div>`
+        : "";
+
+      let snapHtml = "";
+      if (snap) {
+        const memLine =
+          snap.mem_used_mb != null && snap.mem_total_mb != null
+            ? `${snap.mem_used_mb}/${snap.mem_total_mb} MiB`
+            : "";
+        snapHtml = `<div class="sys-host-snap">
+          <h4>Host snapshot (this box)</h4>
+          <div class="sys-host-snap-meta">${esc(snap.hostname || "?")} · CPU ${esc(
+            snap.cpu_pct != null ? `${snap.cpu_pct}%` : "?"
+          )} · RAM ${esc(snap.mem_used_pct != null ? `${snap.mem_used_pct}%` : "?")}${
+            memLine ? ` (${esc(memLine)})` : ""
+          } · load ${esc(snap.load_avg || "?")}${snap.cached ? " · cached" : ""}</div>
+          ${cpuCoresBarsHtml(snap.cpu_cores, 70, 90)}
+        </div>`;
+      }
+
       return `
+        ${metricsHtml}
+        ${snapHtml}
         <div class="sys-detail-grid">
           <div class="sys-detail-kv"><div class="k">Unit state</div><div class="v">${esc(
             u.active_state || "?"
@@ -4475,6 +5705,13 @@
         </div>
         <div class="sys-detail-kv" style="margin-bottom:0.35rem"><div class="k">Recent journal</div></div>
         <pre class="sys-journal">${esc(journal)}</pre>`;
+    }
+
+    function localOkCls(code) {
+      if (code == null) return "";
+      if (code >= 200 && code < 400) return "ok";
+      if (code === 0) return "warn";
+      return "bad";
     }
 
     function renderSystems(data) {
@@ -5328,12 +6565,22 @@
           syncChatModeUi();
         }
         if (activeTab === "systems") loadSystems();
-        document.getElementById("backlog-open").innerHTML = (agentData.dashboard_backlog_open || [])
-          .map((t) => `<li>${esc(t)}</li>`).join("") || "<li class='empty'>Empty</li>";
+        renderMeta(agentData);
       } catch (e) {
         const msg = e.name === "AbortError" ? "Hub load timed out (45s) — potato may be busy; tap ↻ to retry" : e.message;
         document.getElementById("ops-title").textContent = "Load error";
         document.getElementById("ops-sub").textContent = msg;
+        // Clear other Hub "Loading…" placeholders so a fetch/parse failure is visible
+        const machines = document.getElementById("machines-list");
+        if (machines) machines.innerHTML = `<p class="empty">${esc(msg)}</p>`;
+        const camps = document.getElementById("campaign-bars");
+        if (camps) camps.innerHTML = `<p class="empty">Hub load failed</p>`;
+        const lanes = document.getElementById("lane-bars");
+        if (lanes) lanes.innerHTML = "";
+        const kpi = document.getElementById("kpi-primary");
+        if (kpi) kpi.innerHTML = "";
+        const res = document.getElementById("hub-resources");
+        if (res) res.innerHTML = "";
       }
     }
 
@@ -5358,6 +6605,7 @@
       } else {
         load();
         loadInbox();
+        syncHubResourcesPolling();
       }
     }
 
@@ -5369,7 +6617,10 @@
       }
       load();
       if (activeTab === "inbox") loadInbox();
+      if (activeTab === "hub") pollHubResources(hubResourcesModalOpen);
     };
+
+    document.addEventListener("visibilitychange", () => syncHubResourcesPolling());
 
     async function parseApiJson(res) {
       const text = await res.text();
@@ -5723,6 +6974,105 @@
     document.getElementById("chars-attach-modal")?.addEventListener("click", (e) => {
       if (e.target?.id === "chars-attach-modal") closeCharsAttachModal();
     });
+    document.getElementById("hub-resources-modal-close")?.addEventListener("click", () => closeHubResourcesModal());
+    document.getElementById("hub-resources-goto-systems")?.addEventListener("click", () => {
+      closeHubResourcesModal();
+      goTab("systems");
+    });
+    document.getElementById("hub-resources-modal")?.addEventListener("click", (e) => {
+      if (e.target?.id === "hub-resources-modal") closeHubResourcesModal();
+    });
+    document.getElementById("chars-add-btn")?.addEventListener("click", () => openCharsAddModal());
+    document.getElementById("chars-add-modal-close")?.addEventListener("click", () => closeCharsAddModal());
+    document.getElementById("chars-add-modal")?.addEventListener("click", (e) => {
+      if (e.target?.id === "chars-add-modal") closeCharsAddModal();
+    });
+    document.getElementById("chars-add-modal-save")?.addEventListener("click", async () => {
+      const status = document.getElementById("chars-add-modal-status");
+      const name = (document.getElementById("chars-add-name")?.value || "").trim();
+      if (!name) {
+        if (status) status.textContent = "Name required";
+        return;
+      }
+      if (status) status.textContent = "Creating…";
+      try {
+        const res = await fetch(`${base}/api/characters-registry/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaign: charsCampaignFilter,
+            display_name: name,
+            role: document.getElementById("chars-add-type")?.value || "npc",
+            related_to: document.getElementById("chars-add-related")?.value || "",
+            relation_type: document.getElementById("chars-add-rel-type")?.value || "related",
+            relation_label: (document.getElementById("chars-add-rel-label")?.value || "").trim(),
+            notes: document.getElementById("chars-add-notes")?.value || "",
+            include_hidden: charsShowHidden ? 1 : 0,
+            base_version: charsRegistry && charsRegistry.version,
+          }),
+        });
+        const j = await res.json();
+        if (!res.ok) {
+          if (status) {
+            status.textContent =
+              j.error === "version_conflict"
+                ? await reloadCharsAfterConflict(j)
+                : j.error || "Create failed";
+          }
+          return;
+        }
+        const created = (j.characters || []).find((c) =>
+          String(c.display_name || "").toLowerCase() === name.toLowerCase()
+        ) || (j.characters || []).slice().reverse().find((c) => !c.hidden);
+        closeCharsAddModal();
+        applyCharsRegistry(j, created?.id || selectedCharId);
+      } catch (e) {
+        if (status) status.textContent = e.message || "Create failed";
+      }
+    });
+    document.getElementById("chars-merge-btn")?.addEventListener("click", () => openCharsMergeModal());
+    document.getElementById("chars-merge-modal-close")?.addEventListener("click", () => closeCharsMergeModal());
+    document.getElementById("chars-merge-modal")?.addEventListener("click", (e) => {
+      if (e.target?.id === "chars-merge-modal") closeCharsMergeModal();
+    });
+    document.getElementById("chars-merge-modal-save")?.addEventListener("click", async () => {
+      const status = document.getElementById("chars-merge-modal-status");
+      const primary = document.getElementById("chars-merge-primary")?.value;
+      const secondary = document.getElementById("chars-merge-secondary")?.value;
+      if (!primary || !secondary || primary === secondary) {
+        if (status) status.textContent = "Pick two different characters";
+        return;
+      }
+      if (!confirm(`Merge ${secondary} into ${primary}? Stub stays soft-hidden (no delete).`)) return;
+      if (status) status.textContent = "Merging…";
+      try {
+        const res = await fetch(`${base}/api/characters-registry/merge`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaign: charsCampaignFilter,
+            primary_id: primary,
+            secondary_ids: [secondary],
+            include_hidden: charsShowHidden ? 1 : 0,
+            base_version: charsRegistry && charsRegistry.version,
+          }),
+        });
+        const j = await res.json();
+        if (!res.ok) {
+          if (status) {
+            status.textContent =
+              j.error === "version_conflict"
+                ? await reloadCharsAfterConflict(j)
+                : j.error || "Merge failed";
+          }
+          return;
+        }
+        closeCharsMergeModal();
+        applyCharsRegistry(j, primary);
+      } catch (e) {
+        if (status) status.textContent = e.message || "Merge failed";
+      }
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
       const modal = document.getElementById("chat-campaign-modal");
@@ -5735,6 +7085,18 @@
       if (attachModal?.classList.contains("open")) {
         e.preventDefault();
         closeCharsAttachModal();
+        return;
+      }
+      const addModal = document.getElementById("chars-add-modal");
+      if (addModal?.classList.contains("open")) {
+        e.preventDefault();
+        closeCharsAddModal();
+        return;
+      }
+      const mergeModal = document.getElementById("chars-merge-modal");
+      if (mergeModal?.classList.contains("open")) {
+        e.preventDefault();
+        closeCharsMergeModal();
       }
     });
     document.getElementById("chat-context-change-camp")?.addEventListener("click", async () => {
@@ -5957,6 +7319,34 @@
       }
     });
 
+    // Chars: Ctrl/Cmd+V with an image/* clipboard item → upload to open character
+    let charsPasteLastAt = 0;
+    document.addEventListener("paste", (e) => {
+      if (activeTab !== "characters") return;
+      if (typeof charsPasteUploadFn !== "function") return;
+      const items = e.clipboardData?.items;
+      if (!items?.length) return;
+      let imageFile = null;
+      for (const item of items) {
+        if (item.type && item.type.startsWith("image/")) {
+          imageFile = item.getAsFile();
+          if (imageFile) break;
+        }
+      }
+      if (!imageFile) return;
+      // Prefer image paste over accidental text paste into focused fields.
+      e.preventDefault();
+      const now = Date.now();
+      // Debounce held Ctrl+V / rapid re-paste (duplicates).
+      if (now - charsPasteLastAt < 900) return;
+      charsPasteLastAt = now;
+      const ext = (imageFile.type.split("/")[1] || "png").replace(/[^a-z0-9]/gi, "") || "png";
+      const named = imageFile.name && imageFile.name !== "image.png"
+        ? imageFile
+        : new File([imageFile], `paste-${Date.now()}.${ext}`, { type: imageFile.type || "image/png" });
+      charsPasteUploadFn(named);
+    });
+
     boot();
     setInterval(() => {
       if (chatWaiting) return;
@@ -5965,7 +7355,7 @@
         return;
       }
       load();
-    }, 20000);
+    }, HUB_AGENT_MS);
   </script>
 </body>
 </html>

@@ -12,7 +12,13 @@ const { promisify } = require("util");
 
 const execFileAsync = promisify(execFile);
 
-const { collectSystemsState, runSystemControl, getSystemDetail } = require("./linuxbox-systems");
+const {
+  collectSystemsState,
+  runSystemControl,
+  getSystemDetail,
+  readHostMetrics,
+  readHostResourcesLight,
+} = require("./linuxbox-systems");
 const { collectMachinesState } = require("./linuxbox-machines");
 const {
   buildOffloadTaskBody,
@@ -23,6 +29,10 @@ const {
 
 const LISTEN_HOST = "127.0.0.1";
 const LISTEN_PORT = 8790;
+// Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
+// Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
+// verify-runtime-state.sh fails the deploy when they differ.
+const DASH_BUILD = "db-20260715-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -136,18 +146,24 @@ const USER_PROJECT_KINDS = [
 
 const VALID_PROFILES = new Set(["fast", "think", "meta", "code", "default"]);
 const HERMES_MODEL_REGISTRY = path.join(REPO, "agents/hermes-model-registry.json");
+/** Cheap paid for brief/minor Chat turns. */
+const CHAT_DEEPSEEK_MINOR = "deepseek/deepseek-v4-flash";
+/** Mid/cheap paid — before Hermes/GLM when free fails or work is moderate. */
+const CHAT_STEP_MID = "stepfun/step-3.7-flash";
 const CHAT_PAID_MODEL_FALLBACK = [
+  CHAT_STEP_MID,
   "nousresearch/hermes-4-70b",
   "z-ai/glm-5.2",
-  "deepseek/deepseek-v4-flash",
+  CHAT_DEEPSEEK_MINOR,
 ];
 /** Last resort for moderation-heavy RP worldbuilding — Venice uncensored via OpenRouter (paid). */
 const CHAT_VENICE_LAST_RESORT = "cognitivecomputations/dolphin-mistral-24b-venice-edition";
-/** Free-first for dashboard Chat when possible — cycled by usage tracker. */
+/** Free-first head: Laguna then Qwen. Do NOT re-add tencent/hy3:free (sunset 2026-07-21). */
 const CHAT_FREE_LAST_RESORT = [
+  "poolside/laguna-xs-2.1:free",
   "qwen/qwen3-next-80b-a3b-instruct:free",
-  "tencent/hy3:free",
 ];
+const CHAT_SUNSET_MODELS = new Set(["tencent/hy3:free"]);
 const CHAT_MODEL_USAGE_FILE = path.join(REPO, "agents", "state", "chat-model-usage.json");
 const MODEL_BUDGET_CONFIG = path.join(REPO, "agents/model-budget/config.json");
 const MODEL_BUDGET_STATE = path.join(REPO, "agents/state/model-budget.json");
@@ -200,13 +216,13 @@ function loadHermesModelRegistry() {
 
 loadHermesModelRegistry();
 
-/** Paid ops models only — never :free (those come after daily-limit via getChatFreeFailoverChain). */
+/** Paid ops models only — never :free (free chain is separate / free-first). */
 function getChatPaidModelChain(preferredProfile = "think") {
   const reg = loadHermesModelRegistry();
   const models = [];
   const add = (m) => {
     const id = String(m || "").trim();
-    if (!id || id.includes(":free") || models.includes(id)) return;
+    if (!id || id.includes(":free") || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
     models.push(id);
   };
   const prof = VALID_PROFILES.has(preferredProfile) ? preferredProfile : "think";
@@ -218,23 +234,62 @@ function getChatPaidModelChain(preferredProfile = "think") {
   return models.length ? models : [...CHAT_PAID_MODEL_FALLBACK];
 }
 
-/** Paid chain then Venice — free models are separate (daily-limit / exhaustion last resort). */
-function getChatRefusalFailoverChain(preferredProfile = "think") {
+/** Keep preferred order; park rate-limited / all-fail models at the end for the day. */
+function orderChatChainPreferConfig(models, isFree) {
+  const usage = readChatModelUsage();
+  const soft = [];
+  const hot = [];
+  for (const id of models) {
+    if (!id || CHAT_SUNSET_MODELS.has(id)) continue;
+    const r = usage.models[id] || {};
+    const hotToday =
+      (r.rate_limit || 0) > 0 ||
+      (r.daily_limit || 0) > 0 ||
+      ((r.fail || 0) + (r.moderation || 0) > 0 && (r.ok || 0) === 0);
+    (hotToday ? hot : soft).push(id);
+  }
+  return [...soft, ...sortChatModelsByUsage(hot, isFree)];
+}
+
+/**
+ * Paid cascade after free fails.
+ * brief/minor → DeepSeek then Step then quality; workshop/moderate → Step then DeepSeek then quality.
+ */
+function getChatPaidFailoverChain(preferredProfile = "think", responseMode = "brief") {
+  const budget = loadModelBudgetConfig();
+  const reg = loadHermesModelRegistry();
+  const minorId =
+    reg.chat_paid_minor || budget.routing?.paid_minor || CHAT_DEEPSEEK_MINOR;
+  const midId = reg.chat_paid_mid || budget.routing?.paid_mid || CHAT_STEP_MID;
   const models = [];
   const add = (m) => {
     const id = String(m || "").trim();
-    if (!id || id.includes(":free") || models.includes(id)) return;
+    if (!id || id.includes(":free") || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
     models.push(id);
   };
-  for (const m of CHAT_PAID_MODEL_FALLBACK) add(m);
+  const minor = responseMode !== "workshop";
+  if (minor) {
+    add(minorId);
+    add(midId);
+  } else {
+    add(midId);
+    add(minorId);
+  }
+  for (const m of budget.routing?.paid_models_quality || []) add(m);
   const prof = VALID_PROFILES.has(preferredProfile) ? preferredProfile : "think";
-  const reg = loadHermesModelRegistry();
   for (const m of reg.profiles?.[prof]?.chain || []) add(m);
+  for (const m of CHAT_PAID_MODEL_FALLBACK) add(m);
   for (const p of CHAT_PROFILE_CHAIN) {
     for (const m of reg.profiles?.[p]?.chain || []) add(m);
   }
   add(CHAT_VENICE_LAST_RESORT);
-  return sortChatModelsByUsage(models.length ? models : [...CHAT_PAID_MODEL_FALLBACK, CHAT_VENICE_LAST_RESORT], false);
+  const fallback = [minorId, midId, ...CHAT_PAID_MODEL_FALLBACK, CHAT_VENICE_LAST_RESORT];
+  return orderChatChainPreferConfig(models.length ? models : fallback, false);
+}
+
+/** @deprecated name — paid failover; use getChatPaidFailoverChain */
+function getChatRefusalFailoverChain(preferredProfile = "think", responseMode = "brief") {
+  return getChatPaidFailoverChain(preferredProfile, responseMode);
 }
 
 function chatUsageUtcDay() {
@@ -347,19 +402,25 @@ function sortChatModelsByUsage(models, isFree) {
   });
 }
 
-/** Free :free models only — last resort after paid daily-limit / exhaustion. */
+/** Free :free models only — free-first head (or last resort if prefer_free is false). */
 function getChatFreeFailoverChain() {
+  const budget = loadModelBudgetConfig();
   const reg = loadHermesModelRegistry();
   const models = [];
   const add = (m) => {
     const id = String(m || "").trim();
-    if (!id || !id.includes(":free") || models.includes(id)) return;
+    if (!id || !id.includes(":free") || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
     models.push(id);
   };
+  for (const m of budget.routing?.free_models || []) add(m);
+  for (const m of reg.chat_free_models || []) add(m);
   for (const m of reg.chat_free_last_resort || []) add(m);
   for (const m of reg.profiles?.fast?.chain || []) add(m);
   for (const m of CHAT_FREE_LAST_RESORT) add(m);
-  return sortChatModelsByUsage(models.length ? models : [...CHAT_FREE_LAST_RESORT], true);
+  return orderChatChainPreferConfig(
+    models.length ? models : [...CHAT_FREE_LAST_RESORT],
+    true
+  );
 }
 
 function chatModelUsageSummary() {
@@ -972,12 +1033,64 @@ function countUncheckedMd(relPath) {
   }
 }
 
+/** Human labels for pod ids (run-index often only has name=think + summary="pod think"). */
+const POD_HUMAN = {
+  fast: { label: "Fast lane", kind: "tick", kind_label: "last fast tick" },
+  think: { label: "Think / ops lane", kind: "tick", kind_label: "last think tick" },
+  meta: { label: "Dashboard meta", kind: "meta", kind_label: "last meta work" },
+  code: { label: "Code lane", kind: "ops", kind_label: "last code work" },
+  "ponytail-cleanup": { label: "Ponytail cleanup", kind: "ops", kind_label: "last ponytail work" },
+  "hunter-reckoning": { label: "Hunter: The Reckoning", kind: "campaign", kind_label: "last campaign work" },
+  spacequest: { label: "SpaceQuest", kind: "campaign", kind_label: "last campaign work" },
+  "nyc-mafia-dnd": { label: "NYC Mafia × D&D", kind: "campaign", kind_label: "last campaign work" },
+  "tropic-gooner": { label: "Tropic Gooner", kind: "campaign", kind_label: "last campaign work" },
+};
+
+function stripMdLite(s) {
+  return String(s || "")
+    .replace(/\*\*/g, "")
+    .replace(/`+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function enrichPodRun(raw, detailHint) {
+  const name = String(raw.name || "?").slice(0, 48);
+  const meta = POD_HUMAN[name] || {
+    label: name,
+    kind: "ops",
+    kind_label: `last ${name} run`,
+  };
+  const summary = String(raw.summary || "").slice(0, 140);
+  const idle = !!raw.idle || /\bIDLE\b/i.test(summary);
+  let outcome = "ok";
+  if (idle) outcome = "idle";
+  else if (raw.exit === -1) outcome = "fail";
+  else if (raw.exit != null && raw.exit !== 0) outcome = "fail";
+  const generic = !summary || /^pod\s+/i.test(summary) || summary === name;
+  const detail = stripMdLite(detailHint || (!generic ? summary : "")).slice(0, 120);
+  return {
+    name,
+    label: meta.label,
+    kind: meta.kind,
+    kind_label: meta.kind_label,
+    category: raw.category || "",
+    ts: raw.ts || null,
+    exit: raw.exit ?? null,
+    summary,
+    idle,
+    outcome,
+    detail,
+    meaningful: meta.kind !== "tick",
+  };
+}
+
 /** Recent pod/lane ticks from run-index (newest first). */
 function readRecentPodRuns(limit = 8) {
   const runIndex = path.join(REPO, "agents", "state", "run-index.jsonl");
   if (!fs.existsSync(runIndex)) return [];
   try {
-    const lines = fs.readFileSync(runIndex, "utf8").trim().split("\n").filter(Boolean).slice(-limit);
+    const lines = fs.readFileSync(runIndex, "utf8").trim().split("\n").filter(Boolean).slice(-Math.max(limit, 40));
     const out = [];
     for (let i = lines.length - 1; i >= 0; i--) {
       try {
@@ -997,10 +1110,113 @@ function readRecentPodRuns(limit = 8) {
         /* skip bad line */
       }
     }
-    return out;
+    return out.slice(0, limit);
   } catch {
     return [];
   }
+}
+
+/**
+ * Hub "Last run": prefer recent meaningful work; else latest tick with clear label.
+ * detail hints from CURRENT_TASK / meta backlog / campaign next — run-index summaries are often empty.
+ */
+function buildLastRun(pods, hints) {
+  const h = hints || {};
+  const detailFor = (p) => {
+    if (!p) return "";
+    if (p.name === "think" || p.name === "meta") {
+      return h.meta_next || h.task_status || "";
+    }
+    if (POD_HUMAN[p.name]?.kind === "campaign") {
+      return (h.campaign_next && h.campaign_next[p.name]) || "";
+    }
+    return "";
+  };
+  const enriched = (pods || []).map((p) => enrichPodRun(p, detailFor(p)));
+  const latest = enriched[0] || null;
+  const meaningful = enriched.find((p) => p.meaningful) || null;
+  const primary =
+    meaningful && latest && !latest.meaningful
+      ? meaningful
+      : latest;
+  return {
+    primary,
+    latest,
+    meaningful,
+    preferred_meaningful: !!(primary && primary.meaningful && latest && !latest.meaningful),
+  };
+}
+
+/** Meta tab: backlog + last done + smoke — no parallel log store. */
+function readMetaLaneSummary() {
+  const backlogPath = "agents/LINUXBOX_DASHBOARD_BACKLOG.md";
+  const taskPath = "agents/LINUXBOX_DASHBOARD_TASK.md";
+  const smokePath = path.join(REPO, "reports", "dashboard-ui-smoke", "latest.json");
+  let open = [];
+  let lastDone = null;
+  if (fs.existsSync(DASHBOARD_BACKLOG)) {
+    try {
+      const raw = fs.readFileSync(DASHBOARD_BACKLOG, "utf8");
+      open = raw
+        .split("\n")
+        .filter((l) => /^- \[ \]/.test(l))
+        .map((l) => l.replace(/^- \[ \] /, "").trim())
+        .filter(Boolean);
+      const doneIdx = raw.search(/\n## Done\b/);
+      const doneBlock = doneIdx >= 0 ? raw.slice(doneIdx) : raw;
+      for (const line of doneBlock.split("\n")) {
+        if (!/^- \[x\]/i.test(line)) continue;
+        const text = line.replace(/^- \[x\]\s*/i, "").trim();
+        const dateM = text.match(/(\d{4}-\d{2}-\d{2})\s*$/);
+        lastDone = {
+          text: text.replace(/\s*[—–-]\s*\d{4}-\d{2}-\d{2}\s*$/, "").slice(0, 140),
+          date: dateM ? dateM[1] : null,
+        };
+        break;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  let smoke = null;
+  if (fs.existsSync(smokePath)) {
+    try {
+      const j = JSON.parse(fs.readFileSync(smokePath, "utf8"));
+      smoke = {
+        date: j.date || null,
+        failed: j.failed ?? null,
+        warned: j.warned ?? null,
+        passed: j.passed ?? null,
+        path: "reports/dashboard-ui-smoke/latest.json",
+      };
+    } catch {
+      smoke = { path: "reports/dashboard-ui-smoke/latest.json" };
+    }
+  }
+
+  const pods = readRecentPodRuns(24);
+  const metaRunRaw =
+    pods.find((p) => /meta|dashboard|smoke/i.test(`${p.name} ${p.category} ${p.summary}`)) ||
+    null;
+  const metaRun = metaRunRaw
+    ? enrichPodRun(metaRunRaw, open[0] || lastDone?.text || "")
+    : null;
+
+  return {
+    blurb:
+      "Dashboard self-improvement lane: think/meta picks one Open backlog item → implement → verify (:8790 / smoke) → mark Done.",
+    open_count: open.length,
+    next_item: open[0] || null,
+    open_preview: open.slice(0, 6),
+    last_done: lastDone,
+    last_meta_run: metaRun,
+    smoke,
+    backlog_path: backlogPath,
+    task_path: taskPath,
+    update_gate: "scripts/linuxbox/safe-update-check.sh (SAFE before upgrades)",
+    update_targets: "agents/update-targets.json",
+  };
 }
 
 /** Chat job UI status: pending+started = thinking; queued = waiting. */
@@ -1341,13 +1557,38 @@ async function collectAgentState(lite = false) {
   }
 
   const chatJobs = listChatJobsInFlight();
-  const recentPods = readRecentPodRuns(8);
+  // Wider window so Hub can prefer campaign/meta over a wall of think ticks
+  const recentPodsRaw = readRecentPodRuns(24);
   const maintenanceOpen = countUncheckedMd("agents/maintenance-progress.md");
   const runningNow = buildRunningNow();
+  const metaLane = readMetaLaneSummary();
+  // Cached 10s in linuxbox-systems — Hub bars + pop-out without a second sampler.
+  const hostResources = await readHostMetrics();
+  const campaignNext = {};
+  for (const [id, c] of Object.entries(campaigns)) {
+    if (c?.next_item) campaignNext[id] = stripMdLite(c.next_item).slice(0, 120);
+  }
+  const lastRun = buildLastRun(recentPodsRaw, {
+    task_status: stripMdLite(currentTaskStatus).slice(0, 120),
+    meta_next: stripMdLite(metaLane?.next_item || dashboardBacklog[0] || "").slice(0, 120),
+    campaign_next: campaignNext,
+  });
+  const recentPodsEnriched = recentPodsRaw.slice(0, 8).map((p) => {
+    const name = p.name;
+    let hint = "";
+    if (name === "think" || name === "meta") {
+      hint = stripMdLite(currentTaskStatus).slice(0, 120);
+    } else if (campaignNext[name]) {
+      hint = campaignNext[name];
+    }
+    return enrichPodRun(p, hint);
+  });
 
   return {
     updated_at: new Date().toISOString(),
     host: "linuxbox",
+    dash_build: DASH_BUILD,
+    host_resources: hostResources,
     ...health,
     current_task_status: currentTaskStatus,
     lanes,
@@ -1355,6 +1596,7 @@ async function collectAgentState(lite = false) {
     campaigns,
     all_reports: allReports.slice(0, 16),
     dashboard_backlog_open: dashboardBacklog,
+    meta_lane: metaLane,
     user_tasks: readUserTasksStore().tasks.slice(0, 100),
     user_projects: summarizeUserProjects(readUserTasksStore()),
     user_task_tags: USER_TASK_TAGS,
@@ -1368,7 +1610,8 @@ async function collectAgentState(lite = false) {
       queued: chatJobs.queued,
       jobs: chatJobs.jobs,
     },
-    recent_pods: recentPods,
+    recent_pods: recentPodsEnriched,
+    last_run: lastRun,
     maintenance_open: maintenanceOpen,
     running_now: runningNow,
     current_pod: runningNow.pod,
@@ -1976,7 +2219,27 @@ function resolveDocAttachments(campaignId, refs) {
   return { resolved: [...new Set(resolved)], unresolved };
 }
 
+function isGalleryIntentionallyEmpty(c) {
+  // GM cleared portraits: empty images + empty image_path + empty doc_attachments.
+  // Without this, sheet Attachment: lines + disk leftovers re-fill Rosalina with Jinpei/map art.
+  return (
+    Array.isArray(c.images) &&
+    c.images.length === 0 &&
+    (c.image_path === "" || c.image_path == null) &&
+    Array.isArray(c.doc_attachments) &&
+    c.doc_attachments.length === 0
+  );
+}
+
 function resolveCharacterImages(campaignId, c) {
+  if (isGalleryIntentionallyEmpty(c)) {
+    return {
+      images: [],
+      image_path: "",
+      doc_attachments: [],
+      unresolved_doc_attachments: [],
+    };
+  }
   const fromRegistry = (Array.isArray(c.images) ? c.images : [])
     .map(normalizeCampaignRelPath)
     .filter((p) => p && characterImageAbs(campaignId, p));
@@ -2058,12 +2321,48 @@ function getCharactersRegistry(campaignId, opts = {}) {
   return enrichCharactersRegistry(readCharactersRegistry(campaignId), campaignId, opts);
 }
 
-function writeCharactersRegistry(campaignId, data) {
+function writeCharactersRegistry(campaignId, data, opts = {}) {
   const abs = charactersRegistryPath(campaignId);
   if (!abs) throw new Error("no_registry");
-  data.updated_at = new Date().toISOString().slice(0, 10);
-  fs.writeFileSync(abs, JSON.stringify(data, null, 2) + "\n");
-  return data;
+  const { writeRegistryFile } = require("./chars-registry-persist");
+  return writeRegistryFile({
+    absPath: abs,
+    data,
+    repoRoot: REPO,
+    campaignId,
+    baseVersion: opts.baseVersion,
+    bump: opts.bump !== false,
+    // Always union-keep unknown on-disk ids so SCP/partial multitask writes cannot wipe GM rows.
+    preserveUnknownIds: opts.preserveUnknownIds !== false,
+  });
+}
+
+function registryBaseVersionFromBody(body) {
+  if (!body || typeof body !== "object") return undefined;
+  if (body.base_version !== undefined && body.base_version !== null && body.base_version !== "") {
+    return body.base_version;
+  }
+  if (body.if_match_version !== undefined && body.if_match_version !== null && body.if_match_version !== "") {
+    return body.if_match_version;
+  }
+  return undefined;
+}
+
+function sendRegistryWriteError(res, e, publicMode) {
+  if (e && (e.code === "version_conflict" || e.message === "version_conflict")) {
+    sendJson(
+      res,
+      409,
+      {
+        error: "version_conflict",
+        message: "Registry changed since your load — hard-refresh Chars and retry.",
+        ...(e.detail || {}),
+      },
+      publicMode
+    );
+    return;
+  }
+  sendJson(res, 400, { error: e.message || "registry_error" }, publicMode);
 }
 
 function findRegistryForPath(registry, relPath) {
@@ -2071,10 +2370,73 @@ function findRegistryForPath(registry, relPath) {
   return chars.find((c) => c.story_path === relPath) || null;
 }
 
+const CHAR_STATUS_ALLOWED = new Set(["active", "hiatus", "retired", "npc", "stub", "side"]);
+const CHAR_ROLE_ALLOWED = new Set([
+  "pc",
+  "npc",
+  "side",
+  "gm",
+  "stub",
+  "thread-twin",
+  "author-stub",
+  "ingest-noise",
+  "merged",
+]);
+
+function slugifyCharacterId(name) {
+  const s = String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+  return s || "character";
+}
+
+function normalizeRelations(list) {
+  if (!Array.isArray(list)) throw new Error("bad_relations");
+  const out = [];
+  const seen = new Set();
+  for (const raw of list) {
+    if (!raw || typeof raw !== "object") continue;
+    const to_id = String(raw.to_id || raw.to || "").trim();
+    if (!to_id || /[^a-zA-Z0-9._-]/.test(to_id)) continue;
+    const type = String(raw.type || "related").trim().slice(0, 48) || "related";
+    const label = String(raw.label || type).trim().slice(0, 80);
+    const key = `${to_id.toLowerCase()}::${type.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ to_id, type, label });
+  }
+  return out;
+}
+
+function ensureRelation(row, toId, type, label) {
+  const rels = Array.isArray(row.relations) ? row.relations.slice() : [];
+  const hit = rels.find(
+    (r) =>
+      String(r.to_id || "").toLowerCase() === String(toId).toLowerCase() &&
+      String(r.type || "").toLowerCase() === String(type).toLowerCase()
+  );
+  if (hit) {
+    if (label) hit.label = label;
+    row.relations = rels;
+    return;
+  }
+  rels.push({ to_id: toId, type, label: label || type });
+  row.relations = rels;
+}
+
+function ensurePortraitDir(campaignId, charId) {
+  const absDir = path.join(REPO, "campaigns", campaignId, "characters", "portraits", charId);
+  fs.mkdirSync(absDir, { recursive: true });
+  return absDir;
+}
+
 function patchCharacterRegistry(campaignId, patch) {
   const registry = readCharactersRegistry(campaignId);
   const id = patch.id;
   if (!id) throw new Error("id_required");
+  if (/[^a-zA-Z0-9._-]/.test(id)) throw new Error("bad_id");
   let row = registry.characters.find((c) => c.id === id);
   if (!row && patch.story_path) {
     row = registry.characters.find((c) => c.story_path === patch.story_path);
@@ -2088,10 +2450,18 @@ function patchCharacterRegistry(campaignId, patch) {
       discord_username: "",
       player_name: "",
       status: "active",
+      role: patch.role || "npc",
+      hidden: false,
       can_proxy: false,
       notes: "",
+      aliases: [],
+      relations: [],
+      images: [],
+      image_path: "",
+      doc_attachments: [],
     };
     registry.characters.push(row);
+    ensurePortraitDir(campaignId, id);
   }
   const allowed = [
     "display_name",
@@ -2103,9 +2473,41 @@ function patchCharacterRegistry(campaignId, patch) {
     "can_proxy",
     "notes",
     "image_path",
+    "role",
+    "hidden",
   ];
   for (const k of allowed) {
     if (patch[k] !== undefined) row[k] = patch[k];
+  }
+  if (patch.status !== undefined) {
+    const st = String(patch.status || "").trim();
+    if (!CHAR_STATUS_ALLOWED.has(st)) throw new Error("bad_status");
+    row.status = st;
+  }
+  if (patch.role !== undefined) {
+    const role = String(patch.role || "").trim();
+    if (role && !CHAR_ROLE_ALLOWED.has(role)) throw new Error("bad_role");
+    row.role = role;
+  }
+  if (patch.hidden !== undefined) row.hidden = Boolean(patch.hidden);
+  if (patch.aliases !== undefined) {
+    if (!Array.isArray(patch.aliases) && typeof patch.aliases !== "string") {
+      throw new Error("bad_aliases");
+    }
+    const raw = Array.isArray(patch.aliases)
+      ? patch.aliases
+      : String(patch.aliases)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+    row.aliases = [...new Set(raw.map((a) => String(a).trim()).filter(Boolean))];
+  }
+  if (patch.relations !== undefined) {
+    row.relations = normalizeRelations(patch.relations);
+  }
+  if (patch.doc_attachments !== undefined) {
+    if (!Array.isArray(patch.doc_attachments)) throw new Error("bad_doc_attachments");
+    row.doc_attachments = patch.doc_attachments.map(String);
   }
   if (patch.images !== undefined) {
     if (!Array.isArray(patch.images)) throw new Error("bad_images");
@@ -2124,8 +2526,90 @@ function patchCharacterRegistry(campaignId, patch) {
   } else if (patch.image_path === "") {
     row.image_path = "";
   }
-  writeCharactersRegistry(campaignId, registry);
-  return getCharactersRegistry(campaignId);
+
+  // Optional one-shot link when creating/editing: related_to + relation_type
+  const relatedTo = String(patch.related_to || "").trim();
+  if (relatedTo) {
+    const relType = String(patch.relation_type || patch.relation || "related").trim().slice(0, 48) || "related";
+    const relLabel = String(patch.relation_label || relType).trim().slice(0, 80);
+    const other = registry.characters.find((c) => c.id === relatedTo);
+    if (!other) throw new Error("related_to_not_found");
+    ensureRelation(row, relatedTo, relType, relLabel);
+    const inverse =
+      {
+        twin_sister: "twin_sister",
+        twin: "twin",
+        partner: "partner",
+        fwb: "fwb",
+        roommate: "roommate",
+        sibling: "sibling",
+      }[relType] || "related";
+    ensureRelation(other, row.id, inverse, relLabel);
+  }
+
+  writeCharactersRegistry(campaignId, registry, {
+    baseVersion: registryBaseVersionFromBody(patch),
+  });
+  return getCharactersRegistry(campaignId, { includeHidden: Boolean(patch.include_hidden) });
+}
+
+function createCharacterRegistry(campaignId, body) {
+  // Soft rule: never hard-delete user-created characters (or overwrite registry wiping them) without explicit GM ask.
+  const display = String(body.display_name || body.name || "").trim();
+  if (!display) throw new Error("display_name_required");
+  let id = String(body.id || "").trim() || slugifyCharacterId(display);
+  if (/[^a-zA-Z0-9._-]/.test(id)) throw new Error("bad_id");
+  const registry = readCharactersRegistry(campaignId);
+  if (registry.characters.some((c) => c.id === id)) {
+    if (body.id) throw new Error("id_exists");
+    let n = 2;
+    while (registry.characters.some((c) => c.id === `${id}-${n}`)) n += 1;
+    id = `${id}-${n}`;
+  }
+  const role = String(body.role || body.type || "npc").trim() || "npc";
+  const status = String(body.status || (role === "pc" ? "active" : "npc")).trim();
+  return patchCharacterRegistry(campaignId, {
+    id,
+    display_name: display,
+    role,
+    status,
+    notes: body.notes || "",
+    aliases: body.aliases || [],
+    player_name: body.player_name || "",
+    discord_username: body.discord_username || "",
+    related_to: body.related_to || "",
+    relation_type: body.relation_type || body.relation || "",
+    relation_label: body.relation_label || "",
+    images: [],
+    image_path: "",
+    doc_attachments: [],
+    include_hidden: body.include_hidden,
+    base_version: body.base_version,
+    if_match_version: body.if_match_version,
+  });
+}
+
+function mergeCharactersRegistry(campaignId, body) {
+  const { mergeCharactersOnDisk } = require("./chars-registry-merge");
+  const primaryId = String(body.primary_id || body.primary || "").trim();
+  const secondaryIds = Array.isArray(body.secondary_ids)
+    ? body.secondary_ids
+    : String(body.secondary_id || body.secondary || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+  if (!primaryId) throw new Error("primary_required");
+  if (!secondaryIds.length) throw new Error("secondary_required");
+  const registry = readCharactersRegistry(campaignId);
+  const campRoot = path.join(REPO, "campaigns", campaignId);
+  const plan = mergeCharactersOnDisk(campRoot, registry, primaryId, secondaryIds);
+  writeCharactersRegistry(campaignId, plan.registry, {
+    baseVersion: registryBaseVersionFromBody(body),
+  });
+  return {
+    ...getCharactersRegistry(campaignId, { includeHidden: Boolean(body.include_hidden) }),
+    merge: plan.summary || { primary: primaryId, secondary: secondaryIds },
+  };
 }
 
 function safePortraitFilename(name) {
@@ -2136,7 +2620,7 @@ function safePortraitFilename(name) {
   return `${stem}${ext}`;
 }
 
-function uploadCharacterPortrait(campaignId, charId, filename, dataBase64) {
+function uploadCharacterPortrait(campaignId, charId, filename, dataBase64, body = {}) {
   if (!CAMPAIGNS[campaignId]) throw new Error("bad_campaign");
   if (!charId || /[^a-zA-Z0-9._-]/.test(charId)) throw new Error("bad_id");
   const safeName = safePortraitFilename(filename);
@@ -2171,8 +2655,65 @@ function uploadCharacterPortrait(campaignId, charId, filename, dataBase64) {
   if (!imgs.includes(relPath)) imgs.push(relPath);
   row.images = imgs;
   if (!row.image_path) row.image_path = relPath;
-  writeCharactersRegistry(campaignId, registry);
+  writeCharactersRegistry(campaignId, registry, {
+    baseVersion: registryBaseVersionFromBody(body),
+  });
   return getCharactersRegistry(campaignId);
+}
+
+/**
+ * Remove one portrait from a character gallery. Does not delete the character.
+ * Unlinks registry images[] entry; if it was primary, picks next remaining or clears.
+ * Deletes the file only when it lives under characters/portraits/<id>/ (avoids disk re-scan orphans).
+ */
+function removeCharacterPortrait(campaignId, charId, imagePath, body = {}) {
+  if (!CAMPAIGNS[campaignId]) throw new Error("bad_campaign");
+  if (!charId || /[^a-zA-Z0-9._-]/.test(charId)) throw new Error("bad_id");
+  const rel = normalizeCampaignRelPath(imagePath);
+  if (!rel) throw new Error("bad_image_path");
+  const registry = readCharactersRegistry(campaignId);
+  const row = registry.characters.find((c) => c.id === charId);
+  if (!row) throw new Error("character_not_found");
+  // Soft rule: never hard-delete characters here — portrait file only.
+  const before = resolveCharacterImages(campaignId, row);
+  if (!before.images.includes(rel) && normalizeCampaignRelPath(row.image_path || "") !== rel) {
+    throw new Error("image_not_in_gallery");
+  }
+  const nextImgs = before.images.filter((p) => p !== rel);
+  row.images = nextImgs;
+  const primary = normalizeCampaignRelPath(row.image_path || "");
+  if (primary === rel || !nextImgs.includes(primary)) {
+    row.image_path = nextImgs[0] || "";
+  }
+  if (nextImgs.length === 0) {
+    row.image_path = "";
+    row.doc_attachments = [];
+  }
+  let deleted_file = false;
+  const underDir = rel.startsWith(`characters/portraits/${charId}/`);
+  const leafAlone = CHAR_IMAGE_EXTS.has(path.extname(rel).toLowerCase())
+    && rel === `characters/portraits/${charId}${path.extname(rel)}`;
+  if (underDir || leafAlone) {
+    const abs = path.join(REPO, "campaigns", campaignId, rel);
+    const campRoot = path.resolve(path.join(REPO, "campaigns", campaignId));
+    const resolved = path.resolve(abs);
+    if (
+      (resolved === campRoot || resolved.startsWith(campRoot + path.sep)) &&
+      fs.existsSync(resolved) &&
+      fs.statSync(resolved).isFile()
+    ) {
+      fs.unlinkSync(resolved);
+      deleted_file = true;
+    }
+  }
+  writeCharactersRegistry(campaignId, registry, {
+    baseVersion: registryBaseVersionFromBody(body),
+  });
+  return {
+    ...getCharactersRegistry(campaignId),
+    removed_path: rel,
+    deleted_file,
+  };
 }
 
 const CHAR_IMAGE_CT_EXT = {
@@ -2243,12 +2784,37 @@ function portraitFilenameFromUrl(parsedUrl, contentType) {
   return leaf;
 }
 
+/** Browser-ish headers so image CDNs that check Referer/UA (hotlink protection) allow the fetch. */
+function portraitFetchHeaders(parsedUrl) {
+  const origin = `${parsedUrl.protocol}//${parsedUrl.host}/`;
+  return {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    Referer: origin,
+  };
+}
+
+function bufferLooksLikeHtml(buf) {
+  const sniff = Buffer.isBuffer(buf) ? buf.slice(0, 512).toString("utf8") : String(buf || "").slice(0, 512);
+  const s = sniff.trim().toLowerCase();
+  return (
+    s.startsWith("<!doctype html") ||
+    s.startsWith("<html") ||
+    s.includes("<html") ||
+    s.includes("<head") ||
+    (s.startsWith("<?xml") && s.includes("<html"))
+  );
+}
+
 /**
  * Server-side fetch of a remote image for portrait import (admin).
- * Rejects non-http(s), private hosts, non-images, oversized bodies, timeouts.
+ * Rejects non-http(s), private hosts, HTML pages, non-images, oversized bodies, timeouts.
+ * Sends browser-like User-Agent + Referer (source host) so hotlink-protected CDNs work.
  */
 function fetchPortraitImageBuffer(imageUrl, timeoutMs = 15000) {
-  const maxRedirects = 3;
+  const maxRedirects = 5;
 
   function getOnce(urlStr, redirectsLeft) {
     const parsed = assertPortraitFetchUrl(urlStr);
@@ -2257,10 +2823,7 @@ function fetchPortraitImageBuffer(imageUrl, timeoutMs = 15000) {
       const req = lib.get(
         parsed,
         {
-          headers: {
-            "User-Agent": "linuxbox-status-portrait-import/1.0",
-            Accept: "image/*,*/*;q=0.8",
-          },
+          headers: portraitFetchHeaders(parsed),
           timeout: timeoutMs,
         },
         (res) => {
@@ -2298,6 +2861,11 @@ function fetchPortraitImageBuffer(imageUrl, timeoutMs = 15000) {
           }
           const ct = String(res.headers["content-type"] || "");
           const ctBase = ct.split(";")[0].trim().toLowerCase();
+          if (ctBase === "text/html" || ctBase === "application/xhtml+xml") {
+            res.resume();
+            reject(new Error("need_direct_image_url"));
+            return;
+          }
           if (ctBase && !ctBase.startsWith("image/")) {
             res.resume();
             reject(new Error("not_an_image"));
@@ -2324,6 +2892,10 @@ function fetchPortraitImageBuffer(imageUrl, timeoutMs = 15000) {
             const buf = Buffer.concat(chunks);
             if (!buf.length) {
               reject(new Error("empty_image"));
+              return;
+            }
+            if (bufferLooksLikeHtml(buf)) {
+              reject(new Error("need_direct_image_url"));
               return;
             }
             const ext = extFromContentType(ct) || path.extname(parsed.pathname).toLowerCase();
@@ -2355,9 +2927,9 @@ function fetchPortraitImageBuffer(imageUrl, timeoutMs = 15000) {
   return getOnce(String(imageUrl || "").trim(), maxRedirects);
 }
 
-async function importCharacterPortraitFromUrl(campaignId, charId, imageUrl) {
+async function importCharacterPortraitFromUrl(campaignId, charId, imageUrl, body = {}) {
   const { buf, filename } = await fetchPortraitImageBuffer(imageUrl);
-  return uploadCharacterPortrait(campaignId, charId, filename, buf.toString("base64"));
+  return uploadCharacterPortrait(campaignId, charId, filename, buf.toString("base64"), body);
 }
 
 /**
@@ -2458,7 +3030,9 @@ async function resolveCharacterDocAttachments(campaignId, opts = {}) {
     summary.chars.push(charResult);
   }
 
-  writeCharactersRegistry(campaignId, registry);
+  writeCharactersRegistry(campaignId, registry, {
+    baseVersion: registryBaseVersionFromBody(opts),
+  });
   charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
 
   if (fromDiscord) {
@@ -3976,7 +4550,7 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
   if (profile === "fast") {
     return {
       error:
-        "Chat uses the think lane (paid ops pool first). The fast profile is for background ticks only — select think · campaign brainstorm.",
+        "Chat uses the think lane (free-first, then paid ops). The fast profile is for background ticks only — select think · campaign brainstorm.",
       profile: prof,
       context_used: !!context,
     };
@@ -3999,7 +4573,8 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
     };
   }
 
-  const paidChain = getChatRefusalFailoverChain(prof);
+  const responseMode = chatOpts.responseMode === "workshop" ? "workshop" : "brief";
+  const paidChain = getChatPaidFailoverChain(prof, responseMode);
   const freeChain = getChatFreeFailoverChain();
   const triedModels = [];
   let lastErr = "";
@@ -4176,12 +4751,21 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
   }
 
   if (hitDailyLimit) {
+    const freeTried = triedModels.filter((m) => String(m).includes(":free"));
+    const paidTried = triedModels.filter((m) => !String(m).includes(":free"));
+    const freeBit = freeTried.length
+      ? `Free path failed first (:free models are $0 but still hit OpenRouter/provider RPM·RPD·capacity limits — not the USD cap). Tried: ${freeTried.join(" → ")}.`
+      : "Free path was not reached.";
+    const paidBit = paidTried.length
+      ? `Paid ops path then hit daily USD cap (policy target $${OPENROUTER_OPS_DAILY_USD}). Tried: ${paidTried.join(" → ")}.`
+      : `Paid ops path hit daily USD cap (policy target $${OPENROUTER_OPS_DAILY_USD}).`;
     return {
-      error: `OpenRouter ops daily USD cap reached (policy target $${OPENROUTER_OPS_DAILY_USD}). Free models also exhausted or rate-limited — wait for UTC reset, top up, or raise key limit (set-openrouter-key-limit.sh).`,
+      error: `${freeBit} ${paidBit} Wait for UTC reset, top up, or raise key limit (set-openrouter-key-limit.sh).`,
       profile: prof,
       context_used: !!context,
       failover_tried: triedModels,
       openrouter_daily_limit: true,
+      free_exhausted: freeTried.length > 0 || undefined,
     };
   }
 
@@ -4996,6 +5580,21 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // Light ~1 Hz Hub bars: /proc only. ?procs=1 adds cached top processes (8s TTL).
+    if (req.method === "GET" && pathname === "/api/host-resources") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const wantProcs = url.searchParams.get("procs") === "1" || url.searchParams.get("detail") === "1";
+      if (wantProcs) {
+        sendJson(res, 200, await readHostMetrics({ light: true, procs: true }), publicMode);
+      } else {
+        sendJson(res, 200, readHostResourcesLight(), publicMode);
+      }
+      return;
+    }
+
     // Prometheus text — loopback/admin only (server binds 127.0.0.1; scrape via SSH tunnel).
     if (req.method === "GET" && pathname === "/metrics") {
       if (auth?.role !== "admin") {
@@ -5651,7 +6250,35 @@ const server = http.createServer(async (req, res) => {
         try {
           sendJson(res, 200, patchCharacterRegistry(campaignId, body), publicMode);
         } catch (e) {
-          sendJson(res, 400, { error: e.message || "registry_error" }, publicMode);
+          sendRegistryWriteError(res, e, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/create") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(res, 200, createCharacterRegistry(campaignId, body), publicMode);
+        } catch (e) {
+          sendRegistryWriteError(res, e, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/merge") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(res, 200, mergeCharactersRegistry(campaignId, body), publicMode);
+        } catch (e) {
+          sendRegistryWriteError(res, e, publicMode);
         }
         return;
       }
@@ -5666,11 +6293,41 @@ const server = http.createServer(async (req, res) => {
           sendJson(
             res,
             200,
-            uploadCharacterPortrait(campaignId, body.id, body.filename, body.data_base64 || body.data),
+            uploadCharacterPortrait(
+              campaignId,
+              body.id,
+              body.filename,
+              body.data_base64 || body.data,
+              body
+            ),
             publicMode
           );
         } catch (e) {
-          sendJson(res, 400, { error: e.message || "upload_failed" }, publicMode);
+          sendRegistryWriteError(res, e, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/remove-image") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(
+            res,
+            200,
+            removeCharacterPortrait(campaignId, body.id, body.path || body.image_path, body),
+            publicMode
+          );
+        } catch (e) {
+          if (e && (e.code === "version_conflict" || e.message === "version_conflict")) {
+            sendRegistryWriteError(res, e, publicMode);
+            return;
+          }
+          const code = e.message === "character_not_found" ? 404 : 400;
+          sendJson(res, code, { error: e.message || "remove_failed" }, publicMode);
         }
         return;
       }
@@ -5685,11 +6342,16 @@ const server = http.createServer(async (req, res) => {
           sendJson(
             res,
             200,
-            await importCharacterPortraitFromUrl(campaignId, body.id, body.url || body.image_url),
+            await importCharacterPortraitFromUrl(
+              campaignId,
+              body.id,
+              body.url || body.image_url,
+              body
+            ),
             publicMode
           );
         } catch (e) {
-          sendJson(res, 400, { error: e.message || "import_failed" }, publicMode);
+          sendRegistryWriteError(res, e, publicMode);
         }
         return;
       }
