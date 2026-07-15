@@ -154,6 +154,7 @@ push_tarball() {
   if [[ -n "${_py}" && -f "${REPO}/agents/protected-runtime-paths.json" ]]; then
     local _filtered=()
     while IFS= read -r p; do
+      p="${p//$'\r'/}"
       [[ -n "${p}" ]] && _filtered+=("${p}")
     done < <(printf '%s\n' "${_paths[@]}" | PROTECTED_REPO="${REPO}" "${_py}" "${REPO}/scripts/linuxbox/protected-paths.py" filter-stdin)
     _paths=("${_filtered[@]}")
@@ -304,7 +305,7 @@ if [[ "${MODE}" == "--finished" ]]; then
       fi
     elif [[ "${id}" == "dashboard" ]]; then
       PATHS=()
-      while IFS= read -r p; do [[ -n "${p}" && -e "${REPO}/${p}" ]] && PATHS+=("${p}"); done < <(printf '%s\n' "${DASHBOARD_PATHS[@]}")
+      while IFS= read -r p; do p="${p//$'\r'/}"; [[ -n "${p}" && -e "${REPO}/${p}" ]] && PATHS+=("${p}"); done < <(printf '%s\n' "${DASHBOARD_PATHS[@]}")
       if [[ ${#PATHS[@]} -gt 0 ]]; then
         push_tarball PATHS linuxbox-status "http://127.0.0.1:8790/" || echo "WARN: dashboard push failed" >&2
       else
@@ -314,6 +315,7 @@ if [[ "${MODE}" == "--finished" ]]; then
       MODE="--all"
       PATHS=()
       while IFS= read -r p; do
+        p="${p//$'\r'/}"
         [[ -z "${p}" ]] && continue
         [[ -e "${REPO}/${p}" ]] && PATHS+=("${p}")
       done < <(pick_paths)
@@ -326,6 +328,7 @@ fi
 
 PATHS=()
 while IFS= read -r p; do
+  p="${p//$'\r'/}"
   [[ -z "${p}" ]] && continue
   if [[ -e "${REPO}/${p}" ]]; then
     PATHS+=("${p}")

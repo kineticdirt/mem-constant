@@ -78,6 +78,12 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-15T02:25Z** — [PC] **Intent:** Finish anti-revert protection (fresh agent). Prior worker died mid-deploy; lock released. Potato at `3cc0ee7` (registry v28/15vis OK but missing `protected-paths.py`/`verify-runtime-state.sh`/DASH_BUILD). Deploy PC `3fb665c` via git bundle + prove preserve+verify cycle. No registry mutation unless regression found.
+
+- **2026-07-15T02:32Z** — [PC] **Result:** Anti-revert protection LIVE on potato `3fb665c`. Lock was already released (`pc-chars-v3-reclobber-fix`, not held). Bundle apply `3cc0ee7→3fb665c` preserved registry **v28/15vis** (5 side NPCs present); verify PASS; `:8790` **200**; DASH_BUILD `db-20260715-r1` HTML↔JS matched; registry **untracked** in git. `push-linuxbox.sh --dashboard` verify PASS. Fixed Windows `\r` in filter-stdin path list. Hard-refresh Chars if stale UI cache.
+
+- **2026-07-15T01:05Z** — [PC] **Intent (LOCK):** Permanent anti-revert protection. Holder=`anti-revert-worker`, lock `chars-registry:tropic-gooner` during git-tracking transition. Claim: (1) union-merge `agents/user-tasks.json` PC∪potato by id; (2) new `agents/protected-runtime-paths.json` manifest + `scripts/linuxbox/protected-paths.py` + `verify-runtime-state.sh` + `backup-registries.sh`; (3) manifest-driven preserve in `apply-git-bundle.sh` + `git-pull-and-deploy.sh`; (4) `push-linuxbox.sh` stops shipping runtime state (filter); (5) untrack runtime-truth files on Linuxbox `main` (registry, user-tasks, archive-meta, swarm-queue, state stragglers) + gitignore; (6) commit current 7353-line dashboard pair to `main` (box copy is uncommitted SCP overlay — next reset would revert it); (7) DASH_BUILD marker HTML↔server JS + verify gate wired into apply/push tails; (8) deploy + prove with real bundle apply + dashboard push. No hard-deletes; registry v28 preserved.
+
 - **2026-07-14T20:34Z** — [PC] **Intent (LOCK):** Investigate Tropic Chars UI showing **v3** + conflict hint again. Compare PC vs potato `campaigns/tropic-gooner/characters-registry.json` versions; restore from PC v23 if potato clobbered; backup potato first. Holder=`pc-chars-v3-reinvestigate`. No hard-delete. No commit unless asked.
 
 - **2026-07-14T20:36Z** — [PC] **Result:** Tropic Chars **v3** again = potato live registry matched **git HEAD v3** (tracked, not gitignored). `apply-git-bundle` `git reset --hard` wipes runtime registry; portraits were fine under `campaigns/tropic-gooner/characters/portraits/`. Backed up potato → `characters-registry.json.bak-v3-20260714T203536Z`; SCP PC **v23** (Sofia + 15 visible). API `:8790` → **v23**, sofia present. Working tree now `M` registry — next hard reset will reclobber until committed or gitignored. UI hint `vN on roster · conflict…` is static help; real issue was disk v3. Hard-refresh Chars. Lock released. No commit.
@@ -317,6 +323,10 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 ---
 
 ## Recent activity
+
+- **2026-07-15T00:43Z** — [PC] **Intent:** Diagnose missing Hub/Systems per-core CPU bars (screenshot: aggregate CPU only, 150ms sample). Grep PC vs potato; check API `cpu_cores`; small fix only if clear regression. No commit unless asked.
+- **2026-07-15T00:45Z** — [PC] **Result:** Per-core missing = **stale Hub HTML on potato** (5971 lines, no `cpuCoresBarsHtml`; KPI only "150ms sample"). API already had `cpu_cores`×4. Deployed `push-linuxbox.sh --dashboard`, restart `linuxbox-status`, `:8790` **200**; potato HTML now 7353 lines + served `/` has per-core markers. Hard-refresh Hub/Systems (Ctrl+Shift+R). No commit.
+
 
 - **2026-07-15T00:08Z** — [PC] **Result:** Chars v3 reclobber fixed. Before: potato **v3**/10vis (HEAD git v3); PC v23. Restored potato from bak `…20-37-14…` → **v28**/15vis (Sofia/`ellaine-roommate`, Alisa, Celine, Jinpei, Harper-sister). API `:8790` v28 + 5 NPCs. Durable: `apply-git-bundle.sh` preserves `campaigns/**/characters-registry.json` across `--hard` when local version ≥ post-reset; committed good registry. Hard-refresh desktop Ctrl+Shift+R. Lock released.
 
