@@ -1649,7 +1649,7 @@
         <section id="stories" class="panel fill admin-only">
           <aside class="report-index story-index">
             <h2>Story canon</h2>
-            <p class="meta" style="font-size:0.65rem;margin-bottom:0.5rem;color:var(--muted)">Pick a campaign, open a folder, then a doc — brainstorm with the assistant (you're the GM).</p>
+            <p class="meta" style="font-size:0.65rem;margin-bottom:0.5rem;color:var(--muted)">Pick a campaign, open a folder, then a doc. Character sheets: <strong>Interview</strong> (speak as them) or <strong>Brainstorm</strong> (GM notes).</p>
             <div class="story-camp-pick">
               <label class="meta" for="story-campaign">Campaign</label>
               <select id="story-campaign"></select>
@@ -1660,7 +1660,8 @@
             <div id="character-panel" class="character-panel hidden" style="display:none"></div>
             <div class="story-toolbar">
               <span class="meta" id="story-doc-title">Select a story document</span>
-              <button type="button" class="btn primary" id="story-gm-btn" disabled>Brainstorm</button>
+              <button type="button" class="btn primary" id="story-interview-btn" disabled>Interview</button>
+              <button type="button" class="btn" id="story-gm-btn" disabled>Brainstorm</button>
               <button type="button" class="btn" id="story-chat-btn" disabled>Discuss in Chat</button>
               <button type="button" class="btn" id="story-task-btn" disabled>+ Task with context</button>
             </div>
@@ -2402,6 +2403,7 @@
       if (ctx.story_path || ctx.path) chips.push(`story:${(ctx.story_path || ctx.path || "").split("/").pop()}`);
       if (ctx.inbox_id) chips.push(`inbox:${ctx.inbox_id.slice(0, 12)}`);
       if (ctx.type === "character") chips.push("character");
+      if (ctx.character_interview) chips.push("interview");
       return chips.map((c) => `<span class="chat-chip">${esc(c)}</span>`).join("");
     }
 
@@ -2415,6 +2417,10 @@
         }
       }
       if (ctx?.project_id && pmap[ctx.project_id]) return `Project · ${pmap[ctx.project_id].name}`;
+      if (ctx?.type === "character" && ctx.character_interview) {
+        const who = ctx.character_id || (ctx.path || ctx.story_path || "").split("/").pop()?.replace(/\.md$/i, "") || "character";
+        return `Interview · ${who}`;
+      }
       if (ctx?.type === "story" && ctx.path) return `Story · ${ctx.path.split("/").pop()}`;
       if (ctx?.campaign) return `Campaign · ${chatCampaignUiLabel(ctx.campaign, ctx.layer) || ctx.campaign}`;
       if (ctx?.inbox_id) return `Inbox · ${ctx.inbox_id}`;
@@ -2789,7 +2795,7 @@
       const ctx = {};
       const keys = [
         "project_id", "task_id", "campaign", "layer", "story_path", "type", "path",
-        "character_id", "inbox_id", "workshop_mode", "ask_human",
+        "character_id", "inbox_id", "workshop_mode", "character_interview", "ask_human",
       ];
       for (const key of keys) {
         if (extra[key] != null && extra[key] !== "") ctx[key] = extra[key];
@@ -2851,6 +2857,25 @@
       updateChatFilterHint();
       await createChatThreadFromForm({ ...ctx, title: label || contextLabel(ctx, agentData) || "New chat" });
       document.getElementById("chat-input").focus();
+    }
+
+    async function openCharacterInterview(campaign, { character_id, path, story_path, name }) {
+      const sheetPath = path || story_path || "";
+      const display = name || character_id || "character";
+      document.getElementById("chat-mode").value = "brief-rp";
+      syncChatModeUi({ modeId: "brief-rp" });
+      document.getElementById("chat-input").placeholder = `Interviewing ${display} — they reply in character.`;
+      await openChatWithContext(
+        {
+          type: "character",
+          campaign,
+          character_id: character_id || undefined,
+          path: sheetPath || undefined,
+          story_path: sheetPath || undefined,
+          character_interview: true,
+        },
+        `Interview · ${display}`
+      );
     }
 
     function detectSaveIntent(text) {
@@ -3922,6 +3947,7 @@
         </div>
         <div class="sheet-actions">
           <button type="button" class="btn primary" id="char-edit-save">Save fields</button>
+          <button type="button" class="btn primary" id="char-interview-btn" ${row.story_path ? "" : "disabled"}>Interview</button>
           <button type="button" class="btn" id="char-open-story" ${row.story_path ? "" : "disabled"}>Open story doc</button>
           <span class="meta" id="char-edit-result"></span>
         </div>
@@ -4252,6 +4278,16 @@
           setTimeout(() => openStoryDoc(charsCampaignFilter, row.story_path, name, row.id), 200);
         };
       }
+      const interviewBtn = document.getElementById("char-interview-btn");
+      if (interviewBtn && row.story_path) {
+        interviewBtn.onclick = () => {
+          openCharacterInterview(charsCampaignFilter, {
+            character_id: row.id,
+            story_path: row.story_path,
+            name: row.display_name || row.id,
+          });
+        };
+      }
     }
     function initStoryCampaignPicker(catalog) {
       const sel = document.getElementById("story-campaign");
@@ -4273,7 +4309,7 @@
       document.getElementById("story-body").classList.add("empty-state");
           document.getElementById("story-doc-title").textContent = "Select a story document";
           hideCharacterPanel();
-          ["story-gm-btn", "story-chat-btn", "story-task-btn"].forEach((id) => {
+          ["story-interview-btn", "story-gm-btn", "story-chat-btn", "story-task-btn"].forEach((id) => {
             document.getElementById(id).disabled = true;
           });
           renderStoryList(storyCatalog);
@@ -4424,6 +4460,8 @@
       document.getElementById("story-doc-title").textContent = `${name} · ${campaign}`;
       document.getElementById("story-body").innerHTML = '<div class="empty-state">Loading…</div>';
       document.getElementById("story-body").classList.remove("empty-state");
+      const isChar = /\/characters\//.test(relPath);
+      document.getElementById("story-interview-btn").disabled = !isChar;
       document.getElementById("story-gm-btn").disabled = false;
       document.getElementById("story-chat-btn").disabled = false;
       document.getElementById("story-task-btn").disabled = false;
@@ -4827,11 +4865,30 @@
 
     function renderMachines(sync, opts = {}) {
       if (!sync) return;
+      const localPixi = sync.local_pixi || null;
       const listHtml = (sync.machines || []).map((m) => {
         const st = machineDotClass(m);
+        let extra = "";
+        if (m.id === "linuxbox" && localPixi) {
+          const lpSt = localPixi.ok ? "Pixi OR up" : "Pixi OR down";
+          const lpUrl = localPixi.url || "http://127.0.0.1:8767/";
+          extra = localPixi.ok
+            ? ` · <a href="${esc(lpUrl)}" target="_blank" rel="noopener">${esc(lpSt)}</a>`
+            : ` · ${esc(lpSt)}`;
+        }
+        if (m.id === "desktop" && m.pc_services) {
+          const ps = m.pc_services;
+          const pixiSt = ps.pixi?.ok ? "Pixi up" : "Pixi down";
+          const bonsaiSt = ps.bonsai?.ok ? "Bonsai up" : "Bonsai down";
+          const pixiUrl = ps.pixi?.url || "";
+          const deskExtra = pixiUrl && ps.pixi?.ok
+            ? ` · <a href="${esc(pixiUrl)}" target="_blank" rel="noopener">${esc(pixiSt)}</a> · ${esc(bonsaiSt)}`
+            : ` · ${esc(pixiSt)} · ${esc(bonsaiSt)}`;
+          extra = (extra || "") + deskExtra;
+        }
         return `<div class="lane-row">
           <span class="lane-dot ${st}"></span>
-          <span class="lane-name">${esc(m.label)} <span style="font-weight:400;color:var(--muted)">· ${esc(m.tailnet_ip || "?")}</span></span>
+          <span class="lane-name">${esc(m.label)} <span style="font-weight:400;color:var(--muted)">· ${esc(m.tailnet_ip || "?")}</span>${extra}</span>
           <span class="lane-time">${esc(machineHint(m))}</span>
         </div>`;
       }).join("") || '<p class="empty">No machines registered</p>';
@@ -7106,6 +7163,15 @@
         alert(err.message || "Could not update campaign");
       }
     });
+
+    document.getElementById("story-interview-btn").onclick = () => {
+      if (!selectedStory || !/\/characters\//.test(selectedStory.path)) return;
+      openCharacterInterview(selectedStory.campaign, {
+        character_id: selectedStory.character_id || undefined,
+        path: selectedStory.path,
+        name: selectedStory.name.replace(/\.md$/i, ""),
+      });
+    };
 
     document.getElementById("story-chat-btn").onclick = () => {
       if (!selectedStory) return;

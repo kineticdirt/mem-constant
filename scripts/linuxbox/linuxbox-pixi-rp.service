@@ -1,0 +1,20 @@
+[Unit]
+Description=Pixi RP (OpenRouter-only unified stack on :8767)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/pixi-rp/ObsidianWriterStack
+EnvironmentFile=-%h/.linuxbox-pixi/deckard-local.env
+Environment=CHAT_UI_HOST=0.0.0.0
+Environment=CHAT_UI_PORT=8767
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 scripts/unified_rp_server.py --bind 0.0.0.0 --port 8767
+Restart=on-failure
+RestartSec=8
+# Soft RAM guard — Pixi is OR-only (no GGUF); still keep lean on 2 GB box
+MemoryMax=700M
+
+[Install]
+WantedBy=default.target
