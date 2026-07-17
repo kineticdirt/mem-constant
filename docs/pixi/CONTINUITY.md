@@ -2,7 +2,7 @@
 
 **Scope:** Pixi RP chat-ui (`ObsidianWriterStack/PixiApp/chat-ui/`).  
 **Code owners:** sibling fix agents (merge/inject). This doc is the operator map.  
-**Status (2026-07-17):** Outfit + cast-status inject live (`outfit-state-v1`, `cast-status-v1`). **Age / identity lock + established-facts Send inject live** (`age-identity-v1`). **Continuity hygiene pass live** (`continuity-hygiene-v1`): load/Send bootstraps ages/outfits/places from sheets + appearance_notes, prunes zero-stub Relations edges, syncs `cast_activation`/`known_to_pc` from thin package API, trims bloated sheets.
+**Status (2026-07-17):** Outfit + cast-status inject live (`outfit-state-v1`, `cast-status-v1`). **Age / identity lock + established-facts Send inject live** (`age-identity-v1`). **Continuity hygiene pass live** (`continuity-hygiene-v1` → verified `hygiene-verify-v1`): load/Send bootstraps ages/outfits/places from sheets + appearance_notes, prunes zero-stub **and unmet** Relations edges, seeds PC→present first_contact, syncs `cast_activation`/`known_to_pc` + package `people_md`/`people_aka`, trims bloated sheets. Verify pass also: aka scrub (no “Age” / phrase tails), outfit matcher no longer treats “in a messy bun” as clothing, observed people-row wins over stale scenario.entities for unmet checks.
 
 Companion runtime maps live in the Pixi tree:  
 `ObsidianWriterStack/docs/pixi/RUNTIME_CODEBASE.md`, `RELATIONSHIP_CONTINUITY.md`, `RESPONSE_GUARDRAILS.md`.  
@@ -124,9 +124,12 @@ Client merge: `mergeObservedWorldIntoRpg` (browser). Server parity: `observed_wo
 | “Wearing X” forgotten | Empty `current_outfit`; clothing stuck in locked `appearance_notes`; `present_cast_state` empty | Hygiene bootstraps outfit from appearance_notes + clothing object; then WD / Cast “Wearing now” |
 | Sheets look right, Send wrong | Sheets are UI-only — Cast ≠ Send | Hygiene seeds people ages/outfits into `observed_world`; confirm inject layer |
 | Unmet cast walks on | Package `cast_activation` / dormant guard skipped; zero-stub Relations | Hygiene syncs package tags + prunes zero stubs; `dormant_cast_guard` |
-| Specialist / unmet in Relations | All-zero PC→NPC stubs treated as ties | `pruneZeroStubSocialEdges` on load/Send (`continuity-hygiene-v1`) |
+| Specialist / unmet in Relations | All-zero PC→NPC stubs treated as ties; **or** unmet package cast with fear>0 leftovers | `pruneZeroStubSocialEdges` + `pruneUnmetCastSocialEdges` on load/Send; UI also filters via `relationsDisplayEdges` |
+| Nickname opens wrong sheet / “Age” as aka | Aka regex matched inside “Also known as”; Names-line bold capture incomplete | `sanitizeAkaAlias` + longer-alt-first aka regex; package `_aliases_from_people_markdown` Names-line findall (`hygiene-verify-v1`) |
+| Outfit = hair (“messy bun”) | Wear regex treated `in a …` as clothing | Dropped `in a|in an` from outfit bootstrap; clothing-word gate (`hygiene-verify-v1`) |
 | Bloated Elena/Specialist sheets | BG `character_record` dumped transcript into markdown | `trimBloatedCharacterSheetMarkdown` in hygiene |
 | Leave mid-Send | Phone tab closes during OR call | `telemetry.pending_turn` + provisional assistant (`server.py` `_mark_pending_turn`, `_persist_provisional_assistant_turn`); other tab polls status |
+| Intermittent **Failed to fetch** / network API | `linuxbox-pixi-rp` restart mid-hop (deploys), Tailscale blip; historically also `fetch keepalive` ~64KiB Chrome cap | Client `api()` retries transient network 3× (`fetch-retry-v1`); **never** use keepalive on `/api/chat`; avoid restart during active Send when possible |
 | Hygiene wipe / empty reply | Reasoning tokens / strip | `response_hygiene.py`, revision `hygiene-reasoning-off-*` |
 | Duplicate people/places | Alias / slug minting | hygiene plan + `world_delta_*_merges` telemetry |
 
@@ -183,5 +186,31 @@ Confirm:
 - [x] `body_profile.age` (or top-level age) first-wins / identity-locked in merge tests
 - [x] Established age appears in Send `identity_continuity` layer
 - [x] Hygiene bootstraps outfits/places/prunes zeros; package cast sync
-- [ ] Hard-refresh Pixi after deploy; `chat_api_revision=20260717-continuity-hygiene-v1`
+- [ ] Hard-refresh Pixi after deploy; `chat_api_revision=20260717-fetch-retry-v1`
 - [ ] Session `78bb2b84` backfilled (ages/outfits/places/cast/prune/trim)
+
+---
+
+## 10. Bible — non-hardcoded permanent / dynamic solutions
+
+**Principle (operator + agent):** Create **non-hardcoded permanent solutions which act dynamically**. Pixi must stay package- and session-data-driven. A fix that only works because a name/id/place string is baked into engine code is a debt item, not a product fix.
+
+### Rules
+
+1. **Package / session first** — Cast presence, Relations meet, home base, identity, and inject layers must read from `scenario.json` / `observed_world` / WORLD_DELTA — not from special-case NPC ids in engine code.
+2. **If you must special-case** — mark it in code as `// HARDCODE(scenario): …` (or `HARDCODE(catalog)`) with the upgrade path in the same comment. Prefer a package field (`home_base`, `cast_activation`, edges) over a new regex.
+3. **No “sheet → invent mechanic” heuristics** that mint diegetic Facts from UI markdown alone. Prefer WORLD_DELTA + presence/known flags.
+4. **Parity** — Client (`session_turn_augment.mjs`) and server mirrors (`continuity_memory.py`, `scene_context.py`) must not keep a parallel hardcoded cast list the other side already replaced with scores/state.
+5. **Audit cue** — grep `HARDCODE(scenario)` and scenario-specific names (`Apartment 3C`, `lin-mei`, `Elena`) in `PixiApp/chat-ui/` before claiming a root-cause fix is permanent.
+
+### Inventory (known leftovers — marked, not all removed)
+
+| Location | What | Dynamic path |
+|----------|------|--------------|
+| `_JOIN_ELENA_RE` | Name-tied roof join | Package entity name / join cues |
+| `_APARTMENT_3C_RE` + fallback in `scenarioHomeBaseLabel` | Home-base match | `scenario.json` `home_base` → `rpg.home_base` (wired; regex kept as alias) |
+| `scene_context.py` Apartment 3C strings | Server roster/travel parity | Mirror `scenarioHomeBaseLabel` (marked HARDCODE; JS already dynamic) |
+| `DEFAULT_SCENARIO_PACKAGE_ID` | Catalog fallback | `/api/config` `defaultScenarioId` |
+| Scenario `inject/*.md` + people MD | Diegetic anchors | OK — package content, not engine |
+
+Revision stamp for this pass: `20260717-fetch-retry-v1` (network retry + home_base + intimacy sort de-hardcode).

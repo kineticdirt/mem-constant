@@ -78,6 +78,56 @@ Cursor agents in this workspace: follow the user rule to update this file **befo
 
 ## Current tasks
 
+- **2026-07-17T22:50Z** — [PC] **Result:** Continuity hygiene verify+fix live `20260717-hygiene-verify-v1` on potato :8767. Tests: **134 JS pass**, Jules alias pytest pass. Fixes: (1) Jules nick punct + Names-line aka; (2) outfit no longer "messy bun"; (3) unmet check honors observed present/known; (4) aka scrub Age/phrase tails; (5) hygiene save counts include unmet/met/package. Session `78bb2b84` re-backfilled: ages (PC20/Lin23/Maya18/…), outfits+clothing objs, Jules aka, PC→lin-mei first_contact, unmet Marcus edges gone. Package API 200 + people_aka Jules/Emily. **Hard-refresh** Ctrl+Shift+R.
+
+- **2026-07-17T22:50Z** — [PC] **Result:** Pixi `20260717-sheet-data-v2` live. Character sheets seed from package `people/*.md` (Lin Mei role/age/Emily, Elena core-cast, etc.); strip empty Mood/Stress telemetry + transcript “dossier” scrap + Recent beats. Session `78bb2b84` backfilled. Hard-refresh Cast/Wiki.
+
+- **2026-07-17T22:45Z** — [PC] **Intent:** Continuity-hygiene verify+fix: re-run chat-ui JS/pytest, static wiring (applyContinuityHygiene load/Send, package API, revision), potato smoke (:8767 revision + package + session 78bb2b84). Fix regressions; redeploy if needed.
+
+- **2026-07-17T22:40Z** — [PC] **Intent:** Character sheets must hold real cast data, not telemetry/junk. Audit live sheets + establish/character_record path; fix thin sheets / bloat / wrong content. Deploy.
+
+- **2026-07-17T22:35Z** — [PC] **Result:** Pixi `20260717-aka-sheet-v1` live. Nicknames → correct sheet: package `people/*.md` aka via thin API `people_aka`; hygiene seeds `also_known_as`; `resolveCanonicalPersonId` for Wiki/sheet lookup; Cast/Wiki show aka; bidirectional alias merge. Session `78bb2b84` lin-mei←Emily backfilled. 124 JS tests. Hard-refresh.
+
+- **2026-07-17T22:30Z** — [PC] **Intent:** Nicknames → correct Cast/Wiki sheet (Lin Mei ↔ Emily). Trace alias index, sheet lookup, aka merge; fix if Emily opens wrong/missing sheet. No hardcode of names — package aka / also_known_as driven.
+
+- **2026-07-17T22:20Z** — [PC] **Result:** Pixi `20260717-session-fetch-v1` live. Failed-to-fetch on `/api/sessions` root causes: (1) frequent deploy restarts mid-hop, (2) GET re-queued cast-enrich into free 429 storm, (3) PUT echoed ~600KB. Fixes: session fetch 6× longer backoff; cast-enrich 1h cooldown on 429; slim PUT ack (~150B). Session cooldown applied. Hard-refresh. Prefer `http://192.168.4.59:8767` or MagicDNS hostname — alias `potato` does not resolve on Windows Comcast DNS.
+
+- **2026-07-17T22:15Z** — [PC] **Intent:** Diagnose/fix Pixi `Failed to fetch` on `/api/sessions/78bb2b84-…` (not only chat). Evidence: potato health, session GET/PUT size, service logs, client `api()` retry path. Deploy if fix.
+
+- **2026-07-17T22:20Z** — [PC] **Result:** Pixi `20260717-empty-recover-v1` live. Mitigated empty_assistant_content after hygiene strip + free 429s: (1) free fallback chain now Qwen+Venice (env+builtin merge); (2) after diegetic strip → minimal-context same-model retry; (3) 429 pause between free hops + delayed re-try; (4) client uses `fg_free_fallback_models` from config. Paid still off. Hard-refresh. If still 429-all, wait ~30s or pick DeepSeek for one turn.
+
+- **2026-07-17T22:12Z** — [PC] **Intent:** Mitigate Pixi `empty_assistant_content` after diegetic hygiene strip + free 429s (`diegetic_hygiene_retry_stripped`, qwen/laguna 429). Salvage / more free fallbacks / don't leave Send dead. Deploy.
+
+- **2026-07-17T22:10Z** — [PC] **Result:** Pixi `20260717-fetch-retry-v1` live. (1) Intermittent Failed to fetch: mostly mid-hop `linuxbox-pixi-rp` restart / Tailscale blip (keepalive already gone); `api()` now retries transient network 3× w/ backoff. (2) Bible §10 in `docs/pixi/CONTINUITY.md` + AGENTS preference: non-hardcoded permanent/dynamic solutions; `HARDCODE(scenario)` inventory. (3) De-hardcode: intimacy sort by state/score (not lin-mei/reyes ids); `scenario.home_base` + `scenarioHomeBaseLabel`; travel/zone copy package-driven. 120 JS + continuity_memory pytest OK. **Hard-refresh** Ctrl+Shift+R. Note: deploys restart Pixi — can cause one Failed to fetch mid-Send; retries should absorb most.
+
+- **2026-07-17T22:25Z** — [PC] **Intent:** (1) Diagnose intermittent Pixi "network API failed to fetch". (2) Bible: non-hardcoded permanent/dynamic solutions — audit scenario hardcodes; promote principle into CONTINUITY / AGENTS / groupchat.
+
+- **2026-07-17T22:20Z** — [PC] **Result:** De-hardcoded meet path `relations-met-v2`. Removed sheet→edge scan + magic `relation:"met"`. First-contact edges now: (1) from WORLD_DELTA `new_people` merge, (2) from present/known cast presence — tagged `source:"first_contact"` (pipeline), diegetic `relation` only when model/setup says so. Unmet prune unchanged. 120 JS tests. Hard-refresh `relations-met-v2`.
+
+- **2026-07-17T22:15Z** — [PC] **Intent:** De-hardcode Relations meet path. Drop sheet→edge heuristic + magic `relation:"met"`; first-contact edges only from WORLD_DELTA merge / present-cast promotion with neutral `source:"first_contact"` (survives zero-prune). Unmet filter stays package-data-driven. Deploy.
+
+- **2026-07-17T22:10Z** — [PC] **Result:** Relations `20260717-relations-met-v1` live. (1) Hide/prune unmet cast edges (Marcus/Elena fear leftovers gone from session). (2) Root cause missing PC→Lin Mei: intro was **prose/sheet without WORLD_DELTA new_edges**; stubber only fired on flagged `new_people` and server PC-stub was no-op. Fix: `ensurePcMetEdgesForKnownPeople` (sheet/present/known → durable `relation:"met"` PC edge) + stronger delta stubber + WD prompt “first meeting requires PC→NPC edge”. Session backfilled: unmet_edges_pruned 6, met_edges_seeded PC→lin-mei. 118 JS tests. **Hard-refresh** (`relations-met-v1`).
+
+- **2026-07-17T22:00Z** — [PC] **Intent:** Relations (1) hide unmet/`known_to_pc:false` edges+nodes (match blurb); scrub session Marcus/Elena fear leftovers. (2) Root-cause why meeting Lin Mei never created PC→lin-mei edge (no hardcode) — WORLD_DELTA / stubber / partner-only seed path. Deploy potato.
+
+- **2026-07-17T21:55Z** — [PC] **Result:** Maya still missing in Cast = **stale browser module cache**. Roster fix was live on potato Node (`active` includes maya), but `pixi_augment_mount.mjs?v=` was still `continuity-hygiene-v1` so Cast used old `session_turn_augment.mjs`. Bumped mount+imports+app to `maya-roster-v2`; `Cache-Control: no-cache` on `.mjs`/app.js. **Hard-refresh again** — Cast should show Maya with Lin Mei.
+
+- **2026-07-17T21:50Z** — [PC] **Result:** Maya Cast/Relations root cause fixed (`20260717-maya-roster-v1` live). **Not** “sheet never created” — `character_sheets`/`character_record` for `npc:maya-patel` already existed; Cast/Wiki hid her because blank observed `scene` was treated as **absent**, which also blocked scenario.entities template promotion (Relations graph then dropped her node while survivor↔maya / maya↔lin-mei edges remained). Fix: blank scene stays undecided; honor **explicit** `cast_activation:present`; seed observed scene from scenario.entities; Relations stubs for missing edge endpoints; removed Maya/Lin Mei name hardcodes. 115 JS tests pass. Session `78bb2b84` scene backfilled (backup `.bak.maya-roster.*`). **Hard-refresh** Pixi.
+
+- **2026-07-17T21:45Z** — [PC] **Intent:** Fix Maya Cast/Relations root cause (no hardcode). Blank observed `scene` → false `absent` (ignores `cast_activation:present` + blocks scenario template scene); Cast hides card/sheet; Relations graph drops node while edges remain. Paths: `session_turn_augment.mjs` roster + scene seed, `app.js` graph stubs, tests; deploy potato.
+
+- **2026-07-17T21:35Z** — [PC] **Intent:** Diagnose missing Maya Patel character sheet + Relations map (no hardcode). Trace sheet establish, cast_activation/unmet, zero-edge prune, graph filter. Session evidence if available on potato.
+
+- **2026-07-17T21:32Z** — [PC] **Result:** Pixi regen replace fix `20260717-leave-mid-send-v3` live. Cause: PUT provisional guard + pending_turn done-lock blocked regen from dropping prior assistant → new reply stacked. Now: regenerate preflight honored; provisional replaces trailing assistant; client strips trailing assistants before push. 9 pytest OK. Hard-refresh then Regenerate.
+
+- **2026-07-17T21:28Z** — [PC] **Intent:** Pixi Regenerate appends instead of replace (two assistant bubbles). Likely leave-mid-send PUT guard keeping provisional prior. Fix: honor `turn_kind=regenerate` on PUT; provisional write replaces trailing assistant; client strip trailing assistants before push. Deploy `leave-mid-send-v3`.
+
+- **2026-07-17T21:19Z** — [PC] **Result:** Pixi `Failed to fetch` on Send — root cause `fetch keepalive` (Chrome ~64KiB body cap; Pixi prompts exceed). Removed keepalive; durability stays server provisional+PUT guard. Live `20260717-leave-mid-send-v2`. Hard-refresh Ctrl+Shift+R then Send.
+
+- **2026-07-17T21:06Z** — [PC] **Result:** Pixi leave-mid-Send `20260717-leave-mid-send-v1` live on potato `:8767`. PUT no longer wipes server provisional; pending_turn done protected; GET promotes provisional→normal; `/api/chat` fetch keepalive; client merge prefers server provisional. 6 pytest OK (PC). Hard-refresh Pixi. Close tab mid-Send → reopen session — reply should be on disk.
+
+- **2026-07-17T21:04Z** — [PC] **Intent:** Pixi leave-mid-Send durability — do not wipe server provisional assistant on stale PUT; keepalive `/api/chat`; prefer server provisional on reload. Goal: close phone tab mid-Send and still see reply on reopen. Paths: `PixiApp/chat-ui/server.py`, `static/app.js`, tests. Deploy potato `:8767`.
+
 - **2026-07-17T20:55Z** — [PC] **Result:** Continuity hygiene `20260717-continuity-hygiene-v1` live on potato `:8767`. Wired load/Send + `GET /api/scenarios/package/<id>`; prune zero stubs; outfit/age/place bootstrap; cast sync; sheet trim. Session `78bb2b84` backfilled (backup `.bak.continuity-hygiene.*`): outfits 4, ages 3, places 3, cast_tags 12+1, zero_edges_pruned 6, sheets_trimmed 2; Specialist → unmet. 112 JS tests pass. **Hard-refresh** Pixi (Ctrl+Shift+R) before next Send. HTTPS/:8767 still Tailscale/LAN only.
 
 - **2026-07-17T20:50Z** — [PC] **Intent:** Fix all 12 continuity gaps (PC age, outfit bootstrap, places/objects SoT, zero-edge Relations, cast_activation sync, sheet bloat, docs). Deploy potato.
