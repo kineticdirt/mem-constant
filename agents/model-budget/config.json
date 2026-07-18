@@ -13,7 +13,10 @@
       "base_url": "https://zenmux.ai/api/v1",
       "key_env": "ZENMUX_API_KEY",
       "model_prefix": "zenmux:",
-      "note": "OpenAI-compatible; OpenRouter-style slugs (openai/gpt-5, qwen/qwen3-max). Set ZENMUX_API_KEY in ~/.hermes/.env to enable. Use with the zenmux: prefix, e.g. zenmux:moonshotai/kimi-k3-free. ZenMux free variants use a -free slug suffix (NOT OpenRouter's :free).",
+      "daily_usd_target": 5,
+      "daily_usd_env": "ZENMUX_DAILY_USD",
+      "limit_reset": "daily",
+      "note": "OpenAI-compatible; OpenRouter-style slugs (openai/gpt-5, qwen/qwen3-max). Set ZENMUX_API_KEY in ~/.hermes/.env to enable. Use with the zenmux: prefix, e.g. zenmux:moonshotai/kimi-k3-free. ZenMux free variants use a -free slug suffix (NOT OpenRouter's :free). daily_usd_target is a SOFT policy cap ($5/day) — change here or override with ZENMUX_DAILY_USD in ~/.hermes/.env; it is not a hard provider-side cap (set that in the ZenMux console if you want an enforced ceiling).",
       "known_models": {
         "_source": "Captured from ZenMux picker screenshot 2026-07-18 (partial list — not exhaustive; ZenMux catalog is larger, verify live via discover_models).",
         "models": [
