@@ -1,0 +1,88 @@
+{
+  "_doc": "OpenRouter model chains per Hermes profile. Failover script promotes next model on 404/delist. Ops pool = OPENROUTER_API_KEY_OPS; RP = OPENROUTER_API_KEY_RP. Do NOT re-add tencent/hy3:free (OpenRouter sunset 2026-07-21).",
+  "version": 4,
+  "providers": {
+    "_doc": "Chain entries default to OpenRouter. To route an entry via ZenMux, prefix its slug with `zenmux:` (e.g. `zenmux:openai/gpt-5`); the dashboard maps that to `hermes --provider zenmux -m <slug>` and Hermes resolves providers.zenmux from profile config.yaml (key_env ZENMUX_API_KEY). Default chains below are unprefixed = OpenRouter (unchanged).",
+    "openrouter": { "base_url": "https://openrouter.ai/api/v1", "key_env": "OPENROUTER_API_KEY", "default": true },
+    "zenmux": { "base_url": "https://zenmux.ai/api/v1", "key_env": "ZENMUX_API_KEY", "model_prefix": "zenmux:" }
+  },
+  "probe": {
+    "max_tokens": 2,
+    "timeout_sec": 45
+  },
+  "profiles": {
+    "think": {
+      "pool": "ops",
+      "chain": [
+        "nousresearch/hermes-4-70b",
+        "stepfun/step-3.7-flash",
+        "deepseek/deepseek-v4-flash",
+        "z-ai/glm-5.2"
+      ]
+    },
+    "chat": {
+      "pool": "ops",
+      "chain": [
+        "nousresearch/hermes-4-70b",
+        "stepfun/step-3.7-flash",
+        "deepseek/deepseek-v4-flash",
+        "z-ai/glm-5.2"
+      ],
+      "note": "Dashboard Chat only — OpenRouter; never pc-bonsai-failover patched."
+    },
+    "meta": {
+      "pool": "ops",
+      "chain": [
+        "z-ai/glm-5.2",
+        "stepfun/step-3.7-flash",
+        "deepseek/deepseek-v4-flash",
+        "nousresearch/hermes-4-70b"
+      ]
+    },
+    "code": {
+      "pool": "ops",
+      "chain": [
+        "z-ai/glm-5.2",
+        "stepfun/step-3.7-flash",
+        "deepseek/deepseek-v4-flash",
+        "nousresearch/hermes-4-70b"
+      ]
+    },
+    "fast": {
+      "pool": "free",
+      "chain": [
+        "poolside/laguna-xs-2.1:free",
+        "qwen/qwen3-next-80b-a3b-instruct:free",
+        "deepseek/deepseek-v4-flash"
+      ],
+      "note": "Free-first ticks: Laguna then Qwen; DeepSeek paid last resort. hy3 removed (sunset 2026-07-21)."
+    }
+  },
+  "chat_profile_chain": ["chat", "think", "meta", "code"],
+  "chat_paid_model_note": "Dashboard Chat free-first. Brief/minor paid head = DeepSeek; mid = stepfun/step-3.7-flash before Hermes/GLM; workshop prefers Step then DeepSeek then quality. See agents/model-budget/config.json.",
+  "chat_venice_last_resort": "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+  "chat_paid_minor": "deepseek/deepseek-v4-flash",
+  "chat_paid_mid": "stepfun/step-3.7-flash",
+  "chat_free_models": [
+    "poolside/laguna-xs-2.1:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free"
+  ],
+  "chat_free_last_resort": [
+    "poolside/laguna-xs-2.1:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free"
+  ],
+  "chat_free_first": true,
+  "sunset_models": {
+    "tencent/hy3:free": {
+      "sunset": "2026-07-21",
+      "note": "Removed from primary chains before sunset — do not re-add."
+    }
+  },
+  "delist_patterns": [
+    "unavailable for free",
+    "HTTP 404",
+    "HTTP 402",
+    "no endpoints found",
+    "model not found"
+  ]
+}

@@ -144,7 +144,9 @@ const USER_PROJECT_KINDS = [
   { id: "personal", label: "Personal" },
 ];
 
-const VALID_PROFILES = new Set(["fast", "think", "meta", "code", "default"]);
+const VALID_PROFILES = new Set(["fast", "think", "chat", "meta", "code", "default"]);
+/** Dashboard Chat always uses OpenRouter — never Bonsai-patched think lane. */
+const CHAT_HERMES_PROFILE = "chat";
 const HERMES_MODEL_REGISTRY = path.join(REPO, "agents/hermes-model-registry.json");
 /** Cheap paid for brief/minor Chat turns. */
 const CHAT_DEEPSEEK_MINOR = "deepseek/deepseek-v4-flash";
@@ -450,7 +452,7 @@ function loadChatModes() {
         {
           id: "brief-rp",
           label: "Brief RP",
-          profile: "think",
+          profile: "chat",
           response_mode: "brief",
           show_model_picker: false,
           routing: "free_first",
@@ -458,7 +460,7 @@ function loadChatModes() {
         {
           id: "workshop",
           label: "Workshop",
-          profile: "think",
+          profile: "chat",
           response_mode: "workshop",
           show_model_picker: false,
           routing: "free_first",
@@ -640,9 +642,11 @@ function createChatOffloadTask(payload = {}) {
 }
 
 function resolveChatProfile(context, requested) {
-  const req = VALID_PROFILES.has(requested) ? requested : "think";
-  if (req === "fast") return "think";
-  if (context?.campaign && CAMPAIGNS[context.campaign]) return "think";
+  const req = VALID_PROFILES.has(requested) ? requested : CHAT_HERMES_PROFILE;
+  if (req === "fast") return CHAT_HERMES_PROFILE;
+  // Legacy threads/modes stored profile=think — route to chat so OpenRouter failover works when think→Bonsai.
+  if (req === "think") return CHAT_HERMES_PROFILE;
+  if (context?.campaign && CAMPAIGNS[context.campaign]) return CHAT_HERMES_PROFILE;
   return req;
 }
 
@@ -704,16 +708,97 @@ function readInboxSeeds() {
   }
 }
 
+/** Canonical { open, answered } — Hermes/agents sometimes write array or legacy shapes. */
+function normalizeHumanInboxShape(parsed) {
+  if (!parsed) return { open: [], answered: [] };
+  if (Array.isArray(parsed)) {
+    const open = [];
+    const answered = [];
+    for (const item of parsed) {
+      if (!item || typeof item !== "object") continue;
+      const ans = item.answer ?? item.decision ?? (item.reason && item.status === "answered" ? item.reason : null);
+      const isAnswered = Boolean(item.answered_at || item.status === "answered" || ans);
+      if (isAnswered) {
+        answered.push({ ...item, answer: String(ans || item.answer || "").trim() || "(answered)" });
+      } else {
+        open.push(item);
+      }
+    }
+    return { open, answered };
+  }
+  if (typeof parsed === "object") {
+    if (Array.isArray(parsed.open) || Array.isArray(parsed.answered)) {
+      return {
+        open: Array.isArray(parsed.open) ? parsed.open : [],
+        answered: Array.isArray(parsed.answered) ? parsed.answered : [],
+      };
+    }
+    if (Array.isArray(parsed.questions)) {
+      const open = [];
+      const answered = [];
+      for (const q of parsed.questions) {
+        if (!q || typeof q !== "object") continue;
+        if (q.status === "answered" || q.answer || q.answered_at) answered.push(q);
+        else open.push(q);
+      }
+      return { open, answered };
+    }
+  }
+  return { open: [], answered: [] };
+}
+
+function mergeHumanInboxCanon(a, b) {
+  const answered = new Map();
+  for (const q of [...(a.answered || []), ...(b.answered || [])]) {
+    if (q && q.id) answered.set(q.id, q);
+  }
+  const openIds = new Set();
+  const open = [];
+  for (const q of [...(a.open || []), ...(b.open || [])]) {
+    if (!q || !q.id || answered.has(q.id) || openIds.has(q.id)) continue;
+    openIds.add(q.id);
+    open.push(q);
+  }
+  return { open, answered: [...answered.values()] };
+}
+
+function ensureHumanInboxSymlink() {
+  fs.mkdirSync(path.dirname(HUMAN_INBOX), { recursive: true });
+  if (!fs.existsSync(HUMAN_INBOX_LEGACY)) {
+    try {
+      fs.symlinkSync("state/human-inbox.json", HUMAN_INBOX_LEGACY);
+    } catch {
+      /* race or perms */
+    }
+    return;
+  }
+  try {
+    const st = fs.lstatSync(HUMAN_INBOX_LEGACY);
+    if (st.isSymbolicLink()) return;
+    if (!st.isFile()) return;
+    const leg = normalizeHumanInboxShape(JSON.parse(fs.readFileSync(HUMAN_INBOX_LEGACY, "utf8")));
+    let canon = { open: [], answered: [] };
+    if (fs.existsSync(HUMAN_INBOX)) {
+      canon = normalizeHumanInboxShape(JSON.parse(fs.readFileSync(HUMAN_INBOX, "utf8")));
+    }
+    writeHumanInbox(mergeHumanInboxCanon(canon, leg));
+    const bak = `${HUMAN_INBOX_LEGACY}.bak-${Date.now()}`;
+    fs.renameSync(HUMAN_INBOX_LEGACY, bak);
+    fs.symlinkSync("state/human-inbox.json", HUMAN_INBOX_LEGACY);
+  } catch {
+    /* best-effort */
+  }
+}
+
 function ensureHumanInboxMigrated() {
+  ensureHumanInboxSymlink();
   fs.mkdirSync(path.dirname(HUMAN_INBOX), { recursive: true });
   if (fs.existsSync(HUMAN_INBOX)) return;
   if (!fs.existsSync(HUMAN_INBOX_LEGACY)) return;
   try {
-    const data = JSON.parse(fs.readFileSync(HUMAN_INBOX_LEGACY, "utf8"));
+    const data = normalizeHumanInboxShape(JSON.parse(fs.readFileSync(HUMAN_INBOX_LEGACY, "utf8")));
     const hasData = (data.open || []).length > 0 || (data.answered || []).length > 0;
-    if (hasData) {
-      fs.writeFileSync(HUMAN_INBOX, JSON.stringify(data, null, 2) + "\n", "utf8");
-    }
+    if (hasData) writeHumanInbox(data);
   } catch {
     /* legacy unreadable — start fresh in state path */
   }
@@ -792,8 +877,14 @@ function readHumanInboxRaw() {
   ensureHumanInboxMigrated();
   if (!fs.existsSync(HUMAN_INBOX)) return { open: [], answered: [] };
   try {
-    const data = JSON.parse(fs.readFileSync(HUMAN_INBOX, "utf8"));
-    return reviveContextRequests({ open: data.open || [], answered: data.answered || [] });
+    const parsed = JSON.parse(fs.readFileSync(HUMAN_INBOX, "utf8"));
+    const normalized = normalizeHumanInboxShape(parsed);
+    const needsRepair =
+      Array.isArray(parsed) ||
+      !Array.isArray(parsed.open) ||
+      !Array.isArray(parsed.answered);
+    if (needsRepair) writeHumanInbox(normalized);
+    return reviveContextRequests(normalized);
   } catch {
     return { open: [], answered: [] };
   }
@@ -3247,6 +3338,19 @@ function buildChatStylePreamble(responseMode, context, chatOpts = {}) {
   const brief = responseMode !== "workshop";
   const lines = [CHAT_RUNTIME_GUARDRAIL, ""];
   const mode = chatOpts.chatMode || getChatMode(chatOpts.chatModeId);
+  if (context?.character_interview) {
+    if (mode?.system_extra) {
+      lines.push(`[Chat mode — ${mode.label || mode.id}]`, mode.system_extra, "");
+    }
+    lines.push(
+      "[Response style — Character interview]",
+      "Reply in first person as the bound character. Stay concise unless the GM asks for depth.",
+      "Use only voice, backstory, and facts from the injected character sheet and registry notes.",
+      "Do not invent canon beyond those sources — if unknown, stay in character and say you do not know.",
+      "The human is the GM (interviewer or scene partner). You are the character, not a scribe or GM."
+    );
+    return lines.join("\n");
+  }
   if (mode?.system_extra) {
     lines.push(`[Chat mode — ${mode.label || mode.id}]`, mode.system_extra, "");
   }
@@ -3496,16 +3600,26 @@ The human is the GM. You are scribe/implementer for this lore doc: riff with the
     }
   }
   if (context.type === "character" && context.campaign) {
-    if (context.workshop_mode && !context.path) {
+    const reg = readCharactersRegistry(context.campaign);
+    const row =
+      (context.character_id && reg.characters.find((c) => c.id === context.character_id)) ||
+      (context.path && findRegistryForPath(reg, context.path)) ||
+      (context.story_path && findRegistryForPath(reg, context.story_path));
+    const sheetPath = context.path || context.story_path || row?.story_path || "";
+    if (context.character_interview) {
+      const who = row?.display_name || context.character_id || "this character";
+      blocks.push(
+        `[Character interview — ${who}]
+You ARE ${who}. Speak in first person as them for the whole reply.
+Mirror speech patterns and attitude from the character sheet when present.
+The human is the GM — they may interview you, probe backstory, or play a short scene. You are not the GM and not a meta narrator.`
+      );
+    } else if (context.workshop_mode && !sheetPath) {
       blocks.push(
         `[Campaign workshop — ${context.campaign}]
 The human is the GM for this chronicle. You are scribe/implementer: brainstorm, capture theories, list follow-ups, suggest registry/task updates. Do not act as GM.`
       );
     }
-    const reg = readCharactersRegistry(context.campaign);
-    const row =
-      (context.character_id && reg.characters.find((c) => c.id === context.character_id)) ||
-      (context.path && findRegistryForPath(reg, context.path));
     if (row) {
       blocks.push(
         `[Character registry — ${row.display_name}]\nstatus: ${row.status}\nplayer: ${row.player_name || "(unknown)"}\ndiscord: ${row.discord_username || row.discord_user_id || "(unlinked)"}\ncan_proxy (future): ${row.can_proxy}\nnotes: ${row.notes || ""}`.slice(
@@ -3514,15 +3628,15 @@ The human is the GM for this chronicle. You are scribe/implementer: brainstorm, 
         )
       );
     }
-    if (context.workshop_mode || context.ask_human) {
+    if (!context.character_interview && (context.workshop_mode || context.ask_human)) {
       blocks.push(
         `[Campaign workshop — roles]
 The human is the GM (creative authority). You are the scribe/implementer: capture ideas, brainstorm options, note open questions, suggest tasks or registry updates. Do not act as GM or lecture. When they settle on something, offer to record it. Ask only when blocked on facts — never invent Discord IDs or player identities.`
       );
     }
-    if (context.path) {
+    if (sheetPath) {
       try {
-        const doc = readStoryDoc(context.campaign, context.path);
+        const doc = readStoryDoc(context.campaign, sheetPath);
         blocks.push(`[Character sheet]\n\n${doc.content.slice(0, 10000)}`);
       } catch {
         /* optional sheet */
@@ -3672,13 +3786,26 @@ function isRetryableChatModelError(text) {
   );
 }
 
+// A model id may carry an explicit provider prefix (`zenmux:openai/gpt-5`,
+// `openrouter:...`). Provider names are matched only at the start before the first
+// `/`, so this never collides with slug bodies or the `:free` suffix. Unprefixed ids
+// keep Hermes' default (auto→openrouter) routing — behaviour unchanged without a prefix.
+function parseModelProvider(modelId) {
+  const m = String(modelId ?? "");
+  const match = /^(zenmux|openrouter):(.+)$/.exec(m);
+  if (match) return { provider: match[1], model: match[2] };
+  return { provider: null, model: m };
+}
+
 async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}) {
   // argv-only (no bash -lc): campaign canon has many `backticks`; bash would run each
   // as command substitution → flood of `bash: line 1: …: command not found` on stderr.
+  const { provider: modelProvider, model: resolvedModel } = parseModelProvider(modelId);
   const args = [];
   if (profile && profile !== "default") args.push("-p", profile);
   args.push("chat", "-Q", "-q", String(prompt ?? ""));
-  if (modelId) args.push("-m", String(modelId));
+  if (modelProvider) args.push("--provider", modelProvider);
+  if (resolvedModel) args.push("-m", String(resolvedModel));
   if (execOpts.maxTurns != null) args.push("--max-turns", String(Number(execOpts.maxTurns)));
   // ponytail: hermes-4-70b has no tool-use endpoints on OpenRouter; default hermes-cli
   // includes terminal/browser. Unknown `-t none` → enabled=["none"] → zero resolved tools.

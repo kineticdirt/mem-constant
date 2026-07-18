@@ -1,0 +1,71 @@
+{
+  "_doc": "Shared model/token budget policy for dashboard Chat, Hermes profiles, and future agent swarms. Free-first; paid only when free rate-limits, refuses, or fails. Do NOT re-add tencent/hy3:free (OpenRouter sunset 2026-07-21).",
+  "version": 3,
+  "policy": "free_first",
+  "providers": {
+    "_doc": "Selectable inference providers. Default (unprefixed model id) = openrouter. Route via ZenMux with a `zenmux:<slug>` model-id prefix (dashboard maps it to `hermes --provider zenmux -m <slug>`; Hermes reads providers.zenmux from each profile config.yaml). Adding zenmux does not change default chains.",
+    "openrouter": {
+      "base_url": "https://openrouter.ai/api/v1",
+      "key_env": "OPENROUTER_API_KEY",
+      "default": true
+    },
+    "zenmux": {
+      "base_url": "https://zenmux.ai/api/v1",
+      "key_env": "ZENMUX_API_KEY",
+      "model_prefix": "zenmux:",
+      "note": "OpenAI-compatible; OpenRouter-style slugs (openai/gpt-5, qwen/qwen3-max). Set ZENMUX_API_KEY in ~/.hermes/.env to enable."
+    }
+  },
+  "pools": {
+    "ops": {
+      "openrouter_env": "OPENROUTER_API_KEY_OPS",
+      "fallback_env": "OPENROUTER_API_KEY",
+      "daily_usd_target": 7,
+      "limit_reset": "daily",
+      "note": "Dashboard Chat + think/code/meta. Raise live key via OpenRouter UI or set-openrouter-key-limit.sh + MANAGEMENT key."
+    },
+    "rp": {
+      "openrouter_env": "OPENROUTER_API_KEY_RP",
+      "daily_usd_target": 7,
+      "limit_reset": "daily",
+      "note": "RP campaign pods (hunter/tropic/spacequest/nyc)."
+    },
+    "free": {
+      "daily_usd_target": 0,
+      "rpm_soft": 18,
+      "rpd_soft": 900,
+      "note": "Platform hard caps still apply (20 RPM; 50 or 1000 RPD). :free models can 429 at $0."
+    }
+  },
+  "routing": {
+    "prefer_free": true,
+    "paid_when": ["http_429", "rate_limit", "moderation_refusal", "model_unavailable", "daily_limit_on_free", "empty_intent"],
+    "free_models": [
+      "poolside/laguna-xs-2.1:free",
+      "qwen/qwen3-next-80b-a3b-instruct:free"
+    ],
+    "paid_minor": "deepseek/deepseek-v4-flash",
+    "paid_mid": "stepfun/step-3.7-flash",
+    "paid_models_quality": [
+      "nousresearch/hermes-4-70b",
+      "z-ai/glm-5.2"
+    ],
+    "paid_models_ops": [
+      "deepseek/deepseek-v4-flash",
+      "stepfun/step-3.7-flash",
+      "nousresearch/hermes-4-70b",
+      "z-ai/glm-5.2",
+      "cognitivecomputations/dolphin-mistral-24b-venice-edition"
+    ]
+  },
+  "sunset_models": {
+    "tencent/hy3:free": {
+      "sunset": "2026-07-21",
+      "note": "Removed from primary chains — do not re-add."
+    }
+  },
+  "soft_caps": {
+    "paid_attempts_per_day": 40,
+    "free_attempts_per_day": 80
+  }
+}
