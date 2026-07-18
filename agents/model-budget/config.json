@@ -13,7 +13,17 @@
       "base_url": "https://zenmux.ai/api/v1",
       "key_env": "ZENMUX_API_KEY",
       "model_prefix": "zenmux:",
-      "note": "OpenAI-compatible; OpenRouter-style slugs (openai/gpt-5, qwen/qwen3-max). Set ZENMUX_API_KEY in ~/.hermes/.env to enable."
+      "note": "OpenAI-compatible; OpenRouter-style slugs (openai/gpt-5, qwen/qwen3-max). Set ZENMUX_API_KEY in ~/.hermes/.env to enable. Use with the zenmux: prefix, e.g. zenmux:moonshotai/kimi-k3-free. ZenMux free variants use a -free slug suffix (NOT OpenRouter's :free).",
+      "known_models": {
+        "_source": "Captured from ZenMux picker screenshot 2026-07-18 (partial list — not exhaustive; ZenMux catalog is larger, verify live via discover_models).",
+        "models": [
+          "inclusionai/ling-2.6-1t",
+          "moonshotai/kimi-k3-free",
+          "stepfun/step-3.7-flash",
+          "z-ai/glm-4.6v-flash-free",
+          "z-ai/glm-4.7-flash-free"
+        ]
+      }
     }
   },
   "pools": {
