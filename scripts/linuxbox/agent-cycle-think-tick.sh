@@ -1,81 +1,114 @@
 #!/usr/bin/env bash
-# Think lane tick (crontab every 1m; adaptive throttle).
-# Quiet backlog → min 5m between LLM ticks; large backlog → allow every 1m.
-# IDLE short-circuit: no unchecked work → skip LLM, stamp heartbeat.
+# Think tick: at most every 5 minutes. Writes agents/state/think-focus.json for Hub.
 set -euo pipefail
 export PATH="${HOME}/.local/bin:${PATH}"
 REPO="${HOME}/agent-dump"
 LOCK="/tmp/agent-cycle-think.lock"
+FOCUS="${REPO}/agents/state/think-focus.json"
+LOG="${REPO}/agents/runs/think-last.log"
+INTERVAL_SEC="${THINK_INTERVAL_SEC:-300}"
+
 exec 200>"${LOCK}"
 flock -n 200 || exit 0
 
-# Seconds between LLM think runs (overridable)
-QUIET_INTERVAL_SEC="${THINK_QUIET_INTERVAL_SEC:-300}"   # 5m when some work
-BUSY_INTERVAL_SEC="${THINK_BUSY_INTERVAL_SEC:-60}"      # 1m when large backlog
-BUSY_OPEN_TASKS="${THINK_BUSY_OPEN_TASKS:-4}"           # open user-tasks threshold
-
-PROMPT='Think lane (profile think). Workdir agent-dump. Read agents/CURRENT_TASK.md. Do NOT run git pull (fast tick owns sync via apply-git-bundle + git-pull-and-deploy; private repo uses bundles). Skip sync if dirty and continue to the next lane — never inbox for git pull alone. Terminal for normal ops is already granted on cron (git status, scripts, smoke, systemctl restart linuxbox-status) — do NOT invent "terminal blocked" and do NOT inbox asking to approve one terminal tick. Before inbox: read agents/state/human-inbox.json open+answered and agents/inbox-seeds.json — never re-ask equivalent open/answered items. Complete ONE unchecked lane step, verify, mark done; if truly blocked on a human judgment call append ONE entry to agents/state/human-inbox.json "open" array only (must keep {"open":[],"answered":[]} shape — NEVER replace the whole file with a bare array; run python3 scripts/linuxbox/human-inbox-normalize.py after editing); else reply IDLE only. Prefer self-improve / correctness when lanes compete; ask Inbox rather than guess.'
-
 cd "${REPO}"
-mkdir -p "${REPO}/agents/state"
-python3 "${REPO}/scripts/linuxbox/human-inbox-normalize.py" "${REPO}" --quiet 2>/dev/null || true
+mkdir -p "${REPO}/agents/state" "${REPO}/agents/runs"
+date -Iseconds > "${REPO}/agents/state/think-tick.last"
 
-# S1: shrink profile DBs before chat if bloated (set HERMES_PROFILE_DB_GUARD=0 to skip)
-GUARD="${REPO}/scripts/linuxbox/hermes-profile-db-guard.sh"
-if [[ "${HERMES_PROFILE_DB_GUARD:-1}" != "0" ]] && [[ -f "${GUARD}" ]]; then
-  bash "${GUARD}" >/dev/null 2>&1 || true
-fi
+focus() {
+  STATUS="$1" BLURB="$2" TASK="$3" python3 - <<'PY'
+import json, os
+from pathlib import Path
+from datetime import datetime, timezone
+p = Path(os.environ.get("FOCUS_PATH", "/home/abhinav/agent-dump/agents/state/think-focus.json"))
+now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+status = os.environ["STATUS"]
+row = {
+  "status": status,
+  "blurb": (os.environ.get("BLURB") or "")[:180],
+  "task_id": (os.environ.get("TASK") or "")[:80],
+  "updated_at": now,
+}
+if status == "running":
+  row["started_at"] = now
+else:
+  try:
+    prev = json.loads(p.read_text())
+    if isinstance(prev, dict) and prev.get("started_at"):
+      row["started_at"] = prev["started_at"]
+  except Exception:
+    pass
+p.write_text(json.dumps(row, indent=2) + "\n")
+PY
+}
 
-HAS_WORK="${REPO}/scripts/linuxbox/agent-cycle-has-work.py"
-if [[ -f "${HAS_WORK}" ]]; then
+export FOCUS_PATH="${FOCUS}"
+
+# No work → idle, no LLM
+HAS="${REPO}/scripts/linuxbox/agent-cycle-has-work.py"
+if [[ -f "${HAS}" ]]; then
   set +e
-  python3 "${HAS_WORK}" --lane think --repo "${REPO}"
-  hw_rc=$?
+  python3 "${HAS}" --lane think --repo "${REPO}" >/dev/null
+  hw=$?
   set -e
-  if [[ "${hw_rc}" -eq 1 ]]; then
-    date -Iseconds > "${REPO}/agents/state/think-tick.last"
-    META="${REPO}/scripts/linuxbox/archive_meta.py"
-    LOG="${REPO}/agents/runs/think-idle-preflight.log"
-    mkdir -p "$(dirname "${LOG}")"
-    echo "IDLE (deterministic preflight; no LLM)" > "${LOG}"
-    if [[ -f "${META}" ]]; then
-      python3 "${META}" append agent_runs think 0 "${LOG}" "IDLE think preflight" 2>/dev/null || true
-    fi
+  if [[ "${hw}" -eq 1 ]]; then
+    focus idle "IDLE — no open work" ""
     exit 0
   fi
 fi
 
-# Adaptive throttle: large open-task backlog → 1m; else ≥5m between LLM runs
-open_n=0
-if [[ -f "${REPO}/agents/user-tasks.json" ]]; then
-  open_n="$(python3 -c "
+# Throttle
+LAST="${REPO}/agents/state/think-llm.last"
+now=$(date +%s)
+if [[ -f "${LAST}" ]]; then
+  last=$(date -d "$(cat "${LAST}")" +%s 2>/dev/null || echo 0)
+  age=$((now - last))
+  if [[ "${age}" -lt "${INTERVAL_SEC}" ]]; then
+    focus throttled "wait ${age}s/${INTERVAL_SEC}s" ""
+    exit 0
+  fi
+fi
+
+# Pick one open task for Hub blurb
+PICK="$(python3 - <<'PY'
 import json
 from pathlib import Path
-p=Path('${REPO}/agents/user-tasks.json')
+fp = Path("/home/abhinav/agent-dump/agents/user-tasks.json")
 try:
-  d=json.loads(p.read_text())
-  tasks=d.get('tasks') if isinstance(d,dict) else d
-  print(sum(1 for t in (tasks or []) if isinstance(t,dict) and t.get('status')=='open'))
+  d = json.loads(fp.read_text())
+  tasks = [t for t in (d.get("tasks") or []) if isinstance(t, dict) and t.get("status") == "open"]
+  def score(t):
+    title = str(t.get("title") or "")
+    body = str(t.get("body") or "")
+    ops = 0 if title.startswith("[ops]") or body.startswith("## Fix this") else 1
+    soon = 0 if "Urgency: soon" in body else 1
+    return (ops, soon, str(t.get("created_at") or ""))
+  tasks.sort(key=score)
+  if not tasks:
+    print("\nthink lane\n")
+  else:
+    t = tasks[0]
+    print(str(t.get("id") or ""))
+    print(str(t.get("title") or "task")[:120])
 except Exception:
-  print(0)
-" 2>/dev/null || echo 0)"
-fi
-interval="${QUIET_INTERVAL_SEC}"
-if [[ "${open_n}" -ge "${BUSY_OPEN_TASKS}" ]]; then
-  interval="${BUSY_INTERVAL_SEC}"
-fi
+  print("\nthink lane\n")
+PY
+)"
+TASK_ID="$(printf '%s\n' "${PICK}" | sed -n '1p')"
+BLURB="$(printf '%s\n' "${PICK}" | sed -n '2p')"
+[[ -n "${BLURB}" ]] || BLURB="think lane"
 
-LAST_LLM="${REPO}/agents/state/think-llm.last"
-now_epoch="$(date +%s)"
-if [[ -f "${LAST_LLM}" ]]; then
-  last_epoch="$(date -d "$(cat "${LAST_LLM}" 2>/dev/null || true)" +%s 2>/dev/null || echo 0)"
-  age=$((now_epoch - last_epoch))
-  if [[ "${age}" -lt "${interval}" ]]; then
-    date -Iseconds > "${REPO}/agents/state/think-tick.last"
-    exit 0
-  fi
-fi
+focus running "${BLURB}" "${TASK_ID}"
+date -Iseconds > "${LAST}"
 
-date -Iseconds > "${REPO}/agents/state/think-tick.last"
-date -Iseconds > "${LAST_LLM}"
-timeout 300 think chat -q "${PROMPT}" >/dev/null 2>&1 || true
+PROMPT="Think lane. Do ONE step for task ${TASK_ID}: ${BLURB}. Read agents/CURRENT_TASK.md and agents/user-tasks.json. No git pull. Mark task done if finished. End with DONE:/BLOCKED:/IDLE."
+set +e
+timeout 240 think chat -q "${PROMPT}" >"${LOG}" 2>&1
+rc=$?
+set -e
+tail="$(tail -n 6 "${LOG}" 2>/dev/null | tr '\n' ' ' | cut -c1-160 || true)"
+if [[ "${rc}" -eq 0 ]]; then
+  focus done "${tail:-done}" "${TASK_ID}"
+else
+  focus failed "exit ${rc}: ${tail}" "${TASK_ID}"
+fi

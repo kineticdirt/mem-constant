@@ -32,7 +32,7 @@ const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db-20260715-r1";
+const DASH_BUILD = "db-20260723-thinkfocus-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -196,6 +196,74 @@ function loadModelBudgetConfig() {
     MODEL_BUDGET_CONFIG_DATA = {};
   }
   return MODEL_BUDGET_CONFIG_DATA;
+}
+
+function invalidateModelBudgetConfigCache() {
+  MODEL_BUDGET_CONFIG_DATA = null;
+}
+
+function getModelBudgetRoutingForUi() {
+  const cfg = loadModelBudgetConfig();
+  const r = cfg.routing || {};
+  return {
+    prefer_free: r.prefer_free !== false,
+    free_models: Array.isArray(r.free_models) ? r.free_models.slice(0, 8) : [...CHAT_FREE_LAST_RESORT],
+    paid_minor: String(r.paid_minor || "deepseek/deepseek-v4-flash"),
+    paid_mid: String(r.paid_mid || "stepfun/step-3.7-flash"),
+    paid_models_ops: Array.isArray(r.paid_models_ops) ? r.paid_models_ops.slice(0, 12) : [],
+    config_path: "agents/model-budget/config.json",
+  };
+}
+
+function saveModelBudgetRouting(patch = {}) {
+  let cfg;
+  try {
+    cfg = JSON.parse(fs.readFileSync(MODEL_BUDGET_CONFIG, "utf8"));
+  } catch (err) {
+    throw new Error(`model_budget_read_failed:${err.message || err}`);
+  }
+  if (!cfg.routing || typeof cfg.routing !== "object") cfg.routing = {};
+  const allowed = allowedChatModelIds();
+  const isFreeId = (id) => String(id || "").includes(":free");
+  if (typeof patch.prefer_free === "boolean") {
+    cfg.routing.prefer_free = patch.prefer_free;
+  }
+  if (Array.isArray(patch.free_models)) {
+    const next = [];
+    for (const raw of patch.free_models) {
+      const id = String(raw || "").trim();
+      if (!id || CHAT_SUNSET_MODELS.has(id) || !isFreeId(id)) continue;
+      if (!allowed.has(id) && !CHAT_FREE_LAST_RESORT.includes(id)) continue;
+      if (!next.includes(id)) next.push(id);
+      if (next.length >= 6) break;
+    }
+    if (!next.length) throw new Error("free_models_empty");
+    cfg.routing.free_models = next;
+  }
+  if (patch.paid_minor != null) {
+    const id = String(patch.paid_minor || "").trim();
+    if (!id || isFreeId(id) || CHAT_SUNSET_MODELS.has(id) || !allowed.has(id)) {
+      throw new Error("bad_paid_minor");
+    }
+    cfg.routing.paid_minor = id;
+  }
+  if (patch.paid_mid != null) {
+    const id = String(patch.paid_mid || "").trim();
+    if (!id || isFreeId(id) || CHAT_SUNSET_MODELS.has(id) || !allowed.has(id)) {
+      throw new Error("bad_paid_mid");
+    }
+    cfg.routing.paid_mid = id;
+  }
+  const bak = `${MODEL_BUDGET_CONFIG}.bak.${Date.now()}`;
+  try {
+    fs.copyFileSync(MODEL_BUDGET_CONFIG, bak);
+  } catch {
+    /* non-fatal */
+  }
+  fs.writeFileSync(MODEL_BUDGET_CONFIG, `${JSON.stringify(cfg, null, 2)}\n`, "utf8");
+  invalidateModelBudgetConfigCache();
+  loadModelBudgetConfig();
+  return getModelBudgetRoutingForUi();
 }
 
 loadModelBudgetConfig();
@@ -454,7 +522,7 @@ function loadChatModes() {
           label: "Brief RP",
           profile: "chat",
           response_mode: "brief",
-          show_model_picker: false,
+          show_model_picker: true,
           routing: "free_first",
         },
         {
@@ -462,7 +530,7 @@ function loadChatModes() {
           label: "Workshop",
           profile: "chat",
           response_mode: "workshop",
-          show_model_picker: false,
+          show_model_picker: true,
           routing: "free_first",
         },
         {
@@ -1000,7 +1068,7 @@ async function collectFastCrontabStatus() {
       timeout: 5000,
       maxBuffer: 4096,
     });
-    const active = parseInt(stdout.trim(), 10) >= 2;
+    const active = parseInt(stdout.trim(), 10) >= 1;
     return { active, lastRun: readLaneHeartbeat("fast-tick.last") };
   } catch {
     return { active: false, lastRun: null };
@@ -1407,11 +1475,69 @@ function readCurrentPodRun() {
     // Stale guard: pods timeout at 600s; drop if older than 12m
     const ageSec = Date.now() / 1000 - startedSec;
     if (ageSec < 0 || ageSec > 720) return null;
+    const blurb = cur.blurb != null ? String(cur.blurb).trim().slice(0, 200) : "";
     return {
       name: String(cur.name).slice(0, 48),
       started_at: new Date(startedSec * 1000).toISOString(),
       elapsed_ms: Math.round(ageSec * 1000),
       kind: cur.name === "fast" || cur.name === "think" ? "tick" : "pod",
+      blurb: blurb || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Last finished pod tick blurb (Concrete step / IDLE) — Hub when nothing in-flight. */
+function readLastCompletedPod() {
+  const p = path.join(REPO, "agents", "state", "pod-scheduler.json");
+  if (!fs.existsSync(p)) return null;
+  try {
+    const state = JSON.parse(fs.readFileSync(p, "utf8"));
+    const lc = state.last_completed;
+    if (!lc || typeof lc !== "object" || !lc.name) return null;
+    const at = lc.at ? String(lc.at) : null;
+    if (at) {
+      const ageMs = Date.now() - new Date(at).getTime();
+      // Drop after 6h so stale blurbs don't look live
+      if (Number.isFinite(ageMs) && ageMs > 6 * 3600 * 1000) return null;
+    }
+    return {
+      name: String(lc.name).slice(0, 48),
+      blurb: lc.blurb != null ? String(lc.blurb).trim().slice(0, 200) : null,
+      at,
+      exit: lc.exit != null ? Number(lc.exit) : null,
+      intent_ok: lc.intent_ok !== false,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Crontab think mid-flight from agents/state/think-focus.json (status=running). */
+function readThinkFocusRun() {
+  const p = path.join(REPO, "agents", "state", "think-focus.json");
+  if (!fs.existsSync(p)) return null;
+  try {
+    const cur = JSON.parse(fs.readFileSync(p, "utf8"));
+    if (!cur || typeof cur !== "object") return null;
+    const status = String(cur.status || "").toLowerCase();
+    if (status !== "running") return null;
+    const startedIso = cur.started_at || cur.updated_at;
+    if (!startedIso) return null;
+    const startedMs = new Date(startedIso).getTime();
+    if (!Number.isFinite(startedMs)) return null;
+    const ageSec = (Date.now() - startedMs) / 1000;
+    if (ageSec < 0 || ageSec > 720) return null;
+    const blurb = cur.blurb != null ? String(cur.blurb).trim().slice(0, 200) : "";
+    return {
+      name: "think",
+      started_at: new Date(startedMs).toISOString(),
+      elapsed_ms: Math.round(ageSec * 1000),
+      kind: "tick",
+      blurb: blurb || "think LLM in flight",
+      task_id: cur.task_id ? String(cur.task_id).slice(0, 80) : null,
+      focus_status: status,
     };
   } catch {
     return null;
@@ -1421,12 +1547,36 @@ function readCurrentPodRun() {
 function buildRunningNow() {
   const chat = listChatJobsInFlight();
   const pod = readCurrentPodRun();
+  const thinkFocus = readThinkFocusRun();
+  // Prefer live crontab think focus over stale pod-scheduler current
+  const tick = thinkFocus || pod;
+  const lastCompleted = readLastCompletedPod();
+  let focusLast = null;
+  try {
+    const fp = path.join(REPO, "agents", "state", "think-focus.json");
+    if (fs.existsSync(fp)) {
+      const f = JSON.parse(fs.readFileSync(fp, "utf8"));
+      if (f && typeof f === "object" && f.status && f.status !== "running") {
+        focusLast = {
+          name: "think",
+          blurb: String(f.blurb || f.status).slice(0, 200),
+          at: f.updated_at || null,
+          exit: f.status === "failed" ? 1 : 0,
+          intent_ok: f.status !== "failed",
+        };
+      }
+    }
+  } catch {
+    /* ignore */
+  }
   return {
     chat_jobs: chat.jobs,
     chat_thinking: chat.thinking,
     chat_queued: chat.queued,
-    pod,
-    anything: chat.jobs.length > 0 || !!pod,
+    pod: tick,
+    think_focus: thinkFocus,
+    last_completed: focusLast || lastCompleted,
+    anything: chat.jobs.length > 0 || !!tick,
   };
 }
 
@@ -1712,6 +1862,7 @@ async function collectAgentState(lite = false) {
       policy: CHAT_FREE_FIRST ? "free_first" : "paid_first",
       ops_daily_usd_target: OPENROUTER_OPS_DAILY_USD,
       config: "agents/model-budget/config.json",
+      routing: getModelBudgetRoutingForUi(),
     },
     chat_modes: loadChatModes(),
     chat_catalog: getChatCatalogForUi(),
@@ -1812,6 +1963,229 @@ function readMazdaParts() {
   } catch (err) {
     return { project: "mazda3-sports-build", parts: [], error: err.message };
   }
+}
+
+function writeMazdaParts(data) {
+  const out = { ...data, updated_at: new Date().toISOString() };
+  fs.mkdirSync(path.dirname(MAZDA_PARTS_FILE), { recursive: true });
+  fs.writeFileSync(MAZDA_PARTS_FILE, JSON.stringify(out, null, 2) + "\n", "utf8");
+  return out;
+}
+
+function formatMazdaBuildMemoryBlock(m) {
+  if (!m || m.error) return "";
+  const v = m.vehicle || {};
+  const decisions = Array.isArray(m.decisions) ? m.decisions.slice(-12) : [];
+  const lines = [
+    "[Confirmed build memory — authoritative; do NOT re-ask these]",
+    `Chassis: ${v.chassis_label || v.chassis || "UNCONFIRMED — ask once if missing"}`,
+  ];
+  if (v.body) lines.push(`Body: ${v.body}`);
+  if (v.notes) lines.push(`Notes: ${String(v.notes).slice(0, 400)}`);
+  if (decisions.length) {
+    lines.push("Recent decisions:");
+    for (const d of decisions) {
+      lines.push(`- ${d.at || "?"} · ${d.fact || JSON.stringify(d)}`);
+    }
+  }
+  lines.push(
+    "When the human confirms a durable fact (chassis, ordered part, vendor link), emit:",
+    '<<<PROJECT_WRITE project="mazda3-sports-build">>>',
+    "chassis=mazda3",
+    "part.white-wheels.status=ordered",
+    "part.white-wheels.name=…",
+    "part.white-wheels.url=https://…",
+    "<<<END_PROJECT_WRITE>>>",
+    "Never claim you updated the tracker unless you emitted PROJECT_WRITE (server applies it)."
+  );
+  return lines.join("\n").slice(0, 2500);
+}
+
+/** Merge vehicle + part patches into parts.json. Returns { ok, changes[] }. */
+function patchMazdaBuild(patch = {}) {
+  const data = readMazdaParts();
+  if (data.error) return { ok: false, changes: [], error: data.error };
+  const changes = [];
+  data.vehicle = data.vehicle && typeof data.vehicle === "object" ? data.vehicle : {};
+  data.decisions = Array.isArray(data.decisions) ? data.decisions : [];
+
+  if (patch.chassis) {
+    const chassis = String(patch.chassis).toLowerCase().replace(/\s+/g, "");
+    let id = chassis;
+    let label = patch.chassis_label || patch.chassis;
+    if (/^mazda3|mazda-?3|bp$/.test(chassis) || chassis === "3") {
+      id = "mazda3";
+      label = patch.chassis_label || "2019+ Mazda 3";
+    } else if (/cx-?30/.test(chassis)) {
+      id = "cx30";
+      label = patch.chassis_label || "2020–2023 CX-30";
+    }
+    if (data.vehicle.chassis !== id) {
+      data.vehicle.chassis = id;
+      data.vehicle.chassis_label = label;
+      data.vehicle.confirmed_at = new Date().toISOString();
+      changes.push(`chassis=${id}`);
+      data.decisions.push({
+        at: new Date().toISOString(),
+        fact: `chassis=${id} (${label})`,
+        source: patch.source || "chat",
+      });
+      if (id === "mazda3") {
+        data.fitment_warning =
+          "Chassis locked: 2019+ Mazda 3. Drop CX-30-only parts (e.g. H&R CX-30 springs) or replace with Mazda 3 equivalents.";
+      } else if (id === "cx30") {
+        data.fitment_warning =
+          "Chassis locked: CX-30. Drop Mazda 3-only parts (CorkSport strut bar, Bayson R hatch visors/spoiler) or replace with CX-30 equivalents.";
+      }
+    }
+  }
+
+  if (patch.body) {
+    data.vehicle.body = String(patch.body).slice(0, 80);
+    changes.push(`body=${data.vehicle.body}`);
+  }
+
+  if (Array.isArray(patch.parts)) {
+    for (const upd of patch.parts) {
+      if (!upd || !upd.id) continue;
+      const idx = (data.parts || []).findIndex((p) => p.id === upd.id);
+      if (idx < 0) continue;
+      const part = { ...data.parts[idx] };
+      for (const key of ["name", "vendor", "url", "sku", "status", "fitment", "tier"]) {
+        if (upd[key] != null && String(upd[key]).trim()) {
+          part[key] = typeof upd[key] === "string" ? upd[key].trim().slice(0, 500) : upd[key];
+        }
+      }
+      if (upd.current_price != null && Number.isFinite(Number(upd.current_price))) {
+        part.current_price = Number(upd.current_price);
+      }
+      data.parts[idx] = part;
+      changes.push(`part.${upd.id}`);
+      data.decisions.push({
+        at: new Date().toISOString(),
+        fact: `part.${upd.id} → ${part.status || "updated"} ${part.name || ""}`.trim().slice(0, 200),
+        source: patch.source || "chat",
+      });
+    }
+  }
+
+  if (!changes.length) return { ok: true, changes: [], data };
+  data.decisions = data.decisions.slice(-40);
+  writeMazdaParts(data);
+  return { ok: true, changes, data };
+}
+
+/**
+ * Heuristic: pull durable mazda3 facts from a user chat line (don't wait on the model).
+ */
+function extractMazdaFactsFromUserText(text) {
+  const t = String(text || "");
+  if (!t.trim()) return null;
+  const patch = { source: "user_chat", parts: [] };
+  const lower = t.toLowerCase();
+  // Chassis: prefer explicit mazda3; ignore if only discussing conflict without confirm.
+  if (
+    /\b(it'?s|its|is|confirmed|confirm|chassis\s*(is|=)|building\s+(a\s+)?|for\s+(a\s+)?)\s*(a\s+)?(the\s+)?mazda\s*3\b/i.test(
+      t
+    ) ||
+    /\bmazda\s*3\b.*\b(confirmed|confirm|definitive|locked)\b/i.test(t) ||
+    /\b(confirmed|confirm).{0,40}mazda\s*3\b/i.test(t)
+  ) {
+    if (!/\bcx-?30\b/i.test(t) || /\bnot\s+(a\s+)?cx-?30\b/i.test(t) || /\bmazda\s*3\b/i.test(t)) {
+      patch.chassis = "mazda3";
+    }
+  } else if (/\b(it'?s|its|is|confirmed)\s*(a\s+)?cx-?30\b/i.test(t)) {
+    patch.chassis = "cx30";
+  }
+  if (/\bhatch(back)?\b/i.test(t)) patch.body = "hatch";
+  if (/\bsedan\b/i.test(t)) patch.body = "sedan";
+
+  const urlMatch = t.match(/https?:\/\/[^\s)]+/i);
+  if (urlMatch && /circuitperformance|cp23|wheel|rim/i.test(t + urlMatch[0])) {
+    const url = urlMatch[0].replace(/[.,;]+$/, "");
+    const part = {
+      id: "white-wheels",
+      url,
+      status: /order(ed|ing)?/i.test(t) ? "ordered" : "chosen",
+      name: /cp23/i.test(t + url)
+        ? "Circuit Performance CP23 16x7 Gloss White (5x114.3 +35)"
+        : undefined,
+      vendor: /circuit\s*performance/i.test(t + url) ? "Circuit Performance" : undefined,
+      fitment: "5x114.3 · confirm offset vs Mazda 3; from chat order/link",
+    };
+    patch.parts.push(part);
+  } else if (/cp23/i.test(t) && /order(ed|ing)?/i.test(t)) {
+    patch.parts.push({
+      id: "white-wheels",
+      status: "ordered",
+      name: "Circuit Performance CP23 (ordered — details in chat)",
+      vendor: "Circuit Performance",
+    });
+  }
+
+  if (!patch.chassis && !patch.body && !patch.parts.length) return null;
+  return patch;
+}
+
+/**
+ * <<<PROJECT_WRITE project="mazda3-sports-build">>>key=value lines<<<END_PROJECT_WRITE>>>
+ */
+function applyProjectWriteDirectives(replyText, projectId) {
+  const raw = String(replyText || "");
+  if (projectId !== "mazda3-sports-build" || !/<<<\s*PROJECT_WRITE/i.test(raw)) {
+    return { reply: raw, artifacts: [], changes: [] };
+  }
+  const re =
+    /<<<\s*PROJECT_WRITE\s+project=["']([^"']+)["']\s*>>>\s*([\s\S]*?)\s*<<<\s*END_PROJECT_WRITE\s*>>>/gi;
+  let out = raw;
+  const allChanges = [];
+  const artifacts = [];
+  let match;
+  while ((match = re.exec(raw)) !== null) {
+    const pid = match[1].trim();
+    if (pid !== "mazda3-sports-build") continue;
+    const body = match[2] || "";
+    const patch = { source: "project_write", parts: [] };
+    const partMap = {};
+    for (const line of body.split(/\r?\n/)) {
+      const s = line.trim();
+      if (!s || s.startsWith("#")) continue;
+      const eq = s.indexOf("=");
+      if (eq < 0) continue;
+      const key = s.slice(0, eq).trim().toLowerCase();
+      const val = s.slice(eq + 1).trim();
+      if (!val) continue;
+      if (key === "chassis") patch.chassis = val;
+      else if (key === "chassis_label") patch.chassis_label = val;
+      else if (key === "body") patch.body = val;
+      else {
+        const pm = key.match(/^part\.([a-z0-9_-]+)\.(name|vendor|url|sku|status|fitment|tier)$/);
+        if (pm) {
+          const id = pm[1];
+          const field = pm[2];
+          if (!partMap[id]) partMap[id] = { id };
+          partMap[id][field] = val;
+        }
+      }
+    }
+    patch.parts = Object.values(partMap);
+    const applied = patchMazdaBuild(patch);
+    if (applied.changes?.length) {
+      allChanges.push(...applied.changes);
+      artifacts.push({
+        type: "project",
+        path: "projects/mazda3-sports-build/parts.json",
+        label: `build: ${applied.changes.join(", ")}`,
+      });
+    }
+    out = out.replace(
+      match[0],
+      applied.changes?.length
+        ? `\n*[Saved to build tracker: ${applied.changes.join(", ")}]*\n`
+        : "\n*[PROJECT_WRITE: nothing new]*\n"
+    );
+  }
+  return { reply: out.trim(), artifacts, changes: allChanges };
 }
 
 function readCampaignMap(campaignId) {
@@ -3276,6 +3650,117 @@ function buildCampaignContextExcerpt(campaignId, maxChars = 8000) {
   return `[Campaign canon — ${cfg.label}]\n${sections.join("\n\n")}`.slice(0, maxChars);
 }
 
+/** Visible cast roster for campaign writing (names/roles — not full sheets). */
+function buildCampaignRosterExcerpt(campaignId, maxChars = 2800) {
+  const cfg = CAMPAIGNS[campaignId];
+  if (!cfg?.charactersRegistry) return "";
+  let reg;
+  try {
+    reg = readCharactersRegistry(campaignId);
+  } catch {
+    return "";
+  }
+  const chars = (reg.characters || []).filter((c) => c && !c.canonical_id && c.status !== "hidden");
+  if (!chars.length) return "";
+  const lines = [`[Cast roster — ${cfg.label} · ${chars.length} visible]`];
+  for (const c of chars.slice(0, 40)) {
+    const role = c.role || c.type || "npc";
+    const notes = String(c.notes || "").replace(/\s+/g, " ").trim().slice(0, 80);
+    lines.push(
+      `- ${c.display_name || c.id} (${role}${c.status ? `, ${c.status}` : ""})${notes ? ` — ${notes}` : ""}`
+    );
+  }
+  lines.push(
+    "You may propose new NPCs/PCs and relation edges; use CAMPAIGN_WRITE to save lore notes. Soft-hide/merge only via Chars UI unless the GM asks."
+  );
+  return lines.join("\n").slice(0, maxChars);
+}
+
+/** Resolve how much campaign material to inject. */
+function resolveChatContextScope(context) {
+  const raw = String(context?.context_scope || "").trim().toLowerCase();
+  if (raw === "doc" || raw === "doc-only" || raw === "focus") return "doc";
+  if (raw === "campaign" || raw === "entire" || raw === "whole") return "campaign";
+  if (raw === "campaign+focus" || raw === "both" || raw === "campaign+doc") return "campaign+focus";
+  // Default: if a focus doc is bound, keep campaign canon too (writing/brainstorm).
+  const hasFocus =
+    !!(context?.path || context?.story_path) &&
+    (context?.type === "story" ||
+      context?.type === "character" ||
+      context?.story_path ||
+      context?.path);
+  return hasFocus ? "campaign+focus" : "campaign";
+}
+
+function listCampaignFocusDocs(campaignId, limit = 80) {
+  if (!CAMPAIGNS[campaignId]) return [];
+  const catalog = listStoryCatalog();
+  const camp = catalog.campaigns?.[campaignId];
+  const files = camp?.files || [];
+  return files.slice(0, limit).map((f) => ({
+    path: f.path,
+    name: f.name || path.basename(f.path),
+    group: f.group || "",
+  }));
+}
+
+/**
+ * Apply <<<CAMPAIGN_WRITE path="campaigns/<id>/...>>>body<<<END_CAMPAIGN_WRITE>>>
+ * Only under the bound campaign tree. Returns { reply, artifacts }.
+ */
+function applyCampaignWriteDirectives(replyText, campaignId) {
+  const raw = String(replyText || "");
+  if (!campaignId || !CAMPAIGNS[campaignId] || !/<<<\s*CAMPAIGN_WRITE/i.test(raw)) {
+    return { reply: raw, artifacts: [] };
+  }
+  const artifacts = [];
+  const re =
+    /<<<\s*CAMPAIGN_WRITE\s+path=["']([^"']+)["']\s*>>>\s*([\s\S]*?)\s*<<<\s*END_CAMPAIGN_WRITE\s*>>>/gi;
+  let out = raw;
+  let match;
+  const writes = [];
+  while ((match = re.exec(raw)) !== null) {
+    writes.push({ full: match[0], rel: match[1].trim().replace(/\\/g, "/"), body: match[2] });
+  }
+  for (const w of writes) {
+    let rel = w.rel.replace(/^\/+/, "");
+    if (!rel.startsWith(`campaigns/${campaignId}/`)) {
+      // Allow short form notes/foo.md → campaigns/<id>/notes/foo.md
+      if (
+        rel.startsWith("notes/") ||
+        rel.startsWith("story/") ||
+        rel.startsWith("lore/") ||
+        rel.startsWith("characters/")
+      ) {
+        rel = `campaigns/${campaignId}/${rel}`;
+      } else {
+        continue;
+      }
+    }
+    // .md only under this campaign — never characters-registry.json or escapes
+    if (rel.includes("..") || !/\.md$/i.test(rel)) continue;
+    if (/characters-registry\.json$/i.test(rel)) continue;
+    const abs = path.join(REPO, rel);
+    const root = path.join(REPO, "campaigns", campaignId);
+    if (!abs.startsWith(root + path.sep) && abs !== root) continue;
+    try {
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      const body = String(w.body || "").trim();
+      if (!body) continue;
+      fs.writeFileSync(abs, body.endsWith("\n") ? body : `${body}\n`, "utf8");
+      const art = normalizeChatArtifact(
+        { type: "note", path: rel, label: path.basename(rel) },
+        campaignId
+      );
+      if (art) artifacts.push(art);
+      out = out.replace(w.full, `\n*[Saved: ${rel}]*\n`);
+    } catch {
+      /* skip failed write */
+    }
+  }
+  return { reply: out.trim(), artifacts };
+}
+
 function isModelModerationRefusal(text) {
   const t = String(text || "").trim();
   if (!t || t.length > 500) return false;
@@ -3571,6 +4056,8 @@ function buildChatMessage(message, context, options = {}) {
   }
   if (context.project_id === "mazda3-sports-build") {
     const m = readMazdaParts();
+    const mem = formatMazdaBuildMemoryBlock(m);
+    if (mem) blocks.push(mem);
     if (Array.isArray(m.parts) && m.parts.length) {
       const lines = m.parts.map((p) => {
         const price = p.current_price == null ? "—" : `$${p.current_price}`;
@@ -3584,18 +4071,27 @@ function buildChatMessage(message, context, options = {}) {
     }
   }
   if (context.type === "story" && context.campaign && context.path) {
-    try {
-      const doc = readStoryDoc(context.campaign, context.path);
-      blocks.push(
-        `[Story context — ${doc.label} / ${doc.file}]\n\n${doc.content.slice(0, 12000)}`
-      );
-    } catch (err) {
-      blocks.push(`[Story context — file unavailable: ${context.path} (${err.message || "not_found"})]`);
+    const scope = resolveChatContextScope(context);
+    if (scope !== "campaign") {
+      try {
+        const doc = readStoryDoc(context.campaign, context.path);
+        blocks.push(
+          `[Focus doc — ${doc.label} / ${doc.file}]\n\n${doc.content.slice(0, 12000)}`
+        );
+      } catch (err) {
+        blocks.push(`[Focus doc — file unavailable: ${context.path} (${err.message || "not_found"})]`);
+      }
     }
-    if (context.workshop_mode || context.ask_human) {
+    if (context.workshop_mode || context.ask_human || scope !== "doc") {
       blocks.push(
         `[Campaign workshop — roles]
-The human is the GM. You are scribe/implementer for this lore doc: riff with them, capture theories, list follow-ups, propose tasks. Do not act as GM.`
+The human is the GM. You are scribe/implementer for this chronicle: brainstorm, capture theories, list follow-ups, propose tasks and new notes.
+You may save durable lore with:
+<<<CAMPAIGN_WRITE path="notes/your-slug.md">>>
+markdown body
+<<<END_CAMPAIGN_WRITE>>>
+(Paths must stay under this campaign. Prefer notes/ for new docs; edit existing focus paths carefully.)
+Do not act as GM.`
       );
     }
   }
@@ -3606,6 +4102,7 @@ The human is the GM. You are scribe/implementer for this lore doc: riff with the
       (context.path && findRegistryForPath(reg, context.path)) ||
       (context.story_path && findRegistryForPath(reg, context.story_path));
     const sheetPath = context.path || context.story_path || row?.story_path || "";
+    const scope = resolveChatContextScope(context);
     if (context.character_interview) {
       const who = row?.display_name || context.character_id || "this character";
       blocks.push(
@@ -3628,13 +4125,13 @@ The human is the GM for this chronicle. You are scribe/implementer: brainstorm, 
         )
       );
     }
-    if (!context.character_interview && (context.workshop_mode || context.ask_human)) {
+    if (!context.character_interview && (context.workshop_mode || context.ask_human || scope !== "doc")) {
       blocks.push(
         `[Campaign workshop — roles]
-The human is the GM (creative authority). You are the scribe/implementer: capture ideas, brainstorm options, note open questions, suggest tasks or registry updates. Do not act as GM or lecture. When they settle on something, offer to record it. Ask only when blocked on facts — never invent Discord IDs or player identities.`
+The human is the GM (creative authority). You are the scribe/implementer: capture ideas, brainstorm options, note open questions, suggest tasks or registry updates. Do not act as GM or lecture. When they settle on something, offer to record it via CAMPAIGN_WRITE. Ask only when blocked on facts — never invent Discord IDs or player identities.`
       );
     }
-    if (sheetPath) {
+    if (sheetPath && scope !== "campaign") {
       try {
         const doc = readStoryDoc(context.campaign, sheetPath);
         blocks.push(`[Character sheet]\n\n${doc.content.slice(0, 10000)}`);
@@ -3691,31 +4188,43 @@ The human is the GM (creative authority). You are the scribe/implementer: captur
     }
   }
   if (context.story_path && context.campaign && context.type !== "story" && context.type !== "character") {
-    try {
-      const doc = readStoryDoc(context.campaign, context.story_path);
-      blocks.push(`[Story path]\n\n${doc.content.slice(0, 8000)}`);
-    } catch {
-      /* optional */
+    const scope = resolveChatContextScope(context);
+    if (scope !== "campaign") {
+      try {
+        const doc = readStoryDoc(context.campaign, context.story_path);
+        blocks.push(`[Focus doc]\n\n${doc.content.slice(0, 8000)}`);
+      } catch {
+        /* optional */
+      }
     }
   }
   if (context.campaign && CAMPAIGNS[context.campaign]) {
     const campLabel = campaignDisplayLabel(context);
-    const hasStoryDoc =
-      (context.type === "story" && context.path) ||
-      (context.type === "character" && context.path) ||
-      (context.story_path && context.type !== "story" && context.type !== "character");
+    const scope = resolveChatContextScope(context);
     blocks.push(
       `[BOUND CAMPAIGN — already chosen by the human]
 This thread is locked to: ${campLabel} (id: ${context.campaign}${context.layer ? `, layer: ${context.layer}` : ""}).
+Context scope: ${scope} (campaign = whole chronicle; campaign+focus = chronicle + one focus doc; doc = focus only).
 Do NOT ask which campaign this lives in. Do NOT offer Tropic Gooner / Hunter / SpaceQuest / NYC Mafia as alternatives.
 The campaign identity is settled — treat "${campLabel}" as given.
 Stay in this campaign only. If a detail is missing, ask about that detail — not the campaign identity.`
     );
-    if (!hasStoryDoc) {
-      const canon = buildCampaignContextExcerpt(context.campaign);
+    if (scope !== "doc") {
+      const canonBudget = scope === "campaign" ? 12000 : 8000;
+      const canon = buildCampaignContextExcerpt(context.campaign, canonBudget);
       if (canon) blocks.push(canon);
+      const roster = buildCampaignRosterExcerpt(context.campaign);
+      if (roster) blocks.push(roster);
       blocks.push(
-        `[Campaign — ${campLabel}]\nUse injected canon above plus this thread. Deliver substantive worldbuilding in one reply — no "let me read files" meta.`
+        `[Campaign writing — ${campLabel}]
+Use injected canon + cast roster + any focus doc. Brainstorm factions, places, arcs, and characters from scratch when asked.
+Prefer rise/fall phases with nuance. Propose concrete next notes/scenes.
+To persist a new or updated markdown note in this campaign, emit CAMPAIGN_WRITE fences (notes/…md). Deliver substance in one reply — no "let me read files" meta.`
+      );
+    } else {
+      blocks.push(
+        `[Focus-only mode]
+Only the focus document is injected (no full campaign dump). Ask if you need another doc opened, or the GM can switch Context scope to Entire campaign.`
       );
     }
   }
@@ -3946,6 +4455,8 @@ function normalizeThreadContext(raw) {
     "inbox_id",
     "workshop_mode",
     "ask_human",
+    "character_interview",
+    "context_scope",
   ]) {
     if (raw[key] != null && raw[key] !== "") ctx[key] = raw[key];
   }
@@ -3956,6 +4467,10 @@ function normalizeThreadContext(raw) {
   }
   if (ctx.layer === "hunter" && !ctx.campaign) ctx.campaign = "tropic-gooner";
   if (ctx.campaign && !CAMPAIGNS[ctx.campaign]) delete ctx.campaign;
+  if (ctx.context_scope) {
+    const s = resolveChatContextScope({ context_scope: ctx.context_scope, ...ctx });
+    ctx.context_scope = s;
+  }
   if (Array.isArray(raw.tags) && raw.tags.length) ctx.tags = raw.tags.filter(Boolean).slice(0, 12);
   return ctx;
 }
@@ -4022,7 +4537,7 @@ function createChatThread(body = {}) {
     response_mode: body.response_mode,
   });
   const showPicker = !!modeSettings.showModelPicker;
-  const preferred = showPicker ? resolvePreferredChatModel(body.preferred_model) : null;
+  const preferred = resolvePreferredChatModel(body.preferred_model);
   const thread = {
     id,
     title: String(body.title || "New chat").trim().slice(0, 120) || "New chat",
@@ -4159,6 +4674,9 @@ function appendChatThreadMessage(id, role, text, isError = false, extras = {}) {
     msg.artifacts = extras.artifacts;
   }
   if (extras.promoted_task_id) msg.promoted_task_id = extras.promoted_task_id;
+  if (extras.model) msg.model = String(extras.model).trim().slice(0, 160);
+  if (extras.paid_retry) msg.paid_retry = true;
+  if (extras.free_fallback) msg.free_fallback = true;
   thread.messages.push(msg);
   if (thread.messages.length > CHAT_MAX_MESSAGES) {
     // Snapshot before window slide — oldest turns were previously lost with no bak.
@@ -4604,9 +5122,47 @@ function drainChatQueue() {
         updateChatJob(job, { status: "done", finished_at: Date.now(), ...result });
         if (threadId) {
           try {
-            const replyText = result.reply || "";
+            let replyText = result.reply || "";
+            let writeArts = [];
+            const campId = (() => {
+              try {
+                return readChatThread(threadId)?.context?.campaign;
+              } catch {
+                return null;
+              }
+            })();
+            if (campId && /<<<\s*CAMPAIGN_WRITE/i.test(replyText)) {
+              const applied = applyCampaignWriteDirectives(replyText, campId);
+              replyText = applied.reply;
+              writeArts = applied.artifacts || [];
+              if (writeArts.length) {
+                result.reply = replyText;
+                result.campaign_writes = writeArts;
+              }
+            }
+            const projId = (() => {
+              try {
+                return readChatThread(threadId)?.context?.project_id;
+              } catch {
+                return null;
+              }
+            })();
+            if (projId === "mazda3-sports-build" && /<<<\s*PROJECT_WRITE/i.test(replyText)) {
+              const applied = applyProjectWriteDirectives(replyText, projId);
+              replyText = applied.reply;
+              if (applied.artifacts?.length) {
+                writeArts = [...writeArts, ...applied.artifacts];
+                result.reply = replyText;
+                result.project_writes = applied.artifacts;
+              }
+            }
             if (!shouldSkipDuplicateBotAppend(threadId, replyText)) {
-              appendChatThreadMessage(threadId, "bot", replyText, false);
+              appendChatThreadMessage(threadId, "bot", replyText, false, {
+                model: result.model || undefined,
+                paid_retry: !!result.paid_retry,
+                free_fallback: !!result.free_fallback,
+                artifacts: writeArts.length ? writeArts : undefined,
+              });
             }
           } catch {
             /* non-fatal */
@@ -4630,6 +5186,27 @@ function drainChatQueue() {
 function startChatJob(message, profile, context, chatOpts = {}) {
   pruneChatJobs();
   const threadId = chatOpts.threadId || null;
+  // Durable project memory: apply obvious facts from the user line before the model runs.
+  try {
+    const ctx = context && typeof context === "object" ? context : {};
+    const projectId =
+      ctx.project_id ||
+      (threadId
+        ? (() => {
+            try {
+              return readChatThread(threadId)?.context?.project_id;
+            } catch {
+              return null;
+            }
+          })()
+        : null);
+    if (projectId === "mazda3-sports-build") {
+      const extracted = extractMazdaFactsFromUserText(message);
+      if (extracted) patchMazdaBuild(extracted);
+    }
+  } catch {
+    /* non-fatal */
+  }
   const inFlight = findInFlightChatJobForThread(threadId);
   if (inFlight) {
     return inFlight.job_id;
@@ -5811,6 +6388,54 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/api/chat/focus-docs") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const campaign = String(url.searchParams.get("campaign") || "").trim();
+      if (!campaign || !CAMPAIGNS[campaign]) {
+        sendJson(res, 400, { error: "bad_campaign" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, { campaign, docs: listCampaignFocusDocs(campaign) }, publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/model-budget") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(
+        res,
+        200,
+        {
+          routing: getModelBudgetRoutingForUi(),
+          catalog: getChatCatalogForUi(),
+          policy: CHAT_FREE_FIRST ? "free_first" : "paid_first",
+        },
+        publicMode
+      );
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/api/model-budget") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      try {
+        const routing = saveModelBudgetRouting(body || {});
+        agentStateCache = null;
+        agentStateCacheAt = 0;
+        sendJson(res, 200, { ok: true, routing }, publicMode);
+      } catch (err) {
+        sendJson(res, 400, { error: err.message || "save_failed" }, publicMode);
+      }
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/chat/threads") {
       if (auth?.role !== "admin") {
         sendJson(res, 403, { error: "admin_required" }, publicMode);
@@ -6085,8 +6710,6 @@ const server = http.createServer(async (req, res) => {
         let responseMode = modeSettings.responseMode;
         let chatModeId = modeSettings.chatModeId;
         let preferredModel = resolvePreferredChatModel(body.preferred_model);
-        // Modes that hide the picker ignore a stale preferred_model from the client.
-        if (!modeSettings.showModelPicker) preferredModel = null;
         let history = Array.isArray(body.history)
           ? body.history
               .filter((t) => t && (t.role === "user" || t.role === "bot") && String(t.text || "").trim())
@@ -6130,13 +6753,9 @@ const server = http.createServer(async (req, res) => {
           responseMode = threadMode.responseMode;
           chatModeId = threadMode.chatModeId;
           if (body.preferred_model != null) {
-            preferredModel = threadMode.showModelPicker
-              ? resolvePreferredChatModel(body.preferred_model)
-              : null;
-          } else if (threadMode.showModelPicker) {
-            preferredModel = resolvePreferredChatModel(thread.preferred_model);
+            preferredModel = resolvePreferredChatModel(body.preferred_model);
           } else {
-            preferredModel = null;
+            preferredModel = resolvePreferredChatModel(thread.preferred_model);
           }
           history = chatHistoryFromThread(thread);
           try {

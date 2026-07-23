@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db-20260715-r1">
+  <meta name="dash-build" content="db-20260723-thinkfocus-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -615,6 +615,16 @@
       display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; background: var(--bg);
       font-size: 0.72rem;
     }
+    .chat-context-bar select {
+      max-width: 13.5rem;
+      font-size: 0.68rem;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 0.2rem 0.35rem;
+    }
+    #chat-context-scope { max-width: 11rem; }
+    #chat-focus-doc { max-width: 16rem; }
     .chat-moderation-banner {
       grid-area: banner;
       display: none;
@@ -632,6 +642,44 @@
       font-size: 0.68rem;
       color: var(--muted);
       font-style: italic;
+    }
+    .chat-model-used {
+      margin-top: 0.35rem;
+      font-size: 0.62rem;
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      word-break: break-all;
+    }
+    .hub-models {
+      background: var(--surface);
+      padding: 0.85rem 1rem;
+      margin: 0 0 1rem;
+      border: 1px solid var(--line);
+    }
+    .hub-models h2 {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .hub-models-lead {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin: 0 0 0.75rem;
+      line-height: 1.35;
+    }
+    .hub-models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      gap: 0.65rem 0.85rem;
+      margin-bottom: 0.65rem;
+    }
+    .hub-models-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
     }
     .chat-log { grid-area: log; overflow-y: auto; padding: 1rem 1.25rem; min-height: 0; }
     .chat-bubble { max-width: 85%; margin: 0.5rem 0; padding: 0.65rem 0.85rem; font-size: 0.85rem; border: 1px solid var(--line); }
@@ -777,7 +825,15 @@
     }
     .active-work-card .aw-row,
     .hub-running-now .aw-row {
-      display: flex; gap: 0.4rem; align-items: baseline; margin: 0.25rem 0; line-height: 1.4;
+      display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: baseline; margin: 0.25rem 0; line-height: 1.4;
+    }
+    .hub-running-now .aw-blurb,
+    .active-work-card .aw-blurb {
+      flex: 1 1 100%;
+      margin: 0.1rem 0 0;
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--muted);
     }
     .active-work-card .aw-chip,
     .hub-running-now .aw-chip {
@@ -1374,13 +1430,31 @@
     .sys-actions .btn { font-size: 0.62rem; padding: 0.2rem 0.45rem; }
     .sys-flash { font-size: 0.72rem; margin-bottom: 0.5rem; min-height: 1.2em; }
 
+    .mobile-page-select-wrap { display: none; }
     @media (max-width: 767px) {
-      .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+      .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .mobile-page-select-wrap {
+        display: block;
+        grid-row: 1;
+        padding: 0.35rem 0.65rem;
+        border-bottom: 1px solid var(--line-bright);
+        background: var(--surface);
+      }
+      .mobile-page-select-wrap label {
+        display: block; font-size: 0.58rem; text-transform: uppercase;
+        letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.2rem;
+      }
+      .mobile-page-select-wrap select {
+        width: 100%; min-height: 2.4rem; font-size: 1rem;
+        background: var(--bg); color: var(--fg); border: 1px solid var(--line-bright);
+        border-radius: 4px; padding: 0.35rem 0.5rem;
+      }
       .rail {
         flex-direction: row; border-right: none; border-top: 1px solid var(--line-bright);
         padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
-        grid-row: 2; gap: 0;
+        grid-row: 3; gap: 0;
       }
+      .workspace { grid-row: 2; min-height: 0; }
       .rail .brand { display: none; }
       .rail button {
         padding: 0.45rem 0.4rem; font-size: 0.5rem; border-left: none;
@@ -1407,6 +1481,23 @@
 </head>
 <body>
   <div class="app">
+    <div class="mobile-page-select-wrap admin-only" id="mobile-page-select-wrap">
+      <label for="mobile-page-select">Page</label>
+      <select id="mobile-page-select" aria-label="Jump to page">
+        <option value="hub">Hub</option>
+        <option value="systems">Systems</option>
+        <option value="inbox">Inbox</option>
+        <option value="reports">Docs</option>
+        <option value="news">News</option>
+        <option value="campaigns">Camp</option>
+        <option value="stories">Stories</option>
+        <option value="characters">Chars</option>
+        <option value="chat">Chat</option>
+        <option value="tasks">Tasks</option>
+        <option value="garage">Build</option>
+        <option value="backlog">Meta</option>
+      </select>
+    </div>
     <nav class="rail" aria-label="Sections">
       <div class="brand">linuxbox</div>
       <button type="button" class="active admin-only" data-tab="hub">Hub</button>
@@ -1524,6 +1615,36 @@
               <div class="action-list" id="action-list"></div>
             </div>
           </div>
+          <section class="hub-models admin-only" id="hub-models" aria-label="Chat model routing">
+            <h2>Chat models</h2>
+            <p class="hub-models-lead">Free-first routing for dashboard Chat (and budget policy). Pick which free models Auto tries first, then paid fallbacks. Per-thread override lives on the Chat tab.</p>
+            <div class="hub-models-grid">
+              <div class="field">
+                <label for="hub-model-free-1">Free head</label>
+                <select id="hub-model-free-1"></select>
+              </div>
+              <div class="field">
+                <label for="hub-model-free-2">Free fallback</label>
+                <select id="hub-model-free-2"></select>
+              </div>
+              <div class="field">
+                <label for="hub-model-paid-minor">Paid minor</label>
+                <select id="hub-model-paid-minor"></select>
+              </div>
+              <div class="field">
+                <label for="hub-model-paid-mid">Paid mid</label>
+                <select id="hub-model-paid-mid"></select>
+              </div>
+            </div>
+            <label class="inbox-choice" for="hub-model-prefer-free" title="When on, Auto tries free models before paid">
+              <input type="checkbox" id="hub-model-prefer-free" checked />
+              <span>Prefer free-first (Auto)</span>
+            </label>
+            <div class="hub-models-actions">
+              <button type="button" class="btn primary" id="hub-models-save">Save routing</button>
+              <p class="empty" id="hub-models-result"></p>
+            </div>
+          </section>
           <section class="fix-this" id="fix-this" aria-label="Fix this ops queue">
             <h2>Fix this</h2>
             <p class="fix-this-lead">Ops meta queue — not Chat. Files an open user-task under LINUXBOX; think lane picks it up. No auto Hermes tick yet.</p>
@@ -1538,6 +1659,8 @@
                 <option value="chat">Chat</option>
                 <option value="inbox">Inbox</option>
                 <option value="systems">Systems</option>
+                <option value="meta">Meta / backlog</option>
+                <option value="tasks">Tasks</option>
                 <option value="deploy">Deploy / git drift</option>
                 <option value="other">Other</option>
               </select>
@@ -1796,6 +1919,16 @@
             <div class="chat-context-bar" id="chat-context-bar">
               <span class="meta">Context:</span>
               <span class="chat-context-pill hidden" id="chat-context-pill"></span>
+              <label class="meta hidden" for="chat-context-scope" id="chat-context-scope-label">Scope</label>
+              <select id="chat-context-scope" class="hidden" title="How much campaign material to inject into Chat">
+                <option value="campaign">Entire campaign</option>
+                <option value="campaign+focus">Campaign + focus doc</option>
+                <option value="doc">Focus doc only</option>
+              </select>
+              <label class="meta hidden" for="chat-focus-doc" id="chat-focus-doc-label">Focus</label>
+              <select id="chat-focus-doc" class="hidden" title="Optional focus markdown within the campaign">
+                <option value="">— no focus doc —</option>
+              </select>
               <button type="button" class="btn hidden" id="chat-context-change-camp" title="Bind or change campaign for this thread">Change campaign</button>
               <span class="meta" id="chat-thread-meta"></span>
             </div>
@@ -1843,14 +1976,15 @@
               <div class="chat-compose-controls">
                 <label class="meta" for="chat-mode">Mode</label>
                 <select id="chat-mode" title="Chat mode template">
-                  <option value="brief-rp" selected>Brief RP</option>
+                  <option value="campaign-write" selected>Campaign write</option>
+                  <option value="brief-rp">Brief RP</option>
                   <option value="workshop">Workshop</option>
                   <option value="meta-ops">Meta ops</option>
                   <option value="agent-coding">Agent coding</option>
                 </select>
-                <span id="chat-model-wrap" hidden>
+                <span id="chat-model-wrap">
                   <label class="meta" for="chat-model">Model</label>
-                  <select id="chat-model" title="Optional model override (est. cost + tok/s)">
+                  <select id="chat-model" title="Model for this thread (est. cost + tok/s). Auto = free-first from Hub routing.">
                     <option value="auto">Auto · free-first</option>
                   </select>
                 </span>
@@ -1858,7 +1992,7 @@
                   <input type="checkbox" id="chat-offload" />
                   <span>Offload to laptop</span>
                 </label>
-                <p class="chat-model-hint" id="chat-mode-hint">Brief RP · free-first · no model pick</p>
+                <p class="chat-model-hint" id="chat-mode-hint">Using: Auto · free-first</p>
                 <!-- Legacy hidden selects kept for any old callers -->
                 <select id="chat-profile" hidden aria-hidden="true">
                   <option value="think" selected>think</option>
@@ -2020,11 +2154,12 @@
     let charsShowHidden = localStorage.getItem("chars-show-hidden") === "1";
     let activeChatThreadId = localStorage.getItem("linuxbox-chat-active") || "";
     const CHAT_MODE_DEFAULTS = [
-      { id: "brief-rp", label: "Brief RP", profile: "think", response_mode: "brief", show_model_picker: false, hint: "Brief RP · free-first · no model pick" },
-      { id: "workshop", label: "Workshop", profile: "think", response_mode: "workshop", show_model_picker: false, hint: "Workshop · free-first · no model pick" },
+      { id: "brief-rp", label: "Brief RP", profile: "think", response_mode: "brief", show_model_picker: true, hint: "Brief RP · pick model or Auto free-first" },
+      { id: "workshop", label: "Workshop", profile: "think", response_mode: "workshop", show_model_picker: true, hint: "Workshop · pick model or Auto free-first" },
       { id: "meta-ops", label: "Meta ops", profile: "meta", response_mode: "brief", show_model_picker: true, hint: "Meta ops · pick model or Auto free-first" },
       { id: "agent-coding", label: "Agent coding", profile: "code", response_mode: "workshop", show_model_picker: true, hint: "Agent coding · pick model or Auto free-first" },
     ];
+    let chatCatalogFetchInFlight = null;
 
     function chatModesList() {
       const modes = agentData?.chat_modes?.modes || agentData?.chat_catalog?.modes?.modes;
@@ -2052,10 +2187,39 @@
       return `${row.label || row.id} · $${costIn}/$${costOut} · ${tps}${st} (est.)`;
     }
 
+    function chatCatalogModels() {
+      return (agentData?.chat_catalog?.models || []).filter((m) => m && m.status !== "offline");
+    }
+
+    /** If Hub load left catalog empty, pull /api/chat/models once so the picker is not Auto-only. */
+    function ensureChatCatalogLoaded() {
+      if (chatCatalogModels().length) return Promise.resolve(true);
+      if (chatCatalogFetchInFlight) return chatCatalogFetchInFlight;
+      chatCatalogFetchInFlight = (async () => {
+        try {
+          const res = await fetch(`${base}/api/chat/models`, {
+            credentials: "same-origin",
+            cache: "no-store",
+          });
+          if (!res.ok) return false;
+          const data = await res.json();
+          if (!agentData) agentData = {};
+          agentData.chat_catalog = data;
+          return chatCatalogModels().length > 0;
+        } catch (e) {
+          console.warn("chat catalog fetch failed", e);
+          return false;
+        } finally {
+          chatCatalogFetchInFlight = null;
+        }
+      })();
+      return chatCatalogFetchInFlight;
+    }
+
     function populateChatModelSelect(selectedId) {
       const sel = document.getElementById("chat-model");
       if (!sel) return;
-      const models = (agentData?.chat_catalog?.models || []).filter((m) => m && m.status !== "offline");
+      const models = chatCatalogModels();
       const prev = selectedId != null ? selectedId : sel.value;
       sel.innerHTML = `<option value="auto">Auto · free-first</option>`;
       for (const row of models) {
@@ -2067,6 +2231,26 @@
       }
       if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
       else sel.value = "auto";
+      if (!models.length) {
+        const hint = document.getElementById("chat-mode-hint");
+        if (hint) hint.textContent = "Model catalog empty — loading…";
+        ensureChatCatalogLoaded().then((ok) => {
+          if (ok) {
+            populateChatModelSelect(prev);
+            const mode = getChatModeDef(document.getElementById("chat-mode")?.value);
+            const s = document.getElementById("chat-model");
+            const mv = s?.value || "auto";
+            const ml =
+              mv === "auto"
+                ? "Auto · free-first (Hub routing)"
+                : s?.selectedOptions?.[0]?.textContent?.split(" · ")[0] || mv;
+            if (hint) hint.textContent = `Using: ${ml} · ${mode.label || mode.id}`;
+          } else if (hint) {
+            hint.textContent =
+              "Model catalog failed to load — only Auto available. Tap ↻ or hard-refresh.";
+          }
+        });
+      }
     }
 
     function syncChatModeUi(opts = {}) {
@@ -2081,23 +2265,24 @@
       document.getElementById("chat-profile").value = mode.profile || "think";
       document.getElementById("chat-response-mode").value =
         mode.response_mode === "workshop" ? "workshop" : "brief";
-      if (modelWrap) modelWrap.hidden = !mode.show_model_picker;
-      if (mode.show_model_picker) {
-        populateChatModelSelect(opts.preferredModel);
-        if (opts.preferredModel) {
-          const sel = document.getElementById("chat-model");
-          if (sel && [...sel.options].some((o) => o.value === opts.preferredModel)) {
-            sel.value = opts.preferredModel;
-          }
-        }
-      } else {
+      // Always show model picker (all modes) — Auto is default; catalog rows are choosable.
+      if (modelWrap) modelWrap.hidden = false;
+      populateChatModelSelect(opts.preferredModel);
+      if (opts.preferredModel) {
         const sel = document.getElementById("chat-model");
-        if (sel) sel.value = "auto";
+        if (sel && [...sel.options].some((o) => o.value === opts.preferredModel)) {
+          sel.value = opts.preferredModel;
+        }
       }
-      if (hint) {
-        hint.textContent =
-          mode.hint ||
-          `${mode.label || mode.id} · ${mode.show_model_picker ? "model pick ok" : "no model pick"} · free-first default`;
+      const sel = document.getElementById("chat-model");
+      const modelVal = sel?.value || "auto";
+      const catalogEmpty = chatCatalogModels().length === 0;
+      const modelLabel =
+        modelVal === "auto"
+          ? "Auto · free-first (Hub routing)"
+          : sel?.selectedOptions?.[0]?.textContent?.split(" · ")[0] || modelVal;
+      if (hint && !catalogEmpty) {
+        hint.textContent = `Using: ${modelLabel} · ${mode.label || mode.id}`;
       }
       if (sendBtn && !chatWaiting) {
         sendBtn.textContent = offload?.checked ? "Queue offload" : "Send";
@@ -2106,10 +2291,8 @@
 
     function chatRequestExtras() {
       const mode = getChatModeDef(document.getElementById("chat-mode")?.value);
-      const preferred =
-        mode.show_model_picker && document.getElementById("chat-model")?.value !== "auto"
-          ? document.getElementById("chat-model").value
-          : null;
+      const modelVal = document.getElementById("chat-model")?.value || "auto";
+      const preferred = modelVal !== "auto" ? modelVal : null;
       return {
         chat_mode: mode.id,
         profile: mode.profile || "think",
@@ -2165,8 +2348,26 @@
     }
 
     async function loadSession() {
+      const setLoadHint = (msg) => {
+        const t = document.getElementById("ops-title");
+        const m = document.getElementById("machines-list");
+        if (t && (t.textContent || "").includes("Loading")) t.textContent = msg;
+        if (m && /Loading/.test(m.textContent || "")) m.innerHTML = `<p class="empty">${esc(msg)}</p>`;
+      };
       try {
-        const res = await fetch(`${base}/api/session`, { cache: "no-store", credentials: "same-origin" });
+        setLoadHint("Checking session…");
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 10000);
+        const res = await fetch(`${base}/api/session`, {
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+        if (res.status === 401 || res.status === 403) {
+          throw new Error("Auth failed (CF Access and/or Basic admin password) — hard-refresh and sign in again");
+        }
+        if (!res.ok) throw new Error(`Session HTTP ${res.status}`);
         const j = await res.json();
         sessionRole = j.role === "viewer" ? "viewer" : "admin";
         document.body.classList.toggle("role-viewer", sessionRole === "viewer");
@@ -2176,7 +2377,11 @@
           const brand = document.querySelector(".rail .brand");
           if (brand) brand.textContent = "intel";
         }
-      } catch {
+      } catch (e) {
+        const msg = e.name === "AbortError"
+          ? "Session timed out (10s) — CF Access or network; hard-refresh"
+          : (e.message || "session error");
+        setLoadHint(msg);
         sessionRole = /\/intel/i.test(location.pathname) ? "viewer" : "admin";
         document.body.classList.toggle("role-viewer", sessionRole === "viewer");
         document.body.classList.toggle("role-admin", sessionRole === "admin");
@@ -2251,32 +2456,62 @@
       return esc(text || "").replace(/\n/g, "<br>");
     }
 
-    document.querySelectorAll(".rail button[data-tab]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        activeTab = btn.dataset.tab;
-        document.querySelectorAll(".rail button[data-tab]").forEach((b) => b.classList.remove("active"));
-        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-        btn.classList.add("active");
-        const panel = document.getElementById(activeTab);
-        panel.classList.add("active");
-        document.getElementById("page-title").textContent = titles[activeTab] || activeTab;
-        if (activeTab === "inbox") loadInbox();
-        if (activeTab === "reports") {
-          if (sessionRole === "viewer") loadPublicReports();
-          else renderReports(agentData);
-          setupReportKeyboardNav();
+    function activateTab(tabId) {
+      const btn = document.querySelector(`.rail button[data-tab="${tabId}"]`);
+      if (!btn) return;
+      activeTab = tabId;
+      document.querySelectorAll(".rail button[data-tab]").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      const panel = document.getElementById(activeTab);
+      if (panel) panel.classList.add("active");
+      const titleEl = document.getElementById("page-title");
+      if (titleEl) titleEl.textContent = titles[activeTab] || activeTab;
+      const mob = document.getElementById("mobile-page-select");
+      if (mob && mob.value !== activeTab) mob.value = activeTab;
+      if (activeTab === "inbox") loadInbox();
+      if (activeTab === "reports") {
+        if (sessionRole === "viewer") loadPublicReports();
+        else renderReports(agentData);
+        setupReportKeyboardNav();
+      }
+      if (activeTab === "news") loadNews();
+      if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
+      if (activeTab === "stories") loadStories();
+      if (activeTab === "characters") loadCharacters();
+      if (activeTab === "chat") {
+        fillChatNewSelects(agentData);
+        populateChatModelSelect();
+        syncChatModeUi({
+          modeId: modeIdFromThread(activeChatThread),
+          preferredModel: activeChatThread?.preferred_model || document.getElementById("chat-model")?.value || "auto",
+        });
+        const cached = loadChatFromSessionCache(activeChatThreadId);
+        if (cached && activeChatThreadId) {
+          activeChatThread = { id: activeChatThreadId, messages: cached };
+          renderChatLog(activeChatThread, true);
+          document.getElementById("chat-input")?.focus();
+          updateChatContextBar(activeChatThread);
+          setChatComposerState();
+          renderChatThreadList();
+        } else {
+          loadChatThreads().then(() => document.getElementById("chat-input")?.focus());
         }
-        if (activeTab === "news") loadNews();
-        if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
-        if (activeTab === "stories") loadStories();
-        if (activeTab === "characters") loadCharacters();
-        if (activeTab === "chat") { fillChatNewSelects(agentData); const cached = loadChatFromSessionCache(activeChatThreadId); if (cached && activeChatThreadId) { activeChatThread = { id: activeChatThreadId, messages: cached }; renderChatLog(activeChatThread, true); document.getElementById("chat-input")?.focus(); updateChatContextBar(activeChatThread); setChatComposerState(); renderChatThreadList(); } else { loadChatThreads().then(() => document.getElementById("chat-input")?.focus()); } }
-        if (activeTab === "garage") loadGarage();
-        if (activeTab === "systems") loadSystems();
-        if (activeTab === "hub" && sessionRole !== "viewer") load();
-        syncHubResourcesPolling();
-      });
+      }
+      if (activeTab === "garage") loadGarage();
+      if (activeTab === "systems") loadSystems();
+      if (activeTab === "hub" && sessionRole !== "viewer") load();
+      if (activeTab === "backlog") renderMeta(agentData);
+      syncHubResourcesPolling();
+    }
+
+    document.querySelectorAll(".rail button[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => activateTab(btn.dataset.tab));
     });
+    const mobilePageSelect = document.getElementById("mobile-page-select");
+    if (mobilePageSelect) {
+      mobilePageSelect.addEventListener("change", () => activateTab(mobilePageSelect.value));
+    }
 
     function projectMap(data) {
       const m = {};
@@ -2421,8 +2656,16 @@
         const who = ctx.character_id || (ctx.path || ctx.story_path || "").split("/").pop()?.replace(/\.md$/i, "") || "character";
         return `Interview · ${who}`;
       }
+      if (ctx?.campaign) {
+        const camp = chatCampaignUiLabel(ctx.campaign, ctx.layer) || ctx.campaign;
+        const scope = ctx.context_scope || (ctx.path || ctx.story_path ? "campaign+focus" : "campaign");
+        const focus = (ctx.path || ctx.story_path || "").split("/").pop();
+        if (scope === "campaign") return `Campaign · ${camp} · entire`;
+        if (scope === "doc" && focus) return `Focus · ${focus}`;
+        if (focus) return `Campaign · ${camp} + ${focus}`;
+        return `Campaign · ${camp}`;
+      }
       if (ctx?.type === "story" && ctx.path) return `Story · ${ctx.path.split("/").pop()}`;
-      if (ctx?.campaign) return `Campaign · ${chatCampaignUiLabel(ctx.campaign, ctx.layer) || ctx.campaign}`;
       if (ctx?.inbox_id) return `Inbox · ${ctx.inbox_id}`;
       return "";
     }
@@ -2639,7 +2882,12 @@
       const pill = document.getElementById("chat-context-pill");
       const meta = document.getElementById("chat-thread-meta");
       const changeBtn = document.getElementById("chat-context-change-camp");
-      const label = contextLabel(thread?.context, agentData);
+      const scopeEl = document.getElementById("chat-context-scope");
+      const scopeLab = document.getElementById("chat-context-scope-label");
+      const focusEl = document.getElementById("chat-focus-doc");
+      const focusLab = document.getElementById("chat-focus-doc-label");
+      const ctx = thread?.context || {};
+      const label = contextLabel(ctx, agentData);
       if (label) {
         pill.textContent = label;
         pill.classList.remove("hidden");
@@ -2649,6 +2897,7 @@
       } else {
         pill.classList.add("hidden");
       }
+      const hasCamp = !!(thread?.id && ctx.campaign && !chatWaiting);
       if (changeBtn) {
         if (thread?.id && !chatWaiting) {
           changeBtn.classList.remove("hidden");
@@ -2657,10 +2906,67 @@
           changeBtn.classList.add("hidden");
         }
       }
+      for (const el of [scopeEl, scopeLab, focusEl, focusLab]) {
+        if (!el) continue;
+        if (hasCamp) el.classList.remove("hidden");
+        else el.classList.add("hidden");
+      }
+      if (hasCamp && scopeEl) {
+        const scope =
+          ctx.context_scope ||
+          (ctx.path || ctx.story_path ? "campaign+focus" : "campaign");
+        if ([...scopeEl.options].some((o) => o.value === scope)) scopeEl.value = scope;
+        else scopeEl.value = "campaign";
+      }
+      if (hasCamp && focusEl) {
+        populateChatFocusDocs(ctx.campaign, ctx.path || ctx.story_path || "");
+      }
       const parts = [];
       if (thread?.parent_id) parts.push(`branched from ${thread.parent_id.slice(0, 8)}`);
       if (thread?.branch_from_index != null) parts.push(`@ msg ${thread.branch_from_index + 1}`);
       meta.textContent = parts.join(" · ");
+    }
+
+    async function populateChatFocusDocs(campaign, selectedPath) {
+      const focusEl = document.getElementById("chat-focus-doc");
+      if (!focusEl || !campaign) return;
+      focusEl.innerHTML = `<option value="">— no focus doc —</option>`;
+      try {
+        const res = await fetch(
+          `${base}/api/chat/focus-docs?campaign=${encodeURIComponent(campaign)}`,
+          { cache: "no-store", credentials: "same-origin" }
+        );
+        const j = await parseApiJson(res);
+        if (!res.ok) throw new Error(j.error || "focus_docs_failed");
+        for (const d of j.docs || []) {
+          const opt = document.createElement("option");
+          opt.value = d.path;
+          opt.textContent = d.name || d.path.split("/").pop();
+          focusEl.appendChild(opt);
+        }
+        if (selectedPath && [...focusEl.options].some((o) => o.value === selectedPath)) {
+          focusEl.value = selectedPath;
+        }
+      } catch {
+        /* keep empty */
+      }
+    }
+
+    async function patchActiveThreadContext(patch, opts = {}) {
+      if (!activeChatThreadId || chatWaiting) return;
+      const body = { context: patch };
+      if (opts.replace) body.context_replace = true;
+      const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const j = await parseApiJson(res);
+      if (!res.ok) throw new Error(j.error || "context_patch_failed");
+      activeChatThread = j;
+      updateChatContextBar(activeChatThread);
+      renderChatThreadList();
     }
 
     let chatCampModalResolver = null;
@@ -2742,6 +3048,9 @@
         extra.campaign = picked.campaign;
         if (picked.layer) extra.layer = picked.layer;
         else delete extra.layer;
+        if (!extra.context_scope) extra.context_scope = "campaign";
+        if (!extra.type) extra.type = "story";
+        extra.workshop_mode = true;
       } else {
         delete extra.campaign;
         delete extra.layer;
@@ -2768,13 +3077,26 @@
       });
       if (!picked) return;
       const nextCtx = { ...(cur || {}) };
+      const campChanged = (picked.campaign || "") !== (cur.campaign || "");
       if (picked.campaign) {
         nextCtx.campaign = picked.campaign;
         if (picked.layer) nextCtx.layer = picked.layer;
         else delete nextCtx.layer;
+        if (!nextCtx.context_scope) nextCtx.context_scope = "campaign";
+        if (campChanged) {
+          delete nextCtx.path;
+          delete nextCtx.story_path;
+          delete nextCtx.character_id;
+          nextCtx.context_scope = "campaign";
+          nextCtx.type = "story";
+        }
       } else {
         delete nextCtx.campaign;
         delete nextCtx.layer;
+        delete nextCtx.path;
+        delete nextCtx.story_path;
+        delete nextCtx.character_id;
+        delete nextCtx.context_scope;
       }
       const res = await fetch(`${base}/api/chat/threads/${encodeURIComponent(activeChatThreadId)}`, {
         method: "POST",
@@ -2796,6 +3118,7 @@
       const keys = [
         "project_id", "task_id", "campaign", "layer", "story_path", "type", "path",
         "character_id", "inbox_id", "workshop_mode", "character_interview", "ask_human",
+        "context_scope",
       ];
       for (const key of keys) {
         if (extra[key] != null && extra[key] !== "") ctx[key] = extra[key];
@@ -3167,6 +3490,7 @@
           setChatBubbleReply(bubble, result.reply || "", false, {
             paidRetry: !!result.paid_retry,
             freeFallback: !!result.free_fallback,
+            model: result.model,
           });
         }
         bubble.classList.remove("is-loading");
@@ -3334,6 +3658,7 @@
           setChatBubbleReply(bubble, result.reply || "", false, {
             paidRetry: !!result.paid_retry,
             freeFallback: !!result.free_fallback,
+            model: result.model,
           });
         }
         bubble.classList.remove("is-loading");
@@ -3401,7 +3726,11 @@
         else {
           const bubble = document.createElement("div");
           log.appendChild(bubble);
-          setChatBubbleReply(bubble, t.text, t.error);
+          setChatBubbleReply(bubble, t.text, t.error, {
+            model: t.model,
+            paidRetry: !!t.paid_retry,
+            freeFallback: !!t.free_fallback,
+          });
           if (!t.error && String(t.text || "").trim()) {
             renderChatArtifactsPanel(bubble, t, thread, idx);
           }
@@ -4543,6 +4872,7 @@
         ? rn.chat_jobs
         : (data?.chat_jobs?.jobs || []);
       const pod = rn.pod || data?.current_pod || null;
+      const lastDone = rn.last_completed || null;
       const parts = [];
       for (const j of jobs.slice(0, 4)) {
         const st = j.status === "queued" ? "queued" : "thinking";
@@ -4551,6 +4881,7 @@
           label: j.title || "Chat",
           status: st,
           elapsed: fmtElapsed(j.elapsed_ms),
+          blurb: null,
         });
       }
       if (pod?.name) {
@@ -4559,6 +4890,7 @@
           label: pod.name,
           status: "running",
           elapsed: fmtElapsed(pod.elapsed_ms),
+          blurb: pod.blurb || null,
         });
       }
       const plain = [];
@@ -4572,11 +4904,15 @@
       } else if (queued.length) {
         plain.push(`Chat: queued ${queued.length}`);
       }
-      if (pod?.name) plain.push(`${pod.name} ${fmtElapsed(pod.elapsed_ms)}`);
+      if (pod?.name) {
+        const b = pod.blurb ? String(pod.blurb).slice(0, 72) : "";
+        plain.push(b ? `${pod.name}: ${b}` : `${pod.name} ${fmtElapsed(pod.elapsed_ms)}`);
+      }
       return {
         parts,
         anything: parts.length > 0,
         summary: plain.join(" · ") || "Nothing running right now",
+        last_completed: lastDone,
       };
     }
 
@@ -4692,8 +5028,16 @@
             ? `<span class="aw-chip warn">thinking</span>`
             : `<span class="aw-chip warn">running</span>`;
         const kind = p.kind === "chat" ? "chat" : p.kind === "tick" ? "tick" : "pod";
-        return `<div class="aw-row">${chip}<span class="aw-chip muted">${kind}</span><strong>${esc(p.label)}</strong><span class="aw-time">${esc(p.elapsed)}</span></div>`;
+        const blurb = p.blurb
+          ? `<div class="aw-blurb meta">${esc(String(p.blurb).slice(0, 160))}</div>`
+          : "";
+        return `<div class="aw-row">${chip}<span class="aw-chip muted">${kind}</span><strong>${esc(p.label)}</strong><span class="aw-time">${esc(p.elapsed)}</span>${blurb}</div>`;
       }).join("");
+
+      const lastDone = info.last_completed;
+      const lastDoneHtml = (!info.anything && lastDone?.blurb)
+        ? `<div class="aw-row aw-last-blurb"><span class="aw-chip muted">last</span><strong>${esc(lastDone.name || "?")}</strong><div class="aw-blurb meta">${esc(String(lastDone.blurb).slice(0, 160))}</div></div>`
+        : "";
 
       if (mode === "hub") {
         const el = document.getElementById("hub-running-now");
@@ -4701,7 +5045,7 @@
         const lastBlock = hubLastCompletedHtml(data);
         if (!info.anything) {
           el.className = "hub-running-now";
-          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">Nothing running right now</div>${lastBlock}`;
+          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">Nothing running right now</div>${lastDoneHtml}${lastBlock}`;
           return;
         }
         el.className = "hub-running-now live";
@@ -4714,6 +5058,7 @@
         return `<div class="active-work-card running-now">
           <div class="aw-label">Running now</div>
           <div class="running-now-idle">Nothing running right now</div>
+          ${lastDoneHtml}
         </div>`;
       }
       return `<div class="active-work-card running-now">
@@ -5388,6 +5733,36 @@
       }
     }
 
+    function fillSelectOptions(sel, rows, current, { freeOnly = false, paidOnly = false } = {}) {
+      if (!sel) return;
+      const cur = current || sel.value || "";
+      sel.innerHTML = "";
+      for (const row of rows) {
+        if (!row?.id) continue;
+        const isFree = String(row.id).includes(":free");
+        if (freeOnly && !isFree) continue;
+        if (paidOnly && isFree) continue;
+        const opt = document.createElement("option");
+        opt.value = row.id;
+        opt.textContent = `${row.label || row.id}${row.tier ? ` (${row.tier})` : ""}`;
+        sel.appendChild(opt);
+      }
+      if (cur && [...sel.options].some((o) => o.value === cur)) sel.value = cur;
+      else if (sel.options.length) sel.selectedIndex = 0;
+    }
+
+    function renderHubModels(data) {
+      const routing = data?.model_budget?.routing || {};
+      const models = data?.chat_catalog?.models || [];
+      const free = Array.isArray(routing.free_models) ? routing.free_models : [];
+      fillSelectOptions(document.getElementById("hub-model-free-1"), models, free[0], { freeOnly: true });
+      fillSelectOptions(document.getElementById("hub-model-free-2"), models, free[1] || free[0], { freeOnly: true });
+      fillSelectOptions(document.getElementById("hub-model-paid-minor"), models, routing.paid_minor, { paidOnly: true });
+      fillSelectOptions(document.getElementById("hub-model-paid-mid"), models, routing.paid_mid, { paidOnly: true });
+      const pref = document.getElementById("hub-model-prefer-free");
+      if (pref) pref.checked = routing.prefer_free !== false;
+    }
+
     function renderHub(data) {
       const inboxN = data.inbox_open_count || 0;
       const gwOk = data.gateway === "active";
@@ -5464,6 +5839,7 @@
       renderMachines(data.machines_sync);
       renderMachines(data.machines_sync, { listId: "sys-machines-list", metaId: "sys-machines-meta", stepsId: null, skipSteps: true });
       renderRunningNow(data, "hub");
+      renderHubModels(data);
 
       document.getElementById("campaign-bars").innerHTML = Object.entries(data.campaigns || {}).map(([id, c]) => {
         const done = c.done_count || 0;
@@ -6581,8 +6957,10 @@
     async function load() {
       if (sessionRole === "viewer") return;
       try {
+        const ot = document.getElementById("ops-title");
+        if (ot) ot.textContent = "Loading Hub…";
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 45000);
+        const timer = setTimeout(() => ctrl.abort(), 20000);
         const res = await fetch(`${base}/api/agent`, {
           cache: "no-store",
           credentials: "same-origin",
@@ -6591,8 +6969,8 @@
         clearTimeout(timer);
         if (!res.ok) {
           throw new Error(
-            res.status === 401
-              ? "Unauthorized — refresh and re-enter dashboard password"
+            res.status === 401 || res.status === 403
+              ? "Unauthorized/Forbidden — CF Access + Basic admin password required; hard-refresh"
               : `API error HTTP ${res.status}`
           );
         }
@@ -6616,15 +6994,20 @@
           else renderReports(agentData);
         }
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
+        // Always refresh model picker after Hub load — default tab is Hub, so Chat
+        // would otherwise keep the boot-time Auto-only options forever.
+        populateChatModelSelect();
         if (activeTab === "chat") {
           fillChatNewSelects(agentData);
-          populateChatModelSelect();
-          syncChatModeUi();
+          syncChatModeUi({
+            modeId: modeIdFromThread(activeChatThread),
+            preferredModel: activeChatThread?.preferred_model || "auto",
+          });
         }
         if (activeTab === "systems") loadSystems();
         renderMeta(agentData);
       } catch (e) {
-        const msg = e.name === "AbortError" ? "Hub load timed out (45s) — potato may be busy; tap ↻ to retry" : e.message;
+        const msg = e.name === "AbortError" ? "Hub load timed out (20s) — tap ↻; if persists, CF Access re-login" : e.message;
         document.getElementById("ops-title").textContent = "Load error";
         document.getElementById("ops-sub").textContent = msg;
         // Clear other Hub "Loading…" placeholders so a fetch/parse failure is visible
@@ -6642,6 +7025,8 @@
     }
 
     async function boot() {
+      const ot0 = document.getElementById("ops-title");
+      if (ot0) ot0.textContent = "Booting…";
       if (/\/intel/i.test(location.pathname)) {
         document.body.classList.add("role-viewer", "role-public");
         document.querySelectorAll(".rail button[data-tab]").forEach((b) => b.classList.remove("active"));
@@ -6736,6 +7121,9 @@
         html = `<div class="prose">${mdParse(body)}</div>`;
       } catch {
         html = `<div class="prose">${esc(body).replace(/\n/g, "<br>")}</div>`;
+      }
+      if (opts.model) {
+        html += `<div class="chat-model-used" title="Model that produced this reply">Model: ${esc(opts.model)}</div>`;
       }
       if (opts.paidRetry) {
         html += `<div class="chat-paid-retry-note">Paid model (free rate-limited or refused)</div>`;
@@ -6896,6 +7284,7 @@
               setChatBubbleReply(bubble, result.reply || "", false, {
               paidRetry: !!result.paid_retry,
               freeFallback: !!result.free_fallback,
+              model: result.model,
             });
             }
           } else if (j.reply) {
@@ -6968,6 +7357,38 @@
     document.getElementById("chat-offload")?.addEventListener("change", () => syncChatModeUi());
     document.getElementById("chat-model")?.addEventListener("change", () => syncChatModeUi());
     syncChatModeUi();
+
+    document.getElementById("hub-models-save")?.addEventListener("click", async () => {
+      const resultEl = document.getElementById("hub-models-result");
+      const free1 = document.getElementById("hub-model-free-1")?.value;
+      const free2 = document.getElementById("hub-model-free-2")?.value;
+      const free_models = [free1, free2].filter(Boolean);
+      // de-dupe while keeping order
+      const seen = new Set();
+      const freeUnique = free_models.filter((id) => (seen.has(id) ? false : (seen.add(id), true)));
+      const body = {
+        prefer_free: !!document.getElementById("hub-model-prefer-free")?.checked,
+        free_models: freeUnique,
+        paid_minor: document.getElementById("hub-model-paid-minor")?.value || undefined,
+        paid_mid: document.getElementById("hub-model-paid-mid")?.value || undefined,
+      };
+      if (resultEl) resultEl.textContent = "Saving…";
+      try {
+        const res = await fetch(`${base}/api/model-budget`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const j = await parseApiJson(res);
+        if (!res.ok || j.error) throw new Error(j.error || `HTTP ${res.status}`);
+        if (resultEl) resultEl.textContent = "Saved — Auto free-first updated.";
+        await load();
+        syncChatModeUi();
+      } catch (e) {
+        if (resultEl) resultEl.textContent = e.message || "Save failed";
+      }
+    });
 
     document.getElementById("chat-promote-task").onclick = async () => {
       if (!activeChatThreadId || chatWaiting) return;
@@ -7164,6 +7585,44 @@
       }
     });
 
+    document.getElementById("chat-context-scope")?.addEventListener("change", async (e) => {
+      try {
+        const scope = e.target.value || "campaign";
+        const cur = { ...(activeChatThread?.context || {}) };
+        cur.context_scope = scope;
+        if (scope === "campaign") {
+          /* keep path for later re-focus, but scope drives injection */
+        }
+        await patchActiveThreadContext(cur, { replace: true });
+      } catch (err) {
+        alert(err.message || "Could not update scope");
+      }
+    });
+
+    document.getElementById("chat-focus-doc")?.addEventListener("change", async (e) => {
+      try {
+        const path = e.target.value || "";
+        const cur = { ...(activeChatThread?.context || {}) };
+        if (path) {
+          cur.path = path;
+          cur.story_path = path;
+          cur.type = /\/characters\//.test(path) ? "character" : "story";
+          if (!cur.context_scope || cur.context_scope === "campaign") {
+            cur.context_scope = "campaign+focus";
+          }
+        } else {
+          delete cur.path;
+          delete cur.story_path;
+          cur.context_scope = "campaign";
+          if (cur.type === "story" || cur.type === "character") cur.type = "story";
+        }
+        cur.workshop_mode = true;
+        await patchActiveThreadContext(cur, { replace: true });
+      } catch (err) {
+        alert(err.message || "Could not update focus doc");
+      }
+    });
+
     document.getElementById("story-interview-btn").onclick = () => {
       if (!selectedStory || !/\/characters\//.test(selectedStory.path)) return;
       openCharacterInterview(selectedStory.campaign, {
@@ -7176,9 +7635,18 @@
     document.getElementById("story-chat-btn").onclick = () => {
       if (!selectedStory) return;
       openChatWithContext(
-        { type: "story", campaign: selectedStory.campaign, path: selectedStory.path, story_path: selectedStory.path },
+        {
+          type: "story",
+          campaign: selectedStory.campaign,
+          path: selectedStory.path,
+          story_path: selectedStory.path,
+          context_scope: "campaign+focus",
+          workshop_mode: true,
+        },
         `Story: ${selectedStory.name}`
       );
+      document.getElementById("chat-mode").value = "campaign-write";
+      syncChatModeUi({ modeId: "campaign-write" });
     };
 
     document.getElementById("story-gm-btn").onclick = () => {
@@ -7192,13 +7660,14 @@
           story_path: selectedStory.path,
           character_id: selectedStory.character_id || undefined,
           workshop_mode: true,
+          context_scope: "campaign+focus",
         },
         `Workshop · ${selectedStory.name}`
       );
-      document.getElementById("chat-mode").value = "workshop";
-      syncChatModeUi({ modeId: "workshop" });
+      document.getElementById("chat-mode").value = "campaign-write";
+      syncChatModeUi({ modeId: "campaign-write" });
       document.getElementById("chat-input").placeholder =
-        "You're the GM — add ideas, theories, links. I'll note them and flag gaps.";
+        "You're the GM — brainstorm the campaign, cast, places, arcs. I'll note them and can save notes.";
       document.getElementById("chat-input").focus();
     };
 
@@ -7292,6 +7761,8 @@
         chat: "Chat",
         inbox: "Inbox",
         systems: "Systems",
+        meta: "Meta / backlog",
+        tasks: "Tasks",
         deploy: "Deploy / git drift",
         other: "Other",
       }[where] || where;
