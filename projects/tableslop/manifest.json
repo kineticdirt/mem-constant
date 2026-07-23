@@ -1,0 +1,374 @@
+{
+  "version": 1,
+  "project_id": "tableslop",
+  "name": "tableslop · Primavera — WoD campaign web (full game)",
+  "campaign": "tropic-gooner",
+  "updated_at": "2026-07-23",
+  "v1_scope": "map + regions + cast + session/Discord play loop (human 2026-07-23; not map-only)",
+  "status_lanes": ["planning", "writing", "testing", "blocked", "done", "deferred"],
+  "subprojects": [
+    {
+      "id": "map-viewer",
+      "name": "Overworld map viewer",
+      "description": "Game-style HUD, numbered region pins, sidebar select, pin-on-image fix.",
+      "status": "testing",
+      "paths": ["scripts/linuxbox/tableslop-server.js", "https://map.tableslop.org/"],
+      "tasks": [
+        {
+          "id": "mv-01-overworld-ui",
+          "title": "Game HUD + region journal + pin anchoring on map stage",
+          "status": "done",
+          "notes": "80s vaporwave panel aesthetic (pink/cyan/purple, Orbitron/VT323) — 2026-06-30."
+        },
+        {
+          "id": "mv-02-2k-toggle",
+          "title": "2K/4K map toggle in HUD (faster mobile load)",
+          "status": "testing",
+          "notes": "Asset: map/output-onlinetools-2k.png; HUD button + /map-image?res=2k."
+        },
+        {
+          "id": "mv-03-region-detail-panel",
+          "title": "Click region → slide-out detail (name, type, notes)",
+          "status": "writing",
+          "notes": "Design prototype in projects/tableslop/design/preview/ — local review before server merge."
+        },
+        {
+          "id": "mv-04-map-camera",
+          "title": "Pan/zoom camera + legend grid focus-on-region",
+          "status": "testing",
+          "notes": "Client transform camera, overlay layer hook, camera saved in localStorage — 2026-06-30."
+        }
+      ]
+    },
+    {
+      "id": "map-data",
+      "name": "Map data & coordinates",
+      "description": "map.json markers, percent coords, future discord_channel_id per region.",
+      "status": "writing",
+      "paths": ["campaigns/tropic-gooner/map/map.json"],
+      "tasks": [
+        {
+          "id": "md-01-schema",
+          "title": "map.json schema v1 + 14 region seeds",
+          "status": "done"
+        },
+        {
+          "id": "md-02-coord-refine",
+          "title": "Human pass: align pins to numbered overlay zones",
+          "status": "blocked",
+          "notes": "Use map/reference/updated_highlight_number_map.png; coords are approx."
+        },
+        {
+          "id": "md-03-discord-channel-ids",
+          "title": "Add discord_channel_id per region in map.json",
+          "status": "planning",
+          "notes": "WoD category 1137592539076120666; map wod-lore-island, privates, etc."
+        }
+      ]
+    },
+    {
+      "id": "primavera-regions",
+      "name": "Primavera — 14 map regions",
+      "description": "Per-region sub-projects (R1–R14): coords, lore, Discord, characters. Board: projects/tableslop/regions.json.",
+      "status": "planning",
+      "paths": ["projects/tableslop/regions.json", "campaigns/tropic-gooner/places/"],
+      "tasks": [
+        {
+          "id": "pr-00-board",
+          "title": "regions.json scaffold — 14 regions × 4 tasks each",
+          "status": "done",
+          "notes": "2026-06-30; workflow_status on map sidebar."
+        },
+        {
+          "id": "pr-01-places-index",
+          "title": "One places/*.md stub per region (link from regions.json)",
+          "status": "planning"
+        },
+        {
+          "id": "pr-02-coords-all",
+          "title": "Human/agent pass: all 14 coords → done",
+          "status": "blocked"
+        }
+      ]
+    },
+    {
+      "id": "map-assets",
+      "name": "Map image assets",
+      "description": "4K base, 2K variant, reference overlays from Obsidian WoD vault.",
+      "status": "writing",
+      "paths": ["campaigns/tropic-gooner/map/"],
+      "tasks": [
+        {
+          "id": "ma-01-4k-deploy",
+          "title": "Deploy output-onlinetools4k.png to linuxbox",
+          "status": "done"
+        },
+        {
+          "id": "ma-02-2k-copy",
+          "title": "Add output-onlinetools-2k.png (from vault output-onlinetools.png)",
+          "status": "testing",
+          "notes": "In repo; deploy to linuxbox with server toggle."
+        },
+        {
+          "id": "ma-03-vibes-layer",
+          "title": "Optional vibes_2k.png as alternate aesthetic layer",
+          "status": "deferred",
+          "notes": "Vault asset; decide if player-facing or GM-only."
+        }
+      ]
+    },
+    {
+      "id": "infra-hosting",
+      "name": "Hosting & tunnel",
+      "description": "linuxbox-tableslop systemd, Cloudflare TABLESLOP tunnel.",
+      "status": "testing",
+      "paths": ["docs/tableslop-linuxbox.md", "scripts/linuxbox/linuxbox-tableslop.service"],
+      "tasks": [
+        {
+          "id": "ih-01-systemd-map",
+          "title": "tableslop on :8765 via systemd",
+          "status": "done"
+        },
+        {
+          "id": "ih-02-cf-hostname",
+          "title": "map.tableslop.org → :8765 on WOD_HTR_LinBox_TABLESLOP tunnel",
+          "status": "done"
+        },
+        {
+          "id": "ih-03-tunnel-systemd",
+          "title": "TABLESLOP cloudflared as cloudflared-tableslop.service (split from abhinavall)",
+          "status": "done",
+          "notes": "cloudflared-tableslop.service; migrated 2026-07-05; docs/cloudflare-tunnels-linuxbox.md"
+        }
+      ]
+    },
+    {
+      "id": "session-play",
+      "name": "Session / Discord play loop (v1)",
+      "description": "In-map session tools: region notes, Discord channel deep-links, light play loop — human locked into v1 with map+regions+cast (2026-07-23).",
+      "status": "planning",
+      "paths": ["scripts/linuxbox/tableslop-server.js", "campaigns/tropic-gooner/map/map.json"],
+      "tasks": [
+        {
+          "id": "sp-01-region-discord-deeplink",
+          "title": "Region detail → open Discord channel (discord_channel_id from map.json)",
+          "status": "planning",
+          "notes": "Depends md-03; client can deep-link once IDs exist."
+        },
+        {
+          "id": "sp-02-session-notes",
+          "title": "Per-region session notes panel (localStorage or server file under campaign)",
+          "status": "planning"
+        },
+        {
+          "id": "sp-03-cast-on-map",
+          "title": "Link present cast from characters-registry into region/session view",
+          "status": "planning",
+          "notes": "Respect multitask lock + merge-by-id; never wipe GM NPCs."
+        }
+      ]
+    },
+    {
+      "id": "discord-auth",
+      "name": "Discord login gate",
+      "description": "OAuth identify + guild membership check before map view.",
+      "status": "planning",
+      "paths": ["tableslop-discord-oauth-plan.md", "docs/tableslop-discord-auth.md"],
+      "tasks": [
+        {
+          "id": "da-01-portal",
+          "title": "Developer Portal: redirect URI + Client ID/Secret",
+          "status": "blocked",
+          "notes": "Human; see tableslop-discord-oauth-plan.md Phase 1."
+        },
+        {
+          "id": "da-02-env-sync",
+          "title": "sync-linuxbox-secrets.sh + configure-tableslop-discord-auth.sh",
+          "status": "writing",
+          "notes": "Scripts exist; blocked on da-01."
+        },
+        {
+          "id": "da-03-login-smoke",
+          "title": "Playwright or manual: member login → map; non-member 403",
+          "status": "planning"
+        }
+      ]
+    },
+    {
+      "id": "discord-ingest",
+      "name": "Discord lore & character ingest",
+      "description": "export_discord_lore.py + ingest_discord_sheets.py for WoD category.",
+      "status": "writing",
+      "paths": ["campaigns/tropic-gooner/export_discord_lore.py", "campaigns/tropic-gooner/tools/ingest_discord_sheets.py"],
+      "tasks": [
+        {
+          "id": "di-01-export-privates",
+          "title": "Full category export (fallout excluded, privates included)",
+          "status": "writing"
+        },
+        {
+          "id": "di-02-ingest-sheets",
+          "title": "Re-run ingest_discord_sheets.py → characters/discord/*.md",
+          "status": "planning"
+        },
+        {
+          "id": "di-03-basic-sheets",
+          "title": "Wire #basic-sheets 1345476659645648896 as PC sheet source",
+          "status": "planning"
+        }
+      ]
+    },
+    {
+      "id": "region-click",
+      "name": "Clickable places (web)",
+      "description": "Interact with regions on the map; foundation for Discord + character deep links.",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "rc-01-select-highlight",
+          "title": "Sidebar + pin click highlights region (sync selection)",
+          "status": "done",
+          "notes": "Basic selectMarker in viewer."
+        },
+        {
+          "id": "rc-02-detail-view",
+          "title": "Region detail view: lore excerpt from places/ or reports/",
+          "status": "planning"
+        },
+        {
+          "id": "rc-03-discord-deep-link",
+          "title": "Open Discord channel from region card",
+          "status": "planning",
+          "notes": "discord:// or web invite link per channel id."
+        }
+      ]
+    },
+    {
+      "id": "character-link",
+      "name": "Character linkage",
+      "description": "Region and Discord channel tied to character markdown sheets.",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "cl-01-index",
+          "title": "characters/INDEX.md links region ↔ player ↔ private channel",
+          "status": "planning"
+        },
+        {
+          "id": "cl-02-map-json-character-ids",
+          "title": "map.json marker field character_ids[]",
+          "status": "planning"
+        },
+        {
+          "id": "cl-03-viewer-character-card",
+          "title": "Show linked characters on region detail panel",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "character-builder",
+      "name": "Character builder",
+      "description": "Example sheet builder / editor on tableslop (long-term).",
+      "status": "deferred",
+      "tasks": [
+        {
+          "id": "cb-01-spec",
+          "title": "Spec: Hunter 5e sheet fields vs import-only from Discord PDFs",
+          "status": "deferred"
+        },
+        {
+          "id": "cb-02-mvp",
+          "title": "MVP: read-only rendered sheet from characters/discord/*.md",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "hunter-agent",
+      "name": "Hunter Hermes gateway & RP",
+      "description": "Discord bot, category 1137592539076120666, agent pods.",
+      "status": "writing",
+      "paths": ["docs/agents/discord-hunter-linuxbox.md", "agents/HUNTER_RECKONING_TASK.md"],
+      "tasks": [
+        {
+          "id": "ha-01-bot-token",
+          "title": "Discord bot token on linuxbox + configure script",
+          "status": "done"
+        },
+        {
+          "id": "ha-02-gateway-systemd",
+          "title": "hermes-gateway-hunter-reckoning install + verify",
+          "status": "testing"
+        },
+        {
+          "id": "ha-03-export-complete",
+          "title": "RP channel wiring + export completeness",
+          "status": "writing"
+        }
+      ]
+    },
+    {
+      "id": "user-profile",
+      "name": "Pilot profile & save (client-first)",
+      "description": "localStorage profile, optional Discord identity, future file-backed cloud sync — no DB.",
+      "status": "writing",
+      "paths": [
+        "projects/tableslop/client-first-profile-plan.md",
+        "scripts/linuxbox/tableslop-server.js"
+      ],
+      "tasks": [
+        {
+          "id": "up-01-local-profile",
+          "title": "localStorage v1: map res, last region, visited, notes",
+          "status": "testing",
+          "notes": "Phase 0 scaffold — 2026-06-30."
+        },
+        {
+          "id": "up-02-api-me",
+          "title": "/api/me + auth slot UI (Link Discord when configured)",
+          "status": "testing"
+        },
+        {
+          "id": "up-03-map-cache",
+          "title": "In-memory map.json cache + Cache-Control on API/images",
+          "status": "done"
+        },
+        {
+          "id": "up-04-cloud-save",
+          "title": "POST/GET /api/profile → ~/.linuxbox-tableslop/profiles/{id}.json",
+          "status": "planning"
+        },
+        {
+          "id": "up-05-region-chunks",
+          "title": "Lazy /api/region/:id static JSON + client MD render",
+          "status": "planning"
+        }
+      ]
+    },
+    {
+      "id": "qa-smoke",
+      "name": "QA & Playwright",
+      "description": "Automated smoke for map viewer regressions.",
+      "status": "testing",
+      "paths": ["campaigns/tropic-gooner/map/tableslop-smoke.mjs"],
+      "tasks": [
+        {
+          "id": "qa-01-pin-bounds",
+          "title": "All pins inside map stage bounds",
+          "status": "done"
+        },
+        {
+          "id": "qa-02-2k-mode",
+          "title": "Smoke: 2K toggle loads alternate image",
+          "status": "planning"
+        },
+        {
+          "id": "qa-03-region-click",
+          "title": "Smoke: click each region card activates pin",
+          "status": "planning"
+        }
+      ]
+    }
+  ]
+}

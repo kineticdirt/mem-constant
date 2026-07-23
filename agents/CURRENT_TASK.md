@@ -6,8 +6,10 @@
 
 | Cron | Profile | Schedule | Role |
 |------|---------|----------|------|
-| `agent-cycle-fast` | **fast** (Qwen free) | every **~30s** (user crontab + flock; Hermes min is 1m) | deterministic sync + inbox ack, IDLE |
-| `agent-cycle-think` | **think** (owl-alpha) | every **1m** | **one** step below |
+| `agent-cycle-fast` | **fast** (Laguna free) | every **~1m** light (flock; IDLE short-circuit) | deterministic sync + inbox ack, IDLE |
+| `agent-cycle-think` | **think** | crontab **1m** + **adaptive throttle**: **5m** quiet / **1m** if ≥4 open user-tasks | **one** step below |
+
+**Ops note (2026-07-23):** Prefer crontab ticks only; keep `agent-pod-scheduler.timer` disabled unless dual-fire is redesigned (was stacking with crontab → Hub thrash). Profile `state.db` guarded by `hermes-profile-db-guard.sh` (S1).
 
 Human questions → `agents/state/human-inbox.json` · answers via `/Linuxbox/` **Inbox** tab.
 
@@ -26,8 +28,9 @@ Human questions → `agents/state/human-inbox.json` · answers via `/Linuxbox/` 
    - **Tropic Gooner** (island/map/orgs — **not** Hunter layer) — else if `campaigns/tropic-gooner/reports/progress.md` has unchecked `[ ]` → read **`agents/TROPIC_GOONER_TASK.md`**, complete **one** item, stop.
 
    **Hunter: The Reckoning** runs on profile **`hunter-reckoning`** (RP **$5/day** pool), cron **`pod-hunter-reckoning`**, spec **`agents/HUNTER_RECKONING_TASK.md`**, progress **`campaigns/tropic-gooner/reports/progress-hunter.md`** — **not** this ops rotation.
-6. **Portfolio lane** — if USB mounted + `agents/PORTFOLIO_OVERNIGHT_TASK.md` has unchecked items → one portfolio step.
-7. **Blog lane** — else if USB `v8-brutalist-map/blog/progress.md` has unchecked items → **`agents/BLOG_AI_LANE_TASK.md`**, one step.
+6. **Portfolio lane** — if `.staging/portfolio-redesign/` exists in repo **or** USB mounted, and open `user-tasks` with `project_id: abhinavall-portfolio` **or** `agents/PORTFOLIO_OVERNIGHT_TASK.md` / corporate task has unchecked items → **one** portfolio/blog step (prefer repo `.staging/` over USB when both exist). Preview-only; no auto-deploy to live abhinavall.net.
+7. **Blog lane** — else if blog progress has unchecked items → **`agents/BLOG_AI_LANE_TASK.md`**, one step.
+7b. **Research bookmarks** — cron ~every **3 days** (+ Sunday floor) asks login / digests ingest; think lane only advances open `research-bookmarks` user-tasks. **No** X API, **no** continuous scraping, **no** posting.
 8. **NousAgent lane** — else **`agents/NOUSAGENT_ITERATION_TASK.md`**, one step.
 
 If nothing unchecked → reply **IDLE** only.
