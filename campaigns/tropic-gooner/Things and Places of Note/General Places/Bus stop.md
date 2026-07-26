@@ -1,0 +1,1 @@
+A bus stop which can get you anywhere in the Paradisio area

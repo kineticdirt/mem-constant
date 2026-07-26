@@ -1,79 +1,84 @@
 {
   "version": 1,
   "projection": "image-percent",
-  "source": "output-onlinetools4k.png",
-  "method": "unique Canva overlay zone per region; pin at zone centroid (label anchor)",
-  "updated_at": "2026-07-01",
+  "source": "Obsidian WoD vibes.png (name + pin SoT)",
+  "method": "vibes.png; removed Orchid Falls + Nueva Vista (not on vibes) 2026-07-26",
+  "updated_at": "2026-07-26",
   "regions": {
     "r01-paradise": {
-      "x_pct": 39.91,
-      "y_pct": 41.02,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 39.0,
+      "y_pct": 55.0,
+      "anchor": "vibes-label"
     },
     "r02-porto-lujuria": {
-      "x_pct": 43.05,
-      "y_pct": 43.55,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 38.0,
+      "y_pct": 65.5,
+      "anchor": "vibes-label"
     },
     "r03-crimson-quay": {
-      "x_pct": 31.34,
-      "y_pct": 27.66,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 32.0,
+      "y_pct": 61.0,
+      "anchor": "vibes-label"
     },
     "r04-villa-miel": {
-      "x_pct": 23.65,
-      "y_pct": 74.89,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 21.0,
+      "y_pct": 71.0,
+      "anchor": "vibes-label"
     },
     "r05-culovera": {
-      "x_pct": 40.12,
-      "y_pct": 86.06,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 33.0,
+      "y_pct": 93.5,
+      "anchor": "vibes-label"
     },
     "r06-seaside-springs": {
-      "x_pct": 62,
-      "y_pct": 48,
-      "anchor": "overlay-zone-unique"
-    },
-    "r07-orchid-falls": {
-      "x_pct": 58,
-      "y_pct": 28,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 61.0,
+      "y_pct": 53.0,
+      "anchor": "vibes-label"
     },
     "r08-sierra-dorado": {
-      "x_pct": 46.36,
-      "y_pct": 32.35,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 41.5,
+      "y_pct": 42.5,
+      "anchor": "vibes-label"
     },
     "r09-ruby-harbor": {
-      "x_pct": 33.84,
-      "y_pct": 74.3,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 24.0,
+      "y_pct": 88.0,
+      "anchor": "vibes-label"
     },
     "r10-lagoona-seica": {
-      "x_pct": 68,
-      "y_pct": 72,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 47.5,
+      "y_pct": 81.0,
+      "anchor": "vibes-label"
     },
     "r11-black-sand-preserve": {
-      "x_pct": 62,
-      "y_pct": 58,
-      "anchor": "overlay-zone-unique"
-    },
-    "r12-nueva-vista": {
-      "x_pct": 49.25,
-      "y_pct": 52.3,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 45.0,
+      "y_pct": 18.0,
+      "anchor": "vibes-label"
     },
     "r13-portview": {
-      "x_pct": 47.39,
-      "y_pct": 65.3,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 56.0,
+      "y_pct": 69.0,
+      "anchor": "vibes-label"
     },
     "r14-federal-shores": {
-      "x_pct": 48,
-      "y_pct": 18,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 28.0,
+      "y_pct": 36.0,
+      "anchor": "vibes-label"
+    },
+    "r15-puckall": {
+      "x_pct": 37.0,
+      "y_pct": 33.0,
+      "anchor": "vibes-label"
+    },
+    "r16-east-bayby": {
+      "x_pct": 54.5,
+      "y_pct": 35.5,
+      "anchor": "vibes-label"
+    },
+    "r17-research-islands": {
+      "x_pct": 82.0,
+      "y_pct": 89.0,
+      "anchor": "vibes-label"
     }
   }
 }

@@ -1,0 +1,1 @@
+Located near **San Aurelio** amid farmland, offering courses in agricultural technology, basic healthcare, and business essentials to support the local agrarian economy.

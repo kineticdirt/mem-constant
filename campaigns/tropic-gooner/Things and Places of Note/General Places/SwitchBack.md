@@ -1,0 +1,1 @@
+A series of highways through the heart of the island. The beating heart of transportation over road. A central highway to get anywhere from anywhere. Its an area dominated by warehouses and highrises. A place people work, and maybe grab a drink or two, but the old residents are few and far between. 

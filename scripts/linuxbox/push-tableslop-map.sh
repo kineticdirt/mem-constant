@@ -47,6 +47,17 @@ sudo systemctl restart linuxbox-tableslop
 sleep 2
 systemctl is-active linuxbox-tableslop
 curl -s -o /dev/null -w "tableslop8765:%{http_code}\\n" http://127.0.0.1:8765/health
+# Content gate: HTTP health alone does not prove map.json landed (see reports/agent-mistake-patterns-2026-07-26.md).
+python3 - <<'PY'
+import json, urllib.request, sys
+raw = urllib.request.urlopen("http://127.0.0.1:8765/api/map", timeout=10).read()
+data = json.loads(raw)
+markers = data.get("markers") or []
+labels = [m.get("label") or m.get("name") or "?" for m in markers]
+print(f"api/map markers={len(markers)} labels={labels}")
+if len(markers) < 1:
+    sys.exit("push-tableslop-map: /api/map returned 0 markers")
+PY
 EOF
 
 echo "OK — map deployed to ${HOST}:${REMOTE_REPO}/${MAP}; linuxbox-tableslop restarted"

@@ -1,0 +1,10 @@
+Some Industry and organization bigwigs you should look out for. 
+
+**Amarillo Tech Solutions, Ltd.** - A tech company which creates small scale internet hosting services, as well as website servies. Currently they are expanding into embedded systems as well as renting servers and 'compute' for cheap. They offer their services to anyone who pays.
+**CiDance Hotels** - A local chain of hotels (similar to a motel 6 irl) with more amenities and large towering hotels. Their Lunch Special is a cheap buffet with excellent food. Some locals even come to enjoy it despite not being tourists or hotel guests. Nothing crazy, but their discretion and 'not telling' on guests without a court order, makes it the choice of many a wealthy individual. 
+**Java Jump** - Local to Paradise, this small chain of coffee shops is known for their boutique expresso's and latte's. With interiors designed for white collar workers and others traveling through the city. They offer a.
+**Dicks Grocery** - Grocery store which acts as a rebranded W_lmart for the locals due to their distrust of the larger brand. 
+**Paradisio Sporting Authority** - A store which sells most sports and camping equipment. Somewhat expensive but they have a few in store brands which are relatively cheaper. It is better to support your local mom and pop shop to get what you want.
+**DingLing Tea House** - Asian inspired tea house which sells mochi donuts, boba tea, Asian snacks, and Philippine style skewers. Other than that they're a typical boba and hangout spot.
+**RG's Pharmacy & Wellness Center** - A pharmacy which offers chiropractic massages for cheap. Their main market are the poor and middle class, often having a 'greeter' who is a security guard at the front at all times. Make things safer. Quick easy, and with a 'don't ask, don't tell'. You will not get boof drugs here guranteed :D.
+**AquaTech Innovations** -While not located in 

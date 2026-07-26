@@ -53,7 +53,7 @@ for (let z = 0; z <= maxZoom; z++) {
       fs.mkdirSync(dir, { recursive: true });
       await sharp(levelBuf)
         .extract({ left, top, width: tw, height: th })
-        .webp({ quality: 85 })
+        .webp({ quality: 92, effort: 4 })
         .toFile(path.join(dir, `${tx}.webp`));
       tileCount += 1;
     }

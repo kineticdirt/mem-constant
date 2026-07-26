@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "_doc": "Labeled pod ticks for Meta-Harness Phase 1 scoring. split=search is fair game for harness prompts; held_out must not appear in proposer training context.",
+  "tasks": [
+    {
+      "id": "think-dashboard-advance",
+      "pod": "think",
+      "description": "Advance one unchecked Open item in agents/LINUXBOX_DASHBOARD_BACKLOG.md per agents/LINUXBOX_DASHBOARD_TASK.md",
+      "split": "search",
+      "expected_outcome": "advance",
+      "progress_file": "agents/LINUXBOX_DASHBOARD_BACKLOG.md",
+      "task_line_pattern": "- \\[ \\]"
+    },
+    {
+      "id": "think-idle-all-clear",
+      "pod": "think",
+      "description": "Reply IDLE only when agents/CURRENT_TASK.md lane rotation finds no unchecked work",
+      "split": "held_out",
+      "expected_outcome": "idle",
+      "progress_file": "agents/CURRENT_TASK.md",
+      "task_line_pattern": "reply \\*\\*IDLE\\*\\* only"
+    },
+    {
+      "id": "fast-git-inbox-tick",
+      "pod": "fast",
+      "description": "agent-cycle-fast: safe git pull, acknowledge agents/human-inbox.json, no LLM-heavy lane work",
+      "split": "search",
+      "expected_outcome": "intent_ok",
+      "progress_file": "agents/human-inbox.json"
+    },
+    {
+      "id": "fast-idle-tick",
+      "pod": "fast",
+      "description": "Fast pod tick with clean exit and INTENT_OK when inbox empty and pull succeeds",
+      "split": "search",
+      "expected_outcome": "idle",
+      "task_line_pattern": "\\bIDLE\\b"
+    },
+    {
+      "id": "ponytail-one-card",
+      "pod": "ponytail-cleanup",
+      "description": "Complete one unchecked Backlog card in agents/PONYTAIL_CLEANUP_BOARD.md (fix/refine only, no deletions)",
+      "split": "search",
+      "expected_outcome": "advance",
+      "progress_file": "agents/PONYTAIL_CLEANUP_BOARD.md",
+      "task_line_pattern": "- \\[ \\]"
+    },
+    {
+      "id": "ponytail-intent-no-delete",
+      "pod": "ponytail-cleanup",
+      "description": "Ponytail pod must pass verify_agent_intent.py without deleting files",
+      "split": "held_out",
+      "expected_outcome": "intent_ok",
+      "progress_file": "agents/PONYTAIL_CLEANUP_TASK.md",
+      "task_line_pattern": "no file deletions"
+    },
+    {
+      "id": "think-maintenance-advance",
+      "pod": "think",
+      "description": "Advance one item in agents/maintenance-progress.md via agents/DAILY_MAINTENANCE_TASK.md",
+      "split": "held_out",
+      "expected_outcome": "advance",
+      "progress_file": "agents/maintenance-progress.md",
+      "task_line_pattern": "- \\[ \\]"
+    },
+    {
+      "id": "think-user-task-open",
+      "pod": "think",
+      "description": "When agents/user-tasks.json has status open, complete one step per agents/USER_TASKS_TASK.md",
+      "split": "held_out",
+      "expected_outcome": "advance",
+      "progress_file": "agents/user-tasks.json",
+      "task_line_pattern": "\"status\":\\s*\"open\""
+    }
+  ]
+}

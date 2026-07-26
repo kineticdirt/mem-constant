@@ -3,7 +3,7 @@
   "campaign": "tropic-gooner",
   "brand": "Primavera",
   "title": "Isla Primavera",
-  "description": "tableslop overworld — Primavera setting. Markers use image-percent (0-100).",
+  "description": "tableslop overworld — Primavera setting. Marker label/name = vibes.png spellings (SoT); lore renames kept in aliases. Removed Orchid Falls + Nueva Vista pins (not on vibes.png).",
   "base_image": "map/master-enhanced.png",
   "base_image_2k": "map/output-onlinetools-2k.png",
   "tile_pyramid": "map/pyramid.json",
@@ -18,7 +18,8 @@
   "layers_manifest": "map/layers.json",
   "base_image_status": "sharp AI terrain + HTML areas/cities/labels (strip deferred until canva-terrain export)",
   "projection": "image-percent",
-  "updated_at": "2026-07-01",
+  "updated_at": "2026-07-26",
+  "name_source": "Obsidian WoD vibes.png",
   "markers": [
     {
       "id": "r01-paradise",
@@ -26,42 +27,42 @@
       "name": "Paradise",
       "label": "Paradise",
       "type": "city",
-      "x_pct": 39.91,
-      "y_pct": 41.02,
-      "coord_status": "overlay-label",
+      "x_pct": 39.0,
+      "y_pct": 55.0,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "note": "North central bay",
-      "label_x_pct": 39.91,
-      "label_y_pct": 38.22
+      "note": "vibes.png label N of middle bay"
     },
     {
       "id": "r02-porto-lujuria",
       "region": 2,
-      "name": "Porto Lujuria",
-      "label": "Porto Lujuria",
+      "name": "Porto Lujara",
+      "label": "Porto Lujara",
       "type": "city",
-      "x_pct": 43.05,
-      "y_pct": 43.55,
-      "coord_status": "overlay-label",
+      "x_pct": 38.0,
+      "y_pct": 65.5,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "label_x_pct": 43.05,
-      "label_y_pct": 40.75
+      "aliases": [
+        "Porto Lujuria"
+      ],
+      "note": "vibes.png Porto Lujara (NOT Lujuria) S tip of middle bay"
     },
     {
       "id": "r03-crimson-quay",
       "region": 3,
-      "name": "Crimson Quay",
-      "label": "Crimson Quay",
+      "name": "Jackedsonville",
+      "label": "Jackedsonville",
       "type": "city",
-      "x_pct": 31.34,
-      "y_pct": 27.66,
-      "coord_status": "overlay-label",
+      "x_pct": 32.0,
+      "y_pct": 61.0,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
       "aliases": [
-        "Jackedsonville"
+        "Crimson Quay",
+        "Crimzon Quay"
       ],
-      "label_x_pct": 31.34,
-      "label_y_pct": 24.86
+      "note": "vibes.png Jackedsonville W of bay (lore rebrand was Crimson Quay)"
     },
     {
       "id": "r04-villa-miel",
@@ -69,25 +70,25 @@
       "name": "Villa Miel",
       "label": "Villa Miel",
       "type": "town",
-      "x_pct": 23.65,
-      "y_pct": 74.89,
-      "coord_status": "overlay-label",
-      "workflow_status": "planning",
-      "label_x_pct": 23.65,
-      "label_y_pct": 72.09
+      "x_pct": 21.0,
+      "y_pct": 71.0,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning"
     },
     {
       "id": "r05-culovera",
       "region": 5,
-      "name": "CuloVera",
-      "label": "CuloVera",
+      "name": "San Aurelio",
+      "label": "San Aurelio",
       "type": "city",
-      "x_pct": 40.12,
-      "y_pct": 86.06,
-      "coord_status": "overlay-label",
+      "x_pct": 33.0,
+      "y_pct": 93.5,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "label_x_pct": 40.12,
-      "label_y_pct": 83.26
+      "aliases": [
+        "CuloVera"
+      ],
+      "note": "vibes.png San Aurelio at southern tip (lore alias CuloVera)"
     },
     {
       "id": "r06-seaside-springs",
@@ -95,25 +96,10 @@
       "name": "Seaside Springs",
       "label": "Seaside Springs",
       "type": "town",
-      "x_pct": 62,
-      "y_pct": 48,
-      "coord_status": "overlay-label",
-      "workflow_status": "planning",
-      "label_x_pct": 62,
-      "label_y_pct": 45.2
-    },
-    {
-      "id": "r07-orchid-falls",
-      "region": 7,
-      "name": "Orchid Falls",
-      "label": "Orchid Falls",
-      "type": "town",
-      "x_pct": 58,
-      "y_pct": 28,
-      "coord_status": "overlay-label",
-      "workflow_status": "planning",
-      "label_x_pct": 58,
-      "label_y_pct": 25.2
+      "x_pct": 61.0,
+      "y_pct": 53.0,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning"
     },
     {
       "id": "r08-sierra-dorado",
@@ -121,13 +107,11 @@
       "name": "Sierra Dorado",
       "label": "Sierra Dorado",
       "type": "capital",
-      "x_pct": 46.36,
-      "y_pct": 32.35,
-      "coord_status": "overlay-label",
+      "x_pct": 41.5,
+      "y_pct": 42.5,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "note": "Federal mountain capital",
-      "label_x_pct": 46.36,
-      "label_y_pct": 29.55
+      "note": "Federal mountain capital — gold-bounded territory"
     },
     {
       "id": "r09-ruby-harbor",
@@ -135,25 +119,26 @@
       "name": "Ruby Harbor",
       "label": "Ruby Harbor",
       "type": "city",
-      "x_pct": 33.84,
-      "y_pct": 74.3,
-      "coord_status": "overlay-label",
-      "workflow_status": "planning",
-      "label_x_pct": 33.84,
-      "label_y_pct": 71.5
+      "x_pct": 24.0,
+      "y_pct": 88.0,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning"
     },
     {
       "id": "r10-lagoona-seica",
       "region": 10,
-      "name": "Lagoona Seica",
-      "label": "Lagoona Seica",
+      "name": "Lagooni Seika",
+      "label": "Lagooni Seika",
       "type": "town",
-      "x_pct": 68,
-      "y_pct": 72,
-      "coord_status": "overlay-label",
+      "x_pct": 47.5,
+      "y_pct": 81.0,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "label_x_pct": 68,
-      "label_y_pct": 69.2
+      "aliases": [
+        "Lagoona Seika",
+        "Lagoona Seica"
+      ],
+      "note": "vibes.png Lagooni Seika SE coast"
     },
     {
       "id": "r11-black-sand-preserve",
@@ -161,26 +146,11 @@
       "name": "Black Sand Beach Preserve",
       "label": "Black Sand Beach Preserve",
       "type": "preserve",
-      "x_pct": 62,
-      "y_pct": 58,
-      "coord_status": "overlay-label",
+      "x_pct": 45.0,
+      "y_pct": 18.0,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "note": "Zone 11 not on numbered overlay — estimated east coast",
-      "label_x_pct": 62,
-      "label_y_pct": 55.2
-    },
-    {
-      "id": "r12-nueva-vista",
-      "region": 12,
-      "name": "Nueva Vista",
-      "label": "Nueva Vista",
-      "type": "town",
-      "x_pct": 49.25,
-      "y_pct": 52.3,
-      "coord_status": "overlay-label",
-      "workflow_status": "planning",
-      "label_x_pct": 49.25,
-      "label_y_pct": 49.5
+      "note": "vibes.png N tip preserve"
     },
     {
       "id": "r13-portview",
@@ -188,25 +158,62 @@
       "name": "Portview",
       "label": "Portview",
       "type": "town",
-      "x_pct": 47.39,
-      "y_pct": 65.3,
-      "coord_status": "overlay-label",
-      "workflow_status": "planning",
-      "label_x_pct": 47.39,
-      "label_y_pct": 62.5
+      "x_pct": 56.0,
+      "y_pct": 69.0,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning"
     },
     {
       "id": "r14-federal-shores",
       "region": 14,
-      "name": "Federal Shores",
-      "label": "Federal Shores",
+      "name": "InterFederal Shores",
+      "label": "InterFederal Shores",
       "type": "region",
-      "x_pct": 48,
-      "y_pct": 18,
-      "coord_status": "overlay-label",
+      "x_pct": 28.0,
+      "y_pct": 36.0,
+      "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "label_x_pct": 48,
-      "label_y_pct": 15.2
+      "aliases": [
+        "Federal Shores",
+        "Interfederal Shores"
+      ],
+      "note": "vibes.png InterFederal Shores NW coast"
+    },
+    {
+      "id": "r15-puckall",
+      "region": 15,
+      "name": "Puckall",
+      "label": "Puckall",
+      "type": "region",
+      "x_pct": 37.0,
+      "y_pct": 33.0,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning",
+      "note": "vibes-only inland N-central (no R1–R14 lore id)"
+    },
+    {
+      "id": "r16-east-bayby",
+      "region": 16,
+      "name": "East Bayby",
+      "label": "East Bayby",
+      "type": "region",
+      "x_pct": 54.5,
+      "y_pct": 35.5,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning",
+      "note": "vibes-only NE coast (spelling Bayby)"
+    },
+    {
+      "id": "r17-research-islands",
+      "region": 17,
+      "name": "Research Islands",
+      "label": "Research Islands",
+      "type": "region",
+      "x_pct": 82.0,
+      "y_pct": 89.0,
+      "coord_status": "vibes-label",
+      "workflow_status": "planning",
+      "note": "vibes-only SE archipelago off main island"
     }
   ]
 }

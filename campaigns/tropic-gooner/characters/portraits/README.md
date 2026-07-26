@@ -23,7 +23,9 @@ Dashboard Chars tab serves images via
 | `redmond-red-gallagher` | `Redmond/` |
 | `toga` | `Toga/` |
 
-Thread twins (`ellaine`, `nelly`, `red`, `minerva`, `rosa`, …), author stubs, and the GM (`wholesomeest-boi`) are `hidden` / `role: gm` and do **not** inherit these folders (that was the duplicate-face bug).
+Thread twins (`ellaine`, `nelly`, `red`, `minerva`, …), author stubs, and the GM (`wholesomeest-boi`) are `hidden` / `role: gm` and do **not** inherit these folders (that was the duplicate-face bug). Rosa/Rosalinda registry stubs were removed 2026-07-12 — aliases live on `rosalina-bonetto` only.
+
+**2026-07-12 misattribution cleanup:** `rosalina-bonetto/` gallery cleared — partner faceclaims → `jinpei-mclaren/`; cars/map/misc → `_quarantine-rosalina-misattr/`. Ellaine roommate dumps → `_quarantine-ellaine-roommate/` (+ `Character Images/NPC Images/`); Ellaine primary = `Character Images/Ellaine/IMG_3193.jpg`.
 
 ## Sync art to potato (gitignored)
 

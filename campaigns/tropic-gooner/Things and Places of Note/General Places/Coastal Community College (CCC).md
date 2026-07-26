@@ -1,0 +1,1 @@
+Based in **Porto Lujara** *(alias Porto Lujuria)*, it focuses on vocational training—culinary arts, maritime mechanics, and event planning—preparing students for service roles in tourism and shipping.

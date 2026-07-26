@@ -33,6 +33,7 @@ export function resolveGlobalOpts(args) {
   if (args.contrast != null) opts.contrast = parseFloat(args.contrast);
   if (args.sharpen != null && args["panel-sharpen"] == null) opts.sharpen = parseFloat(args.sharpen);
   if (args.saturation != null) opts.saturation = parseFloat(args.saturation);
+  if (args.smooth != null) opts.smooth = parseFloat(args.smooth);
   if (args["no-normalize"]) {
     opts.normalizeLow = undefined;
     opts.normalizeHigh = undefined;

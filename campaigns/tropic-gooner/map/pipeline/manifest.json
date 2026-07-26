@@ -4,16 +4,19 @@
   "sourcePath": "C:\\Users\\abhinav\\Desktop\\MAIN_PROGRAMMING_FILES\\agent-dump\\campaigns\\tropic-gooner\\map\\output-onlinetools4k.png",
   "source": "output-onlinetools4k.png",
   "terrain_only": false,
-  "upscale_method": "lanczos",
+  "upscale_method": "realesrgan-pytorch",
   "scale": 2,
   "globalEnhance": {
     "scale": 1,
-    "contrast": 1.03,
-    "sharpen": 0.22,
-    "saturation": 1.03
+    "contrast": 1.02,
+    "sharpen": 0,
+    "saturation": 1.02,
+    "smooth": 0.7
   },
   "master": "C:\\Users\\abhinav\\Desktop\\MAIN_PROGRAMMING_FILES\\agent-dump\\campaigns\\tropic-gooner\\map\\pipeline\\output\\master-enhanced.png",
   "pyramid": "C:\\Users\\abhinav\\Desktop\\MAIN_PROGRAMMING_FILES\\agent-dump\\campaigns\\tropic-gooner\\map\\pyramid.json",
+  "line_reinject": true,
+  "detail_sharpen": true,
   "label_layer": "ui",
-  "finishedAt": "2026-06-30T21:06:59.116Z"
+  "finishedAt": "2026-07-01T03:05:10.060Z"
 }

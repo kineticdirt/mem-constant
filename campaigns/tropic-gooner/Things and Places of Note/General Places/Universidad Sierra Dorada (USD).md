@@ -1,0 +1,11 @@
+- **Location & Setting:**  
+  - Situated in the mountain capital, **Sierra Dorada**, where cooler nights provide a respite from the coastal heat.
+- **Type & Focus:**  
+  - A **public research university** emphasizing environmental science, public administration, and emerging technology.
+- **Campus Life & Partnerships:**  
+  - Blends restored colonial structures with modern research labs.  
+  - Collaborates with federal agencies, local tech firms (like AquaTech Innovations), and Base Fuerte Luna on engineering and logistics research.
+- **Mascot:**  
+  - The mascot is a thundercloud named mary, or mark (they have two versions), with grey shorts and a jersey top. 
+- **Areas of Study:**  
+  - Graduates help staff government agencies, run sustainable tourism projects, and contribute to local innovation in climate-adaptive technologies.

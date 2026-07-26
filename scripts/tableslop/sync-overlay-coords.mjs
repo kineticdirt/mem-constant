@@ -70,31 +70,35 @@ for (let y = 0; y < H; y++) {
   }
 }
 
-/** Seed hint (x,y) per region — guides unique zone assignment. */
+/** Seed hint (x,y) — names = vibes.png SoT (not lore rebrands). */
 const REGIONS = [
-  { id: "r01-paradise", region: 1, name: "Paradise", hint: [40, 41] },
-  { id: "r02-porto-lujuria", region: 2, name: "Porto Lujuria", hint: [43, 44] },
-  { id: "r03-crimson-quay", region: 3, name: "Crimson Quay", hint: [31, 28] },
-  { id: "r04-villa-miel", region: 4, name: "Villa Miel", hint: [24, 75] },
-  { id: "r05-culovera", region: 5, name: "CuloVera", hint: [40, 86] },
-  { id: "r06-seaside-springs", region: 6, name: "Seaside Springs", hint: [67, 47] },
-  { id: "r07-orchid-falls", region: 7, name: "Orchid Falls", hint: [53, 31] },
-  { id: "r08-sierra-dorado", region: 8, name: "Sierra Dorado", hint: [46, 32] },
-  { id: "r09-ruby-harbor", region: 9, name: "Ruby Harbor", hint: [34, 74] },
-  { id: "r10-lagoona-seica", region: 10, name: "Lagoona Seica", hint: [72, 77] },
-  { id: "r11-black-sand-preserve", region: 11, name: "Black Sand Preserve", hint: [54, 63] },
+  { id: "r01-paradise", region: 1, name: "Paradise", hint: [41, 55] },
+  { id: "r02-porto-lujuria", region: 2, name: "Porto Lujara", hint: [41, 66] },
+  { id: "r03-crimson-quay", region: 3, name: "Jackedsonville", hint: [33, 61] },
+  { id: "r04-villa-miel", region: 4, name: "Villa Miel", hint: [21, 71] },
+  { id: "r05-culovera", region: 5, name: "San Aurelio", hint: [34, 95] },
+  { id: "r06-seaside-springs", region: 6, name: "Seaside Springs", hint: [61, 53] },
+  { id: "r07-orchid-falls", region: 7, name: "Orchid Falls", hint: [60, 46] },
+  { id: "r08-sierra-dorado", region: 8, name: "Sierra Dorado", hint: [43, 43] },
+  { id: "r09-ruby-harbor", region: 9, name: "Ruby Harbor", hint: [30, 91] },
+  { id: "r10-lagoona-seica", region: 10, name: "Lagooni Seika", hint: [51, 84] },
+  { id: "r11-black-sand-preserve", region: 11, name: "Black Sand Beach Preserve", hint: [48, 15] },
   { id: "r12-nueva-vista", region: 12, name: "Nueva Vista", hint: [49, 52] },
-  { id: "r13-portview", region: 13, name: "Portview", hint: [47, 65] },
-  { id: "r14-federal-shores", region: 14, name: "Federal Shores", hint: [48, 19] },
+  { id: "r13-portview", region: 13, name: "Portview", hint: [55, 71] },
+  { id: "r14-federal-shores", region: 14, name: "InterFederal Shores", hint: [31, 38] },
 ];
 
 const MANUAL = {
-  "r06-seaside-springs": { cx: 62.0, cy: 48.0, rx: 8, ry: 7, kind: "yellow" },
-  "r07-orchid-falls": { cx: 58.0, cy: 28.0, rx: 7, ry: 6, kind: "yellow" },
-  "r08-sierra-dorado": { cx: 46.36, cy: 32.35, rx: 9, ry: 7, kind: "yellow" },
-  "r10-lagoona-seica": { cx: 68.0, cy: 72.0, rx: 7, ry: 6, kind: "purple" },
-  "r11-black-sand-preserve": { cx: 62.0, cy: 58.0, rx: 8, ry: 6, kind: "yellow" },
-  "r14-federal-shores": { cx: 48.0, cy: 18.0, rx: 10, ry: 5, kind: "yellow" },
+  // Vibes.png pin SoT (2026-07-26). Do NOT reintroduce lore display names.
+  "r02-porto-lujuria": { cx: 41.0, cy: 66.0, rx: 3.2, ry: 2.6, kind: "purple" },
+  "r06-seaside-springs": { cx: 61.0, cy: 53.0, rx: 8, ry: 7, kind: "yellow" },
+  "r07-orchid-falls": { cx: 60.0, cy: 46.0, rx: 7, ry: 6, kind: "yellow" },
+  // Sierra Dorado selectable area is a hand-digitized gold polygon in regions-ui.json —
+  // this ellipse is only a fallback if someone re-runs sync without preserving polygons.
+  "r08-sierra-dorado": { cx: 43.0, cy: 43.0, rx: 6.5, ry: 5.5, kind: "yellow" },
+  "r10-lagoona-seica": { cx: 51.0, cy: 84.0, rx: 7, ry: 6, kind: "purple" },
+  "r11-black-sand-preserve": { cx: 48.0, cy: 15.0, rx: 8, ry: 6, kind: "yellow" },
+  "r14-federal-shores": { cx: 31.0, cy: 38.0, rx: 10, ry: 5, kind: "yellow" },
 };
 
 const used = new Set();
@@ -175,14 +179,17 @@ const mapJson = JSON.parse(fs.readFileSync(path.join(mapRoot, "map.json"), "utf8
 mapJson.markers = (mapJson.markers || []).map((m) => {
   const c = regions[m.id];
   if (!c) return m;
-  return {
+  const next = {
     ...m,
     x_pct: c.x_pct,
     y_pct: c.y_pct,
-    label_x_pct: c.x_pct,
-    label_y_pct: +(c.y_pct - 2.8).toFixed(2),
     coord_status: "overlay-label",
   };
+  // One coord pair — do not reintroduce label_* offsets.
+  delete next.label_x_pct;
+  delete next.label_y_pct;
+  delete next.label_dy_pct;
+  return next;
 });
 mapJson.updated_at = coords.updated_at;
 fs.writeFileSync(path.join(mapRoot, "map.json"), JSON.stringify(mapJson, null, 2) + "\n");

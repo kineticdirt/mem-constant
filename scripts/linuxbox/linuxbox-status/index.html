@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db-20260723-thinkfocus-r1">
+  <meta name="dash-build" content="db-20260726-chars-portrait-fix-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -16,6 +16,11 @@
       --bg: #0a0a0c; --surface: #111114; --line: #2a2a32; --line-bright: #3d3d48;
       --text: #eeeef2; --muted: #888894; --accent: #6ec8ff; --lime: #b8e986;
       --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+      /* Active Now / think outcome tones (tick vs whole-task) */
+      --aw-failed: #f87171;
+      --aw-in-progress: #fb923c;
+      --aw-succeeded: #86efac;
+      --aw-task-complete: #22c55e;
       --ui-scale: 1;
       --rail-width: 64px;
       --prose-size: 0.9rem;
@@ -69,6 +74,7 @@
     .rail button[data-tab="reports"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h7l5 5v13H7z'/%3E%3Cpath d='M14 3v5h5M9 13h6M9 17h6'/%3E%3C/svg%3E"); }
     .rail button[data-tab="news"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h12v10H4z'/%3E%3Cpath d='M16 8h4v10a2 2 0 0 1-2 2H6'/%3E%3Cpath d='M7 9h6M7 12h6'/%3E%3C/svg%3E"); }
     .rail button[data-tab="campaigns"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V4'/%3E%3Cpath d='M5 4h9l-1.5 3.5L14 11H5'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="map"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z'/%3E%3Cpath d='M9 3v15M15 6v15'/%3E%3C/svg%3E"); }
     .rail button[data-tab="stories"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H5z'/%3E%3Cpath d='M19 4h-6a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h6z'/%3E%3C/svg%3E"); }
     .rail button[data-tab="characters"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.5'/%3E%3Cpath d='M5 20a7 7 0 0 1 14 0'/%3E%3C/svg%3E"); }
     .rail button[data-tab="chat"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 6h14v10H9l-4 3z'/%3E%3C/svg%3E"); }
@@ -124,14 +130,14 @@
     }
     @media (max-width: 900px) { .kpi-primary { grid-template-columns: repeat(2, 1fr); } }
     .kpi-primary .kpi {
-      background: var(--surface); padding: 1rem 1.1rem; min-height: 88px;
+      background: var(--surface); padding: 0.4rem 0.55rem; min-height: 0;
       cursor: default;
     }
     .kpi-primary .kpi.drill { cursor: pointer; }
     .kpi-primary .kpi.drill:hover { background: #151820; outline: 1px solid var(--accent); outline-offset: -1px; }
-    .kpi-primary .kpi .label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-    .kpi-primary .kpi .value { font-size: 1.65rem; font-weight: 700; margin-top: 0.35rem; font-family: "IBM Plex Mono", monospace; letter-spacing: -0.03em; line-height: 1.1; }
-    .kpi-primary .kpi .hint { font-size: 0.68rem; color: var(--muted); margin-top: 0.35rem; }
+    .kpi-primary .kpi .label { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .kpi-primary .kpi .value { font-size: 0.95rem; font-weight: 700; margin-top: 0.12rem; font-family: "IBM Plex Mono", monospace; letter-spacing: -0.02em; line-height: 1.15; }
+    .kpi-primary .kpi .hint { font-size: 0.58rem; color: var(--muted); margin-top: 0.12rem; line-height: 1.25; }
     .kpi-primary .kpi .value.ok { color: var(--ok); }
     .kpi-primary .kpi .value.warn { color: var(--warn); }
     .kpi-primary .kpi .value.bad { color: var(--bad); }
@@ -554,6 +560,27 @@
       border-radius: 3px; font-size: 0.7rem; background: var(--bg);
     }
     .chars-attach-modal-list code { font-size: 0.68rem; }
+    .chars-attach-modal-gallery {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+      gap: 0.45rem; margin: 0 0 0.75rem;
+    }
+    .chars-attach-modal-gallery .chars-attach-gal-item {
+      border: 1px solid var(--line); border-radius: 3px; background: #111;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .chars-attach-modal-gallery .chars-attach-gal-item img {
+      width: 100%; height: 4.5rem; object-fit: cover; display: block; background: #0a0a0c;
+    }
+    .chars-attach-modal-gallery .chars-attach-gal-meta {
+      font-size: 0.58rem; color: var(--muted); padding: 0.2rem 0.3rem; word-break: break-all;
+      line-height: 1.25; max-height: 2.4em; overflow: hidden;
+    }
+    .chars-attach-modal-gallery .chars-attach-gal-del {
+      width: 100%; border: 0; border-top: 1px solid var(--line); border-radius: 0;
+      background: #3a1212; color: #f5caca; font: 600 0.68rem/1.6 "IBM Plex Mono", monospace;
+      cursor: pointer; padding: 0.2rem 0.35rem;
+    }
+    .chars-attach-modal-gallery .chars-attach-gal-del:hover { background: #8b1a1a; color: #fff; }
     #chat-context-change-camp { font-size: 0.65rem; padding: 0.2rem 0.45rem; }
     .chat-thread-list { flex: 1; overflow-y: auto; padding: 0.35rem 0; }
     .chat-thread-item {
@@ -689,6 +716,30 @@
       border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
       background: color-mix(in srgb, var(--accent) 8%, var(--surface));
     }
+    .chat-day-sep {
+      display: flex; align-items: center; gap: 0.55rem;
+      margin: 0.7rem 0 0.3rem;
+      color: var(--muted);
+      font-size: 0.62rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+    .chat-day-sep::before,
+    .chat-day-sep::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+    .chat-bubble-ts {
+      font-size: 0.62rem;
+      color: var(--muted);
+      margin-bottom: 0.28rem;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+    .chat-bubble.user .chat-bubble-ts { text-align: right; }
     .chat-bubble-actions { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.25rem; }
     .chat-branch-btn { font-size: 0.65rem; padding: 0.15rem 0.4rem; }
     .chat-action-btn { font-size: 0.65rem; padding: 0.15rem 0.4rem; }
@@ -836,16 +887,57 @@
       color: var(--muted);
     }
     .active-work-card .aw-chip,
-    .hub-running-now .aw-chip {
+    .hub-running-now .aw-chip,
+    .hub-last-think .aw-chip,
+    .hub-last-completed .aw-chip {
       font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--lime);
       border: 1px solid var(--line); padding: 0.05rem 0.3rem; flex-shrink: 0;
     }
     .active-work-card .aw-chip.warn,
-    .hub-running-now .aw-chip.warn { color: var(--warn); }
+    .hub-running-now .aw-chip.warn,
+    .hub-last-think .aw-chip.warn,
+    .hub-last-completed .aw-chip.warn { color: var(--warn); }
     .active-work-card .aw-chip.ok,
-    .hub-running-now .aw-chip.ok { color: var(--ok); }
+    .hub-running-now .aw-chip.ok,
+    .hub-last-think .aw-chip.ok,
+    .hub-last-completed .aw-chip.ok { color: var(--ok); }
     .active-work-card .aw-chip.muted,
-    .hub-running-now .aw-chip.muted { color: var(--muted); }
+    .hub-running-now .aw-chip.muted,
+    .hub-last-think .aw-chip.muted,
+    .hub-last-completed .aw-chip.muted { color: var(--muted); }
+    /* Outcome tones: failed / in_progress / succeeded / task_complete */
+    .active-work-card .aw-chip.failed,
+    .hub-running-now .aw-chip.failed,
+    .hub-last-think .aw-chip.failed,
+    .hub-last-completed .aw-chip.failed,
+    .aw-tone.failed { color: var(--aw-failed); }
+    .active-work-card .aw-chip.in_progress,
+    .hub-running-now .aw-chip.in_progress,
+    .hub-last-think .aw-chip.in_progress,
+    .hub-last-completed .aw-chip.in_progress,
+    .aw-tone.in_progress { color: var(--aw-in-progress); }
+    .active-work-card .aw-chip.succeeded,
+    .hub-running-now .aw-chip.succeeded,
+    .hub-last-think .aw-chip.succeeded,
+    .hub-last-completed .aw-chip.succeeded,
+    .aw-tone.succeeded { color: var(--aw-succeeded); }
+    .active-work-card .aw-chip.task_complete,
+    .hub-running-now .aw-chip.task_complete,
+    .hub-last-think .aw-chip.task_complete,
+    .hub-last-completed .aw-chip.task_complete,
+    .aw-tone.task_complete { color: var(--aw-task-complete); }
+    .hub-last-think .aw-blurb.aw-tone.failed,
+    .hub-running-now .aw-blurb.aw-tone.failed,
+    .active-work-card .aw-blurb.aw-tone.failed { color: var(--aw-failed); }
+    .hub-last-think .aw-blurb.aw-tone.in_progress,
+    .hub-running-now .aw-blurb.aw-tone.in_progress,
+    .active-work-card .aw-blurb.aw-tone.in_progress { color: var(--aw-in-progress); }
+    .hub-last-think .aw-blurb.aw-tone.succeeded,
+    .hub-running-now .aw-blurb.aw-tone.succeeded,
+    .active-work-card .aw-blurb.aw-tone.succeeded { color: var(--aw-succeeded); }
+    .hub-last-think .aw-blurb.aw-tone.task_complete,
+    .hub-running-now .aw-blurb.aw-tone.task_complete,
+    .active-work-card .aw-blurb.aw-tone.task_complete { color: var(--aw-task-complete); }
     .active-work-card .aw-time,
     .hub-running-now .aw-time {
       font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--muted); flex-shrink: 0;
@@ -864,34 +956,129 @@
     .topbar .running-now-chrome.live { color: var(--warn); }
     .hub-running-now {
       border: 1px solid var(--line); background: var(--surface);
-      padding: 0.55rem 0.75rem; font-size: 0.78rem;
+      padding: 0.65rem 0.85rem 0.75rem; font-size: 0.78rem;
+      margin-bottom: 0.35rem;
     }
     .hub-running-now.live { border-left: 3px solid var(--warn); }
     .hub-running-now.live .aw-label { color: var(--warn); }
+    .hub-running-now.hung { border-left-color: var(--bad); }
+    .hub-running-now.hung .aw-label { color: var(--bad); }
+    .hub-obs-panel {
+      margin-top: 0.55rem;
+      border: 1px solid var(--line-bright);
+      background: #07090c;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      max-height: min(52vh, 520px);
+    }
+    .hub-live-log-wrap {
+      margin-top: 0;
+      border: none;
+      background: transparent;
+      max-height: none;
+      overflow: visible;
+      flex: 0 0 auto;
+      min-height: 0;
+    }
+    .hub-live-log-wrap.is-open {
+      flex: 1 1 auto;
+      min-height: 120px;
+      overflow: auto;
+    }
+    .hub-live-log-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 0.5rem; padding: 0.35rem 0.55rem;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); position: sticky; top: 0; background: #0a0d12; z-index: 1;
+    }
+    .hub-worker-summary {
+      padding: 0.4rem 0.55rem 0.45rem;
+      font-size: 0.78rem; line-height: 1.4;
+    }
+    .hub-worker-summary .hub-w-row {
+      display: grid;
+      grid-template-columns: 4.2rem 1fr;
+      gap: 0.35rem 0.55rem;
+      margin: 0.15rem 0;
+      align-items: baseline;
+    }
+    .hub-worker-summary .hub-w-k {
+      font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .hub-worker-summary .hub-w-v {
+      color: var(--fg); word-break: break-word;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+    }
+    .hub-worker-summary .hub-w-v.muted { color: var(--muted); font-style: italic; }
+    .hub-live-log-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem; width: 100%;
+      padding: 0.35rem 0.55rem;
+      border: none; border-top: 1px solid var(--line);
+      background: #0a0d12; color: var(--muted);
+      font: inherit; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
+      cursor: pointer; text-align: left;
+    }
+    .hub-live-log-toggle:hover { color: var(--fg); }
+    .hub-live-log-toggle .hub-w-chevron { font-size: 0.7rem; }
+    .hub-live-log {
+      display: none;
+      margin: 0; padding: 0.55rem 0.65rem 0.75rem;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.72rem; line-height: 1.45; color: #c5ced9;
+      white-space: pre-wrap; word-break: break-word;
+      min-height: 0;
+      max-height: min(36vh, 360px);
+      overflow: auto;
+      border-top: 1px solid var(--line);
+    }
+    .hub-live-log-wrap.is-open .hub-live-log { display: block; }
+    .hub-live-log.empty { color: var(--muted); font-style: italic; }
+    .hub-last-think {
+      padding: 0.45rem 0.55rem 0.4rem;
+      border-bottom: 1px solid var(--line);
+      background: #0c1210;
+      font-size: 0.78rem; line-height: 1.4;
+    }
+    .hub-last-think .aw-label {
+      margin-bottom: 0.25rem; color: var(--ok);
+      font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .hub-last-think .aw-blurb {
+      margin-top: 0.25rem; color: var(--fg);
+      white-space: pre-wrap; word-break: break-word;
+      max-height: 6.5rem; overflow: auto;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
+    }
     .hub-last-completed {
-      margin-top: 0.55rem; padding: 0.5rem 0.65rem 0.45rem;
-      border: 1px solid var(--line); border-left: 3px solid var(--ok);
-      background: #0e1410; font-size: 0.78rem; line-height: 1.45;
+      margin-top: 0.45rem; padding: 0.35rem 0.5rem 0.3rem;
+      border: 1px solid var(--line); border-left: 3px solid var(--muted);
+      background: #0c0e12; font-size: 0.68rem; line-height: 1.35;
     }
     .hub-last-completed .aw-label {
-      margin-bottom: 0.3rem; color: var(--ok);
-      font-size: 0.68rem; letter-spacing: 0.08em;
+      margin-bottom: 0.2rem; color: var(--muted);
+      font-size: 0.55rem; letter-spacing: 0.08em;
     }
     .hub-last-completed .aw-line { color: var(--fg); }
     .hub-last-completed .aw-line .meta { margin-left: 0.35rem; color: var(--muted); }
     .hub-last-completed .aw-kind {
-      display: block; margin-top: 0.15rem;
-      font-size: 0.68rem; color: var(--muted);
+      display: block; margin-top: 0.1rem;
+      font-size: 0.62rem; color: var(--muted);
       font-family: "IBM Plex Mono", monospace;
     }
     .hub-last-completed .hub-last-run-secondary {
-      margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px dashed var(--line);
-      font-size: 0.72rem; color: var(--muted);
+      margin-top: 0.25rem; padding-top: 0.25rem; border-top: 1px dashed var(--line);
+      font-size: 0.65rem; color: var(--muted);
     }
     .hub-recent-ticks {
-      margin-top: 0.35rem; font-size: 0.72rem; color: var(--muted);
+      margin-top: 0.25rem; font-size: 0.62rem; color: var(--muted);
+      max-height: 3.6rem; overflow: auto;
     }
-    .hub-recent-ticks .aw-row { margin: 0.15rem 0; }
+    .hub-recent-ticks .aw-row { margin: 0.08rem 0; }
     .machines-bar details.machine-handshake {
       margin-top: 0.55rem; font-size: 0.72rem; color: var(--muted);
     }
@@ -1104,16 +1291,12 @@
     .chars-gallery .chars-gal-pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .chars-gallery .chars-gal-del {
       position: absolute; top: 1px; right: 1px; z-index: 2;
-      width: 1.15rem; height: 1.15rem; padding: 0; margin: 0;
-      border: 1px solid var(--line-bright); background: rgba(10, 10, 12, 0.85);
-      color: #f5f5f5; font: 700 0.72rem/1 "IBM Plex Mono", monospace;
-      cursor: pointer; opacity: 0; display: flex; align-items: center; justify-content: center;
+      min-width: 1.55rem; height: 1.15rem; padding: 0 0.2rem; margin: 0;
+      border: 1px solid var(--line-bright); background: rgba(10, 10, 12, 0.9);
+      color: #f5caca; font: 700 0.58rem/1 "IBM Plex Mono", monospace;
+      cursor: pointer; opacity: 1; display: flex; align-items: center; justify-content: center;
     }
-    .chars-gallery .chars-gal-thumb:hover .chars-gal-del,
-    .chars-gallery .chars-gal-del:focus {
-      opacity: 1;
-    }
-    .chars-gallery .chars-gal-del:hover { background: #8b1a1a; border-color: #c44; }
+    .chars-gallery .chars-gal-del:hover { background: #8b1a1a; border-color: #c44; color: #fff; }
     .chars-upload-row {
       display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.35rem 0 0.75rem;
     }
@@ -1266,6 +1449,62 @@
       font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
       color: var(--muted); margin: 0.35rem 0 0.55rem;
     }
+    .sys-temp-auth {
+      margin-bottom: 1rem;
+      border: 1px solid var(--line);
+      padding: 0.75rem;
+      background: var(--bg);
+    }
+    .sys-temp-auth h2 {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .sys-temp-auth .temp-lead {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+      max-width: 42rem;
+    }
+    .sys-temp-auth .temp-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+    .sys-temp-created {
+      border: 1px dashed var(--line);
+      padding: 0.65rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.78rem;
+    }
+    .sys-temp-created.hidden { display: none; }
+    .sys-temp-created code {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72rem;
+      word-break: break-all;
+    }
+    .sys-temp-created .temp-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      align-items: baseline;
+      margin: 0.25rem 0;
+    }
+    .sys-temp-list { display: grid; gap: 0.4rem; }
+    .sys-temp-item {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      align-items: center;
+      font-size: 0.75rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.4rem;
+    }
+    .sys-temp-item .meta { font-size: 0.68rem; }
     .sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.75rem; }
     .sys-card {
       border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem;
@@ -1274,6 +1513,7 @@
     .sys-card.ok { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
     .sys-card.warn { border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
     .sys-card.down { border-color: color-mix(in srgb, var(--bad) 50%, var(--line)); }
+    .sys-card.idle { border-color: color-mix(in srgb, var(--muted) 45%, var(--line)); }
     .sys-card.unknown { border-color: var(--line); }
     .sys-card.expanded { grid-column: 1 / -1; }
     .sys-card-toggle {
@@ -1332,6 +1572,36 @@
       font-size: 0.62rem; color: var(--muted); font-family: "IBM Plex Mono", monospace;
       margin-bottom: 0.4rem; line-height: 1.4;
     }
+    /* Hub: model spend / token usage tracker (moved off Systems) */
+    .hub-spend-panel, .sys-spend-panel {
+      border: 1px solid var(--line); padding: 0.85rem 1rem; background: var(--bg);
+      margin-bottom: 1rem;
+    }
+    .hub-spend-panel > h2, .sys-spend-panel > h2 {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin-bottom: 0.65rem;
+    }
+    .hub-spend-panel > h3, .sys-spend-panel > h3, #hub-spend > h3, .sys-spend > h3 {
+      font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 0.4rem; font-weight: 600;
+    }
+    .hub-spend-split, .sys-spend-split { margin: 0 0 0.85rem; }
+    .hub-spend-split-head, .sys-spend-split-head {
+      display: flex; justify-content: space-between; gap: 0.5rem;
+      font-size: 0.62rem; color: var(--muted); margin-bottom: 0.3rem;
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .hub-spend-bar, .sys-spend-bar {
+      display: flex; height: 0.55rem; background: #12141a; border-radius: 2px; overflow: hidden;
+    }
+    .hub-spend-bar > span, .sys-spend-bar > span { display: block; height: 100%; }
+    .hub-spend-bar > span.free, .sys-spend-bar > span.free { background: var(--ok); }
+    .hub-spend-bar > span.paid, .sys-spend-bar > span.paid { background: var(--warn); }
+    .hub-spend, .sys-spend { overflow-x: auto; }
+    .hub-spend-table td.cmd, .sys-spend-table td.cmd { max-width: 16rem; }
+    .hub-spend-note, .sys-spend-note, #hub-spend-note, #sys-spend-note {
+      font-size: 0.6rem; color: var(--muted); margin-top: 0.55rem; line-height: 1.45;
+    }
 
     /* Mobile — bottom tab bar, larger touch targets */
     @media (max-width: 768px) {
@@ -1353,8 +1623,10 @@
       .topbar h1 { font-size: 1.1rem; }
       .topbar .lanes { display: none; }
       .panel { padding: 0.75rem; }
-      .kpi-primary .kpi { min-height: 72px; padding: 0.75rem; }
+      .kpi-primary .kpi { min-height: 0; padding: 0.4rem 0.5rem; }
       .sys-grid { grid-template-columns: 1fr; }
+      .hub-spend-table td.cmd, .sys-spend-table td.cmd { max-width: 10rem; }
+      .hub-spend-split-head, .sys-spend-split-head { flex-wrap: wrap; }
       .sys-actions .btn { min-height: 2.5rem; padding: 0.5rem 0.75rem; }
       .btn, button { min-height: 2.25rem; }
 
@@ -1422,6 +1694,17 @@
       }
     }
     .sys-head { display: flex; gap: 0.6rem; align-items: flex-start; }
+    .sys-title-row {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.45rem;
+    }
+    .sys-ref {
+      display: inline-block; font-family: "IBM Plex Mono", monospace;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em;
+      padding: 0.08rem 0.38rem; border-radius: 3px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+      color: var(--accent); line-height: 1.3;
+    }
     .sys-icon { width: 2.25rem; height: 2.25rem; flex-shrink: 0; border-radius: 4px; background: #0a0a0c; }
     .sys-title { font-weight: 600; font-size: 0.85rem; }
     .sys-sub { font-size: 0.65rem; color: var(--muted); font-family: monospace; }
@@ -1472,7 +1755,7 @@
       .inbox-grid { gap: 0.5rem; }
       .inbox-col { padding: 0.6rem; }
       .fix-this { padding: 0.6rem 0.75rem; }
-      .kpi-primary .kpi { padding: 0.6rem 0.75rem; min-height: 72px; }
+      .kpi-primary .kpi { padding: 0.4rem 0.5rem; min-height: 0; }
       .kpi-secondary .kpi { padding: 0.45rem 0.55rem; }
       .machines-bar { padding: 0.6rem 0.75rem; }
       .report-list { padding: 0.6rem; }
@@ -1490,6 +1773,7 @@
         <option value="reports">Docs</option>
         <option value="news">News</option>
         <option value="campaigns">Camp</option>
+        <option value="map">Map</option>
         <option value="stories">Stories</option>
         <option value="characters">Chars</option>
         <option value="chat">Chat</option>
@@ -1506,6 +1790,7 @@
       <button type="button" data-tab="reports">Docs</button>
       <button type="button" data-tab="news">News</button>
       <button type="button" class="admin-only" data-tab="campaigns">Camp</button>
+      <button type="button" class="admin-only" data-tab="map">Map</button>
       <button type="button" class="admin-only" data-tab="stories">Stories</button>
       <button type="button" class="admin-only" data-tab="characters">Chars</button>
       <button type="button" class="admin-only" data-tab="chat">Chat</button>
@@ -1579,19 +1864,7 @@
           </div>
           <div class="hub-running-now" id="hub-running-now" aria-label="Running now"></div>
           <div class="kpi-primary" id="kpi-primary"></div>
-          <div class="hub-resources" id="hub-resources" aria-label="Host resources"></div>
           <div class="kpi-secondary" id="kpi-secondary"></div>
-          <div id="hub-resources-modal" class="chat-campaign-modal" aria-hidden="true">
-            <div class="chat-campaign-modal-panel hub-resources-modal-panel" role="dialog" aria-modal="true" aria-labelledby="hub-resources-modal-title">
-              <h3 id="hub-resources-modal-title">Resources</h3>
-              <p class="meta">linuxbox · live sample (Hub poll). Light ps + /proc — not a profiler.</p>
-              <div id="hub-resources-modal-body"></div>
-              <div class="chat-campaign-modal-actions">
-                <button type="button" class="btn" id="hub-resources-modal-close">Close</button>
-                <button type="button" class="btn" id="hub-resources-goto-systems" data-tab="systems">Systems →</button>
-              </div>
-            </div>
-          </div>
           <div class="machines-bar admin-only" id="machines-bar">
             <h2>Machines &amp; sync</h2>
             <div id="machines-list"><p class="empty">Loading…</p></div>
@@ -1615,6 +1888,13 @@
               <div class="action-list" id="action-list"></div>
             </div>
           </div>
+          <section class="hub-spend-panel admin-only" id="hub-spend-panel" aria-label="Model spend and token usage">
+            <h2>Model spend / token usage</h2>
+            <div class="sys-host" id="hub-spend-head"></div>
+            <div class="hub-spend-split" id="hub-spend-split"></div>
+            <div class="hub-spend" id="hub-spend"><p class="empty">Loading…</p></div>
+            <p class="meta hub-spend-note" id="hub-spend-note"></p>
+          </section>
           <section class="hub-models admin-only" id="hub-models" aria-label="Chat model routing">
             <h2>Chat models</h2>
             <p class="hub-models-lead">Free-first routing for dashboard Chat (and budget policy). Pick which free models Auto tries first, then paid fallbacks. Per-thread override lives on the Chat tab.</p>
@@ -1686,6 +1966,17 @@
 
         <section id="systems" class="panel admin-only">
           <div class="sys-flash" id="sys-flash"></div>
+          <div class="sys-temp-auth" id="sys-temp-auth">
+            <h2>Temp viewer links</h2>
+            <p class="temp-lead">Create a 2-day viewer account (News / stocks / public docs only). Share the redeem link — it sets a cookie, so the password never goes in the URL. Or copy username + password for Basic auth.</p>
+            <div class="temp-actions">
+              <button type="button" class="btn primary" id="temp-auth-gen">Generate temp viewer</button>
+              <button type="button" class="btn" id="temp-auth-refresh">Refresh list</button>
+              <span class="meta" id="temp-auth-status"></span>
+            </div>
+            <div class="sys-temp-created hidden" id="temp-auth-created"></div>
+            <div class="sys-temp-list" id="temp-auth-list"><p class="empty">Loading…</p></div>
+          </div>
           <div class="sys-machines" id="sys-machines-wrap">
             <h2>Machines &amp; sync</h2>
             <div id="sys-machines-list"><p class="empty">Loading…</p></div>
@@ -1767,6 +2058,25 @@
             <span class="meta" id="camp-focus-hint">Pick one chronicle — progress, reports, and story canon.</span>
           </div>
           <div id="campaign-detail"></div>
+          <div class="camp-block" id="camp-map-cta" style="margin-top:1rem;max-width:36rem">
+            <h3 style="margin:0 0 0.35rem">Interactive map</h3>
+            <p class="meta" id="camp-map-cta-hint" style="margin:0 0 0.75rem">Canonical map is on tableslop (Isla Primavera). Hub does not embed a duplicate.</p>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+              <a class="btn primary" id="camp-map-open" href="https://map.tableslop.org/" target="_blank" rel="noopener">Open on map.tableslop.org →</a>
+              <a class="btn" id="camp-map-cast" href="https://map.tableslop.org/#cast" target="_blank" rel="noopener">Cast →</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="map" class="panel admin-only">
+          <div class="camp-block" style="max-width:36rem">
+            <h3 style="margin:0 0 0.35rem">Isla Primavera map</h3>
+            <p class="meta" style="margin:0 0 0.75rem">The interactive campaign map lives on <strong>map.tableslop.org</strong> (linuxbox-tableslop :8765). This Hub tab is a link-out only — no baked overlay / localhost embed.</p>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+              <a class="btn primary" href="https://map.tableslop.org/" target="_blank" rel="noopener">Open on map.tableslop.org →</a>
+              <a class="btn" href="https://map.tableslop.org/#cast" target="_blank" rel="noopener">Cast roster →</a>
+            </div>
+          </div>
         </section>
 
         <section id="stories" class="panel fill admin-only">
@@ -1800,6 +2110,7 @@
                 <option value="tropic-gooner">Tropic Gooner</option>
               </select>
               <span class="meta" id="chars-count">Roster · name + image</span>
+              <a class="meta" href="https://map.tableslop.org/#cast" target="_blank" rel="noopener" style="margin-left:0.5rem" title="Same characters-registry.json on the map endpoint">Open on map →</a>
               <label class="meta" style="display:inline-flex;align-items:center;gap:0.35rem;margin-left:0.5rem">
                 <input type="checkbox" id="chars-show-hidden" />
                 Show stubs
@@ -1823,7 +2134,12 @@
                   <p class="meta" id="chars-attach-modal-why">
                     Sheet markdown lists <code>attachments/…</code> paths from the Discord export, but the image binaries were not linked into portraits.
                     Old CDN URLs expire; the fix is restore from local <code>discord-export/**/attachments</code> or re-fetch via the bot.
+                    Use <strong>Delete</strong> below to remove a gallery image (confirm first).
                   </p>
+                  <div id="chars-attach-modal-gallery-wrap" hidden>
+                    <p class="meta" style="margin:0 0 0.35rem">Gallery — Delete removes this character’s image (not the character)</p>
+                    <div class="chars-attach-modal-gallery" id="chars-attach-modal-gallery"></div>
+                  </div>
                   <div class="chars-attach-modal-list" id="chars-attach-modal-list"></div>
                   <p class="meta" id="chars-attach-modal-status" style="min-height:1.2em"></p>
                   <div class="chat-campaign-modal-actions">
@@ -2136,7 +2452,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "Hub", systems: "Systems", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", stories: "Stories", characters: "Characters", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
+    const titles = { hub: "Hub", systems: "Systems", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", map: "Map", stories: "Stories", characters: "Characters", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -2347,6 +2663,84 @@
       return d.toLocaleDateString("en-US", { timeZone: LINUXBOX_TZ, year: "numeric", month: "2-digit", day: "2-digit" });
     }
 
+    /** Epoch ms from message.at / .ts / .created_at — null if missing/legacy. */
+    function chatMsgAtMs(msg) {
+      if (msg == null) return null;
+      if (typeof msg !== "object") return null;
+      const raw = msg.at ?? msg.ts ?? msg.created_at;
+      if (raw == null || raw === "") return null;
+      const n = typeof raw === "number" ? raw : Date.parse(String(raw));
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmtChatBubbleTs(ms) {
+      if (ms == null) return "";
+      const d = new Date(ms);
+      if (Number.isNaN(d.getTime())) return "";
+      return d.toLocaleString("en-US", {
+        timeZone: LINUXBOX_TZ,
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+
+    function fmtChatDayLabel(ms) {
+      if (ms == null) return "";
+      const d = new Date(ms);
+      if (Number.isNaN(d.getTime())) return "";
+      return d.toLocaleDateString("en-US", {
+        timeZone: LINUXBOX_TZ,
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    function chatDayKey(ms) {
+      if (ms == null) return "";
+      try {
+        return new Intl.DateTimeFormat("en-CA", {
+          timeZone: LINUXBOX_TZ,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date(ms));
+      } catch {
+        return "";
+      }
+    }
+
+    function makeChatBubbleTsEl(ms, approx) {
+      if (ms == null) return null;
+      const label = fmtChatBubbleTs(ms);
+      if (!label) return null;
+      const el = document.createElement("div");
+      el.className = "chat-bubble-ts";
+      el.textContent = approx ? `~ ${label}` : label;
+      el.title = approx
+        ? `Approximate (${fmtEt(ms)}) — no precise message timestamp`
+        : fmtEt(ms);
+      return el;
+    }
+
+    function prependChatBubbleTs(bubble, ms, approx) {
+      const el = makeChatBubbleTsEl(ms, approx);
+      if (!el || !bubble) return;
+      bubble.insertBefore(el, bubble.firstChild);
+    }
+
+    function appendChatDaySep(log, ms, labelOverride) {
+      const sep = document.createElement("div");
+      sep.className = "chat-day-sep";
+      sep.textContent = labelOverride || fmtChatDayLabel(ms);
+      if (ms != null) sep.title = fmtEt(ms);
+      log.appendChild(sep);
+    }
+
     async function loadSession() {
       const setLoadHint = (msg) => {
         const t = document.getElementById("ops-title");
@@ -2473,7 +2867,8 @@
       if (activeTab === "reports") {
         if (sessionRole === "viewer") loadPublicReports();
         else renderReports(agentData);
-        setupReportKeyboardNav();
+        // ponytail: guard pre-existing undefined ref (reports keyboard-nav never defined) — stops console throw, still calls it if a later build defines it.
+        if (typeof setupReportKeyboardNav === "function") setupReportKeyboardNav();
       }
       if (activeTab === "news") loadNews();
       if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
@@ -3721,15 +4116,38 @@
         log.innerHTML = '<p class="empty">No messages yet — send one below.</p>';
         return;
       }
+      const anyAt = messages.some((m) => chatMsgAtMs(m) != null);
+      if (!anyAt && (thread?.created_at || thread?.updated_at)) {
+        const threadMs = coerceChatMsgAtLocal(thread.created_at) ?? coerceChatMsgAtLocal(thread.updated_at);
+        if (threadMs != null) {
+          appendChatDaySep(
+            log,
+            threadMs,
+            `Thread · ${fmtChatDayLabel(threadMs)}`
+          );
+          const first = log.querySelector(".chat-day-sep");
+          if (first) first.title = "Legacy thread — messages have no per-turn timestamps";
+        }
+      }
+      let lastDay = "";
       messages.forEach((t, idx) => {
-        if (t.role === "user") appendChatUserMessage(log, t.text, idx);
-        else {
+        const atMs = chatMsgAtMs(t);
+        const day = chatDayKey(atMs);
+        if (day && day !== lastDay) {
+          appendChatDaySep(log, atMs);
+          lastDay = day;
+        }
+        if (t.role === "user") {
+          appendChatUserMessage(log, t.text, idx, { at: atMs, atApprox: !!t.at_approx });
+        } else {
           const bubble = document.createElement("div");
           log.appendChild(bubble);
           setChatBubbleReply(bubble, t.text, t.error, {
             model: t.model,
             paidRetry: !!t.paid_retry,
             freeFallback: !!t.free_fallback,
+            at: atMs,
+            atApprox: !!t.at_approx,
           });
           if (!t.error && String(t.text || "").trim()) {
             renderChatArtifactsPanel(bubble, t, thread, idx);
@@ -3740,6 +4158,13 @@
       log.scrollTop = log.scrollHeight;
       /* cache after rendering */
       if (thread?.id) saveChatToSessionCache(thread.id, thread.messages);
+    }
+
+    function coerceChatMsgAtLocal(raw) {
+      if (raw == null || raw === "") return null;
+      if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+      const n = Date.parse(String(raw));
+      return Number.isFinite(n) ? n : null;
     }
 
     async function branchChatFrom(fromIndex) {
@@ -3911,25 +4336,94 @@
       charsAttachModalRow = null;
     }
 
+    async function deleteCharGalleryImage(row, imagePath, statusEl) {
+      if (!row || !imagePath) return null;
+      const short = imagePath.split("/").pop() || imagePath;
+      if (!confirm(`Delete this image?\n\n${short}\n\nRemoves it from this character’s gallery. The file is deleted only if it lives under characters/portraits/${row.id}/. The character stays.`)) {
+        return null;
+      }
+      if (statusEl) statusEl.textContent = "Deleting image…";
+      const res = await fetch(`${base}/api/characters-registry/remove-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaign: charsCampaignFilter,
+          id: row.id,
+          path: imagePath,
+          base_version: charsRegistry && charsRegistry.version,
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        const msg =
+          j.error === "version_conflict"
+            ? await reloadCharsAfterConflict(j)
+            : j.error === "admin_required"
+              ? "Admin login required to delete images."
+              : j.error || "Delete failed";
+        if (statusEl) statusEl.textContent = msg;
+        throw new Error(msg);
+      }
+      applyCharsRegistry(j, row.id);
+      const next = (charsRegistry?.characters || []).find((c) => c.id === row.id) || null;
+      if (statusEl) {
+        statusEl.textContent = j.deleted_file
+          ? "Image deleted (file removed)"
+          : "Image removed from gallery";
+      }
+      return next;
+    }
+
     function openCharsAttachModal(row) {
       const modal = document.getElementById("chars-attach-modal");
       const list = document.getElementById("chars-attach-modal-list");
       const status = document.getElementById("chars-attach-modal-status");
       const title = document.getElementById("chars-attach-modal-title");
+      const galWrap = document.getElementById("chars-attach-modal-gallery-wrap");
+      const gal = document.getElementById("chars-attach-modal-gallery");
       if (!modal || !row) return;
       charsAttachModalRow = row;
       const unresolved = row.unresolved_doc_attachments || [];
+      const images = row.images || [];
       if (title) {
-        title.textContent = `Unresolved attachments · ${row.display_name || row.id} (${unresolved.length})`;
+        title.textContent = unresolved.length
+          ? `Unresolved attachments · ${row.display_name || row.id} (${unresolved.length})`
+          : `Attachments · ${row.display_name || row.id}`;
+      }
+      if (galWrap && gal) {
+        if (images.length) {
+          galWrap.hidden = false;
+          gal.innerHTML = images.map((p, i) => {
+            const url = (row.gallery_urls && row.gallery_urls[i]) ||
+              `/api/characters-registry/image?campaign=${encodeURIComponent(charsCampaignFilter)}&id=${encodeURIComponent(row.id)}&path=${encodeURIComponent(p)}`;
+            const short = p.split("/").pop() || p;
+            return `<div class="chars-attach-gal-item">
+              <img src="${esc(base + url)}" alt="" loading="lazy" />
+              <div class="chars-attach-gal-meta" title="${esc(p)}">${esc(short)}</div>
+              <button type="button" class="chars-attach-gal-del admin-only" data-path="${esc(p)}">Delete</button>
+            </div>`;
+          }).join("");
+          gal.querySelectorAll("button.chars-attach-gal-del[data-path]").forEach((btn) => {
+            btn.onclick = async () => {
+              try {
+                const next = await deleteCharGalleryImage(row, btn.dataset.path, status);
+                if (next) openCharsAttachModal(next);
+              } catch (_) { /* status already set */ }
+            };
+          });
+        } else {
+          galWrap.hidden = true;
+          gal.innerHTML = "";
+        }
       }
       if (list) {
         list.innerHTML = unresolved.length
           ? `<ul style="margin:0;padding-left:1.1rem">${unresolved.map((u) => `<li><code>${esc(u.ref || u)}</code></li>`).join("")}</ul>`
-          : "<span class=\"meta\">None listed.</span>";
+          : "<span class=\"meta\">No unresolved Discord attachment refs.</span>";
       }
       if (status) {
         status.textContent =
-          "Resolve copies matching files from discord-export into characters/portraits/, then tries Discord bot for anything still missing.";
+          "Resolve copies matching files from discord-export into characters/portraits/, then tries Discord bot for anything still missing. Delete removes one gallery image (confirm).";
       }
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
@@ -4229,7 +4723,7 @@
             const active = p === row.image_path ? " is-primary" : "";
             return `<div class="chars-gal-thumb${active}" data-path="${esc(p)}">
               <button type="button" class="chars-gal-pick" data-path="${esc(p)}" title="${esc(p)}"><img src="${esc(base + url)}" alt="" loading="lazy" /></button>
-              <button type="button" class="chars-gal-del admin-only" data-path="${esc(p)}" title="Remove this portrait" aria-label="Remove portrait">×</button>
+              <button type="button" class="chars-gal-del admin-only" data-path="${esc(p)}" title="Delete this portrait" aria-label="Delete portrait">Del</button>
             </div>`;
           }).join("")}</div>`
         : `<p class="meta" style="font-size:0.65rem;margin:0.35rem 0">No images yet — resolve Discord attachments, upload below, or drop files into <code>Character Images/</code> / <code>characters/portraits/${esc(row.id)}/</code>.</p>`;
@@ -4300,8 +4794,11 @@
           </div>
         </div>
         ${unresolved}
-        <label style="font-size:0.72rem;color:var(--muted)">Portraits — click to set primary · hover × to remove one</label>
+        <label style="font-size:0.72rem;color:var(--muted)">Portraits — click to set primary · Del removes one image</label>
         ${galleryHtml}
+        <p class="meta admin-only" style="margin:0.25rem 0 0.5rem">
+          <button type="button" class="btn" id="chars-attach-manage" style="width:auto">Resolve / manage images…</button>
+        </p>
         <p class="chars-paste-hint admin-only" id="char-paste-hint">Paste image: Ctrl+V / Cmd+V (Chars tab · character open) · or Choose File / Add from URL below</p>
         <div class="chars-upload-row admin-only">
           <input type="file" id="char-image-file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
@@ -4333,6 +4830,8 @@
           openCharsAttachModal(row);
         }
       }
+      const manageBtn = document.getElementById("chars-attach-manage");
+      if (manageBtn) manageBtn.onclick = () => openCharsAttachModal(row);
 
       document.getElementById("char-prev")?.addEventListener("click", () => { if (prev) selectCharById(prev.id); });
       document.getElementById("char-next")?.addEventListener("click", () => { if (nextNav) selectCharById(nextNav.id); });
@@ -4449,36 +4948,10 @@
             ev.stopPropagation();
             const p = btn.dataset.path;
             if (!p) return;
-            const short = p.split("/").pop() || p;
-            if (!confirm(`Remove this portrait?\n\n${short}\n\nHey — are you sure? This deletes that image file if it’s under this character’s portraits folder. The character stays.`)) {
-              return;
-            }
             const out = document.getElementById("char-image-result");
-            out.textContent = "Removing portrait…";
             try {
-              const res = await fetch(`${base}/api/characters-registry/remove-image`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  campaign: charsCampaignFilter,
-                  id: row.id,
-                  path: p,
-                  base_version: charsRegistry && charsRegistry.version,
-                }),
-              });
-              const j = await res.json();
-              if (!res.ok) {
-                out.textContent =
-                  j.error === "version_conflict"
-                    ? await reloadCharsAfterConflict(j)
-                    : j.error || "Remove failed";
-                return;
-              }
-              applyCharsRegistry(j, row.id);
-              out.textContent = j.deleted_file ? "Portrait removed (file deleted)" : "Portrait removed from gallery";
-            } catch (e) {
-              out.textContent = e.message || "Remove failed";
-            }
+              await deleteCharGalleryImage(row, p, out);
+            } catch (_) { /* status already set */ }
           };
         });
       }
@@ -4866,6 +5339,37 @@
     }
 
     /** Shared live in-flight signal — Hub strip, Tasks card, topbar chrome. */
+    function idleBetweenTicksLine(data, info) {
+      const wp = data?.work_pipeline || {};
+      const nOpen = Number(wp.open_user_tasks || 0);
+      const nBoxes = Number(wp.open_progress_boxes || 0);
+      const bits = [];
+      if (wp.free_429_blocked) {
+        bits.push("blocked: OpenRouter free 429");
+        if (wp.free_429_inbox_id) bits.push(`inbox ${wp.free_429_inbox_id}`);
+        else if (wp.free_429_reset_at) bits.push(`reset ${String(wp.free_429_reset_at).slice(0, 16)}`);
+      } else if (wp.free_429_exhausted && wp.paid_last_resort) {
+        const paid = String(wp.paid_last_resort_model || "deepseek/deepseek-v4-flash").replace(/^openrouter\//, "");
+        bits.push(`free exhausted → paid ${paid}`);
+        if (nOpen + nBoxes > 0) {
+          bits.push(`${nOpen} open tasks`);
+          if (nBoxes) bits.push(`${nBoxes} progress boxes`);
+        }
+      } else if (nOpen + nBoxes > 0) {
+        bits.push(`Idle between ticks — ${nOpen} open tasks`);
+        if (nBoxes) bits.push(`${nBoxes} progress boxes`);
+      } else {
+        bits.push("Nothing to do");
+      }
+      const last = info?.last_completed;
+      if (last?.blurb) {
+        bits.push(`last: ${String(last.blurb).replace(/\s+/g, " ").slice(0, 72)}`);
+      } else if (wp.last_think_status) {
+        bits.push(`last think: ${wp.last_think_status}`);
+      }
+      return bits.join(" · ");
+    }
+
     function collectRunningNow(data) {
       const rn = data?.running_now || {};
       const jobs = Array.isArray(rn.chat_jobs)
@@ -4873,6 +5377,8 @@
         : (data?.chat_jobs?.jobs || []);
       const pod = rn.pod || data?.current_pod || null;
       const lastDone = rn.last_completed || null;
+      const liveLog = rn.live_log || data?.live_log || null;
+      const focus = rn.think_focus || null;
       const parts = [];
       for (const j of jobs.slice(0, 4)) {
         const st = j.status === "queued" ? "queued" : "thinking";
@@ -4888,9 +5394,10 @@
         parts.push({
           kind: pod.kind === "tick" ? "tick" : "pod",
           label: pod.name,
-          status: "running",
+          status: pod.hung ? "hung" : "running",
           elapsed: fmtElapsed(pod.elapsed_ms),
           blurb: pod.blurb || null,
+          task_id: pod.task_id || focus?.task_id || null,
         });
       }
       const plain = [];
@@ -4906,13 +5413,21 @@
       }
       if (pod?.name) {
         const b = pod.blurb ? String(pod.blurb).slice(0, 72) : "";
-        plain.push(b ? `${pod.name}: ${b}` : `${pod.name} ${fmtElapsed(pod.elapsed_ms)}`);
+        const tag = pod.hung ? "HUNG " : "";
+        plain.push(b ? `${tag}${pod.name}: ${b}` : `${tag}${pod.name} ${fmtElapsed(pod.elapsed_ms)}`);
       }
-      return {
+      const infoBase = {
         parts,
         anything: parts.length > 0,
-        summary: plain.join(" · ") || "Nothing running right now",
+        hung: !!pod?.hung,
         last_completed: lastDone,
+        live_log: liveLog,
+        think_focus: focus,
+      };
+      return {
+        ...infoBase,
+        summary: plain.join(" · ") || idleBetweenTicksLine(data, infoBase),
+        idle_line: idleBetweenTicksLine(data, infoBase),
       };
     }
 
@@ -4945,63 +5460,227 @@
       };
     }
 
-    function outcomeChip(p) {
-      const o = p?.outcome || (p?.idle ? "idle" : p?.exit != null && p.exit !== 0 ? "fail" : "ok");
-      if (o === "idle") return `<span class="aw-chip muted">IDLE</span>`;
-      if (o === "fail") {
-        const bit = p?.exit === -1 ? "timeout" : `exit ${esc(String(p?.exit ?? "?"))}`;
-        return `<span class="aw-chip warn">${bit}</span>`;
+    /**
+     * Map real API fields → Active Now tone class.
+     * failed | in_progress | succeeded | task_complete | muted
+     * Does not invent states — only wires status/outcome/idle/hung.
+     */
+    function awTone(p, data) {
+      if (!p || typeof p !== "object") return "muted";
+      const st = String(p.status || p.focus_status || "").toLowerCase();
+      const o = String(p.outcome || "").toLowerCase();
+      const blob = `${p.summary || ""} ${p.blurb || ""}`;
+      // Displayed blurb/summary already says failed (Hermes may still exit 0)
+      if (/\bfailed\b|\btimeout\b/i.test(blob) && st !== "running" && st !== "thinking" && st !== "in_progress") {
+        return "failed";
       }
-      return `<span class="aw-chip ok">ok</span>`;
+      if (p.hung || st === "hung" || st === "failed" || st === "fail" || o === "fail" || st === "blocked") {
+        return "failed";
+      }
+      if (
+        st === "running" ||
+        st === "thinking" ||
+        st === "queued" ||
+        st === "in_progress" ||
+        st === "in-progress"
+      ) {
+        return "in_progress";
+      }
+      if (st === "done") {
+        // Whole user-task done → dark green; otherwise tick/item ok → light green
+        const tid = p.task_id != null ? String(p.task_id) : "";
+        if (tid && Array.isArray(data?.user_tasks)) {
+          const bare = tid.replace(/^lane:/, "");
+          const ut = data.user_tasks.find(
+            (t) => t && (String(t.id) === tid || String(t.id) === bare || `lane:${t.id}` === tid)
+          );
+          if (ut && String(ut.status || "").toLowerCase() === "done") return "task_complete";
+        }
+        if (String(p.task_status || "").toLowerCase() === "done") return "task_complete";
+        return "succeeded";
+      }
+      if (o === "ok") return "succeeded";
+      if (o === "idle" || p.idle || st === "idle") return "muted";
+      if (st === "open") return "muted";
+      return "muted";
     }
 
-    function hubLastCompletedHtml(data) {
+    function awChip(label, tone) {
+      const t = tone || "muted";
+      return `<span class="aw-chip ${esc(t)}">${esc(label)}</span>`;
+    }
+
+    function awToneText(text, tone) {
+      const t = tone || "muted";
+      return `<span class="aw-tone ${esc(t)}">${esc(text)}</span>`;
+    }
+
+    function outcomeChip(p, data) {
+      const tone = awTone(p, data);
+      const o = p?.outcome || (p?.idle ? "idle" : null);
+      if (p?.idle || o === "idle") return awChip("IDLE", "muted");
+      if (tone === "failed") {
+        if (p?.status) return awChip(String(p.status), "failed");
+        const bit = p?.exit === -1 ? "timeout" : `exit ${String(p?.exit ?? "?")}`;
+        return awChip(bit, "failed");
+      }
+      if (tone === "in_progress") {
+        return awChip(String(p?.status || "running"), "in_progress");
+      }
+      if (tone === "task_complete") return awChip("done", "task_complete");
+      if (tone === "succeeded") return awChip("ok", "succeeded");
+      return awChip(String(p?.status || "—"), "muted");
+    }
+
+    function hubLastThinkHtml(info, data) {
+      const last = info?.last_completed;
+      if (!last || !last.blurb) {
+        return `<div class="hub-last-think" id="hub-last-think">
+          <div class="aw-label">Last think</div>
+          <div class="running-now-idle">No think result yet</div>
+        </div>`;
+      }
+      const when = last.at || last.ts;
+      const tid = last.task_id ? `<span class="meta"> · task ${esc(String(last.task_id).slice(0, 12))}…</span>` : "";
+      const tone = awTone(last, data);
+      const st = last.status
+        ? awChip(String(last.status), tone)
+        : outcomeChip(last, data);
+      const blurbTone = tone === "muted" ? "" : ` aw-tone ${tone}`;
+      return `<div class="hub-last-think" id="hub-last-think">
+        <div class="aw-label">Last think</div>
+        <div class="aw-row">${st}<strong class="aw-tone ${esc(tone)}">think</strong>
+          <span class="aw-time">${esc(when ? fmtEtTime(when) : "—")}</span>${tid}
+        </div>
+        <div class="aw-blurb${blurbTone}">${esc(String(last.blurb).slice(0, 160))}</div>
+      </div>`;
+    }
+
+    function hubHeartbeatHtml(data) {
       const last = pickLastCompleted(data);
-      const lr = data?.last_run || {};
-      if (!last) {
-        return `<div class="hub-last-completed" id="hub-last-run">
-          <div class="aw-label">Last run</div>
-          <div class="running-now-idle">No run-index / lane ticks yet</div>
-        </div>`;
-      }
-      const what = last.label || last.name || "?";
-      const detail = last.detail
-        ? `<span class="meta">${esc(String(last.detail).slice(0, 100))}</span>`
-        : "";
-      const kind = last.kind_label
-        ? `<span class="aw-kind">${esc(last.kind_label)}</span>`
-        : "";
-      // If we preferred meaningful over a newer tick, show the tick as secondary
-      let secondary = "";
-      if (lr.preferred_meaningful && lr.latest && lr.latest.name !== last.name) {
-        const t = lr.latest;
-        secondary = `<div class="hub-last-run-secondary">
-          Also: ${outcomeChip(t)} <strong>${esc(t.label || t.name)}</strong>
-          <span class="aw-time">${esc(t.ts ? fmtEtTime(t.ts) : "—")}</span>
-          <span class="aw-kind" style="display:inline;margin-left:0.35rem">${esc(t.kind_label || "latest tick")}</span>
-        </div>`;
-      } else if (!last.meaningful && lr.meaningful && lr.meaningful.ts !== last.ts) {
-        const m = lr.meaningful;
-        secondary = `<div class="hub-last-run-secondary">
-          Last meaningful: ${outcomeChip(m)} <strong>${esc(m.label || m.name)}</strong>
-          <span class="aw-time">${esc(m.ts ? fmtEt(m.ts) : "—")}</span>
-        </div>`;
-      }
-      const recent = (data?.recent_pods || []).slice(0, 3).map((p) => {
-        const chip = outcomeChip(p);
+      const recent = (data?.recent_pods || []).slice(0, 5).map((p) => {
+        const tone = awTone(p, data);
+        const chip = outcomeChip(p, data);
         const when = p.ts ? `<span class="aw-time">${esc(fmtEtTime(p.ts))}</span>` : "";
         const lab = esc(p.label || p.name);
-        return `<div class="aw-row">${chip}<strong>${lab}</strong>${when}</div>`;
+        return `<div class="aw-row">${chip}<strong class="aw-tone ${esc(tone)}">${lab}</strong>${when}</div>`;
       }).join("");
+      if (!last && !recent) {
+        return `<div class="hub-last-completed" id="hub-last-run">
+          <div class="aw-label">Heartbeats</div>
+          <div class="running-now-idle">No fast/preflight ticks yet</div>
+        </div>`;
+      }
+      const what = last ? (last.label || last.name || "?") : "";
+      const lastTone = last ? awTone(last, data) : "muted";
+      const head = last
+        ? `<div class="aw-line">${outcomeChip(last, data)}<strong class="aw-tone ${esc(lastTone)}">${esc(what)}</strong>
+          <span class="aw-time">${esc(last.ts ? fmtEt(last.ts) : "—")}</span></div>`
+        : "";
       return `<div class="hub-last-completed" id="hub-last-run">
-        <div class="aw-label">Last run</div>
-        <div class="aw-line">${outcomeChip(last)}<strong>${esc(what)}</strong>
-          <span class="aw-time">${esc(last.ts ? fmtEt(last.ts) : "—")}</span>${detail}
-        </div>
-        ${kind}
-        ${secondary}
+        <div class="aw-label">Heartbeats (fast / preflight)</div>
+        ${head}
         ${recent ? `<div class="hub-recent-ticks">${recent}</div>` : ""}
       </div>`;
+    }
+
+    function cleanWorkerGoal(text, taskId) {
+      const tid = taskId ? String(taskId).replace(/^lane:/, "").slice(0, 64) : "";
+      const s = String(text || "").trim();
+      if (!s) return tid || "—";
+      if (/KeyboardInterrupt|Traceback \(most recent|File "\/|cli\.chat\(/i.test(s) || s.length > 220) {
+        const head = s.split(/\n/)[0].slice(0, 90);
+        if (/^exit\s+\d/i.test(head)) return tid ? `${head.slice(0, 36)} · ${tid}` : head;
+        return tid || head.slice(0, 120);
+      }
+      return s.slice(0, 140);
+    }
+
+    /** Last actionable line from think-last.log — prefer tool/status, skip prompt dumps. */
+    function deriveWorkerCurrentStep(logText) {
+      const text = String(logText || "");
+      if (!text.trim()) return null;
+      const lines = text.split(/\n/).map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+      const skip = (l) =>
+        l.length > 180 ||
+        /^(System:|User:|Assistant:|```|---|===)/i.test(l) ||
+        /KeyboardInterrupt|Traceback \(most recent|File "\//i.test(l) ||
+        /^ {2,}File "/.test(l) ||
+        /^self\./.test(l);
+      const prefer = (l) =>
+        /┊|➜|→|tool|execute_|Finding |Calling |Running |preparing |DONE:|FAIL:|INTENT_|write_file|read_file|Shell|grep/i.test(l);
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const l = lines[i];
+        if (skip(l)) continue;
+        if (prefer(l)) return l.slice(0, 140);
+      }
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (!skip(lines[i])) return lines[i].slice(0, 140);
+      }
+      return null;
+    }
+
+    let hubWorkerLogOpen = false;
+
+    function hubLiveLogHtml(info) {
+      const log = info?.live_log;
+      const text = (log && log.text) ? String(log.text) : "";
+      const pod = info?.parts?.find((p) => p.kind === "tick" || p.kind === "pod");
+      const last = info?.last_completed;
+      const focus = info?.think_focus;
+      const goalRaw = pod?.blurb || focus?.blurb || last?.blurb || "";
+      const goalTask = pod?.task_id || focus?.task_id || last?.task_id || "";
+      const goal = cleanWorkerGoal(goalRaw, goalTask);
+      const step = deriveWorkerCurrentStep(text) || (text.trim() ? "Waiting for next tool line…" : "No worker output yet");
+      const metaBits = [];
+      if (log?.mtime) metaBits.push(`mtime ${fmtEtTime(log.mtime)}`);
+      if (log?.bytes != null) metaBits.push(`${log.bytes} B`);
+      const head = metaBits.length ? metaBits.join(" · ") : "agents/runs/think-last.log";
+      const body = text.trim()
+        ? esc(text.slice(-24000))
+        : "(no think stdout yet — next worker tick streams here)";
+      const emptyCls = text.trim() ? "" : " empty";
+      const openCls = hubWorkerLogOpen ? " is-open" : "";
+      const chevron = hubWorkerLogOpen ? "▾" : "▸";
+      const toggleLabel = hubWorkerLogOpen ? "Hide full log" : "Show full log";
+      return `<div class="hub-live-log-wrap${openCls}" id="hub-live-log-wrap">
+        <div class="hub-live-log-head"><span>Worker</span><span>${esc(head)}</span></div>
+        <div class="hub-worker-summary" id="hub-worker-summary">
+          <div class="hub-w-row"><span class="hub-w-k">Goal</span><span class="hub-w-v" id="hub-worker-goal">${esc(goal)}</span></div>
+          <div class="hub-w-row"><span class="hub-w-k">Step</span><span class="hub-w-v${text.trim() ? "" : " muted"}" id="hub-worker-step">${esc(step)}</span></div>
+        </div>
+        <button type="button" class="hub-live-log-toggle" id="hub-live-log-toggle" aria-expanded="${hubWorkerLogOpen ? "true" : "false"}">
+          <span>${toggleLabel}</span><span class="hub-w-chevron">${chevron}</span>
+        </button>
+        <pre class="hub-live-log${emptyCls}" id="hub-live-log">${body}</pre>
+      </div>`;
+    }
+
+    function bindHubWorkerLogToggle() {
+      const btn = document.getElementById("hub-live-log-toggle");
+      const wrap = document.getElementById("hub-live-log-wrap");
+      if (!btn || !wrap || btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", () => {
+        hubWorkerLogOpen = !hubWorkerLogOpen;
+        wrap.classList.toggle("is-open", hubWorkerLogOpen);
+        btn.setAttribute("aria-expanded", hubWorkerLogOpen ? "true" : "false");
+        btn.querySelector("span") && (btn.querySelector("span").textContent = hubWorkerLogOpen ? "Hide full log" : "Show full log");
+        const chev = btn.querySelector(".hub-w-chevron");
+        if (chev) chev.textContent = hubWorkerLogOpen ? "▾" : "▸";
+        if (hubWorkerLogOpen) {
+          const pre = document.getElementById("hub-live-log");
+          if (pre) pre.scrollTop = pre.scrollHeight;
+        }
+      });
+    }
+
+    function hubObservatoryHtml(data, info) {
+      return `<div class="hub-obs-panel" id="hub-obs-panel" aria-label="Agent observability">
+        ${hubLastThinkHtml(info, data)}
+        ${hubLiveLogHtml(info)}
+      </div>
+      ${hubHeartbeatHtml(data)}`;
     }
 
     function renderRunningNow(data, mode) {
@@ -5016,54 +5695,66 @@
         } else {
           el.textContent = "";
           el.classList.remove("live");
-          el.title = "Nothing running right now";
+          el.title = info.idle_line || info.summary || "Idle between ticks";
         }
         return;
       }
 
       const rowsHtml = info.parts.map((p) => {
-        const chip = p.status === "queued"
-          ? `<span class="aw-chip warn">queued</span>`
-          : p.status === "thinking"
-            ? `<span class="aw-chip warn">thinking</span>`
-            : `<span class="aw-chip warn">running</span>`;
+        const tone =
+          p.status === "hung"
+            ? "failed"
+            : p.status === "queued" || p.status === "thinking" || p.status === "running"
+              ? "in_progress"
+              : awTone(p, data);
+        const chip = awChip(p.status || "running", tone);
         const kind = p.kind === "chat" ? "chat" : p.kind === "tick" ? "tick" : "pod";
         const blurb = p.blurb
-          ? `<div class="aw-blurb meta">${esc(String(p.blurb).slice(0, 160))}</div>`
+          ? `<div class="aw-blurb meta aw-tone ${esc(tone)}">${esc(String(p.blurb).slice(0, 160))}</div>`
           : "";
-        return `<div class="aw-row">${chip}<span class="aw-chip muted">${kind}</span><strong>${esc(p.label)}</strong><span class="aw-time">${esc(p.elapsed)}</span>${blurb}</div>`;
+        return `<div class="aw-row">${chip}<span class="aw-chip muted">${kind}</span><strong class="aw-tone ${esc(tone)}">${esc(p.label)}</strong><span class="aw-time">${esc(p.elapsed)}</span>${blurb}</div>`;
       }).join("");
-
-      const lastDone = info.last_completed;
-      const lastDoneHtml = (!info.anything && lastDone?.blurb)
-        ? `<div class="aw-row aw-last-blurb"><span class="aw-chip muted">last</span><strong>${esc(lastDone.name || "?")}</strong><div class="aw-blurb meta">${esc(String(lastDone.blurb).slice(0, 160))}</div></div>`
-        : "";
 
       if (mode === "hub") {
         const el = document.getElementById("hub-running-now");
         if (!el) return;
-        const lastBlock = hubLastCompletedHtml(data);
+        const obs = hubObservatoryHtml(data, info);
         if (!info.anything) {
           el.className = "hub-running-now";
-          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">Nothing running right now</div>${lastDoneHtml}${lastBlock}`;
-          return;
+          el.innerHTML = `<div class="aw-label">Running now</div><div class="running-now-idle">${esc(info.idle_line || info.summary || "Idle between ticks")}</div>${obs}`;
+        } else {
+          el.className = info.hung ? "hub-running-now live hung" : "hub-running-now live";
+          el.innerHTML = `<div class="aw-label">Running now</div>${rowsHtml}${obs}`;
         }
-        el.className = "hub-running-now live";
-        el.innerHTML = `<div class="aw-label">Running now</div>${rowsHtml}${lastBlock}`;
+        bindHubWorkerLogToggle();
+        if (hubWorkerLogOpen) {
+          const pre = document.getElementById("hub-live-log");
+          if (pre) pre.scrollTop = pre.scrollHeight;
+        }
         return;
       }
+
+      const lastDone = info.last_completed;
+      const lastTone = lastDone ? awTone(lastDone, data) : "muted";
+      const lastDoneHtml = (!info.anything && lastDone?.blurb)
+        ? `<div class="aw-row aw-last-blurb">${awChip("last", lastTone)}<strong class="aw-tone ${esc(lastTone)}">${esc(lastDone.name || "?")}</strong><div class="aw-blurb meta aw-tone ${esc(lastTone)}">${esc(String(lastDone.blurb).slice(0, 240))}</div></div>`
+        : "";
+      const logHtml = (info.anything || (info.live_log && info.live_log.text))
+        ? hubLiveLogHtml(info)
+        : "";
 
       // mode === "card" (Tasks Active now)
       if (!info.anything) {
         return `<div class="active-work-card running-now">
           <div class="aw-label">Running now</div>
-          <div class="running-now-idle">Nothing running right now</div>
+          <div class="running-now-idle">${esc(info.idle_line || info.summary || "Idle between ticks")}</div>
           ${lastDoneHtml}
         </div>`;
       }
       return `<div class="active-work-card running-now">
         <div class="aw-label">Running now</div>
         ${rowsHtml}
+        ${logHtml}
       </div>`;
     }
 
@@ -5120,13 +5811,33 @@
 
       const cards = [runningCard];
 
+      // Lane focus: color think/fast chips from last think status / live focus
+      const rn = data?.running_now || {};
+      const lastThink = rn.last_completed || collectRunningNow(data).last_completed || null;
+      const liveFocus = rn.think_focus || rn.pod || null;
+      const wpStatus = data?.work_pipeline?.last_think_status || null;
+      const thinkToneSrc = liveFocus?.focus_status || liveFocus?.hung
+        ? { status: liveFocus.hung ? "hung" : (liveFocus.focus_status || "running"), hung: !!liveFocus.hung, task_id: liveFocus.task_id }
+        : lastThink
+          ? lastThink
+          : wpStatus
+            ? { status: wpStatus }
+            : null;
+      const thinkTone = thinkToneSrc ? awTone(thinkToneSrc, data) : "muted";
+      const fastTone = "muted"; // fast lane is heartbeat-only here
+      const laneTone =
+        /fail|blocked|hung/i.test(lane) ? "failed"
+          : liveFocus ? "in_progress"
+            : /IDLE/i.test(lane) ? "muted"
+              : thinkTone;
+
       cards.push(`<div class="active-work-card">
         <div class="aw-label">Lane focus</div>
-        <div>${esc(lane || "—")}</div>
+        <div class="aw-tone ${esc(laneTone)}">${esc(lane || "—")}</div>
         <div class="aw-row" style="margin-top:0.4rem">
-          <span class="aw-chip muted">fast</span>
+          ${awChip("fast", fastTone)}
           <span class="aw-time">${fast?.last_run ? esc(fmtEtTime(fast.last_run)) : "n/a"}</span>
-          <span class="aw-chip muted">think</span>
+          ${awChip("think", thinkTone)}
           <span class="aw-time">${think?.last_run ? esc(fmtEtTime(think.last_run)) : "n/a"}</span>
         </div>
       </div>`);
@@ -5135,10 +5846,18 @@
         const proj = t.project_id && pmap[t.project_id]
           ? `<span class="aw-chip">${esc(pmap[t.project_id].name)}</span>`
           : `<span class="aw-chip muted">no project</span>`;
-        const st = t.status === "in_progress"
-          ? `<span class="aw-chip warn">in progress</span>`
-          : `<span class="aw-chip">open</span>`;
-        return `<div class="aw-row">${proj}${st}<span>${esc(t.title || t.id)}</span></div>`;
+        const stTone =
+          t.status === "in_progress" ? "in_progress"
+            : t.status === "blocked" ? "failed"
+              : t.status === "done" ? "task_complete"
+                : "muted";
+        const stLabel =
+          t.status === "in_progress" ? "in progress"
+            : t.status === "blocked" ? "blocked"
+              : t.status === "done" ? "done"
+                : "open";
+        const st = awChip(stLabel, stTone);
+        return `<div class="aw-row">${proj}${st}<span class="aw-tone ${esc(stTone)}">${esc(t.title || t.id)}</span></div>`;
       }).join("") || '<div class="meta">No open user tasks</div>';
       cards.push(`<div class="active-work-card">
         <div class="aw-label">User tasks · ${openTasks.length} open</div>
@@ -5150,7 +5869,7 @@
            <div class="meta" style="margin-top:0.25rem">${backlog.length} open in Meta backlog</div>`
         : '<div class="meta">Dashboard backlog clear</div>';
       const maintLine = maint
-        ? `<div class="aw-row" style="margin-top:0.35rem"><span class="aw-chip warn">maint</span><span>${maint} open</span></div>`
+        ? `<div class="aw-row" style="margin-top:0.35rem">${awChip("maint", "in_progress")}<span>${maint} open</span></div>`
         : "";
       cards.push(`<div class="active-work-card">
         <div class="aw-label">Meta / maintenance</div>
@@ -5159,24 +5878,32 @@
 
       const thinkingN = jobs.thinking ?? jobs.running ?? 0;
       const queuedN = jobs.queued ?? jobs.pending ?? 0;
-      const jobCls = (thinkingN || queuedN) ? "warn" : "ok";
       cards.push(`<div class="active-work-card">
         <div class="aw-label">Chat jobs</div>
         <div class="aw-row">
-          <span class="aw-chip ${jobCls}">thinking ${thinkingN}</span>
-          <span class="aw-chip ${queuedN ? "warn" : "muted"}">queued ${queuedN}</span>
+          ${awChip(`thinking ${thinkingN}`, thinkingN ? "in_progress" : "muted")}
+          ${awChip(`queued ${queuedN}`, queuedN ? "in_progress" : "muted")}
         </div>
       </div>`);
 
       const podRows = pods.slice(0, 6).map((p) => {
+        const tone = awTone(p, data);
         const chip = p.idle
-          ? `<span class="aw-chip muted">IDLE</span>`
-          : `<span class="aw-chip warn">work</span>`;
+          ? awChip("IDLE", "muted")
+          : tone === "failed"
+            ? awChip("fail", "failed")
+            : tone === "task_complete"
+              ? awChip("done", "task_complete")
+              : tone === "succeeded"
+                ? awChip("ok", "succeeded")
+                : awChip("work", "in_progress");
         const when = p.ts ? `<span class="aw-time">${esc(fmtEtTime(p.ts))}</span>` : "";
+        const sumTone = p.idle ? "muted" : (tone === "muted" ? "in_progress" : tone);
         const sum = p.summary && !p.idle
-          ? `<span class="meta">${esc(p.summary.slice(0, 60))}</span>`
+          ? awToneText(String(p.summary).slice(0, 60), sumTone)
           : "";
-        return `<div class="aw-row">${chip}<strong>${esc(p.name)}</strong>${when}${sum}</div>`;
+        const nameTone = p.idle ? "muted" : sumTone;
+        return `<div class="aw-row">${chip}<strong class="aw-tone ${esc(nameTone)}">${esc(p.name)}</strong>${when}${sum}</div>`;
       }).join("") || '<div class="meta">No recent pod ticks</div>';
       cards.push(`<div class="active-work-card">
         <div class="aw-label">Recent pod ticks</div>
@@ -5348,6 +6075,56 @@
     const HUB_RESOURCES_MS = 1000;
     const HUB_PROCS_MS = 8000;
     const HUB_AGENT_MS = 20000;
+    const HUB_THINK_LIVE_MS = 2500;
+    let thinkLivePollTimer = null;
+    let lastAgentData = null;
+    let thinkLiveInFlight = false;
+
+    async function pollThinkLive() {
+      if (thinkLiveInFlight) return;
+      if (sessionRole === "viewer") return;
+      if (activeTab !== "hub") return;
+      thinkLiveInFlight = true;
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch(`${base}/api/think-live`, {
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+        if (!res.ok) return;
+        const j = await res.json();
+        if (!lastAgentData) lastAgentData = {};
+        lastAgentData.running_now = j.running_now || lastAgentData.running_now;
+        if (j.live_log && lastAgentData.running_now) {
+          lastAgentData.running_now.live_log = j.live_log;
+        }
+        renderRunningNow(lastAgentData, "hub");
+        renderRunningNow(lastAgentData, "chrome");
+      } catch {
+        /* ignore transient */
+      } finally {
+        thinkLiveInFlight = false;
+      }
+    }
+
+    function syncThinkLivePoll(data) {
+      // Keep observatory fresh on Hub even when idle (last think + log).
+      if (activeTab === "hub" && sessionRole !== "viewer") {
+        const ms = (data?.running_now?.anything) ? HUB_THINK_LIVE_MS : 5000;
+        if (thinkLivePollTimer) {
+          clearInterval(thinkLivePollTimer);
+          thinkLivePollTimer = null;
+        }
+        thinkLivePollTimer = setInterval(() => pollThinkLive(), ms);
+        pollThinkLive();
+      } else if (thinkLivePollTimer) {
+        clearInterval(thinkLivePollTimer);
+        thinkLivePollTimer = null;
+      }
+    }
 
     function hostPctClass(pct, warnAt, badAt) {
       if (pct == null || !Number.isFinite(pct)) return "";
@@ -5548,7 +6325,11 @@
       if (Array.isArray(rn.chat_jobs) && rn.chat_jobs.length) {
         runningBits.push(`${rn.chat_jobs.length} chat job(s)`);
       }
-      const runningLine = runningBits.length ? runningBits.join(" · ") : "Nothing running right now";
+      const runningLine = runningBits.length
+        ? runningBits.join(" · ")
+        : (typeof collectRunningNow === "function"
+            ? collectRunningNow(data).idle_line
+            : null) || "Idle between ticks";
 
       const renderProcTable = (rows, cpuFirst) => {
         if (!rows || !rows.length) return '<p class="empty">None</p>';
@@ -5680,9 +6461,9 @@
     }
 
     function shouldPollHubResources() {
-      if (sessionRole === "viewer") return false;
-      if (document.visibilityState === "hidden") return false;
-      return activeTab === "hub" || hubResourcesModalOpen;
+      // Host resource bars were moved to the Systems tab; Hub no longer polls /proc at 1Hz.
+      // Kept as a stub so existing callers (refresh handler, visibility) stay no-ops.
+      return false;
     }
 
     async function pollHubResources(forceProcs) {
@@ -5733,13 +6514,25 @@
       }
     }
 
+    /** OpenRouter `:free` or ZenMux `-free` slug; prefer catalog tier when set. */
+    function isHubFreeModelRow(row) {
+      if (!row) return false;
+      if (row.tier === "free") return true;
+      if (row.tier === "paid") return false;
+      const id = String(row.id || "");
+      if (id.includes(":free")) return true;
+      const afterProvider = id.includes(":") ? id.slice(id.indexOf(":") + 1) : id;
+      const leaf = afterProvider.split("/").pop() || "";
+      return /-free$/i.test(leaf);
+    }
+
     function fillSelectOptions(sel, rows, current, { freeOnly = false, paidOnly = false } = {}) {
       if (!sel) return;
       const cur = current || sel.value || "";
       sel.innerHTML = "";
       for (const row of rows) {
         if (!row?.id) continue;
-        const isFree = String(row.id).includes(":free");
+        const isFree = isHubFreeModelRow(row);
         if (freeOnly && !isFree) continue;
         if (paidOnly && isFree) continue;
         const opt = document.createElement("option");
@@ -5827,18 +6620,18 @@
         el.onclick = () => goTab(el.dataset.tab);
       });
 
-      renderHubResources(data);
-
+      // Host CPU/RAM/GPU/swap/storage moved to the Systems tab (single full host view).
       document.getElementById("kpi-secondary").innerHTML = [
         ["USB", data.usb_mounted === "yes" ? "mounted" : data.usb_mounted || "?", data.usb_mounted === "yes" ? "" : "warn"],
-        ["Disk free", data.root_free || "?", ""],
-        ["Swap", data.host_resources?.swap_used_pct != null ? `${data.host_resources.swap_used_pct}%` : "?", hostPctClass(data.host_resources?.swap_used_pct, 50, 85)],
         ["API keys", data.openrouter_key === "set" ? "set" : "missing", data.openrouter_key === "set" ? "" : "warn"],
       ].map(([l, v, c]) => `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(v)}</div></div>`).join("");
 
       renderMachines(data.machines_sync);
       renderMachines(data.machines_sync, { listId: "sys-machines-list", metaId: "sys-machines-meta", stepsId: null, skipSteps: true });
+      lastAgentData = data;
       renderRunningNow(data, "hub");
+      syncThinkLivePoll(data);
+      renderSpend(data);
       renderHubModels(data);
 
       document.getElementById("campaign-bars").innerHTML = Object.entries(data.campaigns || {}).map(([id, c]) => {
@@ -5947,6 +6740,11 @@
           : gpu.note || "unavailable";
 
       const coresHtml = cpuCoresBarsHtml(host.cpu_cores, 70, 90);
+      const power = host.power || {};
+      const powerVal = power.available && power.watts != null ? `${power.watts} W` : "N/A";
+      const powerHint = power.available
+        ? power.source || "host sensor"
+        : power.note || "unavailable";
       const cpuCell = `
         <div class="kpi">
           <div class="label">CPU</div>
@@ -5962,6 +6760,7 @@
       document.getElementById("sys-host").innerHTML =
         cpuCell +
         [
+          ["Power", powerVal, power.available ? "" : "warn", powerHint],
           ["Hostname", host.hostname || "?", "", host.platform || "os.hostname()"],
           ["RAM used", host.mem_used_pct != null ? `${host.mem_used_pct}%` : "?", memCls, memHint],
           ["GPU", gpuVal, gpuCls, gpuHint],
@@ -6059,6 +6858,19 @@
         .filter(Boolean)
         .join("\n");
       const journal = (detail.journal || []).join("\n") || "(no journal lines)";
+      const noteExplain = {
+        local_ok_public_down:
+          "Local probe is healthy. Public 502/unreachable is the Cloudflare edge or tunnel connector — not this origin process.",
+        inactive_ok_hermes_owns_ticks:
+          "Timer inactive is OK when Hermes owns fast/think ticks (hex-ID jobs). Not a crash.",
+        timer_inactive: "Timer unit is inactive — start only if you still use the systemd rotator.",
+        unit_inactive: "Unit is not active.",
+      };
+      const healthExplain =
+        noteExplain[detail.health_note] ||
+        (detail.health === "idle"
+          ? "Inactive by policy or optional — expand notes for why."
+          : "");
 
       const metricBits = [];
       if (proc) {
@@ -6069,7 +6881,7 @@
           ["Etime", proc.etime || "—", ""]
         );
       } else if (u.main_pid) {
-        metricBits.push(["MainPID", String(u.main_pid), ""], ["Process", "ps unavailable", ""]);
+        metricBits.push(["MainPID", String(u.main_pid), ""], ["Process", "metrics unavailable", ""]);
       }
       if (detail.health_url) {
         const lat = detail.http_latency_ms;
@@ -6081,10 +6893,14 @@
       }
       if (detail.public_url) {
         const lat = detail.public_latency_ms;
+        const pubCls =
+          localOk(detail.http_code) && !localOk(detail.public_http_code)
+            ? "warn"
+            : localOkCls(detail.public_http_code);
         metricBits.push([
-          "Public HTTP",
+          "Public / edge",
           `${detail.public_http_code ?? "?"}${lat != null ? ` · ${lat}ms` : ""}`,
-          localOkCls(detail.public_http_code),
+          pubCls,
         ]);
       }
       const metricsHtml = metricBits.length
@@ -6114,9 +6930,19 @@
       }
 
       return `
+        <p class="sys-about">${esc(detail.about || "No description.")}</p>
+        ${healthExplain ? `<p class="sys-about"><strong>Status:</strong> ${esc(healthExplain)}</p>` : ""}
+        ${detail.restart ? `<p class="sys-about"><strong>Restart:</strong> ${esc(detail.restart)}</p>` : ""}
         ${metricsHtml}
         ${snapHtml}
         <div class="sys-detail-grid">
+          <div class="sys-detail-kv"><div class="k">Ref</div><div class="v"><span class="sys-ref">${esc(
+            detail.ref || detail.id || "?"
+          )}</span></div></div>
+          <div class="sys-detail-kv"><div class="k">Id</div><div class="v">${esc(detail.id || "—")}</div></div>
+          <div class="sys-detail-kv"><div class="k">Unit</div><div class="v">${esc(detail.unit || "?")}${
+            detail.scope ? ` (${esc(detail.scope)})` : ""
+          }</div></div>
           <div class="sys-detail-kv"><div class="k">Unit state</div><div class="v">${esc(
             u.active_state || "?"
           )} / ${esc(u.sub_state || "?")}</div></div>
@@ -6131,6 +6957,7 @@
             u.active_enter || "—"
           )}</div></div>
           <div class="sys-detail-kv"><div class="k">Ports</div><div class="v">${esc(ports)}</div></div>
+          <div class="sys-detail-kv"><div class="k">Role</div><div class="v">${esc(detail.role || "—")}</div></div>
           ${doingHtml}
           <div class="sys-detail-kv" style="grid-column:1/-1"><div class="k">URLs</div><div class="v">${esc(
             urls || "—"
@@ -6140,11 +6967,85 @@
         <pre class="sys-journal">${esc(journal)}</pre>`;
     }
 
+    function localOk(code) {
+      return code != null && code >= 200 && code < 400;
+    }
+
     function localOkCls(code) {
       if (code == null) return "";
       if (code >= 200 && code < 400) return "ok";
       if (code === 0) return "warn";
       return "bad";
+    }
+
+    function renderSpend(data) {
+      // Real data only: /api/agent already carries chat_model_usage (attempt counters)
+      // + model_budget (free-first policy, ops USD *target*). No billed tokens/$ are
+      // measured by OpenRouter/ZenMux here — we show call attempts + free/paid split.
+      const head = document.getElementById("hub-spend-head");
+      const splitEl = document.getElementById("hub-spend-split");
+      const tableEl = document.getElementById("hub-spend");
+      const noteEl = document.getElementById("hub-spend-note");
+      if (!head || !tableEl) return;
+      const usage = data?.chat_model_usage || {};
+      const budget = data?.model_budget || {};
+      const rows = Array.isArray(usage.models) ? usage.models : [];
+      const loaded = !!data;
+      const num = (n) => (loaded ? String(n) : "…");
+      let freeAtt = 0, paidAtt = 0, totOk = 0, totFail = 0, totRl = 0;
+      for (const r of rows) {
+        const a = r.attempts || 0;
+        if (r.free) freeAtt += a; else paidAtt += a;
+        totOk += r.ok || 0;
+        totFail += r.fail || 0;
+        totRl += (r.rate_limit || 0) + (r.daily_limit || 0);
+      }
+      const totAtt = freeAtt + paidAtt;
+      const policy = loaded ? (budget.policy === "paid_first" ? "paid-first" : "free-first") : "…";
+      const usdTarget = budget.ops_daily_usd_target != null ? `$${budget.ops_daily_usd_target}/day` : loaded ? "—" : "…";
+      head.innerHTML = [
+        ["Policy", policy, "", "routing preference"],
+        ["Ops $ target", usdTarget, "", "policy cap, not measured"],
+        ["Day (UTC)", loaded ? usage.day || "?" : "…", "", "usage counter reset"],
+        ["Free calls", num(freeAtt), "ok", "attempts today"],
+        ["Paid calls", num(paidAtt), paidAtt > 0 ? "warn" : "", "attempts today"],
+        ["OK / fail", loaded ? `${totOk} / ${totFail}` : "…", totFail > 0 ? "warn" : "ok", `429/cap ${totRl}`],
+      ]
+        .map(
+          ([l, v, c, h]) =>
+            `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div>${
+              h ? `<div class="hint">${esc(h)}</div>` : ""
+            }</div>`
+        )
+        .join("");
+
+      if (splitEl) {
+        const freePct = totAtt ? Math.round((freeAtt / totAtt) * 100) : 0;
+        splitEl.innerHTML = totAtt
+          ? `<div class="hub-spend-split-head"><span>Free-first utilization</span><span>${freePct}% free · ${totAtt} calls</span></div>
+             <div class="hub-spend-bar" title="${freeAtt} free / ${paidAtt} paid attempts today">
+               <span class="free" style="width:${freePct}%"></span><span class="paid" style="width:${100 - freePct}%"></span>
+             </div>`
+          : `<p class="empty">${loaded ? "No model calls recorded today." : "Loading…"}</p>`;
+      }
+
+      if (!rows.length) {
+        tableEl.innerHTML = `<h3>Per-model (today)</h3><p class="empty">${loaded ? "No model calls recorded today." : "Loading…"}</p>`;
+      } else {
+        const body = rows
+          .map((r) => {
+            const last = r.last_used ? fmtEtTime(r.last_used) : "—";
+            const tier = r.free ? "free" : "paid";
+            const fCls = r.fail > 0 ? "warn" : "";
+            return `<tr><td class="cmd" title="${esc(r.id)}">${esc(r.id)}</td><td>${tier}</td><td class="num">${esc(String(r.attempts || 0))}</td><td class="num">${esc(String(r.ok || 0))}</td><td class="num ${fCls}">${esc(String(r.fail || 0))}</td><td class="num">${esc(String((r.rate_limit || 0) + (r.daily_limit || 0)))}</td><td class="num">${esc(last)}</td></tr>`;
+          })
+          .join("");
+        tableEl.innerHTML = `<h3>Per-model (today)</h3><table class="sys-proc-table hub-spend-table"><thead><tr><th>Model</th><th>Tier</th><th>Calls</th><th>OK</th><th>Fail</th><th>429/cap</th><th>Last</th></tr></thead><tbody>${body}</tbody></table>`;
+      }
+      if (noteEl) {
+        noteEl.textContent =
+          "Counts are Chat/agent call attempts (agents/state/chat-model-usage.json), not billed tokens — OpenRouter/ZenMux per-call cost isn't exposed here. $ target is the policy cap in agents/model-budget/config.json.";
+      }
     }
 
     function renderSystems(data) {
@@ -6162,14 +7063,22 @@
         .map((s) => {
           const cls = s.health || "unknown";
           const expanded = expandedSystemId === s.id;
-          const local = s.http_code ? `local ${s.http_code}` : s.active ? "active" : "inactive";
-          const pubNote =
-            s.public_http_code != null
-              ? ` · public ${s.public_http_code}`
-              : s.health_note === "local_ok_public_down"
-                ? " · public unreachable"
-                : "";
-          const code = `${local}${pubNote}`;
+          const localOkNow = s.http_code != null && s.http_code >= 200 && s.http_code < 400;
+          let statusLine;
+          if (s.health === "idle") {
+            statusLine =
+              s.health_note === "inactive_ok_hermes_owns_ticks"
+                ? "inactive (OK — Hermes owns ticks)"
+                : "inactive (optional timer)";
+          } else if (s.health_note === "local_ok_public_down") {
+            statusLine = `local ${s.http_code} OK · edge ${s.public_http_code ?? "down"} (origin healthy)`;
+          } else if (s.http_code != null) {
+            const pub =
+              s.public_http_code != null ? ` · edge ${s.public_http_code}` : "";
+            statusLine = `local ${s.http_code}${pub}`;
+          } else {
+            statusLine = s.active ? "active" : "inactive";
+          }
           const pub = s.public_url
             ? `<a href="${esc(s.public_url)}" target="_blank" rel="noopener" class="sys-meta">${esc(
                 s.public_url
@@ -6186,6 +7095,10 @@
           const detailInner = expanded
             ? renderDetailBody(systemDetailCache[s.id])
             : "";
+          const portsHint =
+            Array.isArray(s.ports) && s.ports.length
+              ? ` · ${s.ports.map((p) => `:${p}`).join(" ")}`
+              : "";
           return `<article class="sys-card ${cls}${expanded ? " expanded" : ""}" data-sys-card="${esc(s.id)}">
           <button type="button" class="sys-card-toggle" data-sys-expand="${esc(s.id)}" aria-expanded="${
             expanded ? "true" : "false"
@@ -6193,13 +7106,18 @@
             <div class="sys-head">
               <img class="sys-icon" src="${base}/icons/${esc(s.icon)}.svg" alt="" width="36" height="36" />
               <div>
-                <div class="sys-title">${esc(s.label)}</div>
-                <div class="sys-sub">${esc(s.subtitle || s.kind)} · ${esc(s.unit)}</div>
+                <div class="sys-title-row">
+                  <span class="sys-ref" title="Short name (ref)">${esc(s.ref || s.id)}</span>
+                  <span class="sys-title">${esc(s.label)}</span>
+                </div>
+                <div class="sys-sub">${esc(s.subtitle || s.kind)} · ${esc(s.unit)}${esc(portsHint)}</div>
               </div>
             </div>
           </button>
-          <p class="sys-about">${esc(s.about || s.role || "Click for unit status and journal.")}</p>
-          <div class="sys-meta">${esc(code)} · ${esc(cls)}${expanded ? " · details open" : " · click for details"}</div>
+          <p class="sys-about">${esc(s.about || s.role || "Click Details for unit status and journal.")}</p>
+          <div class="sys-meta">${esc(statusLine)} · ${esc(cls)}${
+            localOkNow && s.health_note === "local_ok_public_down" ? "" : ""
+          }${expanded ? " · details open" : " · Details expands mini-dashboard"}</div>
           ${pub}
           <div class="sys-actions">${btns}<button type="button" class="btn" data-sys-expand="${esc(
             s.id
@@ -6266,9 +7184,165 @@
           await refreshSystemDetail(expandedSystemId);
         }
       } catch (e) {
-        document.getElementById("sys-grid").innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+        const msg = String(e.message || e);
+        const friendly = /HTTP\s*502/i.test(msg)
+          ? "Systems API briefly unreachable (HTTP 502). Usually a dashboard restart — Hub itself may still be fine on loopback. Wait a few seconds and reopen Systems."
+          : msg;
+        document.getElementById("sys-grid").innerHTML = `<p class="empty">${esc(friendly)}</p>`;
+        const hostEl = document.getElementById("sys-host");
+        if (hostEl && !hostEl.querySelector(".kpi")) {
+          hostEl.innerHTML = `<p class="empty">${esc(friendly)}</p>`;
+        }
+      }
+      loadTempViewerAccounts();
+    }
+
+    function formatTempExpiryEt(iso) {
+      try {
+        return new Date(iso).toLocaleString("en-US", {
+          timeZone: "America/New_York",
+          dateStyle: "medium",
+          timeStyle: "short",
+        }) + " ET";
+      } catch {
+        return iso || "—";
       }
     }
+
+    function buildTempRedeemUrl(token) {
+      const next = base ? `${base}/` : "/";
+      const path = `${base}/api/auth/temp-redeem?token=${encodeURIComponent(token)}&next=${encodeURIComponent(next)}`;
+      try {
+        return new URL(path, window.location.origin).href;
+      } catch {
+        return path;
+      }
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function renderTempViewerCreated(data) {
+      const el = document.getElementById("temp-auth-created");
+      if (!el || !data) return;
+      const redeemUrl = buildTempRedeemUrl(data.redeem_token);
+      const dashUrl = (() => {
+        try {
+          return new URL(base ? `${base}/` : "/", window.location.origin).href;
+        } catch {
+          return base ? `${base}/` : "/";
+        }
+      })();
+      el.classList.remove("hidden");
+      el.innerHTML = `
+        <strong>Created — copy now (password shown once)</strong>
+        <div class="temp-row"><span class="meta">User</span> <code id="temp-created-user">${esc(data.user)}</code>
+          <button type="button" class="btn" data-copy="${esc(data.user)}">Copy</button></div>
+        <div class="temp-row"><span class="meta">Pass</span> <code id="temp-created-pass">${esc(data.pass)}</code>
+          <button type="button" class="btn" data-copy="${esc(data.pass)}">Copy</button></div>
+        <div class="temp-row"><span class="meta">Expires</span> <span>${esc(formatTempExpiryEt(data.expires_at))}</span></div>
+        <div class="temp-row"><span class="meta">Redeem link</span> <code>${esc(redeemUrl)}</code>
+          <button type="button" class="btn" data-copy="${esc(redeemUrl)}">Copy link</button></div>
+        <div class="temp-row"><span class="meta">Dashboard</span> <code>${esc(dashUrl)}</code>
+          <button type="button" class="btn" data-copy="${esc(dashUrl)}">Copy</button></div>
+        <p class="meta" style="margin-top:0.45rem">Guest opens redeem link → cookie set → lands on dashboard as viewer. Or enter user/pass in the Basic prompt.</p>
+      `;
+      el.querySelectorAll("button[data-copy]").forEach((btn) => {
+        btn.onclick = async () => {
+          const ok = await copyText(btn.dataset.copy || "");
+          const status = document.getElementById("temp-auth-status");
+          if (status) status.textContent = ok ? "Copied" : "Copy failed — select manually";
+        };
+      });
+    }
+
+    function renderTempViewerList(accounts) {
+      const list = document.getElementById("temp-auth-list");
+      if (!list) return;
+      const rows = (accounts || []).filter((a) => a && !a.revoked && a.live);
+      if (!rows.length) {
+        list.innerHTML = '<p class="empty">No active temp viewers</p>';
+        return;
+      }
+      list.innerHTML = rows
+        .map(
+          (a) => `<div class="sys-temp-item" data-temp-id="${esc(a.id)}">
+          <code>${esc(a.user)}</code>
+          <span class="meta">expires ${esc(formatTempExpiryEt(a.expires_at))}</span>
+          <button type="button" class="btn" data-temp-revoke="${esc(a.id)}">Revoke</button>
+        </div>`
+        )
+        .join("");
+      list.querySelectorAll("button[data-temp-revoke]").forEach((btn) => {
+        btn.onclick = () => revokeTempViewer(btn.dataset.tempRevoke);
+      });
+    }
+
+    async function loadTempViewerAccounts() {
+      const list = document.getElementById("temp-auth-list");
+      const status = document.getElementById("temp-auth-status");
+      if (!list || sessionRole === "viewer") return;
+      try {
+        const res = await fetch(`${base}/api/auth/temp-accounts`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        renderTempViewerList(data.accounts || []);
+        if (status && !status.textContent) status.textContent = "";
+      } catch (e) {
+        list.innerHTML = `<p class="empty">Temp list failed: ${esc(e.message || e)}</p>`;
+      }
+    }
+
+    async function generateTempViewer() {
+      const status = document.getElementById("temp-auth-status");
+      if (status) status.textContent = "Generating…";
+      try {
+        const res = await fetch(`${base}/api/auth/temp-accounts`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        renderTempViewerCreated(data);
+        if (status) status.textContent = "Created";
+        await loadTempViewerAccounts();
+      } catch (e) {
+        if (status) status.textContent = `Failed: ${e.message || e}`;
+      }
+    }
+
+    async function revokeTempViewer(id) {
+      const status = document.getElementById("temp-auth-status");
+      if (status) status.textContent = "Revoking…";
+      try {
+        const res = await fetch(`${base}/api/auth/temp-accounts/${encodeURIComponent(id)}/revoke`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        if (status) status.textContent = "Revoked";
+        await loadTempViewerAccounts();
+      } catch (e) {
+        if (status) status.textContent = `Revoke failed: ${e.message || e}`;
+      }
+    }
+
+    document.getElementById("temp-auth-gen")?.addEventListener("click", () => generateTempViewer());
+    document.getElementById("temp-auth-refresh")?.addEventListener("click", () => loadTempViewerAccounts());
 
     async function runSystemControl(systemId, action) {
       const flash = document.getElementById("sys-flash");
@@ -6892,10 +7966,23 @@
       const pick = document.getElementById("camp-focus");
       const detail = document.getElementById("campaign-detail");
       if (!pick || !detail) return;
-      if (!ids.includes(campFocusId)) campFocusId = ids[0] || "tropic-gooner";
-      pick.innerHTML = ids.map((id) =>
-        `<option value="${esc(id)}"${id === campFocusId ? " selected" : ""}>${esc(camps[id].label)}</option>`
-      ).join("");
+      // Prefer live map campaign; demote archived (e.g. SpaceQuest)
+      const ordered = [...ids].sort((a, b) => {
+        const aa = camps[a]?.archived ? 1 : 0;
+        const bb = camps[b]?.archived ? 1 : 0;
+        if (aa !== bb) return aa - bb;
+        if (a === "tropic-gooner") return -1;
+        if (b === "tropic-gooner") return 1;
+        return a.localeCompare(b);
+      });
+      if (!ids.includes(campFocusId) || camps[campFocusId]?.archived) {
+        campFocusId = ordered.find((id) => !camps[id]?.archived) || ordered[0] || "tropic-gooner";
+        localStorage.setItem("camp-focus", campFocusId);
+      }
+      pick.innerHTML = ordered.map((id) => {
+        const label = camps[id]?.archived ? `${camps[id].label} (archived)` : camps[id].label;
+        return `<option value="${esc(id)}"${id === campFocusId ? " selected" : ""}>${esc(label)}</option>`;
+      }).join("");
       if (!pick.dataset.ready) {
         pick.dataset.ready = "1";
         pick.onchange = () => {
@@ -6921,14 +8008,31 @@
       const reps = (c.latest_reports || []).slice(0, 6).map((r) =>
         `<button type="button" class="btn" style="margin:0.2rem 0.2rem 0 0;font-size:0.65rem" data-c="${id}" data-f="${esc(r.name)}" data-l="${esc(c.label)}">${esc(r.name.replace(/\.md$/,""))}</button>`
       ).join("");
-      detail.innerHTML = `<div class="camp-block"><h3>${esc(c.label)}</h3>
-        <div class="meta" style="margin-bottom:0.5rem;font-family:monospace;font-size:0.72rem">${c.pending_count} pending · ${c.done_count} done</div>
+      detail.innerHTML = `<div class="camp-block"><h3>${esc(c.label)}${c.archived ? ' <span class="meta">(archived)</span>' : ""}</h3>
+        <div class="meta" style="margin-bottom:0.5rem;font-family:monospace;font-size:0.72rem">${c.archived ? "Archived · read-only canon" : `${c.pending_count} pending · ${c.done_count} done`}</div>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
           <button type="button" class="btn primary" data-stories="${esc(id)}">Story canon →</button>
           <button type="button" class="btn" data-chat-camp="${esc(id)}">Brainstorm canon</button>
         </div>
         <ul class="list">${prog || "<li>(empty)</li>"}</ul>
         <div style="margin-top:0.75rem"><span class="meta">Reports · </span>${reps || '<span class="meta">none</span>'}</div></div>`;
+      const mapCta = document.getElementById("camp-map-cta");
+      const mapHint = document.getElementById("camp-map-cta-hint");
+      const mapOpen = document.getElementById("camp-map-open");
+      const mapCast = document.getElementById("camp-map-cast");
+      if (mapCta) {
+        const isMapCamp = id === "tropic-gooner" && !c.archived;
+        mapCta.style.display = isMapCamp || c.archived ? "block" : "none";
+        if (c.archived) {
+          if (mapHint) mapHint.textContent = `${c.label} is archived — no live campaign map. Use Tropic Gooner / Isla Primavera on tableslop.`;
+          if (mapOpen) { mapOpen.textContent = "Open Isla Primavera map →"; mapOpen.href = "https://map.tableslop.org/"; }
+          if (mapCast) mapCast.style.display = "none";
+        } else if (isMapCamp) {
+          if (mapHint) mapHint.textContent = "Canonical interactive map for Tropic Gooner / Isla Primavera. Hub does not embed a duplicate.";
+          if (mapOpen) { mapOpen.textContent = "Open on map.tableslop.org →"; mapOpen.href = "https://map.tableslop.org/"; }
+          if (mapCast) { mapCast.style.display = ""; mapCast.href = "https://map.tableslop.org/#cast"; }
+        }
+      }
       detail.querySelectorAll("button[data-f]").forEach((b) => {
         b.onclick = () => { activeTab = "reports"; document.querySelector('[data-tab="reports"]').click(); openReport(b.dataset.c, b.dataset.f, b.dataset.l); };
       });
@@ -7024,6 +8128,30 @@
       }
     }
 
+    /** tableslop Cast → Chars handoff: ?tab=characters&char=<id>&campaign=<id> or #characters/<id> */
+    function applyCharsDeepLink() {
+      if (sessionRole === "viewer") return false;
+      const qs = new URLSearchParams(location.search || "");
+      let tab = (qs.get("tab") || "").trim();
+      let charId = (qs.get("char") || qs.get("character") || "").trim();
+      let campaign = (qs.get("campaign") || "").trim();
+      const hash = (location.hash || "").replace(/^#/, "");
+      if (hash === "characters" || hash.startsWith("characters/")) {
+        tab = tab || "characters";
+        if (!charId && hash.indexOf("/") >= 0) {
+          charId = decodeURIComponent(hash.split("/").slice(1).join("/"));
+        }
+      }
+      if (tab !== "characters" && !charId) return false;
+      if (campaign) {
+        charsCampaignFilter = campaign;
+        localStorage.setItem("chars-campaign", charsCampaignFilter);
+      }
+      if (charId) selectedCharId = charId;
+      activateTab("characters");
+      return true;
+    }
+
     async function boot() {
       const ot0 = document.getElementById("ops-title");
       if (ot0) ot0.textContent = "Booting…";
@@ -7048,6 +8176,7 @@
         load();
         loadInbox();
         syncHubResourcesPolling();
+        applyCharsDeepLink();
       }
     }
 
@@ -7110,10 +8239,12 @@
       const body = String(text || "").trim();
       if (isError) {
         bubble.innerHTML = `<div class="prose" style="color:var(--bad)">${esc(body || "Chat failed")}</div>`;
+        prependChatBubbleTs(bubble, opts.at, opts.atApprox);
         return;
       }
       if (!body) {
         bubble.innerHTML = `<div class="prose" style="color:var(--muted)">(empty response)</div>`;
+        prependChatBubbleTs(bubble, opts.at, opts.atApprox);
         return;
       }
       let html;
@@ -7132,11 +8263,15 @@
         html += `<div class="chat-paid-retry-note">Free model (model-budget free-first)</div>`;
       }
       bubble.innerHTML = html;
+      prependChatBubbleTs(bubble, opts.at, opts.atApprox);
     }
 
-    function appendChatUserMessage(log, msg, msgIdx) {
+    function appendChatUserMessage(log, msg, msgIdx, opts = {}) {
       const user = document.createElement("div");
       user.className = "chat-bubble user";
+      const atMs = opts.at != null ? opts.at : null;
+      const tsEl = makeChatBubbleTsEl(atMs, !!opts.atApprox);
+      if (tsEl) user.appendChild(tsEl);
       const textEl = document.createElement("div");
       textEl.className = "chat-bubble-text";
       textEl.textContent = msg;
@@ -7211,7 +8346,7 @@
       }
       const log = document.getElementById("chat-log");
       if (log.querySelector(".empty")) log.innerHTML = "";
-      appendChatUserMessage(log, msg);
+      appendChatUserMessage(log, msg, undefined, { at: Date.now() });
       input.value = "";
       chatWaiting = true;
       setChatComposerState();

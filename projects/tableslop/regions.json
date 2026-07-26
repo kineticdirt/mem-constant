@@ -1,0 +1,536 @@
+{
+  "version": 1,
+  "brand": "Primavera",
+  "island": "Isla Primavera",
+  "campaign": "tropic-gooner",
+  "updated_at": "2026-07-26",
+  "status_lanes": [
+    "planning",
+    "writing",
+    "testing",
+    "blocked",
+    "done",
+    "deferred"
+  ],
+  "regions": [
+    {
+      "id": "r01-paradise",
+      "region": 1,
+      "name": "Paradise",
+      "type": "city",
+      "status": "planning",
+      "note": "North central bay",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 1",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/paradise.md + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r02-porto-lujuria",
+      "region": 2,
+      "name": "Porto Lujara",
+      "type": "city",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin on coastal port (moved off gold Sierra zone)",
+          "status": "done"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ],
+      "note": "Coastal/port pin (west-central bay); not the gold inland territory",
+      "aliases": [
+        "Porto Lujuria"
+      ]
+    },
+    {
+      "id": "r03-crimson-quay",
+      "region": 3,
+      "name": "Jackedsonville",
+      "type": "city",
+      "status": "planning",
+      "aliases": [
+        "Crimson Quay",
+        "Crimzon Quay"
+      ],
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 3",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r04-villa-miel",
+      "region": 4,
+      "name": "Villa Miel",
+      "type": "town",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 4",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r05-culovera",
+      "region": 5,
+      "name": "San Aurelio",
+      "type": "city",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 5",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ],
+      "aliases": [
+        "CuloVera"
+      ]
+    },
+    {
+      "id": "r06-seaside-springs",
+      "region": 6,
+      "name": "Seaside Springs",
+      "type": "town",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 6",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r07-orchid-falls",
+      "region": 7,
+      "name": "Orchid Falls",
+      "type": "town",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 7",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ],
+      "note": "UI-only / Misc Notes — NOT on vibes.png"
+    },
+    {
+      "id": "r08-sierra-dorado",
+      "region": 8,
+      "name": "Sierra Dorado",
+      "type": "capital",
+      "status": "planning",
+      "note": "Federal mountain capital — gold jagged boundary (selectable polygon)",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin + gold polygon overlay for Sierra Dorado",
+          "status": "done"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r09-ruby-harbor",
+      "region": 9,
+      "name": "Ruby Harbor",
+      "type": "city",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 9",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r10-lagoona-seica",
+      "region": 10,
+      "name": "Lagooni Seika",
+      "type": "town",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 10",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ],
+      "aliases": [
+        "Lagoona Seika",
+        "Lagoona Seica"
+      ]
+    },
+    {
+      "id": "r11-black-sand-preserve",
+      "region": 11,
+      "name": "Black Sand Beach Preserve",
+      "type": "preserve",
+      "status": "planning",
+      "note": "Zone 11 not on numbered overlay — estimated",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 11",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r12-nueva-vista",
+      "region": 12,
+      "name": "Nueva Vista",
+      "type": "town",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 12",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ],
+      "note": "UI-only / Misc Notes — NOT on vibes.png"
+    },
+    {
+      "id": "r13-portview",
+      "region": 13,
+      "name": "Portview",
+      "type": "town",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 13",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r14-federal-shores",
+      "region": 14,
+      "name": "InterFederal Shores",
+      "type": "region",
+      "status": "planning",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin aligned to overlay zone 14",
+          "status": "blocked"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "planning"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ],
+      "aliases": [
+        "Federal Shores"
+      ]
+    },
+    {
+      "id": "r15-puckall",
+      "region": 15,
+      "name": "Puckall",
+      "type": "region",
+      "status": "planning",
+      "note": "vibes-only inland N-central",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin from vibes.png",
+          "status": "done"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "deferred"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r16-east-bayby",
+      "region": 16,
+      "name": "East Bayby",
+      "type": "region",
+      "status": "planning",
+      "note": "vibes-only NE coast",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin from vibes.png",
+          "status": "done"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "deferred"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    },
+    {
+      "id": "r17-research-islands",
+      "region": 17,
+      "name": "Research Islands",
+      "type": "region",
+      "status": "planning",
+      "note": "vibes-only SE archipelago",
+      "tasks": [
+        {
+          "id": "coords",
+          "title": "Map pin from vibes.png",
+          "status": "done"
+        },
+        {
+          "id": "lore",
+          "title": "places/ entry + lore excerpt",
+          "status": "planning"
+        },
+        {
+          "id": "discord",
+          "title": "discord_channel_id wired",
+          "status": "deferred"
+        },
+        {
+          "id": "characters",
+          "title": "Linked PC/NPC sheets",
+          "status": "deferred"
+        }
+      ]
+    }
+  ]
+}

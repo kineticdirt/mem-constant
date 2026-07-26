@@ -9,5 +9,5 @@
   "urlTemplate": "/map-tiles/{z}/{y}/{x}.webp",
   "source": "master-enhanced.png",
   "pipeline": "lanczos+pyramid",
-  "generated_at": "2026-06-30"
+  "generated_at": "2026-07-01"
 }

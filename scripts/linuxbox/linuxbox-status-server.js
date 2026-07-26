@@ -32,7 +32,7 @@ const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db-20260723-thinkfocus-r1";
+const DASH_BUILD = "db-20260726-chars-portrait-fix-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -64,6 +64,7 @@ const PUBLIC_REPORT_DIRS = {
 const CAMPAIGNS = {
   spacequest: {
     label: "SpaceQuest",
+    archived: true,
     progress: "campaigns/spacequest/reports/progress.md",
     reportsDir: "campaigns/spacequest/reports",
     storyDirs: ["story", "lore", "characters"],
@@ -136,6 +137,7 @@ const CHAT_MODES_FILE = path.join(REPO, "agents", "chat-modes.json");
 const CHAT_CATALOG_FILE = path.join(REPO, "agents", "model-budget", "chat-catalog.json");
 let CHAT_MODES_DATA = null;
 let CHAT_CATALOG_DATA = null;
+let CHAT_CATALOG_MTIME = 0;
 
 const USER_PROJECT_KINDS = [
   { id: "research-dev", label: "Research & development" },
@@ -148,24 +150,44 @@ const VALID_PROFILES = new Set(["fast", "think", "chat", "meta", "code", "defaul
 /** Dashboard Chat always uses OpenRouter — never Bonsai-patched think lane. */
 const CHAT_HERMES_PROFILE = "chat";
 const HERMES_MODEL_REGISTRY = path.join(REPO, "agents/hermes-model-registry.json");
-/** Cheap paid for brief/minor Chat turns. */
+/** Cheap paid head for Chat — DeepSeek is the only paid head (policy 2026-07-24). */
 const CHAT_DEEPSEEK_MINOR = "deepseek/deepseek-v4-flash";
-/** Mid/cheap paid — before Hermes/GLM when free fails or work is moderate. */
-const CHAT_STEP_MID = "stepfun/step-3.7-flash";
+/** Paid backup behind DeepSeek. Step 3.7 removed — burned ~$14/day thrashing the think lane. */
+const CHAT_PAID_MID = "z-ai/glm-5.2";
 const CHAT_PAID_MODEL_FALLBACK = [
-  CHAT_STEP_MID,
-  "nousresearch/hermes-4-70b",
-  "z-ai/glm-5.2",
   CHAT_DEEPSEEK_MINOR,
+  CHAT_PAID_MID,
+  "nousresearch/hermes-4-70b",
 ];
 /** Last resort for moderation-heavy RP worldbuilding — Venice uncensored via OpenRouter (paid). */
 const CHAT_VENICE_LAST_RESORT = "cognitivecomputations/dolphin-mistral-24b-venice-edition";
-/** Free-first head: Laguna then Qwen. Do NOT re-add tencent/hy3:free (sunset 2026-07-21). */
+/**
+ * Free-first heads (probe-verified 2026-07-24). Do NOT re-add tencent/hy3:free (sunset),
+ * qwen/...:free (delisted — paid variant only) or zenmux kimi-k3-free (404, never existed):
+ * a dead id here silently burns a retry hop and drops Chat through to paid on every turn.
+ */
 const CHAT_FREE_LAST_RESORT = [
   "poolside/laguna-xs-2.1:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "inclusionai/ling-3.0-flash:free",
 ];
-const CHAT_SUNSET_MODELS = new Set(["tencent/hy3:free"]);
+/**
+ * Hard-blocked model ids — filtered out of every Chat/Hermes failover chain.
+ * A dead or demoted id left in a chain silently burns a retry hop (and, for paid
+ * demotions like Step, real money). Re-probe before removing anything from here.
+ */
+const CHAT_SUNSET_MODELS = new Set([
+  "tencent/hy3:free", // OpenRouter sunset 2026-07-21
+  "qwen/qwen3-next-80b-a3b-instruct:free", // delisted 2026-07-24 — paid variant only
+  "zenmux:moonshotai/kimi-k3-free", // 404 invalid_model, never existed
+  "moonshotai/kimi-k3-free", // same phantom without prefix
+  "stepfun/step-3.7-flash", // demoted 2026-07-24 — burned ~$14–16/day thrashing think
+]);
+const CHAT_FREE_FALLBACK_LABELS = {
+  "poolside/laguna-xs-2.1:free": "Laguna XS 2.1 free",
+  "nvidia/nemotron-3-super-120b-a12b:free": "Nemotron 3 Super 120B free",
+  "inclusionai/ling-3.0-flash:free": "Ling 3.0 Flash free",
+};
 const CHAT_MODEL_USAGE_FILE = path.join(REPO, "agents", "state", "chat-model-usage.json");
 const MODEL_BUDGET_CONFIG = path.join(REPO, "agents/model-budget/config.json");
 const MODEL_BUDGET_STATE = path.join(REPO, "agents/state/model-budget.json");
@@ -209,10 +231,22 @@ function getModelBudgetRoutingForUi() {
     prefer_free: r.prefer_free !== false,
     free_models: Array.isArray(r.free_models) ? r.free_models.slice(0, 8) : [...CHAT_FREE_LAST_RESORT],
     paid_minor: String(r.paid_minor || "deepseek/deepseek-v4-flash"),
-    paid_mid: String(r.paid_mid || "stepfun/step-3.7-flash"),
-    paid_models_ops: Array.isArray(r.paid_models_ops) ? r.paid_models_ops.slice(0, 12) : [],
+    paid_mid: String(r.paid_mid || "z-ai/glm-5.2"),
+    paid_models_ops: Array.isArray(r.paid_models_ops)
+      ? r.paid_models_ops.filter((m) => m && !CHAT_SUNSET_MODELS.has(String(m))).slice(0, 12)
+      : [],
     config_path: "agents/model-budget/config.json",
   };
+}
+
+/** OpenRouter uses `:free`; ZenMux free slugs use a `-free` suffix (e.g. kimi-k3-free). */
+function isChatFreeModelId(id) {
+  const s = String(id || "").trim();
+  if (!s || CHAT_SUNSET_MODELS.has(s)) return false;
+  if (s.includes(":free")) return true;
+  const afterProvider = s.includes(":") ? s.slice(s.indexOf(":") + 1) : s;
+  const leaf = afterProvider.split("/").pop() || "";
+  return /-free$/i.test(leaf);
 }
 
 function saveModelBudgetRouting(patch = {}) {
@@ -224,7 +258,6 @@ function saveModelBudgetRouting(patch = {}) {
   }
   if (!cfg.routing || typeof cfg.routing !== "object") cfg.routing = {};
   const allowed = allowedChatModelIds();
-  const isFreeId = (id) => String(id || "").includes(":free");
   if (typeof patch.prefer_free === "boolean") {
     cfg.routing.prefer_free = patch.prefer_free;
   }
@@ -232,7 +265,7 @@ function saveModelBudgetRouting(patch = {}) {
     const next = [];
     for (const raw of patch.free_models) {
       const id = String(raw || "").trim();
-      if (!id || CHAT_SUNSET_MODELS.has(id) || !isFreeId(id)) continue;
+      if (!id || CHAT_SUNSET_MODELS.has(id) || !isChatFreeModelId(id)) continue;
       if (!allowed.has(id) && !CHAT_FREE_LAST_RESORT.includes(id)) continue;
       if (!next.includes(id)) next.push(id);
       if (next.length >= 6) break;
@@ -242,14 +275,14 @@ function saveModelBudgetRouting(patch = {}) {
   }
   if (patch.paid_minor != null) {
     const id = String(patch.paid_minor || "").trim();
-    if (!id || isFreeId(id) || CHAT_SUNSET_MODELS.has(id) || !allowed.has(id)) {
+    if (!id || isChatFreeModelId(id) || CHAT_SUNSET_MODELS.has(id) || !allowed.has(id)) {
       throw new Error("bad_paid_minor");
     }
     cfg.routing.paid_minor = id;
   }
   if (patch.paid_mid != null) {
     const id = String(patch.paid_mid || "").trim();
-    if (!id || isFreeId(id) || CHAT_SUNSET_MODELS.has(id) || !allowed.has(id)) {
+    if (!id || isChatFreeModelId(id) || CHAT_SUNSET_MODELS.has(id) || !allowed.has(id)) {
       throw new Error("bad_paid_mid");
     }
     cfg.routing.paid_mid = id;
@@ -286,13 +319,13 @@ function loadHermesModelRegistry() {
 
 loadHermesModelRegistry();
 
-/** Paid ops models only — never :free (free chain is separate / free-first). */
+/** Paid ops models only — never free (OpenRouter :free or ZenMux -free); free chain is separate / free-first. */
 function getChatPaidModelChain(preferredProfile = "think") {
   const reg = loadHermesModelRegistry();
   const models = [];
   const add = (m) => {
     const id = String(m || "").trim();
-    if (!id || id.includes(":free") || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
+    if (!id || isChatFreeModelId(id) || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
     models.push(id);
   };
   const prof = VALID_PROFILES.has(preferredProfile) ? preferredProfile : "think";
@@ -323,18 +356,19 @@ function orderChatChainPreferConfig(models, isFree) {
 
 /**
  * Paid cascade after free fails.
- * brief/minor → DeepSeek then Step then quality; workshop/moderate → Step then DeepSeek then quality.
+ * Paid order (2026-07-24): DeepSeek head, then GLM 5.2 as DeepSeek's backup, then quality.
+ * Step 3.7 Flash is in CHAT_SUNSET_MODELS — never selected.
  */
 function getChatPaidFailoverChain(preferredProfile = "think", responseMode = "brief") {
   const budget = loadModelBudgetConfig();
   const reg = loadHermesModelRegistry();
   const minorId =
     reg.chat_paid_minor || budget.routing?.paid_minor || CHAT_DEEPSEEK_MINOR;
-  const midId = reg.chat_paid_mid || budget.routing?.paid_mid || CHAT_STEP_MID;
+  const midId = reg.chat_paid_mid || budget.routing?.paid_mid || CHAT_PAID_MID;
   const models = [];
   const add = (m) => {
     const id = String(m || "").trim();
-    if (!id || id.includes(":free") || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
+    if (!id || isChatFreeModelId(id) || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
     models.push(id);
   };
   const minor = responseMode !== "workshop";
@@ -442,7 +476,7 @@ function recordChatModelUsage(modelId, outcome) {
     b.last_used = Date.now();
     if (outcome === "ok") {
       b.ok = (b.ok || 0) + 1;
-      const lane = id.includes(":free") ? "free_ok" : "paid_ok";
+      const lane = isChatFreeModelId(id) ? "free_ok" : "paid_ok";
       budget.lanes[lane] = (budget.lanes[lane] || 0) + 1;
     } else if (outcome === "rate_limit") b.rate_limit = (b.rate_limit || 0) + 1;
     else if (outcome === "moderation") b.moderation = (b.moderation || 0) + 1;
@@ -472,14 +506,14 @@ function sortChatModelsByUsage(models, isFree) {
   });
 }
 
-/** Free :free models only — free-first head (or last resort if prefer_free is false). */
+/** Free models only — free-first head (or last resort if prefer_free is false). */
 function getChatFreeFailoverChain() {
   const budget = loadModelBudgetConfig();
   const reg = loadHermesModelRegistry();
   const models = [];
   const add = (m) => {
     const id = String(m || "").trim();
-    if (!id || !id.includes(":free") || CHAT_SUNSET_MODELS.has(id) || models.includes(id)) return;
+    if (!id || !isChatFreeModelId(id) || models.includes(id)) return;
     models.push(id);
   };
   for (const m of budget.routing?.free_models || []) add(m);
@@ -500,10 +534,11 @@ function chatModelUsageSummary() {
     attempts: row.attempts || 0,
     ok: row.ok || 0,
     fail: row.fail || 0,
+    rate_limit: row.rate_limit || 0,
     daily_limit: row.daily_limit || 0,
     moderation: row.moderation || 0,
     last_used: row.last_used || 0,
-    free: id.includes(":free"),
+    free: isChatFreeModelId(id),
   }));
   rows.sort((a, b) => b.attempts - a.attempts);
   return { day: data.day, models: rows.slice(0, 16) };
@@ -584,11 +619,15 @@ function resolveChatModeSettings(modeId, body = {}) {
 }
 
 function loadChatCatalog() {
-  if (CHAT_CATALOG_DATA) return CHAT_CATALOG_DATA;
+  // Reload when file mtime changes — catalog is often scp'd without a full restart.
   try {
+    const st = fs.statSync(CHAT_CATALOG_FILE);
+    if (CHAT_CATALOG_DATA && st.mtimeMs === CHAT_CATALOG_MTIME) return CHAT_CATALOG_DATA;
     CHAT_CATALOG_DATA = JSON.parse(fs.readFileSync(CHAT_CATALOG_FILE, "utf8"));
+    CHAT_CATALOG_MTIME = st.mtimeMs;
   } catch {
     CHAT_CATALOG_DATA = { estimated: true, models: [] };
+    CHAT_CATALOG_MTIME = 0;
   }
   return CHAT_CATALOG_DATA;
 }
@@ -598,9 +637,11 @@ function getChatCatalogForUi() {
   const catalog = loadChatCatalog();
   const usage = readChatModelUsage();
   const models = [];
+  const seen = new Set();
   for (const row of catalog.models || []) {
     if (!row || !row.id) continue;
     if (row.status === "offline") continue;
+    if (CHAT_SUNSET_MODELS.has(String(row.id))) continue;
     const u = usage.models && usage.models[row.id];
     let status = row.status || "online";
     if (u) {
@@ -609,10 +650,11 @@ function getChatCatalogForUi() {
       if (fails >= 3 && oks === 0) status = "degraded";
       else if ((u.daily_limit || 0) >= 1 && oks === 0) status = "degraded";
     }
+    seen.add(row.id);
     models.push({
       id: row.id,
       label: row.label || row.id,
-      tier: row.tier || (String(row.id).includes(":free") ? "free" : "paid"),
+      tier: row.tier || (isChatFreeModelId(row.id) ? "free" : "paid"),
       relative_cost_in: row.relative_cost_in,
       relative_cost_out: row.relative_cost_out,
       tokens_per_sec_est: row.tokens_per_sec_est,
@@ -620,6 +662,29 @@ function getChatCatalogForUi() {
       note: row.note || "",
       estimated: true,
     });
+  }
+  // Stale/clobbered chat-catalog.json often only has sunset free ids → 0 free rows → empty Hub Free dropdowns.
+  // Inject live free-first heads from routing + last-resort so Free head/fallback never render blank.
+  const freeCount = models.filter((m) => m.tier === "free").length;
+  if (freeCount === 0) {
+    const cfg = loadModelBudgetConfig();
+    const fromRouting = Array.isArray(cfg.routing?.free_models) ? cfg.routing.free_models : [];
+    for (const id of [...fromRouting, ...CHAT_FREE_LAST_RESORT]) {
+      const mid = String(id || "").trim();
+      if (!mid || seen.has(mid) || CHAT_SUNSET_MODELS.has(mid) || !isChatFreeModelId(mid)) continue;
+      seen.add(mid);
+      models.unshift({
+        id: mid,
+        label: CHAT_FREE_FALLBACK_LABELS[mid] || mid,
+        tier: "free",
+        relative_cost_in: 0,
+        relative_cost_out: 0,
+        tokens_per_sec_est: null,
+        status: "online",
+        note: "injected — catalog missing live free rows",
+        estimated: true,
+      });
+    }
   }
   return {
     estimated: true,
@@ -1186,10 +1251,168 @@ function countUncheckedMd(relPath) {
     return fs
       .readFileSync(p, "utf8")
       .split("\n")
-      .filter((l) => /^- \[ \]/.test(l)).length;
+      .filter((l) => /^\s*[-*]\s*\[\s\]/.test(l)).length;
   } catch {
     return 0;
   }
+}
+
+/** Open work without recent think success — Systems/Hub health signal (free-first). */
+function buildWorkPipeline() {
+  const stallHours = Number(process.env.WORK_PIPELINE_STALL_HOURS || 6);
+  const productBoards = [
+    "agents/tableslop-progress.md",
+    "agents/PIXI_RP_PROGRESS.md",
+    "agents/portfolio-progress.md",
+  ];
+  const campaignBoards = [
+    "campaigns/nyc-mafia-dnd/reports/progress.md",
+    "campaigns/tropic-gooner/reports/progress.md",
+    "campaigns/tropic-gooner/reports/progress-hunter.md",
+  ];
+  const otherBoards = [
+    "agents/LINUXBOX_DASHBOARD_BACKLOG.md",
+    "agents/maintenance-progress.md",
+    "agents/system-integrity-progress.md",
+    "agents/PONYTAIL_CLEANUP_BOARD.md",
+    "agents/self-improvement-progress.md",
+    "agents/research-studies-progress.md",
+    "agents/nousagent-progress.md",
+  ];
+  const sum = (rels) => rels.reduce((n, r) => n + countUncheckedMd(r), 0);
+  const open_product_boxes = sum(productBoards);
+  const open_campaign_boxes = sum(campaignBoards);
+  const open_other_progress_boxes = sum(otherBoards);
+  const open_progress_boxes = open_product_boxes + open_campaign_boxes + open_other_progress_boxes;
+  let open_user_tasks = 0;
+  try {
+    const store = readUserTasksStore();
+    open_user_tasks = (store.tasks || []).filter((t) => t && t.status === "open").length;
+  } catch {
+    open_user_tasks = 0;
+  }
+  let think_paused = false;
+  let think_pause_reason = "";
+  try {
+    const pp = path.join(REPO, "agents", "state", "think-paused.json");
+    if (fs.existsSync(pp)) {
+      const raw = JSON.parse(fs.readFileSync(pp, "utf8"));
+      think_paused = raw && raw.paused === true;
+      think_pause_reason = String(raw?.reason || "").slice(0, 200);
+    }
+  } catch {
+    /* ignore */
+  }
+  let last_think_attempt_at = null;
+  try {
+    const lp = path.join(REPO, "agents", "state", "think-llm.last");
+    if (fs.existsSync(lp)) {
+      const raw = fs.readFileSync(lp, "utf8").trim();
+      if (raw) last_think_attempt_at = new Date(raw).toISOString();
+    }
+  } catch {
+    last_think_attempt_at = null;
+  }
+  let last_think_success_at = null;
+  let last_think_status = null;
+  try {
+    const fp = path.join(REPO, "agents", "state", "think-focus.json");
+    if (fs.existsSync(fp)) {
+      const focus = JSON.parse(fs.readFileSync(fp, "utf8"));
+      last_think_status = String(focus?.status || "") || null;
+      const blurb = String(focus?.blurb || "");
+      const fakeDone =
+        /HTTP\s*429|free-models-per-day|Rate limit exceeded|API call failed after/i.test(blurb);
+      // Hermes often exits 0 on 429 and focus stays status=done — do not count as success.
+      if (
+        String(focus?.status || "").toLowerCase() === "done" &&
+        focus?.updated_at &&
+        !fakeDone
+      ) {
+        last_think_success_at = String(focus.updated_at);
+      }
+      if (fakeDone && String(focus?.status || "").toLowerCase() === "done") {
+        last_think_status = "failed";
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  let free_429_blocked = false;
+  let free_429_exhausted = false;
+  let free_429_inbox_id = null;
+  let free_429_reset_at = null;
+  let paid_last_resort = false;
+  let paid_last_resort_model = null;
+  try {
+    const f429 = path.join(REPO, "agents", "state", "think-free-429.json");
+    if (fs.existsSync(f429)) {
+      const st = JSON.parse(fs.readFileSync(f429, "utf8"));
+      const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      // Prefer SoT swap list; fall back to legacy 3-id head if file missing.
+      let chain = [
+        "poolside/laguna-xs-2.1:free",
+        "inclusionai/ling-3.0-flash:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+      ];
+      try {
+        const swapPath = path.join(REPO, "agents", "model-budget", "think-free-swap.json");
+        if (fs.existsSync(swapPath)) {
+          const swap = JSON.parse(fs.readFileSync(swapPath, "utf8"));
+          const ordered = Array.isArray(swap?.ordered) ? swap.ordered.filter((m) => typeof m === "string" && m) : [];
+          if (ordered.length) chain = ordered;
+        }
+      } catch {
+        /* keep fallback chain */
+      }
+      const blocked = Array.isArray(st?.models_429) ? st.models_429 : [];
+      free_429_exhausted = st?.day === day && chain.length > 0 && chain.every((m) => blocked.includes(m));
+      paid_last_resort = !!(st?.paid_last_resort === true || st?.paid_last_resort === "true");
+      paid_last_resort_model =
+        (typeof st?.paid_model === "string" && st.paid_model.trim()) ||
+        "deepseek/deepseek-v4-flash";
+      // Hub "blocked" = Hermes skipped. Paid last-resort means ticks still run — not blocked.
+      free_429_blocked = free_429_exhausted && !paid_last_resort;
+      free_429_inbox_id = st?.inbox_id || null;
+      free_429_reset_at = st?.reset_at || null;
+    }
+  } catch {
+    /* ignore */
+  }
+  const now = Date.now();
+  let last_think_success_age_hours = null;
+  if (last_think_success_at) {
+    const t = Date.parse(last_think_success_at);
+    if (Number.isFinite(t)) last_think_success_age_hours = Math.round(((now - t) / 3600000) * 10) / 10;
+  }
+  const open_total = open_user_tasks + open_progress_boxes;
+  const stalled =
+    open_total > 0 &&
+    (think_paused ||
+      last_think_success_age_hours == null ||
+      last_think_success_age_hours >= stallHours);
+  return {
+    open_user_tasks,
+    open_progress_boxes,
+    open_product_boxes,
+    open_campaign_boxes,
+    open_other_progress_boxes,
+    last_think_attempt_at,
+    last_think_success_at,
+    last_think_success_age_hours,
+    last_think_status,
+    think_paused,
+    think_pause_reason: think_paused ? think_pause_reason : "",
+    free_429_blocked,
+    free_429_exhausted,
+    free_429_inbox_id,
+    free_429_reset_at,
+    paid_last_resort,
+    paid_last_resort_model,
+    stall_hours: stallHours,
+    stalled: stalled || free_429_blocked,
+    note: "stalled = open work and (think paused OR free-429 skip/blocked OR no real think success within stall_hours); paid_last_resort does not count as blocked",
+  };
 }
 
 /** Human labels for pod ids (run-index often only has name=think + summary="pod think"). */
@@ -1514,7 +1737,56 @@ function readLastCompletedPod() {
   }
 }
 
+/** Tail of think tick stdout for Hub live window (agents/runs/think-last.log). */
+function readThinkLiveLog(maxBytes = 28000) {
+  const p = path.join(REPO, "agents", "runs", "think-last.log");
+  if (!fs.existsSync(p)) return { text: "", mtime: null, bytes: 0 };
+  try {
+    const st = fs.statSync(p);
+    const size = st.size;
+    const start = Math.max(0, size - maxBytes);
+    const len = size - start;
+    const fd = fs.openSync(p, "r");
+    const buf = Buffer.alloc(len);
+    fs.readSync(fd, buf, 0, len, start);
+    fs.closeSync(fd);
+    // Strip ANSI / spinner junk for a readable Hub pane
+    const text = buf
+      .toString("utf8")
+      .replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")
+      .replace(/\r/g, "");
+    return {
+      text,
+      mtime: st.mtime.toISOString(),
+      bytes: size,
+    };
+  } catch {
+    return { text: "", mtime: null, bytes: 0 };
+  }
+}
+
 /** Crontab think mid-flight from agents/state/think-focus.json (status=running). */
+function summarizeThinkBlurb(raw, taskId, status) {
+  const tid = taskId ? String(taskId).replace(/^lane:/, "").slice(0, 64) : "";
+  const s = String(raw || "")
+    .replace(/\r/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!s) return tid || status || "think";
+  if (/HTTP\s*429|free-models-per-day|Rate limit exceeded/i.test(s)) {
+    return tid ? `HTTP 429 free cap · ${tid}` : "HTTP 429 free-models-per-day";
+  }
+  // Truncate traceback / KeyboardInterrupt dumps — Hub Goal must stay brief.
+  if (/KeyboardInterrupt|Traceback \(most recent|File "\/|cli\.chat\(/i.test(s) || s.length > 220) {
+    const head = s.split(/\n/)[0].slice(0, 100);
+    if (/^exit\s+\d/i.test(head) || /timeout|SIGINT|SIGTERM|failed/i.test(head)) {
+      return tid ? `${head.slice(0, 40)} · ${tid}` : head.slice(0, 120);
+    }
+    return tid ? `${status || "failed"} · ${tid}` : (status || head.slice(0, 120));
+  }
+  return s.slice(0, 160);
+}
+
 function readThinkFocusRun() {
   const p = path.join(REPO, "agents", "state", "think-focus.json");
   if (!fs.existsSync(p)) return null;
@@ -1528,16 +1800,22 @@ function readThinkFocusRun() {
     const startedMs = new Date(startedIso).getTime();
     if (!Number.isFinite(startedMs)) return null;
     const ageSec = (Date.now() - startedMs) / 1000;
-    if (ageSec < 0 || ageSec > 720) return null;
+    // Keep visible past 4m timeout so Hub can show hung/stuck (hide after 1h)
+    if (ageSec < 0 || ageSec > 3600) return null;
+    const hung = ageSec > 300;
     const blurb = cur.blurb != null ? String(cur.blurb).trim().slice(0, 200) : "";
+    // Prefer task title over traceback dumps for Hub Goal line.
+    const taskId = cur.task_id ? String(cur.task_id).slice(0, 80) : null;
+    const goal = summarizeThinkBlurb(blurb, taskId, hung ? "hung" : status);
     return {
       name: "think",
       started_at: new Date(startedMs).toISOString(),
       elapsed_ms: Math.round(ageSec * 1000),
       kind: "tick",
-      blurb: blurb || "think LLM in flight",
-      task_id: cur.task_id ? String(cur.task_id).slice(0, 80) : null,
-      focus_status: status,
+      blurb: String(goal).slice(0, 160),
+      task_id: taskId,
+      focus_status: hung ? "hung" : status,
+      hung,
     };
   } catch {
     return null;
@@ -1551,18 +1829,33 @@ function buildRunningNow() {
   // Prefer live crontab think focus over stale pod-scheduler current
   const tick = thinkFocus || pod;
   const lastCompleted = readLastCompletedPod();
+  const liveLog = readThinkLiveLog();
   let focusLast = null;
   try {
     const fp = path.join(REPO, "agents", "state", "think-focus.json");
     if (fs.existsSync(fp)) {
       const f = JSON.parse(fs.readFileSync(fp, "utf8"));
       if (f && typeof f === "object" && f.status && f.status !== "running") {
+        const blurbRaw = String(f.blurb || "");
+        const rateLimited = /HTTP\s*429|free-models-per-day|Rate limit exceeded|API call failed after/i.test(
+          blurbRaw
+        );
+        const status = rateLimited && f.status === "done" ? "failed" : String(f.status);
         focusLast = {
           name: "think",
-          blurb: String(f.blurb || f.status).slice(0, 200),
+          label: "Think / worker",
+          kind: "tick",
+          kind_label: `last think (${status})`,
+          blurb: summarizeThinkBlurb(f.blurb, f.task_id, status),
           at: f.updated_at || null,
-          exit: f.status === "failed" ? 1 : 0,
-          intent_ok: f.status !== "failed",
+          ts: f.updated_at || null,
+          started_at: f.started_at || null,
+          task_id: f.task_id ? String(f.task_id).slice(0, 80) : null,
+          status,
+          exit: status === "failed" ? 1 : 0,
+          intent_ok: status !== "failed",
+          meaningful: status === "done" || status === "failed",
+          outcome: status === "failed" ? "fail" : status === "done" ? "ok" : "idle",
         };
       }
     }
@@ -1575,6 +1868,7 @@ function buildRunningNow() {
     chat_queued: chat.queued,
     pod: tick,
     think_focus: thinkFocus,
+    live_log: liveLog,
     last_completed: focusLast || lastCompleted,
     anything: chat.jobs.length > 0 || !!tick,
   };
@@ -1608,18 +1902,16 @@ function hermesGatewayUp() {
       timeout: 3000,
     }).trim();
     if (out !== "active") return 0;
-    // Mirror nousagent-health hung check (cheap): D-state MainPID.
+    // Mirror nousagent-health hung check (cheap): D-state MainPID — /proc only, never spawn ps.
     const pid = execFileSync("systemctl", ["--user", "show", "-p", "MainPID", "--value", "hermes-gateway"], {
       encoding: "utf8",
       timeout: 2000,
     }).trim();
     if (pid && pid !== "0") {
       try {
-        const st = execFileSync("ps", ["-o", "state=", "-p", pid], {
-          encoding: "utf8",
-          timeout: 2000,
-        }).trim();
-        if (st.startsWith("D")) return 0;
+        const st = fs.readFileSync(`/proc/${pid}/status`, "utf8");
+        const sm = st.match(/^State:\s+(\S+)/m);
+        if (sm && String(sm[1]).startsWith("D")) return 0;
       } catch {
         /* ignore */
       }
@@ -1771,6 +2063,8 @@ async function collectAgentState(lite = false) {
     const pending = progress.filter((p) => !p.done);
     campaigns[id] = {
       label: cfg.label,
+      archived: !!cfg.archived,
+      map_url: id === "tropic-gooner" ? "https://map.tableslop.org/" : null,
       pending_count: pending.length,
       done_count: progress.filter((p) => p.done).length,
       next_item: pending[0]?.text || null,
@@ -1858,6 +2152,7 @@ async function collectAgentState(lite = false) {
     current_pod: runningNow.pod,
     observability: readObservabilityLinks(),
     chat_model_usage: chatModelUsageSummary(),
+    work_pipeline: buildWorkPipeline(),
     model_budget: {
       policy: CHAT_FREE_FIRST ? "free_first" : "paid_first",
       ops_daily_usd_target: OPENROUTER_OPS_DAILY_USD,
@@ -2467,13 +2762,106 @@ const CHAR_IMAGE_FOLDER_BY_ID = {
   toga: "Toga",
 };
 
-let charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
-
 function normalizeCampaignRelPath(imagePath) {
   if (!imagePath || typeof imagePath !== "string") return "";
   const normalized = imagePath.replace(/\\/g, "/").replace(/^\/+/, "");
   if (!normalized || normalized.includes("..") || path.isAbsolute(normalized)) return "";
   return normalized;
+}
+
+/** True when rel is under this character’s portraits/ or mapped Character Images folder. */
+function pathOwnedByCharacter(charId, relPath) {
+  const rel = normalizeCampaignRelPath(relPath);
+  if (!rel || !charId) return false;
+  if (rel.startsWith(`characters/portraits/${charId}/`)) return true;
+  const ext = path.extname(rel).toLowerCase();
+  if (CHAR_IMAGE_EXTS.has(ext) && rel === `characters/portraits/${charId}${ext}`) return true;
+  const folder = CHAR_IMAGE_FOLDER_BY_ID[charId];
+  if (folder && rel.startsWith(`Character Images/${folder}/`)) return true;
+  return false;
+}
+
+/** Another cast member’s portraits/ or Character Images folder — never steal. */
+function isCrossCharacterImagePath(charId, relPath) {
+  const rel = normalizeCampaignRelPath(relPath);
+  if (!rel || !charId) return false;
+  const underPortrait = /^characters\/portraits\/([^/]+)\//.exec(rel);
+  if (underPortrait && underPortrait[1] !== charId) return true;
+  const leafAlone = /^characters\/portraits\/([^/.]+)(\.[a-z0-9]+)$/i.exec(rel);
+  if (leafAlone && leafAlone[1] !== charId) return true;
+  if (rel.startsWith("Character Images/")) {
+    const imgFolder = rel.split("/")[1] || "";
+    if (!imgFolder) return false;
+    for (const [id, folder] of Object.entries(CHAR_IMAGE_FOLDER_BY_ID)) {
+      if (folder === imgFolder && id !== charId) return true;
+    }
+  }
+  return false;
+}
+
+function isDiscordExportRel(relPath) {
+  const rel = normalizeCampaignRelPath(relPath);
+  return Boolean(rel && (rel.startsWith("discord-export/") || /(^|\/)attachments\//.test(rel)));
+}
+
+/** Basename hit only inside this character’s owned dirs (never other cast). */
+function findOwnedBasenameHit(campaignId, charId, basename) {
+  const key = String(basename || "").toLowerCase();
+  if (!key || !charId || !CAMPAIGNS[campaignId]) return "";
+  const campRoot = path.join(REPO, "campaigns", campaignId);
+  const candidates = [];
+  const portraitDir = path.join(campRoot, "characters", "portraits", charId);
+  if (fs.existsSync(portraitDir) && fs.statSync(portraitDir).isDirectory()) {
+    for (const name of fs.readdirSync(portraitDir)) {
+      if (name.toLowerCase() === key) candidates.push(`characters/portraits/${charId}/${name}`);
+    }
+  }
+  for (const ext of CHAR_IMAGE_EXTS) {
+    const leaf = `characters/portraits/${charId}${ext}`;
+    if (path.basename(leaf).toLowerCase() === key) candidates.push(leaf);
+  }
+  const folder = CHAR_IMAGE_FOLDER_BY_ID[charId];
+  if (folder) {
+    const folderAbs = path.join(campRoot, "Character Images", folder);
+    if (fs.existsSync(folderAbs) && fs.statSync(folderAbs).isDirectory()) {
+      for (const name of fs.readdirSync(folderAbs)) {
+        if (name.toLowerCase() === key) candidates.push(`Character Images/${folder}/${name}`);
+      }
+    }
+  }
+  for (const rel of candidates) {
+    if (characterImageAbs(campaignId, rel)) return rel;
+  }
+  return "";
+}
+
+/** Basename hit only under discord-export attachments dirs (local restore source). */
+function findExportBasenameHit(campaignId, basename) {
+  const key = String(basename || "").toLowerCase();
+  if (!key || !CAMPAIGNS[campaignId]) return "";
+  const campRoot = path.join(REPO, "campaigns", campaignId);
+  for (const absDir of listDiscordExportAttachmentDirs(campRoot)) {
+    const relPrefix = discordExportRelFromAbs(campRoot, absDir);
+    if (!relPrefix) continue;
+    let names;
+    try {
+      names = fs.readdirSync(absDir);
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      if (name.toLowerCase() !== key) continue;
+      const abs = path.join(absDir, name);
+      try {
+        if (!fs.statSync(abs).isFile()) continue;
+      } catch {
+        continue;
+      }
+      const rel = `${relPrefix}/${name}`.replace(/\\/g, "/");
+      if (characterImageAbs(campaignId, rel)) return rel;
+    }
+  }
+  return "";
 }
 
 /* List discord-export/.../attachments dirs (binaries live here; sheets only keep paths). */
@@ -2559,72 +2947,6 @@ function preferStillPrimary(paths) {
   return still[0] || paths[0] || "";
 }
 
-function characterImageBasenameIndex(campaignId) {
-  const campRoot = path.join(REPO, "campaigns", campaignId);
-  const exportAttDirs = listDiscordExportAttachmentDirs(campRoot);
-  const roots = [
-    path.join(campRoot, "Character Images"),
-    path.join(campRoot, "characters", "portraits"),
-    ...exportAttDirs,
-  ];
-  let newest = 0;
-  for (const root of roots) {
-    if (!fs.existsSync(root)) continue;
-    try {
-      newest = Math.max(newest, fs.statSync(root).mtimeMs || 0);
-    } catch {
-      /* ignore */
-    }
-  }
-  const fingerprint = `${newest}:${exportAttDirs.length}:${roots.length}`;
-  if (charImageBasenameIndexCache.byBase.size && charImageBasenameIndexCache.fingerprint === fingerprint) {
-    return charImageBasenameIndexCache.byBase;
-  }
-  const byBase = new Map();
-  function walk(absDir, relPrefix) {
-    if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) return;
-    for (const name of fs.readdirSync(absDir)) {
-      const abs = path.join(absDir, name);
-      let st;
-      try {
-        st = fs.statSync(abs);
-      } catch {
-        continue;
-      }
-      const rel = `${relPrefix}/${name}`.replace(/\\/g, "/");
-      if (st.isDirectory()) walk(abs, rel);
-      else if (CHAR_IMAGE_EXTS.has(path.extname(name).toLowerCase())) {
-        const key = name.toLowerCase();
-        // Prefer portraits / Character Images over discord-export when names collide.
-        if (!byBase.has(key)) byBase.set(key, rel);
-      }
-    }
-  }
-  // Priority: portraits + Character Images first, then export attachments.
-  walk(path.join(campRoot, "characters", "portraits"), "characters/portraits");
-  walk(path.join(campRoot, "Character Images"), "Character Images");
-  for (const absDir of exportAttDirs) {
-    const relPrefix = discordExportRelFromAbs(campRoot, absDir);
-    if (!relPrefix) continue;
-    if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) continue;
-    for (const name of fs.readdirSync(absDir)) {
-      const abs = path.join(absDir, name);
-      let st;
-      try {
-        st = fs.statSync(abs);
-      } catch {
-        continue;
-      }
-      if (!st.isFile()) continue;
-      if (!CHAR_IMAGE_EXTS.has(path.extname(name).toLowerCase())) continue;
-      const key = name.toLowerCase();
-      if (!byBase.has(key)) byBase.set(key, `${relPrefix}/${name}`.replace(/\\/g, "/"));
-    }
-  }
-  charImageBasenameIndexCache = { fingerprint, byBase };
-  return byBase;
-}
-
 function storyDocAbs(campaignId, storyPath) {
   if (!storyPath || typeof storyPath !== "string") return null;
   const norm = storyPath.replace(/\\/g, "/");
@@ -2659,8 +2981,12 @@ function extractDocAttachmentRefs(campaignId, c) {
   return [...new Set([...listed, ...fromFiles])];
 }
 
-function resolveDocAttachments(campaignId, refs) {
-  const index = characterImageBasenameIndex(campaignId);
+/**
+ * Resolve sheet Attachment / wikilink refs for one character.
+ * Never basename-steals another cast member’s portraits/Character Images.
+ * discord-export hits stay unresolved here (Resolve copies into portraits/).
+ */
+function resolveDocAttachments(campaignId, charId, refs) {
   const resolved = [];
   const unresolved = [];
   for (const ref of refs) {
@@ -2670,13 +2996,32 @@ function resolveDocAttachments(campaignId, refs) {
     }
     const norm = normalizeCampaignRelPath(ref);
     if (norm && characterImageAbs(campaignId, norm)) {
-      resolved.push(norm);
+      if (isCrossCharacterImagePath(charId, norm)) {
+        unresolved.push({ ref, reason: "path_other_character" });
+        continue;
+      }
+      // Owned paths (or non-cast paths) may show; export paths wait for Resolve copy.
+      if (pathOwnedByCharacter(charId, norm)) {
+        resolved.push(norm);
+        continue;
+      }
+      if (isDiscordExportRel(norm)) {
+        unresolved.push({ ref, reason: "in_export_not_copied" });
+        continue;
+      }
+      // Bare attachments/… refs that are not under discord-export yet
+      unresolved.push({ ref, reason: "doc_has_attachment_not_resolved" });
       continue;
     }
-    const base = path.basename(ref).toLowerCase();
-    const hit = index.get(base);
-    if (hit && characterImageAbs(campaignId, hit)) {
-      resolved.push(hit);
+    const base = path.basename(ref);
+    const owned = findOwnedBasenameHit(campaignId, charId, base);
+    if (owned) {
+      resolved.push(owned);
+      continue;
+    }
+    const exported = findExportBasenameHit(campaignId, base);
+    if (exported) {
+      unresolved.push({ ref, reason: "in_export_not_copied" });
       continue;
     }
     unresolved.push({ ref, reason: "doc_has_attachment_not_resolved" });
@@ -2707,13 +3052,19 @@ function resolveCharacterImages(campaignId, c) {
   }
   const fromRegistry = (Array.isArray(c.images) ? c.images : [])
     .map(normalizeCampaignRelPath)
-    .filter((p) => p && characterImageAbs(campaignId, p));
+    .filter(
+      (p) =>
+        p &&
+        characterImageAbs(campaignId, p) &&
+        !isCrossCharacterImagePath(c.id, p)
+    );
   const docRefs = extractDocAttachmentRefs(campaignId, c);
-  const docResolved = resolveDocAttachments(campaignId, docRefs);
+  const docResolved = resolveDocAttachments(campaignId, c.id, docRefs);
   const fromDisk = c.hidden || c.role === "gm" ? [] : characterPortraitDirs(campaignId, c.id);
   const images = [...new Set([...fromRegistry, ...docResolved.resolved, ...fromDisk])];
   let primary = normalizeCampaignRelPath(c.image_path || "");
   if (primary && !characterImageAbs(campaignId, primary)) primary = "";
+  if (primary && isCrossCharacterImagePath(c.id, primary)) primary = "";
   if (!primary) {
     primary =
       fromRegistry.find((p) => characterImageAbs(campaignId, p)) ||
@@ -3130,12 +3481,22 @@ function uploadCharacterPortrait(campaignId, charId, filename, dataBase64, body 
  * Remove one portrait from a character gallery. Does not delete the character.
  * Unlinks registry images[] entry; if it was primary, picks next remaining or clears.
  * Deletes the file only when it lives under characters/portraits/<id>/ (avoids disk re-scan orphans).
+ * Never deletes files under another character’s portraits/ dir.
  */
 function removeCharacterPortrait(campaignId, charId, imagePath, body = {}) {
   if (!CAMPAIGNS[campaignId]) throw new Error("bad_campaign");
   if (!charId || /[^a-zA-Z0-9._-]/.test(charId)) throw new Error("bad_id");
   const rel = normalizeCampaignRelPath(imagePath);
   if (!rel) throw new Error("bad_image_path");
+  // Refuse cross-character portrait paths (do not unlink another cast member’s art as ours).
+  const otherPortrait = /^characters\/portraits\/([^/]+)\//.exec(rel);
+  if (otherPortrait && otherPortrait[1] !== charId) {
+    throw new Error("path_other_character");
+  }
+  const otherLeaf = /^characters\/portraits\/([^/.]+)(\.[a-z0-9]+)$/i.exec(rel);
+  if (otherLeaf && otherLeaf[1] !== charId) {
+    throw new Error("path_other_character");
+  }
   const registry = readCharactersRegistry(campaignId);
   const row = registry.characters.find((c) => c.id === charId);
   if (!row) throw new Error("character_not_found");
@@ -3414,8 +3775,6 @@ async function resolveCharacterDocAttachments(campaignId, opts = {}) {
   });
   if (charId && !targets.length) throw new Error("char_not_found");
 
-  charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
-  const index = characterImageBasenameIndex(campaignId);
   const summary = {
     campaign: campaignId,
     chars: [],
@@ -3423,6 +3782,7 @@ async function resolveCharacterDocAttachments(campaignId, opts = {}) {
     already: 0,
     missing: 0,
     skipped_non_image: 0,
+    skipped_other_character: 0,
     discord: null,
   };
 
@@ -3435,10 +3795,13 @@ async function resolveCharacterDocAttachments(campaignId, opts = {}) {
       already: [],
       missing: [],
       skipped_non_image: [],
+      skipped_other_character: [],
     };
     const portraitDirRel = `characters/portraits/${row.id}`;
     const portraitDirAbs = path.join(campRoot, portraitDirRel);
-    const imgs = Array.isArray(row.images) ? row.images.map(String) : [];
+    const imgs = (Array.isArray(row.images) ? row.images.map(String) : []).filter(
+      (p) => !isCrossCharacterImagePath(row.id, p)
+    );
 
     for (const ref of refs) {
       if (/^https?:\/\//i.test(ref)) {
@@ -3464,19 +3827,32 @@ async function resolveCharacterDocAttachments(campaignId, opts = {}) {
       let srcAbs = null;
       const norm = normalizeCampaignRelPath(ref);
       if (norm) {
+        if (isCrossCharacterImagePath(row.id, norm)) {
+          charResult.skipped_other_character.push(ref);
+          summary.skipped_other_character += 1;
+          continue;
+        }
         const abs = path.join(campRoot, norm);
         if (fs.existsSync(abs) && fs.statSync(abs).isFile()) srcAbs = abs;
       }
+      // Prefer local discord-export, then this character’s own dirs — never other cast.
       if (!srcAbs) {
-        const hit = index.get(base.toLowerCase());
-        if (hit) {
-          const abs = path.join(campRoot, hit);
-          if (fs.existsSync(abs) && fs.statSync(abs).isFile()) srcAbs = abs;
-        }
+        const exported = findExportBasenameHit(campaignId, base);
+        if (exported) srcAbs = path.join(campRoot, exported);
+      }
+      if (!srcAbs) {
+        const owned = findOwnedBasenameHit(campaignId, row.id, base);
+        if (owned) srcAbs = path.join(campRoot, owned);
       }
       if (!srcAbs) {
         charResult.missing.push({ ref, reason: "not_in_export" });
         summary.missing += 1;
+        continue;
+      }
+      const srcRel = path.relative(campRoot, srcAbs).replace(/\\/g, "/");
+      if (isCrossCharacterImagePath(row.id, srcRel)) {
+        charResult.skipped_other_character.push(ref);
+        summary.skipped_other_character += 1;
         continue;
       }
       fs.mkdirSync(portraitDirAbs, { recursive: true });
@@ -3498,13 +3874,9 @@ async function resolveCharacterDocAttachments(campaignId, opts = {}) {
   writeCharactersRegistry(campaignId, registry, {
     baseVersion: registryBaseVersionFromBody(opts),
   });
-  charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
 
   if (fromDiscord) {
     summary.discord = await fetchMissingAttachmentsFromDiscord(campaignId, summary);
-    if (summary.discord?.copied > 0) {
-      charImageBasenameIndexCache = { fingerprint: "", byBase: new Map() };
-    }
   }
 
   const enriched = getCharactersRegistry(campaignId, { includeHidden: Boolean(charId) });
@@ -4324,7 +4696,7 @@ async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}
     PATH: `${path.dirname(HERMES_BIN)}${path.delimiter}${process.env.PATH || ""}`,
   };
   // Free models are slow on large campaign prompts — shorter cap so failover reaches paid/next free.
-  const isFree = String(modelId || "").includes(":free");
+  const isFree = isChatFreeModelId(modelId);
   const timeoutMs = Number(execOpts.timeoutMs) || (isFree ? 90_000 : 180_000);
   let stdout = "";
   let stderr = "";
@@ -4475,12 +4847,35 @@ function normalizeThreadContext(raw) {
   return ctx;
 }
 
+function coerceChatMsgAt(raw) {
+  if (raw == null || raw === "") return null;
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+  const n = Date.parse(String(raw));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Soft-normalize message times on read (no invent). Coerce ts/created_at → at. */
+function decorateChatThreadTimes(thread) {
+  if (!thread || !Array.isArray(thread.messages)) return thread;
+  for (const m of thread.messages) {
+    if (!m || typeof m !== "object") continue;
+    if (m.at == null) {
+      const fromAlias = coerceChatMsgAt(m.ts ?? m.created_at);
+      if (fromAlias != null) m.at = fromAlias;
+    } else {
+      const n = coerceChatMsgAt(m.at);
+      if (n != null) m.at = n;
+    }
+  }
+  return thread;
+}
+
 function readChatThread(id) {
   if (!id || !/^[a-f0-9]{16}$/.test(id)) return null;
   const file = chatThreadFile(id);
   if (!fs.existsSync(file)) return null;
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
+    return decorateChatThreadTimes(JSON.parse(fs.readFileSync(file, "utf8")));
   } catch {
     return null;
   }
@@ -5431,7 +5826,7 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
   const preferFree = CHAT_FREE_FIRST;
   const phases = [];
   if (preferredModel) {
-    const pinnedIsFree = preferredModel.includes(":free");
+    const pinnedIsFree = isChatFreeModelId(preferredModel);
     phases.push({ chain: [preferredModel], allowFree: pinnedIsFree, pinned: true });
   }
   if (preferFree) {
@@ -5455,8 +5850,8 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
   }
 
   if (hitDailyLimit) {
-    const freeTried = triedModels.filter((m) => String(m).includes(":free"));
-    const paidTried = triedModels.filter((m) => !String(m).includes(":free"));
+    const freeTried = triedModels.filter((m) => isChatFreeModelId(m));
+    const paidTried = triedModels.filter((m) => !isChatFreeModelId(m));
     const freeBit = freeTried.length
       ? `Free path failed first (:free models are $0 but still hit OpenRouter/provider RPM·RPD·capacity limits — not the USD cap). Tried: ${freeTried.join(" → ")}.`
       : "Free path was not reached.";
@@ -5839,8 +6234,8 @@ async function fetchStockQuotes(symbols) {
 
 async function fetchSocialFeeds(feeds) {
   const out = [];
-  // Allow more social/news streams on Intel Social tab (was 8).
-  for (const feed of feeds.slice(0, 12)) {
+  // Cap keeps /api/intel latency bounded on 2GB box; raised 12→20 for science/AI/policy/OSINT expansion (2026-07-25).
+  for (const feed of feeds.slice(0, 20)) {
     const slug = feedCacheSlug(feed);
     const cached = readRssCache(slug);
     const ttlMs = feed.platform === "reddit" ? REDDIT_CACHE_TTL_MS : RSS_CACHE_TTL_MS;
@@ -6028,13 +6423,18 @@ function listPublicReports() {
 // genuine on-box caller (agent cycles, curl health). Everything else must
 // present the shared token (HTTP Basic password, Bearer, or lbx_token cookie).
 // Token + role credentials live in ~/.linuxbox-dashboard/.env (never committed).
-//   DASHBOARD_TOKEN          — admin password (HTTP Basic user below, or Bearer/cookie)
-//   DASHBOARD_ADMIN_USER     — Basic auth username for admin (default: admin)
-//   DASHBOARD_VIEWER_TOKEN   — viewer password (optional; enables read-only role)
-//   DASHBOARD_VIEWER_USER    — Basic auth username for viewer (default: viewer)
+//   DASHBOARD_TOKEN          — primary admin password (HTTP Basic user below, or Bearer/cookie)
+//   DASHBOARD_ADMIN_USER     — Basic auth username for primary admin (default: admin)
+//   DASHBOARD_VIEWER_TOKEN   — primary viewer password (optional; enables read-only role)
+//   DASHBOARD_VIEWER_USER    — Basic auth username for primary viewer (default: viewer)
+//   DASHBOARD_EXTRA_ACCOUNTS — JSON array of extra named accounts:
+//       [{"user":"HeadUser","role":"admin","pass":"..."},{"user":"guest","role":"viewer","pass":"..."}]
+//     role must be "admin" or "viewer". Passwords never logged.
+//   Temp viewers — admin POST /api/auth/temp-accounts → agents/state/dashboard-temp-accounts.json
+//     (≤2 days). Redeem GET /api/auth/temp-redeem?token= sets HttpOnly lbx_token cookie.
 //   OBSERVABILITY_KUMA_URL   — Uptime Kuma link in Active now (default MagicDNS :13001)
 //   OBSERVABILITY_GRAFANA_URL / GRAFANA_URL — optional Grafana link (off-box recommended)
-// Bitwarden: save https://abhinavall.net/Linuxbox/ with username admin|viewer + password.
+// Bitwarden: save https://abhinavall.net/Linuxbox/ with each username + password from box .env.
 // ---------------------------------------------------------------------------
 function readEnvFile() {
   const out = {};
@@ -6061,6 +6461,200 @@ let DASHBOARD_TOKEN = envVal("DASHBOARD_TOKEN");
 const DASHBOARD_VIEWER_TOKEN = envVal("DASHBOARD_VIEWER_TOKEN");
 const DASHBOARD_ADMIN_USER = envVal("DASHBOARD_ADMIN_USER") || "admin";
 const DASHBOARD_VIEWER_USER = envVal("DASHBOARD_VIEWER_USER") || "viewer";
+
+/** @type {{ user: string, role: 'admin'|'viewer', pass: string }[]} */
+const AUTH_ACCOUNTS = [];
+function pushAuthAccount(user, role, pass) {
+  const u = String(user || "").trim();
+  const p = String(pass || "");
+  const r = role === "admin" || role === "viewer" ? role : null;
+  if (!u || !p || !r) return;
+  // Last write wins for duplicate usernames (extra can override legacy if same name).
+  const idx = AUTH_ACCOUNTS.findIndex((a) => a.user === u);
+  const row = { user: u, role: r, pass: p };
+  if (idx >= 0) AUTH_ACCOUNTS[idx] = row;
+  else AUTH_ACCOUNTS.push(row);
+}
+if (DASHBOARD_TOKEN) pushAuthAccount(DASHBOARD_ADMIN_USER, "admin", DASHBOARD_TOKEN);
+if (DASHBOARD_VIEWER_TOKEN) pushAuthAccount(DASHBOARD_VIEWER_USER, "viewer", DASHBOARD_VIEWER_TOKEN);
+try {
+  const rawExtra = envVal("DASHBOARD_EXTRA_ACCOUNTS");
+  if (rawExtra) {
+    const parsed = JSON.parse(rawExtra);
+    if (Array.isArray(parsed)) {
+      for (const row of parsed) {
+        if (!row || typeof row !== "object") continue;
+        pushAuthAccount(row.user || row.username, row.role, row.pass || row.password || row.token);
+      }
+    }
+  }
+} catch (err) {
+  console.error("DASHBOARD_EXTRA_ACCOUNTS parse failed:", err && err.message ? err.message : err);
+}
+const HAS_DASHBOARD_AUTH = AUTH_ACCOUNTS.length > 0;
+
+// Temporary viewer accounts (admin-generated, 2-day hard expiry). Runtime-only;
+// never commit. Redeem token → HttpOnly lbx_token cookie (existing token path).
+const TEMP_ACCOUNTS_FILE = path.join(REPO, "agents", "state", "dashboard-temp-accounts.json");
+const TEMP_VIEWER_TTL_SEC = 2 * 24 * 60 * 60; // 2 days hard max
+
+function isTempAccountLive(row, nowMs = Date.now()) {
+  if (!row || row.revoked) return false;
+  const exp = Date.parse(row.expires_at || "");
+  if (!Number.isFinite(exp) || exp <= nowMs) return false;
+  return true;
+}
+
+function loadTempAccountsDoc() {
+  const empty = { version: 1, accounts: [] };
+  try {
+    const raw = fs.readFileSync(TEMP_ACCOUNTS_FILE, "utf8");
+    const doc = JSON.parse(raw);
+    if (!doc || typeof doc !== "object") return empty;
+    const accounts = Array.isArray(doc.accounts) ? doc.accounts : [];
+    const now = Date.now();
+    const kept = accounts.filter((a) => {
+      if (!a || typeof a !== "object") return false;
+      const exp = Date.parse(a.expires_at || "");
+      // Drop expired permanently; keep revoked until expiry so list can show them briefly.
+      if (!Number.isFinite(exp) || exp <= now) return false;
+      return true;
+    });
+    if (kept.length !== accounts.length) {
+      const next = { version: Number(doc.version) || 1, accounts: kept };
+      try {
+        fs.mkdirSync(path.dirname(TEMP_ACCOUNTS_FILE), { recursive: true });
+        fs.writeFileSync(TEMP_ACCOUNTS_FILE, JSON.stringify(next, null, 2) + "\n", { mode: 0o600 });
+      } catch {
+        /* best-effort prune */
+      }
+      return next;
+    }
+    return { version: Number(doc.version) || 1, accounts: kept };
+  } catch (err) {
+    if (err && err.code === "ENOENT") return empty;
+    console.error("temp accounts load failed:", err && err.message ? err.message : err);
+    return empty;
+  }
+}
+
+function saveTempAccountsDoc(doc) {
+  fs.mkdirSync(path.dirname(TEMP_ACCOUNTS_FILE), { recursive: true });
+  const out = {
+    version: Number(doc.version) || 1,
+    accounts: Array.isArray(doc.accounts) ? doc.accounts : [],
+  };
+  fs.writeFileSync(TEMP_ACCOUNTS_FILE, JSON.stringify(out, null, 2) + "\n", { mode: 0o600 });
+  return out;
+}
+
+function matchTempAccountByBasic(user, password) {
+  const doc = loadTempAccountsDoc();
+  for (const a of doc.accounts) {
+    if (!isTempAccountLive(a)) continue;
+    if (safeEqual(user, a.user) && safeEqual(password, a.pass)) return a;
+  }
+  return null;
+}
+
+function matchTempAccountByPass(tok) {
+  if (!tok) return null;
+  const doc = loadTempAccountsDoc();
+  for (const a of doc.accounts) {
+    if (!isTempAccountLive(a)) continue;
+    if (safeEqual(tok, a.pass)) return a;
+  }
+  return null;
+}
+
+function findTempByRedeemToken(token) {
+  if (!token) return null;
+  const doc = loadTempAccountsDoc();
+  for (const a of doc.accounts) {
+    if (!isTempAccountLive(a)) continue;
+    if (safeEqual(token, a.redeem_token)) return a;
+  }
+  return null;
+}
+
+function publicTempAccountRow(a, { includeSecrets = false } = {}) {
+  const row = {
+    id: a.id,
+    user: a.user,
+    role: "viewer",
+    created_at: a.created_at,
+    expires_at: a.expires_at,
+    revoked: !!a.revoked,
+    live: isTempAccountLive(a),
+  };
+  if (includeSecrets) {
+    row.pass = a.pass;
+    row.redeem_token = a.redeem_token;
+  }
+  return row;
+}
+
+function createTempViewerAccount(opts = {}) {
+  const ttlSec = Math.min(
+    Math.max(Number(opts.ttl_sec) || TEMP_VIEWER_TTL_SEC, 60),
+    TEMP_VIEWER_TTL_SEC
+  );
+  const now = Date.now();
+  const id = crypto.randomBytes(8).toString("hex");
+  const user = `tmp_${crypto.randomBytes(4).toString("hex")}`;
+  const pass = crypto.randomBytes(18).toString("base64url");
+  const redeem_token = crypto.randomBytes(24).toString("base64url");
+  const row = {
+    id,
+    user,
+    pass,
+    redeem_token,
+    role: "viewer",
+    created_at: new Date(now).toISOString(),
+    expires_at: new Date(now + ttlSec * 1000).toISOString(),
+    revoked: false,
+  };
+  const doc = loadTempAccountsDoc();
+  doc.accounts.push(row);
+  saveTempAccountsDoc(doc);
+  return row;
+}
+
+function revokeTempViewerAccount(id) {
+  const doc = loadTempAccountsDoc();
+  const idx = doc.accounts.findIndex((a) => a && a.id === id);
+  if (idx < 0) return null;
+  doc.accounts[idx].revoked = true;
+  saveTempAccountsDoc(doc);
+  return doc.accounts[idx];
+}
+
+function safeRedeemNextPath(raw) {
+  const s = String(raw || "/").trim();
+  if (s === "/" || s === "/Linuxbox" || s === "/Linuxbox/") {
+    return s === "/Linuxbox" ? "/Linuxbox/" : s;
+  }
+  return "/";
+}
+
+function buildTempRedeemSetCookie(pass, expiresAtIso, req) {
+  const expMs = Date.parse(expiresAtIso || "");
+  const maxAge = Number.isFinite(expMs)
+    ? Math.max(0, Math.floor((expMs - Date.now()) / 1000))
+    : TEMP_VIEWER_TTL_SEC;
+  const secure =
+    String(req.headers["x-forwarded-proto"] || "").toLowerCase() === "https" ||
+    String(req.headers["x-forwarded-ssl"] || "").toLowerCase() === "on";
+  const parts = [
+    `lbx_token=${encodeURIComponent(pass)}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${maxAge}`,
+  ];
+  if (secure) parts.push("Secure");
+  return parts.join("; ");
+}
 
 const VIEWER_GET_PREFIXES = [
   "/",
@@ -6147,7 +6741,22 @@ function presentedToken(req) {
   return null;
 }
 
-/** @returns {{ role: 'admin'|'viewer'|'local', source: string, public?: boolean } | null} */
+function matchAuthAccountByBasic(user, password) {
+  for (const a of AUTH_ACCOUNTS) {
+    if (safeEqual(user, a.user) && safeEqual(password, a.pass)) return a;
+  }
+  return null;
+}
+
+function matchAuthAccountByToken(tok) {
+  if (!tok) return null;
+  for (const a of AUTH_ACCOUNTS) {
+    if (safeEqual(tok, a.pass)) return a;
+  }
+  return null;
+}
+
+/** @returns {{ role: 'admin'|'viewer'|'local', source: string, user?: string, public?: boolean } | null} */
 function resolveAuth(req, publicMode) {
   if (publicMode === "intel") return { role: "viewer", source: "public_intel", public: true };
   if (isTrustedLocal(req)) return { role: "admin", source: "loopback" };
@@ -6155,21 +6764,39 @@ function resolveAuth(req, publicMode) {
 
   const basic = presentedBasicUserPass(req);
   if (basic) {
-    if (DASHBOARD_TOKEN && safeEqual(basic.user, DASHBOARD_ADMIN_USER) && safeEqual(basic.password, DASHBOARD_TOKEN)) {
-      return { role: "admin", source: "basic_admin" };
-    }
-    if (DASHBOARD_VIEWER_TOKEN && safeEqual(basic.user, DASHBOARD_VIEWER_USER) && safeEqual(basic.password, DASHBOARD_VIEWER_TOKEN)) {
-      return { role: "viewer", source: "basic_viewer" };
-    }
-    return null;
+    const hit = matchAuthAccountByBasic(basic.user, basic.password);
+    if (hit) return { role: hit.role, source: `basic_${hit.role}`, user: hit.user };
+    const temp = matchTempAccountByBasic(basic.user, basic.password);
+    if (temp) return { role: "viewer", source: "basic_temp_viewer", user: temp.user };
+    // Fall through: stale/wrong Basic must not block a valid lbx_token cookie (temp redeem).
   }
 
-  const tok = presentedToken(req);
-  if (tok && DASHBOARD_TOKEN && safeEqual(tok, DASHBOARD_TOKEN)) {
-    return { role: "admin", source: "bearer_admin" };
+  const authHdr = req.headers["authorization"] || "";
+  if (authHdr.startsWith("Bearer ")) {
+    const tok = authHdr.slice(7).trim();
+    const byTok = matchAuthAccountByToken(tok);
+    if (byTok) return { role: byTok.role, source: `bearer_${byTok.role}`, user: byTok.user };
+    const tempTok = matchTempAccountByPass(tok);
+    if (tempTok) return { role: "viewer", source: "bearer_temp_viewer", user: tempTok.user };
   }
-  if (tok && DASHBOARD_VIEWER_TOKEN && safeEqual(tok, DASHBOARD_VIEWER_TOKEN)) {
-    return { role: "viewer", source: "bearer_viewer" };
+
+  const cookie = req.headers["cookie"] || "";
+  const m = cookie.match(/(?:^|;\s*)lbx_token=([^;]+)/);
+  if (m) {
+    const cookieTok = decodeURIComponent(m[1]);
+    const byTok = matchAuthAccountByToken(cookieTok);
+    if (byTok) return { role: byTok.role, source: `cookie_${byTok.role}`, user: byTok.user };
+    const tempTok = matchTempAccountByPass(cookieTok);
+    if (tempTok) return { role: "viewer", source: "cookie_temp_viewer", user: tempTok.user };
+  }
+
+  // Legacy: bare password as Bearer/Basic-pass-only via presentedToken (no username).
+  if (!basic) {
+    const tok = presentedToken(req);
+    const byTok = matchAuthAccountByToken(tok);
+    if (byTok) return { role: byTok.role, source: `bearer_${byTok.role}`, user: byTok.user };
+    const tempTok = matchTempAccountByPass(tok);
+    if (tempTok) return { role: "viewer", source: "token_temp_viewer", user: tempTok.user };
   }
 
   if (OPEN_READ && (req.method === "GET" || req.method === "HEAD")) {
@@ -6180,13 +6807,21 @@ function resolveAuth(req, publicMode) {
 }
 
 function isAuthorized(req, pathname, publicMode) {
+  // Temp redeem must work before Basic (sets lbx_token cookie for guests).
+  if (
+    !isPublicEdge(publicMode) &&
+    (req.method === "GET" || req.method === "HEAD") &&
+    pathname === "/api/auth/temp-redeem"
+  ) {
+    return true;
+  }
   if (isPublicEdge(publicMode)) {
     if (req.method !== "GET" && req.method !== "HEAD") return false;
     return publicMayGet(publicMode, pathname);
   }
   const auth = resolveAuth(req, false);
   if (!auth) {
-    if (!DASHBOARD_TOKEN && !DASHBOARD_VIEWER_TOKEN) return false;
+    if (!HAS_DASHBOARD_AUTH) return false;
     return false;
   }
   if (auth.role === "admin") return true;
@@ -6249,12 +6884,58 @@ const server = http.createServer(async (req, res) => {
   const auth = authForRequest(req, publicMode);
 
   try {
+    // Public redeem: no Basic required. Sets HttpOnly lbx_token cookie → viewer until expiry.
+    if ((req.method === "GET" || req.method === "HEAD") && pathname === "/api/auth/temp-redeem") {
+      const token = url.searchParams.get("token") || "";
+      const row = findTempByRedeemToken(token);
+      if (!row) {
+        sendJson(res, 401, { error: "temp_token_invalid_or_expired" }, publicMode);
+        return;
+      }
+      const wantJson =
+        url.searchParams.get("format") === "json" ||
+        String(req.headers.accept || "").includes("application/json");
+      const setCookie = buildTempRedeemSetCookie(row.pass, row.expires_at, req);
+      if (wantJson) {
+        res.writeHead(200, {
+          ...responseHeaders(publicMode),
+          "Content-Type": "application/json; charset=utf-8",
+          "Set-Cookie": setCookie,
+          "Cache-Control": "no-store",
+        });
+        res.end(
+          JSON.stringify(
+            {
+              ok: true,
+              user: row.user,
+              role: "viewer",
+              expires_at: row.expires_at,
+              dashboard: safeRedeemNextPath(url.searchParams.get("next")),
+            },
+            null,
+            2
+          )
+        );
+        return;
+      }
+      const next = safeRedeemNextPath(url.searchParams.get("next"));
+      res.writeHead(302, {
+        ...responseHeaders(publicMode),
+        "Set-Cookie": setCookie,
+        Location: next,
+        "Cache-Control": "no-store",
+      });
+      res.end();
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/session") {
       sendJson(
         res,
         200,
         {
           role: auth?.role || "viewer",
+          user: auth?.user || null,
           viewer: auth?.role === "viewer",
           public: isPublicEdge(publicMode),
           capabilities: {
@@ -6272,6 +6953,24 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/api/auth/temp-accounts") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const doc = loadTempAccountsDoc();
+      sendJson(
+        res,
+        200,
+        {
+          ttl_sec_max: TEMP_VIEWER_TTL_SEC,
+          accounts: doc.accounts.map((a) => publicTempAccountRow(a)),
+        },
+        publicMode
+      );
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/status") {
       const health = await collectHealth();
       sendJson(res, 200, { updated_at: new Date().toISOString(), ...health }, publicMode);
@@ -6281,6 +6980,24 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && pathname === "/api/agent") {
       const lite = auth?.role === "viewer" || shouldUseLiteAgentCollect();
       sendJson(res, 200, await collectAgentStateCached({ lite }), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/think-live") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(
+        res,
+        200,
+        {
+          running_now: buildRunningNow(),
+          live_log: readThinkLiveLog(),
+          updated_at: new Date().toISOString(),
+        },
+        publicMode
+      );
       return;
     }
 
@@ -6420,22 +7137,6 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (req.method === "POST" && pathname === "/api/model-budget") {
-      if (auth?.role !== "admin") {
-        sendJson(res, 403, { error: "admin_required" }, publicMode);
-        return;
-      }
-      try {
-        const routing = saveModelBudgetRouting(body || {});
-        agentStateCache = null;
-        agentStateCacheAt = 0;
-        sendJson(res, 200, { ok: true, routing }, publicMode);
-      } catch (err) {
-        sendJson(res, 400, { error: err.message || "save_failed" }, publicMode);
-      }
-      return;
-    }
-
     if (req.method === "GET" && pathname === "/api/chat/threads") {
       if (auth?.role !== "admin") {
         sendJson(res, 403, { error: "admin_required" }, publicMode);
@@ -6531,6 +7232,10 @@ const server = http.createServer(async (req, res) => {
       const row = (reg.characters || []).find((c) => c.id === charId);
       let rel = normalizeCampaignRelPath(pathParam);
       if (rel) {
+        if (isCrossCharacterImagePath(charId, rel)) {
+          sendJson(res, 403, { error: "path_other_character" }, publicMode);
+          return;
+        }
         const allowed = new Set(resolveCharacterImages(campaignId, row || { id: charId, images: [] }).images);
         if (row?.image_path) allowed.add(normalizeCampaignRelPath(row.image_path));
         if (!allowed.has(rel) && !characterPortraitDirs(campaignId, charId).includes(rel)) {
@@ -6962,6 +7667,23 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      // Was an early POST handler that used undeclared `body` → ReferenceError "body is not defined".
+      if (pathname === "/api/model-budget") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        try {
+          const routing = saveModelBudgetRouting(body || {});
+          agentStateCache = null;
+          agentStateCacheAt = 0;
+          sendJson(res, 200, { ok: true, routing }, publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "save_failed" }, publicMode);
+        }
+        return;
+      }
+
       if (pathname === "/api/dashboard/suggest") {
         sendJson(res, 200, await suggestDashboardImprovement(body.text || ""), publicMode);
         return;
@@ -6988,6 +7710,40 @@ const server = http.createServer(async (req, res) => {
         } catch (e) {
           sendJson(res, 400, { error: e.message || "control_failed" }, publicMode);
         }
+        return;
+      }
+
+      if (pathname === "/api/auth/temp-accounts") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const created = createTempViewerAccount({ ttl_sec: body.ttl_sec });
+        sendJson(
+          res,
+          200,
+          {
+            ...publicTempAccountRow(created, { includeSecrets: true }),
+            redeem_path: `/api/auth/temp-redeem?token=${encodeURIComponent(created.redeem_token)}`,
+            note: "Share redeem_url (sets cookie). Or share user+pass for Basic. Expires in ≤2 days.",
+          },
+          publicMode
+        );
+        return;
+      }
+
+      if (pathname.startsWith("/api/auth/temp-accounts/") && pathname.endsWith("/revoke")) {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const id = pathname.slice("/api/auth/temp-accounts/".length, -"/revoke".length);
+        const revoked = revokeTempViewerAccount(id);
+        if (!revoked) {
+          sendJson(res, 404, { error: "not_found" }, publicMode);
+          return;
+        }
+        sendJson(res, 200, { ok: true, account: publicTempAccountRow(revoked) }, publicMode);
         return;
       }
 
@@ -7175,13 +7931,28 @@ server.listen(LISTEN_PORT, LISTEN_HOST, () => {
   let authMode;
   if (OPEN_ALL) authMode = "OPEN (no auth) -- public can read AND run POST/chat; use only behind Cloudflare Access";
   else if (OPEN_READ) authMode = "OPEN-READ -- public GET as viewer; POST/mutations require admin token";
-  else if (DASHBOARD_TOKEN || DASHBOARD_VIEWER_TOKEN) {
-    const parts = [];
-    if (DASHBOARD_TOKEN) parts.push(`admin Basic user=${DASHBOARD_ADMIN_USER}`);
-    if (DASHBOARD_VIEWER_TOKEN) parts.push(`viewer Basic user=${DASHBOARD_VIEWER_USER}`);
+  else if (HAS_DASHBOARD_AUTH) {
+    const parts = AUTH_ACCOUNTS.map((a) => `${a.role} Basic user=${a.user}`);
     authMode = `${parts.join("; ")}; on-box loopback exempt`;
   } else authMode = `NO tokens configured -> public denied (set tokens in ${TOKEN_ENV_FILE})`;
   console.log(`auth: ${authMode}; public Intel https://abhinavall.net/Intel/`);
   refreshAgentStateBackground(shouldUseLiteAgentCollect());
   setInterval(() => refreshAgentStateBackground(shouldUseLiteAgentCollect()), 60_000);
 });
+
+// Exit promptly on stop — never leave long-lived children (ps/nvidia-smi) wedging systemd.
+function shutdownDashboard(signal) {
+  try {
+    console.log(`linuxbox-status shutting down (${signal})`);
+  } catch {
+    /* ignore */
+  }
+  try {
+    server.close(() => process.exit(0));
+  } catch {
+    process.exit(0);
+  }
+  setTimeout(() => process.exit(0), 1500).unref();
+}
+process.on("SIGTERM", () => shutdownDashboard("SIGTERM"));
+process.on("SIGINT", () => shutdownDashboard("SIGINT"));
