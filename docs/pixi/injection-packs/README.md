@@ -7,19 +7,21 @@ Gemini with sources; we ingest the structured return on PC/potato.
 **Runtime SoT:** potato `~/pixi-rp/.../session_turn_augment.mjs` → `INJECTION_PACKS`  
 **This folder:** design + prompts + ingest staging (agent-dump).
 
-## Workflow (one pack at a time)
+## Workflow (engage all four — separate notebooks)
+
+Packs are framed around **LLM failure modes** (recall, accuracy, spatial mush,
+vague generation, soft resets, rule upgrades) — see `prompts/00b-FAILURE-MODES.md`.
 
 ```text
-1. You: create/open a NotebookLM notebook (or Gemini with Files).
-2. You: add 2–6 sources (links / PDFs / notes) for THAT pack domain only.
-3. You: paste the matching prompt from prompts/ (after the Setup prompt once).
-4. You: export/copy the model reply → save as returns/<pack_id>-YYYYMMDD.md
-        (or .json if it already matches CONTRACT.md).
-5. PC/potato: run ingest → dry-run → merge into INJECTION_PACKS → bump rev → restart pixi.
+1. You: four NotebookLM notebooks (or one notebook wiped between packs).
+2. Per pack: add 2–6 sources for THAT domain only.
+3. Paste: 00-SETUP → 00b-FAILURE-MODES → 01..04 pack prompt.
+4. Save reply → returns/<pack_id>-YYYYMMDD.md
+5. Tell agent: ingest <pack_id> return → dry-run → potato merge after OK.
 ```
 
-**Do not** dump all four domains into one notebook. Grounding dilutes; each pack should
-have its own source set.
+**Do not** dump all four domains into one grounded notebook. Dilution kills the
+failure-mode rules.
 
 ## What to upload as sources (by pack)
 

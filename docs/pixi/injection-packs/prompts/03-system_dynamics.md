@@ -1,36 +1,41 @@
-# Prompt — pack `system_dynamics` (pressures · clocks · off-screen)
+# Prompt — pack `system_dynamics`
 
-Paste **after** `00-SETUP.md`. Attach sources about TTRPG clocks/fronts, attrition, faction ticks — not magic systems.
+Paste after Setup (+ optional failure-modes brief). Sources: clocks/fronts, attrition, faction ticks — not magic systems.
 
 ---
 
-Using only this notebook's sources and the injection-pack JSON contract, produce a pack for:
+Produce JSON for **`pack_id`: `system_dynamics`**.
 
-**`pack_id`: `system_dynamics`**
+## Failures this pack must counter
 
-## Goals
+1. **Soft reset** — scene change wipes hunger/noise/injury/reputation pressure
+2. **Off-screen freeze** — world waits politely while the PC is elsewhere
+3. **Recall of consequence** — choices from earlier beats stop mattering
+4. **Unexplained jumps** — state changes with no named cause
+5. **Random escalation** — chaos for spectacle instead of earned pressure
 
-1. The world runs off-screen: threats, factions, resources, weather advance between beats.
-2. Standing pressures (hunger, fuel, noise, infection, heat, reputation) **tick** when fiction implies; record the move.
-3. Consequences compound across scene changes — no soft resets.
-4. Cause before effect; no unexplained state jumps.
-5. Escalation is earned; quiet can stay quiet; loud draws lasting attention.
+## Required behaviors in `lines`
 
-## Engine mapping (use these names in rules)
+- Off-screen forces advance; show them when the scene rejoins
+- Pressures **tick** when fiction implies; **record** the move on a relevant row / event object
+- Consequences compound across scene changes
+- Cause before effect
+- Escalation earned; quiet may stay quiet
 
-- Prefer recording pressure moves as notes on relevant `places` / `people` / `kind:"event"` objects, or in WORLD_DELTA person/place `notes` fields — do **not** invent a parallel global JSON schema unless sources demand one field name, then put it under `world_delta_contract.extensions` and mark it optional.
-- Keep rules scenario-agnostic (no zombie-only language unless a source is infection-specific; if so, put setting-specific lines under a separate key `scenario_notes_template` the human can paste into `injection_pack_notes`).
+## Engine note
 
-## Current baseline
+Do not invent a parallel global schema. Use place/person/event notes or optional `world_delta_contract.extensions` marked optional. Setting-specific pressure names → `scenario_notes_template`.
+
+## Baseline
 
 ```
-- World runs off-screen; show it when the scene rejoins.
+- World runs off-screen; show it on rejoin.
 - Pressures tick; record moves.
-- Consequences compound across scene changes.
+- Consequences compound.
 - Cause before effect.
 - Escalation earned.
 ```
 
 ## Deliver
 
-JSON per contract. Keywords for time-skip / travel / resource / noise / faction language. Prefer `mode: "diff"`.
+`failure_modes_addressed` emphasizing soft-reset + off-screen freeze. Prefer `mode: "diff"`.

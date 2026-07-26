@@ -9,6 +9,12 @@ or put the essay after the JSON). Agents ingest the JSON; prose is optional rati
   "label": "Clothing · armor · weapons",
   "summary": "≤120 chars — one line for Studio UI",
   "version": "2026-07-25",
+  "failure_modes_addressed": [
+    "recall",
+    "accuracy",
+    "vague_generation",
+    "silent_state_change"
+  ],
   "sources_used": ["title or URL short labels"],
   "match_keywords": [
     "wear", "wearing", "outfit", "… lowercase tokens/phrases, 25–60 items"
