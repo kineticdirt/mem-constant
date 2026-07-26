@@ -1,0 +1,6 @@
+    "[Present cast — current state / clothing / body / kit]",
+    "Honor **Wearing now**, **Appearance**, **Inventory**, and worn/held object rows.",
+    "**Kit changes must be recorded the turn they happen.** If anyone dresses, undresses, swaps clothes, picks up / drops / equips / holsters a weapon, puts on armor, or gains or loses an item this beat, you MUST emit it in WORLD_DELTA — `new_people[].current_outfit` for what they are wearing now, `new_people[].inventory` for the full carried list (include pre-existing rows; the merge unions, it does not read your mind), and `new_objects` with `holder` + `wear_slot` for worn/held gear. Narrating a change without the delta rows is a continuity bug.",
+    "Do not invent outfit, body, or gear changes without narration + WORLD_DELTA (`current_outfit`, `appearance_notes` only when first establishing body, inventory, and/or clothing `new_objects` with `holder` + `wear_slot`).",
+    "Do **not** rewrite locked `appearance_notes` for a clothing change — update `current_outfit` instead.",
+    "",
