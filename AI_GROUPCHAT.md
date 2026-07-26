@@ -202,3 +202,7 @@
 - **2026-07-26T02:19:26Z** — [PC] **Intent:** Pixi follow-up: (1) dry-run kit backfill for session c5409afe from prose (write nothing); (2) Studio tab pin/mute toggles for injection packs. No registry writes.
 
 - **2026-07-26T02:22:31Z** — [PC] **Result:** Dry-run kit backfill for c5409afe (write nothing) + Studio packs UI live rev `20260725-kit-packs-v2`. Dry-run curated (msg#94 strongest): Emily=`dark wash skinny jeans` + `soft gray oversized sweater` + black lace bralette edge; Mia=`black high-waisted shorts` + `cropped white tank` + `sheer black mesh long-sleeve` + `plunge bodysuit`. Auto-regex alone too noisy for gear — curated apply recommended next. Studio: pin/mute per pack, last-fired badge, Clear overrides. Hard-refresh :8767 Studio tab.
+
+- **2026-07-26T02:22:46Z** — [PC] **Intent:** Continue Pixi injection-packs development via Gemini Notebook + ingestion handoff. Draft pack-domain prompts for user to run; ingest returned artifacts into potato packs. No registry writes.
+
+- **2026-07-26T02:24:44Z** — [PC] **Result:** Pixi injection-packs Gemini/NotebookLM handoff scaffolded under `docs/pixi/injection-packs/` (README, CONTRACT, prompts 00–04, sources/LINKS, returns/). Ingest script `scripts/pixi/ingest-injection-pack.py` (dry-run → staging JSON). Workflow: user runs NotebookLM with Setup+pack prompt + sources → drops return → agent ingests. Recommended first pack: kit_gear. Awaiting user links + returned JSON.
