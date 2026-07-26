@@ -1,0 +1,16 @@
+            <div class="packs-panel" id="packsPanel">
+              <p class="panel-hint">
+                <strong>Injection packs</strong> — focused domain rules (kit, world storage, system
+                dynamics, mechanics). Relevance-gated by default (max 2/turn).
+                <strong>Pin</strong> forces a pack every Send;
+                <strong>Mute</strong> blocks it even when relevant.
+                Last-fired shows what the previous Send actually injected.
+              </p>
+              <div id="packsList" class="packs-list" aria-live="polite"></div>
+              <div class="packs-actions">
+                <button type="button" id="btnPacksClear" class="btn btn-small secondary" title="Clear pin and mute">
+                  Clear overrides
+                </button>
+                <span id="packsStatus" class="lab-status" aria-live="polite"></span>
+              </div>
+            </div>
