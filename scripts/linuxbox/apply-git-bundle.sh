@@ -109,6 +109,11 @@ else
 fi
 rm -rf "${PRESERVE_DIR}"
 
+# GM borders: if hard reset left git HEAD stubs, restore richest bak (fail-loud log).
+if [[ -f "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh" ]]; then
+  bash "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh"     || echo "apply-git-bundle: WARN gm-borders-autorestore failed" >&2
+fi
+
 # Windows/git-bundle often lands scripts as 100644; systemd ExecStart then fails 203/EXEC.
 # Evidence 2026-07-12: hermes-gateway-watchdog Permission denied every 2m until chmod +x.
 chmod +x "${REPO}/scripts/linuxbox/"*.sh 2>/dev/null || true

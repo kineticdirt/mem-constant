@@ -170,21 +170,78 @@ def cmd_list(repo, entries, tracked_only=False, backup_only=False):
 
 
 def cmd_preserve(repo, entries, dest):
-    """Copy git-TRACKED protected files aside (untracked survive reset anyway)."""
+    """Snapshot protected paths before git reset — runtime files on disk are truth."""
     tracked = git_tracked(repo)
     n = 0
-    for rel, _ent in walk_matches(repo, entries):
-        if rel not in tracked:
-            continue
+    for rel, ent in walk_matches(repo, entries):
+        typ = ent.get("type", "runtime-file")
         src = os.path.join(repo, rel)
+        if not os.path.isfile(src):
+            continue
+        # Runtime files: always preserve on-box copy (GM borders may differ from git HEAD).
+        if typ != "runtime-file" and rel not in tracked:
+            continue
         dst = os.path.join(dest, rel)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy2(src, dst)
         n += 1
         print("preserve: %s" % rel)
-    print("preserved %d tracked protected file(s)" % n)
+    print("preserved %d protected file(s)" % n)
     return 0
 
+
+
+
+def _gm_stats_json(path):
+    """GM polygon vert stats via regions-ui-gm-stats.py (sibling script)."""
+    if not path or not os.path.isfile(path):
+        return None
+    tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "regions-ui-gm-stats.py")
+    if not os.path.isfile(tool):
+        return None
+    try:
+        out = subprocess.run(
+            [sys.executable, tool, path, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if out.returncode != 0:
+        return None
+    try:
+        return json.loads(out.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def _restore_regions_ui_richer(saved, dest, rel):
+    """Prefer preserve snapshot when it has more GM verts than post-reset head."""
+    s_stats = _gm_stats_json(saved)
+    d_stats = _gm_stats_json(dest) if os.path.isfile(dest) else None
+    sv = int((s_stats or {}).get("total_verts") or 0)
+    dv = int((d_stats or {}).get("total_verts") or 0)
+    s_stub = bool((s_stats or {}).get("is_empty_or_stub"))
+    d_stub = bool((d_stats or {}) .get("is_empty_or_stub")) if d_stats else True
+    if s_stats and (sv > dv or (not s_stub and d_stub)):
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        shutil.copy2(saved, dest)
+        print(
+            "restore: %s (GM-rich preserve verts=%d > head %d)"
+            % (rel, sv, dv)
+        )
+        return True
+    if d_stats and dv > sv:
+        print(
+            "restore: keep head %s (head GM verts %d > preserve %d)"
+            % (rel, dv, sv)
+        )
+        return False
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    shutil.copy2(saved, dest)
+    print("restore: %s (runtime truth)" % rel)
+    return True
 
 def cmd_restore(repo, entries, src_dir):
     """Type-aware restore of files copied by `preserve`."""
@@ -214,11 +271,15 @@ def cmd_restore(repo, entries, src_dir):
                         % (rel, head_ver, local_ver)
                     )
             else:
-                # runtime-file / runtime-dir: on-box copy is truth
-                os.makedirs(os.path.dirname(dest), exist_ok=True)
-                shutil.copy2(saved, dest)
-                restored += 1
-                print("restore: %s (runtime truth)" % rel)
+                # runtime-file: on-box copy is truth; regions-ui uses GM vert richness
+                if rel.endswith("regions-ui.json"):
+                    if _restore_regions_ui_richer(saved, dest, rel):
+                        restored += 1
+                else:
+                    os.makedirs(os.path.dirname(dest), exist_ok=True)
+                    shutil.copy2(saved, dest)
+                    restored += 1
+                    print("restore: %s (runtime truth)" % rel)
     print("restored %d protected file(s)" % restored)
     return 0
 

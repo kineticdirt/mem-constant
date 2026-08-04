@@ -173,7 +173,28 @@ const regionsUi = {
 };
 
 fs.writeFileSync(path.join(mapRoot, "coords.json"), JSON.stringify(coords, null, 2) + "\n");
-fs.writeFileSync(path.join(mapRoot, "regions-ui.json"), JSON.stringify(regionsUi, null, 2) + "\n");
+
+const regionsUiPath = path.join(mapRoot, "regions-ui.json");
+let skipRegionsUiWrite = false;
+if (fs.existsSync(regionsUiPath)) {
+  const existing = JSON.parse(fs.readFileSync(regionsUiPath, "utf8"));
+  const hasGmPoly = (existing.areas || []).some((a) => {
+    if (!a || a.shape === "ellipse") return false;
+    const pts = a.points;
+    if (typeof pts === "string" && pts.trim().length > 2) return true;
+    return Array.isArray(pts) && pts.length >= 3;
+  });
+  if (hasGmPoly) {
+    console.error(
+      "REFUSE: regions-ui.json has GM polygons — sync-overlay-coords updates coords.json + map.json only (see REGIONS-UI-LOCK.md)."
+    );
+    skipRegionsUiWrite = true;
+  }
+}
+
+if (!skipRegionsUiWrite) {
+  fs.writeFileSync(regionsUiPath, JSON.stringify(regionsUi, null, 2) + "\n");
+}
 
 const mapJson = JSON.parse(fs.readFileSync(path.join(mapRoot, "map.json"), "utf8"));
 mapJson.markers = (mapJson.markers || []).map((m) => {

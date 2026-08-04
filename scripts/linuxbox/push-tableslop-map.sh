@@ -13,18 +13,123 @@ MAP="campaigns/tropic-gooner/map"
 TARBALL="/tmp/tableslop-map-deploy.tgz"
 
 # Serving artifacts + sources (sources are gitignored; linuxbox is their durable home).
+# regions-ui.json is potato-owned (GM Draw→Save). Excluded by default so empty PC
+# stubs cannot clobber live borders. Opt-in: PUSH_REGIONS_UI=1 after potato→PC pull
+# with non-empty geometry (see campaigns/tropic-gooner/map/REGIONS-UI-LOCK.md).
 PATHS=(
   "scripts/linuxbox/tableslop-server.js"
   "${MAP}/map.json"
   "${MAP}/coords.json"
   "${MAP}/layers.json"
-  "${MAP}/regions-ui.json"
   "${MAP}/pyramid.json"
   "${MAP}/master-enhanced.png"
   "${MAP}/tiles"
   "${MAP}/output-onlinetools4k.png"
   "${MAP}/output-onlinetools-2k.png"
 )
+
+_GM_STATS="${REPO}/scripts/linuxbox/regions-ui-gm-stats.py"
+_rui="${REPO}/${MAP}/regions-ui.json"
+SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=20 -o IdentitiesOnly=yes -i "${KEY}")
+
+_remote_gm_stats_inline() {
+  ssh "${SSH_OPTS[@]}" "${HOST}" python3 - <<'PY'
+import json, os
+p = os.path.expanduser("~/agent-dump/campaigns/tropic-gooner/map/regions-ui.json")
+if not os.path.isfile(p):
+    print("MISSING")
+    raise SystemExit(0)
+d = json.load(open(p, encoding="utf-8"))
+areas = d.get("areas") or []
+if isinstance(areas, dict):
+    areas = list(areas.values())
+polys, total = {}, 0
+has_ellipse = False
+for a in areas:
+    if not isinstance(a, dict):
+        continue
+    shape = a.get("shape")
+    if shape == "ellipse":
+        has_ellipse = True
+        continue
+    pts = a.get("points")
+    n = 0
+    if isinstance(pts, list):
+        n = len(pts) if len(pts) >= 3 else 0
+    else:
+        s = str(pts or "").strip()
+        if s and len(s) > 2:
+            n = len([x for x in s.split() if x and "," in x])
+    if n >= 3:
+        polys[str(a.get("id") or "?")] = n
+        total += n
+doc = str(d.get("_doc") or "")
+stub = len(polys) == 0 and (has_ellipse or "ellipses" in doc.lower())
+print(json.dumps({
+    "version": d.get("version"),
+    "poly_count": len(polys),
+    "total_verts": total,
+    "polys": polys,
+    "is_empty_or_stub": stub,
+}))
+PY
+}
+
+if [[ -f "${_GM_STATS}" && -f "${_rui}" ]]; then
+  _local_json="$(python3 "${_GM_STATS}" "${_rui}" --json 2>/dev/null || echo '{}')"
+else
+  _local_json='{"poly_count":0,"total_verts":0,"is_empty_or_stub":true}'
+fi
+_remote_json="$(_remote_gm_stats_inline)"
+echo "regions-ui local: poly_count=$(python3 -c "import json; j=json.loads('${_local_json}'); print(j.get('poly_count',0))") verts=$(python3 -c "import json; j=json.loads('${_local_json}'); print(j.get('total_verts',0))")"
+if [[ "${_remote_json}" != "MISSING" && "${_remote_json}" != "REMOTE_ERR" ]]; then
+  echo "regions-ui remote: ${_remote_json}"
+fi
+
+if [[ "${PUSH_REGIONS_UI:-0}" == "1" ]]; then
+  if [[ ! -f "${_rui}" ]]; then
+    echo "REFUSE: PUSH_REGIONS_UI=1 but PC ${_rui} missing" >&2
+    exit 1
+  fi
+  _local_poly="$(python3 -c "import json; j=json.loads('${_local_json}'); print(j.get('poly_count',0))")"
+  _local_verts="$(python3 -c "import json; j=json.loads('${_local_json}'); print(j.get('total_verts',0))")"
+  _local_stub="$(python3 -c "import json; j=json.loads('${_local_json}'); print(1 if j.get('is_empty_or_stub') else 0)")"
+  if [[ "${_local_poly}" -le 0 ]] || [[ "${_local_stub}" == "1" ]]; then
+    echo "REFUSE: PUSH_REGIONS_UI=1 but PC regions-ui empty/stub (polys=${_local_poly}). Pull potato→PC first." >&2
+    exit 1
+  fi
+  if [[ "${_remote_json}" != "MISSING" && "${_remote_json}" != "REMOTE_ERR" ]]; then
+    _refuse="$(python3 - "${_local_json}" "${_remote_json}" <<'PY'
+import json, sys
+local, remote = json.loads(sys.argv[1]), json.loads(sys.argv[2])
+rp, rv = int(remote.get("poly_count") or 0), int(remote.get("total_verts") or 0)
+lp, lv = int(local.get("poly_count") or 0), int(local.get("total_verts") or 0)
+if rp == 0:
+    raise SystemExit(0)
+if local.get("is_empty_or_stub"):
+    print(f"local stub vs remote polys={rp} verts={rv}")
+    raise SystemExit(1)
+if lv < rv:
+    print(f"local verts {lv} < remote {rv}")
+    raise SystemExit(1)
+PY
+)"
+    if [[ -n "${_refuse}" ]]; then
+      echo "REFUSE: PUSH_REGIONS_UI=1 would clobber potato GM borders — ${_refuse}" >&2
+      exit 1
+    fi
+  fi
+  PATHS+=("${MAP}/regions-ui.json")
+  echo "PUSH_REGIONS_UI=1 — including regions-ui.json (local polys=${_local_poly} verts=${_local_verts})"
+else
+  echo "skip ${MAP}/regions-ui.json (potato-owned; set PUSH_REGIONS_UI=1 after non-empty potato→PC pull)"
+  if [[ "${_remote_json}" != "MISSING" && "${_remote_json}" != "REMOTE_ERR" ]]; then
+    _remote_poly="$(python3 -c "import json; j=json.loads('${_remote_json}'); print(j.get('poly_count',0))")"
+    if [[ "${_remote_poly}" -gt 0 ]]; then
+      echo "remote GM borders preserved (${_remote_poly} polys) — map push will NOT touch regions-ui.json"
+    fi
+  fi
+fi
 
 for p in "${PATHS[@]}"; do
   [ -e "${REPO}/${p}" ] || { echo "missing: ${p}" >&2; exit 1; }
@@ -33,8 +138,6 @@ done
 if [ -d "${REPO}/${MAP}/reference" ]; then
   PATHS+=("${MAP}/reference")
 fi
-
-SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=20 -o IdentitiesOnly=yes -i "${KEY}")
 
 tar -czf "${TARBALL}" -C "${REPO}" "${PATHS[@]}"
 echo "uploading $(du -h "${TARBALL}" | cut -f1) over Tailscale (slow uplink — be patient)…"
@@ -60,4 +163,15 @@ if len(markers) < 1:
 PY
 EOF
 
+
 echo "OK — map deployed to ${HOST}:${REMOTE_REPO}/${MAP}; linuxbox-tableslop restarted"
+
+# Post-deploy GM border gates on linuxbox (fail loud on regression).
+ssh "${SSH_OPTS[@]}" "${HOST}" bash -s <<'REMOTE_VERIFY'
+set -euo pipefail
+REPO="${LINUXBOX_AGENT_DUMP:-/home/abhinav/agent-dump}"
+cd "${REPO}"
+bash "${REPO}/scripts/linuxbox/tableslop-gm-borders-guard.sh"
+bash "${REPO}/scripts/linuxbox/verify-runtime-state.sh" --context tableslop-map
+REMOTE_VERIFY
+echo "push-tableslop-map: post-deploy verify PASS"

@@ -70,6 +70,13 @@ if [[ -f "${PP}" ]]; then
   PROTECTED_REPO="${REPO}" python3 "${PP}" preserve "${PROT_PRESERVE}" >/dev/null 2>&1 || true
 fi
 
+
+gm_borders_autorestore() {
+  if [[ -f "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh" ]]; then
+    bash "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh"       || echo "git-pull-deploy: WARN gm-borders-autorestore failed" >&2
+  fi
+}
+
 restore_protected() {
   if [[ -f "${PP}" && -d "${PROT_PRESERVE}" ]]; then
     PROTECTED_REPO="${REPO}" python3 "${PP}" restore "${PROT_PRESERVE}" 2>/dev/null | grep -v '^restore: keep head' || true
@@ -97,6 +104,7 @@ if echo "${PULL_OUT}" | grep -qiE 'could not read Username|Authentication failed
   fi
   restore_dashboard_if_needed
   restore_protected
+  gm_borders_autorestore
   exit 0
 fi
 if echo "${PULL_OUT}" | grep -qiE 'fatal:|error:|Conflict|diverged|Not possible to fast-forward'; then
@@ -107,6 +115,7 @@ if echo "${PULL_OUT}" | grep -qiE 'fatal:|error:|Conflict|diverged|Not possible 
   fi
   restore_dashboard_if_needed
   restore_protected
+  gm_borders_autorestore
   exit 0
 fi
 # Success path may still print "Already up to date."
@@ -119,6 +128,7 @@ fi
 
 restore_dashboard_if_needed
 restore_protected
+gm_borders_autorestore
 
 if [[ "${OLD}" == "${NEW}" ]]; then
   exit 0
