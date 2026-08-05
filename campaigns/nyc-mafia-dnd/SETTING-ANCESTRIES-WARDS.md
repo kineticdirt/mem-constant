@@ -1,6 +1,6 @@
-# Ancestries & Wards — Prohibition New York
+# Ancestries & Wards — NYC Mafia × D&D
 
-*GM vision lock · 2026-08-01. Extends `SETTING-PROHIBITION-MAGIC.md`. Read that file first for era, tech, and law. Magitech grammar: `SETTING-MAGITECH-DIVERGENCE.md`. Updated per `SETTING-PEOPLES-RACES.md` (B17).*
+*GM vision lock · 2026-08-02. Era/tech SoT: `SETTING-SPELL-TECH-TREE.md` + `LOCKS.md`. Peoples mapping: `SETTING-PEOPLES-RACES.md` (B17). Superseded frames archived under `_trash/setting/`.*
 
 > **SUPERSEDING DIRECTIVE (B17):** The mapping of real-world immigrant and ethnic groups to fantasy ancestries is fully detailed in **`SETTING-PEOPLES-RACES.md`**. The ward table below has been updated to align with these locked and proposed mappings. Where conflicts arise, `SETTING-PEOPLES-RACES.md` is the primary source of truth.
 
@@ -93,4 +93,4 @@ Families are **human-led** institutions shaped by **territory and racket**, not 
 
 ---
 
-*See also: `SETTING-PROHIBITION-MAGIC.md` · `SETTING-MAGITECH-DIVERGENCE.md` · `story/factions.md` · `story/premise.md`*
+*See also: `SETTING-SPELL-TECH-TREE.md` · `SETTING-PEOPLES-RACES.md` · `story/premise.md` · `_trash/setting/` (void frames)*

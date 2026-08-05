@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NYC Wire Mesh — GM Utility Map</title>
+  <style>
+    :root {
+      --paper: #f4f2eb;
+      --ink: #2a2a2a;
+      --water: #e8ecef;
+      --borough-fill: rgba(255, 255, 255, 0.35);
+      --pocket: #5a5a5a;
+      --pin: #c0392b;
+      --pin-label: #1a1a1a;
+      --toolbar-bg: #ebe8e0;
+    }
+    body.dark {
+      --paper: #1c1f24;
+      --ink: #d8dce2;
+      --water: #252a32;
+      --borough-fill: rgba(255, 255, 255, 0.04);
+      --pocket: #9aa3ad;
+      --pin: #e74c3c;
+      --pin-label: #f0f2f5;
+      --toolbar-bg: #252a32;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+      background: var(--toolbar-bg);
+    }
+    header h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    header p {
+      margin: 0;
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+      background: var(--toolbar-bg);
+    }
+    button, label {
+      font-size: 0.8rem;
+    }
+    button {
+      padding: 0.35rem 0.65rem;
+      border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+      background: var(--paper);
+      color: var(--ink);
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    button:hover { filter: brightness(0.95); }
+    button.danger { border-color: #c0392b; color: #c0392b; }
+    #map-wrap {
+      padding: 0.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+      background: var(--water);
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .borough {
+      fill: var(--borough-fill);
+      stroke: var(--ink);
+      stroke-width: 1.2;
+      vector-effect: non-scaling-stroke;
+    }
+    .water-hint {
+      fill: none;
+      stroke: var(--ink);
+      stroke-width: 0.6;
+      stroke-dasharray: 6 4;
+      opacity: 0.45;
+      vector-effect: non-scaling-stroke;
+    }
+    .borough-label {
+      font-size: 11px;
+      font-weight: 600;
+      fill: var(--ink);
+      text-anchor: middle;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+    .pocket-label {
+      font-size: 8px;
+      fill: var(--pocket);
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .pin-group { cursor: pointer; }
+    .pin-dot {
+      fill: var(--pin);
+      stroke: var(--paper);
+      stroke-width: 1.5;
+      vector-effect: non-scaling-stroke;
+    }
+    .pin-text {
+      font-size: 9px;
+      font-weight: 600;
+      fill: var(--pin-label);
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .hint {
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+    #export-out {
+      display: none;
+      width: 100%;
+      min-height: 4rem;
+      margin: 0.5rem 1rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NYC Wire Mesh — GM utility map</h1>
+    <p>Schematic boroughs + neighborhood pockets. Not GIS — placement aid for the 1950s–60s spell-tech NYC campaign.</p>
+  </header>
+  <div class="toolbar">
+    <button type="button" id="btn-export">Export JSON</button>
+    <button type="button" id="btn-copy">Copy JSON</button>
+    <button type="button" class="danger" id="btn-clear">Clear all pins</button>
+    <label><input type="checkbox" id="dark-mode"> Dark paper</label>
+    <span id="pin-count" style="margin-left:auto;font-size:0.8rem;"></span>
+  </div>
+  <p class="hint">Click empty map to drop a pin · click a pin to edit label · drag pin to move</p>
+  <div id="map-wrap">
+    <svg id="map" viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg" aria-label="NYC wire mesh map">
+      <!-- Long Island hint -->
+      <path class="water-hint" d="M 780 280 L 980 260 L 980 420 L 800 400 Z" />
+      <text class="borough-label" x="900" y="340">Long Island →</text>
+
+      <!-- NJ fringe -->
+      <path class="borough" id="nj" d="M 20 120 L 180 100 L 220 200 L 200 380 L 120 480 L 40 420 L 20 280 Z" />
+      <text class="borough-label" x="110" y="280">New Jersey</text>
+
+      <!-- Hudson -->
+      <text class="pocket-label" x="310" y="300" transform="rotate(-75 310 300)">Hudson</text>
+
+      <!-- Bronx -->
+      <path class="borough" id="bronx" d="M 400 40 L 560 30 L 600 100 L 580 170 L 460 180 L 400 140 Z" />
+      <text class="borough-label" x="500" y="105">Bronx</text>
+
+      <!-- Manhattan -->
+      <path class="borough" id="manhattan" d="M 400 175 L 460 170 L 470 420 L 410 425 L 395 300 Z" />
+      <text class="borough-label" x="435" y="300">Manhattan</text>
+
+      <!-- Queens -->
+      <path class="borough" id="queens" d="M 470 175 L 720 160 L 760 280 L 740 400 L 500 410 L 470 280 Z" />
+      <text class="borough-label" x="600" y="280">Queens</text>
+
+      <!-- Brooklyn -->
+      <path class="borough" id="brooklyn" d="M 410 420 L 500 410 L 620 430 L 640 520 L 520 580 L 400 540 L 395 480 Z" />
+      <text class="borough-label" x="520" y="500">Brooklyn</text>
+
+      <!-- Staten Island -->
+      <path class="borough" id="staten" d="M 280 500 L 380 490 L 400 560 L 360 610 L 260 590 L 250 530 Z" />
+      <text class="borough-label" x="320" y="555">Staten Island</text>
+
+      <!-- Neighborhood pockets (approximate) -->
+      <text class="pocket-label" x="448" y="395">Chinatown</text>
+      <text class="pocket-label" x="430" y="220">Harlem</text>
+      <text class="pocket-label" x="418" y="310">Hell's Kitchen</text>
+      <text class="pocket-label" x="448" y="370">LES</text>
+      <text class="pocket-label" x="435" y="340">Midtown</text>
+      <text class="pocket-label" x="452" y="250">Yorkville</text>
+      <text class="pocket-label" x="540" y="200">Astoria</text>
+      <text class="pocket-label" x="480" y="440">Greenpoint</text>
+      <text class="pocket-label" x="580" y="520">Brighton Beach</text>
+      <text class="pocket-label" x="450" y="510">Red Hook</text>
+      <text class="pocket-label" x="175" y="360">Jersey docks</text>
+      <text class="pocket-label" x="130" y="200">Hoboken</text>
+      <text class="pocket-label" x="90" y="320">Newark</text>
+
+      <g id="pins-layer"></g>
+    </svg>
+  </div>
+  <textarea id="export-out" readonly aria-label="Exported pin JSON"></textarea>
+
+  <script>
+    const STORAGE_KEY = "nyc-mafia-dnd-wire-mesh-pins-v1";
+    const svg = document.getElementById("map");
+    const pinsLayer = document.getElementById("pins-layer");
+    const pinCountEl = document.getElementById("pin-count");
+    const exportOut = document.getElementById("export-out");
+
+    let pins = loadPins();
+    let dragPin = null;
+    let dragOffset = { x: 0, y: 0 };
+
+    function loadPins() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const data = JSON.parse(raw);
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function savePins() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
+      pinCountEl.textContent = pins.length ? pins.length + " pin(s)" : "No pins";
+    }
+
+    function svgPoint(clientX, clientY) {
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return { x: 0, y: 0 };
+      const p = pt.matrixTransform(ctm.inverse());
+      return { x: p.x, y: p.y };
+    }
+
+    function newId() {
+      return "pin-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+    }
+
+    function renderPins() {
+      pinsLayer.innerHTML = "";
+      pins.forEach((pin) => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.classList.add("pin-group");
+        g.dataset.id = pin.id;
+
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("class", "pin-dot");
+        dot.setAttribute("r", "5");
+        dot.setAttribute("cx", pin.x);
+        dot.setAttribute("cy", pin.y);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("class", "pin-text");
+        text.setAttribute("x", pin.x);
+        text.setAttribute("y", pin.y - 10);
+        text.textContent = pin.label || "?";
+
+        g.appendChild(dot);
+        g.appendChild(text);
+        pinsLayer.appendChild(g);
+      });
+      savePins();
+    }
+
+    function addPin(x, y) {
+      const label = prompt("Pin label (short):", "Site");
+      if (label === null) return;
+      const trimmed = label.trim() || "Site";
+      pins.push({ id: newId(), x, y, label: trimmed.slice(0, 48) });
+      renderPins();
+    }
+
+    function editPin(id) {
+      const pin = pins.find((p) => p.id === id);
+      if (!pin) return;
+      const label = prompt("Edit pin label:", pin.label);
+      if (label === null) return;
+      pin.label = (label.trim() || "Site").slice(0, 48);
+      renderPins();
+    }
+
+    svg.addEventListener("click", (e) => {
+      if (e.target.closest(".pin-group")) return;
+      const { x, y } = svgPoint(e.clientX, e.clientY);
+      if (x < 0 || y < 0 || x > 1000 || y > 620) return;
+      addPin(x, y);
+    });
+
+    pinsLayer.addEventListener("click", (e) => {
+      const g = e.target.closest(".pin-group");
+      if (!g) return;
+      e.stopPropagation();
+      editPin(g.dataset.id);
+    });
+
+    function onPointerMove(e) {
+      if (!dragPin) return;
+      const { x, y } = svgPoint(e.clientX, e.clientY);
+      dragPin.x = Math.max(0, Math.min(1000, x - dragOffset.x));
+      dragPin.y = Math.max(0, Math.min(620, y - dragOffset.y));
+      renderPins();
+    }
+
+    function onPointerUp() {
+      dragPin = null;
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    }
+
+    pinsLayer.addEventListener("pointerdown", (e) => {
+      const g = e.target.closest(".pin-group");
+      if (!g) return;
+      e.stopPropagation();
+      const pin = pins.find((p) => p.id === g.dataset.id);
+      if (!pin) return;
+      const pt = svgPoint(e.clientX, e.clientY);
+      dragPin = pin;
+      dragOffset = { x: pt.x - pin.x, y: pt.y - pin.y };
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    });
+
+    function exportJson() {
+      const payload = {
+        campaign: "nyc-mafia-dnd",
+        map: "nyc-wire-mesh",
+        exportedAt: new Date().toISOString(),
+        pins,
+      };
+      const text = JSON.stringify(payload, null, 2);
+      exportOut.value = text;
+      exportOut.style.display = "block";
+      return text;
+    }
+
+    document.getElementById("btn-export").addEventListener("click", exportJson);
+    document.getElementById("btn-copy").addEventListener("click", async () => {
+      const text = exportJson();
+      try {
+        await navigator.clipboard.writeText(text);
+        document.getElementById("btn-copy").textContent = "Copied!";
+        setTimeout(() => { document.getElementById("btn-copy").textContent = "Copy JSON"; }, 1500);
+      } catch {
+        alert("Copy failed — use Export JSON textarea.");
+      }
+    });
+    document.getElementById("btn-clear").addEventListener("click", () => {
+      if (!pins.length) return;
+      if (!confirm("Clear all pins from this browser?")) return;
+      pins = [];
+      renderPins();
+      exportOut.style.display = "none";
+    });
+
+    const darkCheck = document.getElementById("dark-mode");
+    const savedDark = localStorage.getItem("nyc-mafia-dnd-wire-mesh-dark") === "1";
+    darkCheck.checked = savedDark;
+    if (savedDark) document.body.classList.add("dark");
+    darkCheck.addEventListener("change", () => {
+      document.body.classList.toggle("dark", darkCheck.checked);
+      localStorage.setItem("nyc-mafia-dnd-wire-mesh-dark", darkCheck.checked ? "1" : "0");
+    });
+
+    renderPins();
+  </script>
+</body>
+</html>

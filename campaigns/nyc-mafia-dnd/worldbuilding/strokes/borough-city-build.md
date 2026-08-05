@@ -14,9 +14,12 @@ Manhattan is a vertical labyrinth of brick, coal smoke, and neon. It is the poli
 +-------------------------------------------------------------------------+
 |  Midtown (The Ashford Corridor)                                         |
 |  - Visibility: Polite Denial (B2).                                      |
-|  - Limestone towers, corporate offices, and luxury hotels.              |
-|  - Magic is hidden behind mahogany panels. Speaking-tubes are brass     |
-|    pneumatic mail tubes. Unseen servants operate freight lifts.         |
+|  - Limestone **cliffs** (8–12 stories), corporate offices, luxury hotels.|
+|  - **No steel towers** — brick/stone skyline; magic hidden behind panels. |
+|  - **Grand Central ward-hall** — Pemberton/Vandermeer ley-rail cathedral; |
+|    brass concourse, lying schedule board, tube trunk below concourse.     |
+|  - Speaking-tubes are brass pneumatic mail tubes. Unseen servants operate |
+|    freight lifts.                                                       |
 +-------------------------------------------------------------------------+
 |  Little Italy (Moretti Turf)                                            |
 |  - Visibility: Licensed. Human, Halfling, and Gnome mix.                |
@@ -79,7 +82,7 @@ Queens is a quiet, residential borough of shopfronts, lending offices, and spraw
   * **The Docks:** Astoria's waterfront is run by Greek Tritons (30%) and Sea Elves (30%). They wear heavy wool sweaters and refuse to eat Hudson River fish.
   * **The Racket:** Sea-spirit shipping contracts, sponge imports, and harbor salvage. Tritons run ferry smuggling routes, moving contraband under the hulls of boats using warded water-baskets.
 
-* **Jamaica:** A massive rail and transit hub where steam locomotives arrive from Long Island and New Jersey. A critical choke point for smuggling alchemical reagents.
+* **Jamaica:** Massive **ley-rail** and transit hub — **Pemberton** branch lines, **Harlan** freight yards, steam locomotives from Long Island. **Chen-Okafor** divination kiosks on the platform; **ice cars** smuggle alchemical reagents. Critical choke for night freight. Authority: `SETTING-GILDED-INDUSTRY.md` §3.3.
 
 ---
 
@@ -100,17 +103,77 @@ The Bronx is a rugged, hilly borough of brick tenements, elevated rail lines, an
 
 * **The South Bronx (Puerto Rican Lizardfolk & Genasi Wave):**
   * **The Corridor:** A rapidly growing, vibrant neighborhood of Puerto Rican families, featuring a prominent Lizardfolk (25%) and Genasi (15%) population.
-  * **The Turf:** A contested smuggling corridor. Valenti longshoremen and Chen-Okafor runners compete for control of the elevated rail lines and highway routes that bring New Jersey alchemical reagents into Manhattan.
+  * **The Turf:** A contested smuggling corridor. Valenti longshoremen and Chen-Okafor runners compete for control of the **elevated rail lines** and **arterial roads** (Grand Concourse, **no interstate belt**) that bring New Jersey alchemical reagents into Manhattan.
   * **The Local Hub:** **El Coquí Club** (East 138th St), a basement hub for lizardfolk transit crews drinking root-tincture rum ($0.35 a cup).
 
 ---
 
 ## 6. Travel Choke Points & Transit
 
-Moving people and contraband between the boroughs is a highly regulated, dangerous business.
+Moving people and contraband between the boroughs is a highly regulated, dangerous business. **Authority:** `SETTING-URBAN-FRINGE.md` §4–7; **ley-rail detail:** `SETTING-GILDED-INDUSTRY.md`.
 
+* **Ley-rail & ward-rail (commuter + freight):**
+  * **Grand Central:** **Vandermeer Terminal** concourse — ritual conductors, **$0.35** commuter base fare to Newark (bribes extra); schedule board **glitches** near automata.
+  * **Pemberton Main:** Newark ↔ Manhattan trunk — **peak chaos**; OCU ward-sniffers platform 12.
+  * **Harlan Shore night freight:** Red Hook ↔ Passaic — **construct cores**, cold-iron; Valenti **stamp** forgery.
+  * **Failure modes:** feast-day boiler stall, **ghost schedule**, ward **misroute** — see `SETTING-GILDED-INDUSTRY.md` §3.5.
+* **Subways (brass, steam-assist, ward-lit):**
+  * **The Ride:** **IRT** els in the Bronx; **IND** deep tubes in Manhattan/Brooklyn. Steam pistons help **grades**; platform lamps are **continual flame** (gas backup in outer stations).
+  * **The Glitch:** Near **construct cores** or **Below** breaches, **signals lie** and **doors stick** — OCU blames **"vandalism"**; families blame **each other**.
+  * **The Fare:** **$0.15** token legal; **$2.00** bribe to skip **cargo** search at **Court Street** (Valenti Below access).
+* **Cabs (motorized carriages — slow):**
+  * **Hack license:** **$1.50–$2.50** midtown ↔ docks; **12–18 mph** on clear streets.
+  * **Jitney:** **$0.75** flat — **unlicensed**, may **stop** for other fares.
+  * **Family black car:** **Favor**, armored brass — **no** meter.
 * **The Bridges & Tunnels (The Toll Racket):**
   * **The Choke:** The Brooklyn Bridge, Manhattan Bridge, and Holland Tunnel are heavily guarded by OCU checkpoints equipped with ward-sniffers.
   * **The Smuggle:** Runners must use lead-lined compartments or warded carriages to transport bootleg elixirs or unlicensed cores across the river.
 * **The Staten Island Ferry:**
   * **The Rites:** The ferry is operated under a municipal license. Dock priests perform "water walk" and "calm wave" rites to keep river spirits from capsizing the boats. The Kowalskis use garbage barges to move heavy contraband under the guise of municipal waste transport.
+
+---
+
+## 7. Sprawl, Arterials & Skyline (B18)
+
+**LOCK:** **No large steel towers.** **No big interstates.** The metro is **brick**, **stone**, **guild spires**, and **factory stacks** — mostly **4–8 stories**, occasional **12-story** limestone **cliffs** on Midtown avenues.
+
+| Zone | Shape |
+|------|-------|
+| **Manhattan spine** | Avenues + numbered streets; **els** cast shadow on arterials; **Grand Central** rail cathedral |
+| **Queens sprawl** | Wood bungalows and brick duplexes on old farm lines — **Flushing** lending face, **Jamaica** ley-rail hub |
+| **Bronx hills** | Tenements + **Grand Concourse** arterial — **elevated** competition for smuggling |
+| **Outer edges** | **Pelham Bay**, **Jamaica Bay** — **fringe** night markets, **vampire** front apartments, **lycan** garbage crews |
+| **Jersey commuter belt** | **Commuter Causeway** (toll) — **Pemberton** / **Morris & Essex** lines; **Palisades** druid/lycan fringe; **Bayonne** tank-farm handoffs |
+| **Parkways** | Cars allowed; trucks policed — **not** interstate cloverleafs |
+
+**Fire on the grid:** **Engine companies** (steam pump) vs **magic brigades** (Temple Hose on parish blocks, Foundry Brigade near docks) — response time is **ward politics**, not heroics.
+
+---
+
+## 8. Metro Surrounds — NY State, New Jersey, CT & LI
+
+The Commission's money crosses bridges. **Authority:** `SETTING-PEOPLES-RACES.md` §Metro Surrounds; fringe locks in `SETTING-URBAN-FRINGE.md` §10.
+
+### New York State (beyond the boroughs)
+
+| Zone | Grain | Peoples / play |
+|------|-------|----------------|
+| **Hudson Valley** | Commuter towns, river estates, **PCL** trailheads | Dutch **sluice** gnomes, German elf **weekend** glass shops, druid **donor** hikes — **deed** disputes on Harlem-adjacent **covenant** lines |
+| **Albany corridor** | State capitol adjunct — **not** street turf | Ward **license appeals**, dwarf **clerks**, **Green Desk** file copies — players go **upstate** for **paper** wins |
+| **Upstate fringe** | Adirondack **headlines**, timber cuts | **Lycan** garbage-route rumors; **Green Cord** **steam-main** sabotage — **who profits** from the terror label |
+
+### New Jersey
+
+| Zone | Grain | Peoples / play |
+|------|-------|----------------|
+| **Hoboken / Jersey City** | Waterfront bars, canal streets, **Iron Guild** halls | German elves, Irish half-orcs, Dutch gnomes — **union** beer and **tank-farm** bribes |
+| **Newark** | **Ironbound** fish row, Central Ward clubs, **India Square** | Portuguese tritons, Black **Harlem-adjacent** jazz circuit, **sparse** South Asian temple block |
+| **Palisades cliffs** | Firbolg lumber, druid **cells**, lycan **caves** | Welsh **canal** pilots; Valenti **handoff** lots; **Below** overflow **tax** |
+| **Passaic rust belt** | Cold-iron depots, **commune** news | Russian shifters; FSA **raid** fuel; **cold-iron** capsule **runs** |
+
+### Connecticut & Long Island (one paragraph each)
+
+**Connecticut:** Stamford/Greenwich **commute** — English half-elf **Ashford** country clubs; **polite denial** visibility; weekend **sit-downs** where **no** OCU captain wants to drive.
+
+**Long Island:** Nassau **sprawl** bungalows on old farm lines; Scandinavian goliath **boat** yards; Greek triton **offshore** smuggle; **city money**, **county** sheriff — **fringe** markets at **Jamaica Bay** feed both.
+

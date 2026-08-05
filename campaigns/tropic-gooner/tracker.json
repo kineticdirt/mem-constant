@@ -1,0 +1,51 @@
+{
+  "id": "tropic-gooner",
+  "title": "Tropic Gooner · Isla Primavera",
+  "subtitle": "WoD / Hunter chronicle · map on tableslop",
+  "status": "active",
+  "name_pending": false,
+  "player_facing": false,
+  "map_href": "https://map.tableslop.org/",
+  "discord": {
+    "guild_id": "1012888284222988409",
+    "category_id": "1137592539076120666",
+    "channel_id": "1137592633045307403",
+    "notes": "Live chronicle under Fallout Campaign category; main-rp channel deep-linked. Hunter bot shares this guild."
+  },
+  "updated_at": "2026-07-28T23:10:00.000Z",
+  "pcs": [
+    {
+      "id": "pc-wholesome",
+      "name": "Wholesome Boi (GM)",
+      "player": "Abhinav",
+      "role": "GM / chronicle",
+      "notes": "Full cast lives in Hub Chars + map #cast — this tracker is session ops.",
+      "sheet": ""
+    }
+  ],
+  "schedule": [
+    {
+      "id": "sess-ongoing",
+      "when": "Ongoing Discord",
+      "title": "Live chronicle",
+      "location": "Discord + map.tableslop.org",
+      "notes": "Hunter bot may be down — check campaigns availability."
+    }
+  ],
+  "availability": [
+    {
+      "person": "Table",
+      "windows": "See Discord + Hub Inbox",
+      "notes": ""
+    }
+  ],
+  "inventory": [
+    {
+      "id": "inv-note",
+      "item": "(use Chars / Discord sheets for gear)",
+      "owner": "cast",
+      "qty": 0,
+      "notes": "Party loot can be listed here when you want a session-facing list."
+    }
+  ]
+}

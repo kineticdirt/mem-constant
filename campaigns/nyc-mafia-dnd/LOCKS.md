@@ -6,7 +6,7 @@
 > **Magic-biotech:** sigils, bindings, living patterns — **not** lab/CRISPR aesthetics.
 > **Automata:** **Existential threat** at civilization scale (not rare union garnish; not supercomputers).
 > **Gender:** Male-dominant diegetic society; women mostly domestic but can take suited male duties; somewhat sexual tone with some prudery.
-> **Prose:** STE clarity with writing flair; concrete; NO AI slop (ban "tapestry", "vibrant", "delve", "testament").
+> **Prose:** STE for tables/prices; **binder voice** for paragraphs (see B19). Ban slop: "tapestry", "vibrant", "delve", "nestled", "underscores", "landscape of", "testament".
 > **Research-like Invention:** Prices, clubs, trades, districts — invent usable campaign facts fast.
 
 **Status:** Active · **2026-08-02** (G0 + uneven eras + capability asymmetry)  
@@ -21,7 +21,9 @@
 |---------|--------|-------------|
 | **1931 Prohibition-as-core** | **VOID** | **1950s–1960s** NYC + Jersey culture (jazz, postwar boom, cold-war anxiety). |
 | **OTR / BCC Gin Frame** | **VOID** | Licensed guild/temple craft vs **bootleg ritual** (healing bands, construct cores, bound spirits). |
-| **Magitech Divergence** | **VOID** | **D&D 5e spell/casting-rooted technology** (needs → spell method). |
+| **Magitech Divergence** | **VOID** | **D&D 5e spell/casting-rooted technology** (needs → spell method). Archive: `_trash/setting/SETTING-MAGITECH-DIVERGENCE.md`. |
+| **Prohibition-law frame** | **VOID** | Archive: `_trash/setting/SETTING-PROHIBITION-MAGIC.md` — use `SETTING-SPELL-TECH-TREE.md` + `2026-08-01-law-and-magic.md`. |
+| **Era-law stroke pack (1931)** | **VOID** | Archive: `_trash/worldbuilding/strokes/era-law-pack.md` + related details/vignettes. |
 | **Automata as rare garnish** | **VOID** | **Existential threat** at civilization scale (runaway constructs, siege engines, plague of knockers). |
 | **Modern/2026 surveillance/phones** | **VOID** | Late-1800s tech (speaking-tubes, continual flame, warded carriages). |
 | **Gunpowder / chemical firearms** | **VOID** | **Capsule arms** — mana pulse, kinetic sling, specialty loads (`SETTING-ARMS.md` B16). |
@@ -104,4 +106,8 @@
 | **B14** | **Uneven eras** | No single calendar year; culture/tech/medicine/automata/computation wear different decades. Pointer: `SETTING-CAPABILITY-ASYMMETRY.md` §2. | **LOCKED** |
 | **B15** | **Capability asymmetry** | Medicine/life/death **strong**; automata/sentience **modern-future threat**; computation/prediction **weak**. Agent gate: classify lane before inventing. | **LOCKED** |
 | **B16** | **Capsule arms** | **VOID:** gunpowder/chemistry firearms. **LOCK:** magical **capsule** loads (pulse / sling + specialties). Late-1800s frames; no Tommy guns. Pointer: `SETTING-ARMS.md`. | **LOCKED** |
-| **B17** | **Peoples ↔ Races** | **LOCK:** German elves, French half-elves/genasi/tiefling, Spanish human/dragonborn/tiefling, Welsh firbolgs, Scottish goliaths, Jewish goblinoids (Erklings/Goddarts). **PROPOSED:** Polish dwarves/gnomes, Russian shifters/orcs pending GM feedback. Pointer: `SETTING-PEOPLES-RACES.md`. | **LOCKED/PROPOSED** |
+| **B17** | **Peoples ↔ Races** | **LOCK:** German elves, French half-elves/genasi/tiefling, Spanish human/dragonborn/tiefling, Welsh firbolgs, Scottish goliaths, Jewish goblinoids (Erklings/Goddarts); **English** human-majority + half-elf/dwarf; **Italian** hobgoblin-primary (50%). **LOCK:** Western Europe dense (Irish, Dutch, Portuguese, Belgian/Swiss); Eastern lighter (Polish, Russian, Ukrainian, Greek, Scandinavian, Balkan); Americas (Puerto Rican, Central/South American); Black diaspora + **Aarakocra**; slavery-legacy texture; sparse Asia (Chinese, South Asian, SE Asian); metro surrounds (NY State, NJ, CT/LI). Pointer: `SETTING-PEOPLES-RACES.md`. | **LOCKED** |
+| **B18** | **Urban fringe & order** | **Cities dominate** politics/economics. **Vampires/werewolves** real but **fringe** (sprawl edge, Below, Jersey wilds, night markets) — not mainstream citizens. **Druids** framed as **communist terrorists** — show **corruption** (who benefits). **Subways** exist (brass, steam-assist, ward-lit; glitch near automata). **Cabs** = **slow motorized carriages**. **Fire** = steam engines **and/or** magic brigades. **Skyline:** **no steel towers**; suburban **sprawl** + **arterials**; **no interstates**. Pointer: `SETTING-URBAN-FRINGE.md`. | **LOCKED** |
+| **B19** | **Binder voice (prose)** | **Human GM notes**, not LLM essay. Digressions OK; opinionated asides; uneven paragraphs; concrete nouns; Barry-dry jokes that land flat. **Avoid:** tapestry/vibrant/delve/nestled/underscores/landscape of; symmetric bullet poetry; "In this setting…"; perfect parallel structure everywhere. **STE** still for tables/prices — paragraphs can ramble. Pointer: `worldbuilding/VOICE.md`. | **LOCKED** |
+| **B20** | **Gilded industry & magitech\*** | **Gilded Age texture** in uneven stack: robber-baron industrialists, ostentatious wealth vs tenement sprawl, patronage politics, **rail/ward-rail fortunes**. **Magical trains** — ley/ward-rail, ritual conductors, capsule or mana-fed locomotives (routes, owners, failure modes). **magitech\*** = spell/sigil/patronage industrial machines (**NOT** void `SETTING-MAGITECH-DIVERGENCE` 1931 thesis). Industrialists alongside five families (**Ashford lean**; thin names OK). Schedules = **human/clerk chaos** (weak computation). Pointer: `SETTING-GILDED-INDUSTRY.md`. | **LOCKED** |
+| **B21** | **Scry-capture & press** | Mass news **image** = **projection token** (glyph-index + newsstand **verity-lantern**), not halftone photo. Archival = **bound-light plate** (strong evidence); luxury = **living ink**. Evening editions via **scry pools + clerks** — no wirephoto/TV. Rare **image-deny** (capture-block). Pointer: `SETTING-SCRY-PRESS.md`. | **LOCKED** |

@@ -1,6 +1,6 @@
 # Cursor Auto handoff — NYC Mafia × D&D
 
-**Updated:** 2026-08-02 (PC GM) — **peoples & races** B17 + worldbuilding reports reindex
+**Updated:** 2026-08-02 (PC GM) — **B19 binder voice** + peoples/races B17
 
 ## Active canon (every prompt)
 
@@ -13,7 +13,8 @@ Read `campaigns/nyc-mafia-dnd/LOCKS.md` banner first.
 - **Magic-biotech:** sigils, bindings, living patterns — not lab/CRISPR.
 - **Tech:** late-1800s spell-tech; D&D 5e needs→spell; NOT 1931 magitech / NOT modern science.
 - **Automata:** existential threat (force/labor/sentience — not supercomputers).
-- **Prose:** STE + flair; Barry dryness on examples; no slop.
+- **Prose:** STE for tables/prices; **binder voice** for paragraphs (B19). Barry dryness on examples; no slop.
+- **Binder voice (B19):** Digressions OK; opinionated asides; uneven paragraphs; concrete nouns; jokes that land flat. **Avoid:** tapestry/vibrant/delve/nestled/underscores/landscape of; symmetric bullet poetry; "In this setting…". See `worldbuilding/VOICE.md`.
 - **Humor (B13):** Barry (HBO) — dry, awkward, darkly funny until it isn't. Not sitcom.
 
 ## Primary job (2026-08-02)

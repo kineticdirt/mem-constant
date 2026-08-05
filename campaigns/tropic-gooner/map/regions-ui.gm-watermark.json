@@ -1,0 +1,13 @@
+{
+  "_doc": "GM border vert baseline — compare via scripts/linuxbox/tableslop-gm-borders-guard.sh. Update only with --accept after GM Draw saves (never auto-bump on PASS).",
+  "file": "campaigns/tropic-gooner/map/regions-ui.json",
+  "accepted_at": "2026-08-02T23:15:00Z",
+  "accepted_by": "gm-borders-guard initial baseline (post-restore v19)",
+  "version": 19,
+  "poly_count": 2,
+  "total_verts": 371,
+  "polys": {
+    "r01-paradise": 277,
+    "r03-crimson-quay": 94
+  }
+}

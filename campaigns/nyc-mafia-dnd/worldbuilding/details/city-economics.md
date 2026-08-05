@@ -50,6 +50,34 @@ These are standard street prices for illicit spell-tech, bootleg elixirs, and un
 * **Forged Locksmiths' Guild Stamp:** **$20.00**. A brass stamp used by Valenti forgers to mark contraband crates as "guild-cleared."
 * **Speaking-Tube Tapping Clip:** **$35.00**. A brass clamp used by ward-breakers to tap into Midtown communication tubes.
 
+### E. Rail Freight & Commuter (Gilded Industry — B20)
+*Authority: `SETTING-GILDED-INDUSTRY.md`.*
+
+| Service | Price | Notes |
+|---------|-------|-------|
+| **Commuter ley-rail (one way, Newark ↔ Grand Central)** | **$0.35** | Pemberton published fare; **+$2.00** bribe to skip **cargo** search |
+| **Harlan night freight (per sealed car, Red Hook ↔ Passaic)** | **$85.00** | Valenti **kickback** to yard clerk not included |
+| **Ice-car reagent slot (Jamaica ↔ Flushing, unofficial)** | **$120.00** | Chen-Okafor **manifest** forgery extra **$40.00** |
+| **Ritual conductor "priority seal" (feast-day stall skip)** | **$25.00** | Illegal; temple audits **1 in 8** |
+| **Capsule switch-engine hopper refill (6 caps)** | **$12.00** | Same supply chain as pulse ammo; **drifts** on feast days |
+| **Grand Central platform bribe (avoid ward-sniffer)** | **$5.00–$15.00** | OCU presence varies by **bond vote** week |
+| **Morris & Essex tank-farm spur (per tank car)** | **$200.00** | Cold-iron cartridge runs; druid sabotage insurance **not** included |
+
+**Schedule reality:** Timetables are **aspirational**. Budget **30–90 minutes** of "human chaos" per rush-hour trip (`SETTING-CAPABILITY-ASYMMETRY.md` §4b).
+
+### F. Scry, Press & Lantern-Slides (B21 — Weak Archive Lane)
+*Authority: `SETTING-SCRY-PRESS.md`. Perception is strong; mass news uses **projection tokens**, not halftone photos.*
+
+| Item | Price | Notes |
+|------|-------|-------|
+| **Newsstand verity-lantern view** (one glyph-index) | **$0.05** | Password in paper margin or coin slot |
+| **Shadow-print wanted handbill** (bulk) | **$0.02** each | Fades in weeks |
+| **Bound-light plate** (studio sitting) | **$8.00 – $25.00** | Wedding / passport / court exhibit |
+| **Living-ink impression** | **$40.00+** | *Herald-Post* Sunday tier |
+| **Illicit scry stringer** (per scene, no guild seal) | **$75.00 – $200.00** | Court-inadmissible |
+| **Guild rim-seal forgery** | **$500.00+** | FAB felony |
+| **Image-deny consult** (one subject, one day) | **$1,200.00+** | Rare capture-block |
+
 ---
 
 ## 3. The Guilds & Unions (The Straight Game)

@@ -1,0 +1,672 @@
+{
+  "version": 3,
+  "campaign_id": "tropic-gooner",
+  "updated_at": "2026-07-14",
+  "goal_doc": "docs/campaign-player-continuity-goals.md",
+  "notes": "v3: hide Discord RP-thread twins + GM/author stubs from default Chars grid. 2026-07-12: removed rosa + rosalinda stub rows (merged into rosalina-bonetto). 2026-07-12: Rosalina gallery cleared (partner→jinpei-mclaren; misc→_quarantine-rosalina-misattr). Ellaine primary→IMG_3193; roommate imgs quarantined (not merged). 2026-07-12: unretired all status:retired; Rosalina doc_attachments cleared (sheet Attachment basenames were re-resolving to jinpei portraits). 2026-07-13: Chars relations schema; Alisa Stein + Ellaine roommate NPCs; Jinpei↔Rosalina fwb; gallery-cleared honor on server. 2026-07-14: harper-sister unnamed NPC + sister↔harper-maupin; re-verified twin/roommate/fwb links. 2026-07-14b: restored GM NPC celine (separate NPC); roommate named Sofia per GM Inbox answer — never wipe potatoregistry over user-created rows without merge.",
+  "characters": [
+    {
+      "id": "age",
+      "display_name": "Age:",
+      "story_path": "campaigns/tropic-gooner/characters/discord/age.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "ingest-noise",
+      "hidden": true,
+      "can_proxy": false,
+      "notes": "GM sheet template post — not a character. Hidden from Chars grid.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "alisa-stein",
+      "display_name": "Alisa Stein",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Nelly Stein's twin sister (named in Discord Intro/Nelly sheet). Hospitalized / occult plot. No portrait yet — do not invent art.",
+      "aliases": [
+        "Alisa",
+        "alisa"
+      ],
+      "duplicate_paths": [],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "nelly-stein",
+          "type": "twin_sister",
+          "label": "twin sister of Nelly"
+        }
+      ]
+    },
+    {
+      "id": "bleep-boop",
+      "display_name": "Bleep Boop",
+      "story_path": "campaigns/tropic-gooner/characters/discord/bleep-boop.md",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "author-stub",
+      "hidden": true,
+      "canonical_id": "lena-litzveil",
+      "can_proxy": false,
+      "notes": "Discord author stub for Lena Litzveil — collapsed into lena-litzveil.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "cassidy",
+      "display_name": "Cassidy",
+      "story_path": "campaigns/tropic-gooner/characters/discord/cassidy.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "thread-twin",
+      "hidden": true,
+      "canonical_id": "cassidy-catharine-cece",
+      "can_proxy": false,
+      "notes": "RP intro thread twin of Cassidy Catharine (Cece). Hidden — use sheet row.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "cassidy-catharine-cece",
+      "display_name": "Cassidy Catharine (Cece)",
+      "story_path": "campaigns/tropic-gooner/characters/discord/cassidy-catharine-cece.md",
+      "discord_username": "Alistrahd",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical sheet (Alistrahd). Thread twin: cassidy.md. Faceclaim attachments listed in sheet — binaries not on disk yet.",
+      "aliases": [
+        "alistrahd",
+        "cassidy"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/alistrahd.md",
+        "campaigns/tropic-gooner/characters/discord/cassidy.md"
+      ],
+      "doc_attachments": [
+        "attachments/1000024253-removebg-preview-1.png",
+        "attachments/1000024256-removebg-preview-2.png",
+        "attachments/1000024259-removebg-preview-1.png",
+        "attachments/SPOILER_SPOILER_SPOILER_1000024261-removebg-preview.png"
+      ],
+      "images": [
+        "characters/portraits/cassidy-catharine-cece/1000024253-removebg-preview-1.png",
+        "characters/portraits/cassidy-catharine-cece/1000024256-removebg-preview-2.png",
+        "characters/portraits/cassidy-catharine-cece/1000024259-removebg-preview-1.png",
+        "characters/portraits/cassidy-catharine-cece/SPOILER_SPOILER_SPOILER_1000024261-removebg-preview.png"
+      ],
+      "image_path": "characters/portraits/cassidy-catharine-cece/1000024253-removebg-preview-1.png"
+    },
+    {
+      "id": "deleted-user",
+      "display_name": "Deleted User",
+      "story_path": "campaigns/tropic-gooner/characters/discord/deleted-user.md",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "author-stub",
+      "hidden": true,
+      "canonical_id": "felix",
+      "can_proxy": false,
+      "notes": "Author stub sharing Felix faceclaim attachments. Hidden.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "ellaine",
+      "display_name": "Ellaine",
+      "story_path": "campaigns/tropic-gooner/characters/discord/ellaine.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "thread-twin",
+      "hidden": true,
+      "canonical_id": "ellaine-mishpit",
+      "can_proxy": false,
+      "notes": "RP thread twin of Ellaine Mishpit (Myra). Do not map Character Images/Ellaine here — that caused duplicate faces.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "ellaine-mishpit",
+      "display_name": "Ellaine Mishpit",
+      "story_path": "campaigns/tropic-gooner/characters/discord/ellaine-mishpit.md",
+      "discord_username": "Myra Secretive Town",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical PC (Myra). Plot Timeline + sheet name. Primary: Character Images/Ellaine/IMG_3193.jpg (Plot Timeline ![[IMG_3193.jpg]]; GM cue pink-haired cat girl — folder metadata, not vision). Roommate is Sofia (id ellaine-roommate; GM-named via Inbox); roommate files under Character Images/NPC Images/ + characters/portraits/_quarantine-ellaine-roommate/. Do not merge with roommate. Thread twin `ellaine` stays hidden→this id.",
+      "aliases": [
+        "myra-secretive-town",
+        "ellaine"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/myra-secretive-town.md",
+        "campaigns/tropic-gooner/characters/discord/ellaine.md"
+      ],
+      "image_path": "Character Images/Ellaine/IMG_3193.jpg",
+      "doc_attachments": [],
+      "images": [
+        "Character Images/Ellaine/IMG_3193.jpg",
+        "Character Images/Ellaine/16443a480a66d10a47d139cb538e6475.gif",
+        "Character Images/Ellaine/1a62303f3cdd30e479a4ee8cba6d4417.png",
+        "Character Images/Ellaine/5c7b1c5312501c07a87f085bad723375.png",
+        "Character Images/Ellaine/765f5e80b1b17dbffff97083423ace1f.png",
+        "Character Images/Ellaine/__zentreya_and_zentreya_vshojo_drawn_by_cubeskar__sample-7149de7581f134f1fbc2e9b5820b172b.jpg",
+        "Character Images/Ellaine/d56a5709b85ccacdde1a7e10c8ec047b.png",
+        "Character Images/Ellaine/IMG_2683.jpg",
+        "Character Images/Ellaine/IMG_2687.jpg",
+        "Character Images/Ellaine/IMG_3188.jpg",
+        "Character Images/Ellaine/IMG_3189.jpg",
+        "Character Images/Ellaine/maxresdefault.jpg",
+        "Character Images/Ellaine/sample_0af84c79195cbad17c8fe9e16bf2e190.png",
+        "Character Images/Ellaine/sample_2c1d3d133df784994b5e563ae500e651.png",
+        "Character Images/Ellaine/sample_8ee8fdf68912f3e2cd9ddaf120daf00e.png",
+        "Character Images/Ellaine/sample_92508cb8a96aa3630898072379d9668c.png",
+        "Character Images/Ellaine/sample_a1378a13dfde4bf8dddf17d76f07cdb2.png",
+        "Character Images/Ellaine/sample_a7972cb57f87c9d21cb5d67a39b423f4.png",
+        "Character Images/Ellaine/sample_c2fc437d0d90d17e5ea1fd0398e8a33b.png",
+        "Character Images/Ellaine/sample_f1075126935010a157ee20b279f4b0a8.png"
+      ],
+      "relations": [
+        {
+          "to_id": "ellaine-roommate",
+          "type": "roommate",
+          "label": "roommate"
+        }
+      ]
+    },
+    {
+      "id": "ellaine-roommate",
+      "display_name": "Sofia",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Ellaine Mishpit's roommate. GM named her Sofia via Inbox answer 2026-07-13. Portrait dumps under characters/portraits/_quarantine-ellaine-roommate/. Never hard-delete GM/user-created chars without ask.",
+      "aliases": [
+        "sofia",
+        "roommate",
+        "roomie"
+      ],
+      "duplicate_paths": [],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "ellaine-mishpit",
+          "type": "roommate",
+          "label": "roommate"
+        }
+      ]
+    },
+    {
+      "id": "celine",
+      "display_name": "Celine",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "GM-created NPC (Chars +Add, 2026-07-13 ~21:38 ET). Registry row wiped by PC SCP 21:58 ET; restored 2026-07-14. Relations/details not recorded before wipe - GM to fill in. Roommate NPC is Sofia (separate). Never hard-delete GM/user-created chars without ask.",
+      "aliases": [
+        "celine"
+      ],
+      "duplicate_paths": [],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": []
+    },
+    {
+      "id": "felix",
+      "display_name": "Felix",
+      "story_path": "campaigns/tropic-gooner/characters/discord/felix.md",
+      "discord_username": "Deleted User",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Sheet/thread ingest. Faceclaim attachments referenced in doc — binaries not under Character Images yet.",
+      "aliases": [
+        "deleted-user"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/deleted-user.md"
+      ],
+      "doc_attachments": [
+        "attachments/IMG_8105.jpg",
+        "attachments/IMG_9033.jpg",
+        "attachments/IMG_9035.jpg",
+        "attachments/IMG_9038.jpg",
+        "attachments/IMG_9069.png",
+        "attachments/IMG_9983.jpg"
+      ],
+      "images": [
+        "characters/portraits/felix/IMG_8105.jpg",
+        "characters/portraits/felix/IMG_9033.jpg",
+        "characters/portraits/felix/IMG_9035.jpg",
+        "characters/portraits/felix/IMG_9038.jpg",
+        "characters/portraits/felix/IMG_9069.png",
+        "characters/portraits/felix/IMG_9983.jpg"
+      ],
+      "image_path": "characters/portraits/felix/IMG_8105.jpg"
+    },
+    {
+      "id": "harper-maupin",
+      "display_name": "Harper Maupin",
+      "story_path": "campaigns/tropic-gooner/characters/discord/harper-maupin.md",
+      "discord_username": "Mélicendre",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Unretired 2026-07-12 (was Plot Timeline strike). Portrait folder Character Images/Harper. Little sister = harper-sister (unnamed; inbox chars-npc-harper-sister-20260713).",
+      "aliases": [
+        "m-licendre"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/m-licendre.md"
+      ],
+      "image_path": "Character Images/Harper/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
+      "doc_attachments": [
+        "attachments/13a4dded47d490ffb0c41df4378a7f1a.jpg",
+        "attachments/a66d9a9a153133cc116d2b9d1f268bf0.png",
+        "attachments/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
+        "attachments/sample_f52bb88502387daa8768e80118d1844c.jpg"
+      ],
+      "images": [
+        "characters/portraits/harper-maupin/13a4dded47d490ffb0c41df4378a7f1a.jpg",
+        "characters/portraits/harper-maupin/a66d9a9a153133cc116d2b9d1f268bf0.png",
+        "characters/portraits/harper-maupin/sample_35b5bed5aded11506fc27ee1d17e3218.jpg",
+        "characters/portraits/harper-maupin/sample_f52bb88502387daa8768e80118d1844c.jpg"
+      ],
+      "relations": [
+        {
+          "to_id": "harper-sister",
+          "type": "sister",
+          "label": "little sister (unnamed)"
+        }
+      ]
+    },
+    {
+      "id": "harper-sister",
+      "display_name": "Harper's sister (unnamed)",
+      "story_path": "",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Harper Maupin's little sister (Discord sheet / inbox chars-npc-harper-sister-20260713). Name not established — do not invent. No separate daughter NPC unless sheets document one. No portrait — do not invent art.",
+      "aliases": [
+        "Harper's sister",
+        "Harper sister"
+      ],
+      "duplicate_paths": [],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "harper-maupin",
+          "type": "sister",
+          "label": "sister of Harper"
+        }
+      ]
+    },
+    {
+      "id": "jinpei-mclaren",
+      "display_name": "Jinpei McLaren",
+      "story_path": "campaigns/tropic-gooner/characters/discord/rosalinda.md",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "npc",
+      "role": "npc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "In-fiction partner/mechanic of Rosalinda Bonetto (named in Rosalinda intro thread). No dedicated Discord sheet — portraits reassigned from misattributed rosalina-bonetto gallery 2026-07-12.",
+      "aliases": [
+        "Jinpei",
+        "jinpei",
+        "McLaren"
+      ],
+      "duplicate_paths": [],
+      "images": [
+        "characters/portraits/jinpei-mclaren/7bwbebejt7i31.png",
+        "characters/portraits/jinpei-mclaren/caf854e2c6f115385535ee3b5ee5d157.png",
+        "characters/portraits/jinpei-mclaren/sample_c76ccf6f2f13149ea3bd0520dd2b8d45.png",
+        "characters/portraits/jinpei-mclaren/sample_de13bc50c582523072102deacb1c8854.png"
+      ],
+      "image_path": "characters/portraits/jinpei-mclaren/7bwbebejt7i31.png",
+      "relations": [
+        {
+          "to_id": "rosalina-bonetto",
+          "type": "fwb",
+          "label": "FWB / situationship (mechanic partner)"
+        }
+      ]
+    },
+    {
+      "id": "lena-litzveil",
+      "display_name": "Lena Litzveil",
+      "story_path": "campaigns/tropic-gooner/characters/discord/lena-litzveil.md",
+      "discord_username": ".bleep boop",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical. Author stub bleep-boop collapsed here. Doc attachments not on disk under Character Images.",
+      "aliases": [
+        "bleep-boop"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/bleep-boop.md"
+      ],
+      "doc_attachments": [
+        "attachments/1e9994a98f42e7f9753d7fa64a5249e3.png",
+        "attachments/42b5926f693c77834cc4e322e2055a82.png",
+        "attachments/47d65e515dfd210597a18af8121d97ea.png",
+        "attachments/a49d6d5067762a7257687e5eb345769b.png",
+        "attachments/lemuen_arknights_drawn_by_myticalcat__sample-40aa0bf8c5c35adbb51f7929172a3582.pn",
+        "attachments/lemuen_arknights_drawn_by_yuki_yuki_yu_owo__sample-a49d6d5067762a7257687e5eb3457"
+      ],
+      "images": [
+        "characters/portraits/lena-litzveil/1e9994a98f42e7f9753d7fa64a5249e3.png",
+        "characters/portraits/lena-litzveil/42b5926f693c77834cc4e322e2055a82.png",
+        "characters/portraits/lena-litzveil/47d65e515dfd210597a18af8121d97ea.png",
+        "characters/portraits/lena-litzveil/a49d6d5067762a7257687e5eb345769b.png"
+      ],
+      "image_path": "characters/portraits/lena-litzveil/1e9994a98f42e7f9753d7fa64a5249e3.png"
+    },
+    {
+      "id": "minerva",
+      "display_name": "Minerva",
+      "story_path": "campaigns/tropic-gooner/characters/discord/minerva.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "thread-twin",
+      "hidden": true,
+      "canonical_id": "sister-minerva",
+      "can_proxy": false,
+      "notes": "RP twin of Sister Minerva (Mayday). Hidden — do not share Minerva portrait folder.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "nelly",
+      "display_name": "Nelly",
+      "story_path": "campaigns/tropic-gooner/characters/discord/nelly.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "thread-twin",
+      "hidden": true,
+      "canonical_id": "nelly-stein",
+      "can_proxy": false,
+      "notes": "RP twin of Nelly Stein. Hidden — Character Images/Nelly belongs to nelly-stein only.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "nelly-stein",
+      "display_name": "Nelly Stein",
+      "story_path": "campaigns/tropic-gooner/characters/discord/nelly-stein.md",
+      "discord_username": "Ready for Bed",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical sheet (Ready for Bed). Portrait: Character Images/Nelly (![[IMG_5538.jpg]]).",
+      "aliases": [
+        "ready-for-bed",
+        "nelly"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/ready-for-bed.md",
+        "campaigns/tropic-gooner/characters/discord/nelly.md"
+      ],
+      "image_path": "Character Images/Nelly/kobeni-by-me-v0-tue8e2rc80fc1.png",
+      "doc_attachments": [
+        "attachments/kobeni-by-me-v0-tue8e2rc80fc1.png"
+      ],
+      "images": [
+        "Character Images/Nelly/kobeni-by-me-v0-tue8e2rc80fc1.png",
+        "characters/portraits/nelly-stein/kobeni-by-me-v0-tue8e2rc80fc1.png"
+      ],
+      "relations": [
+        {
+          "to_id": "alisa-stein",
+          "type": "twin_sister",
+          "label": "twin sister (Alisa)"
+        }
+      ]
+    },
+    {
+      "id": "red",
+      "display_name": "Red",
+      "story_path": "campaigns/tropic-gooner/characters/discord/red.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "thread-twin",
+      "hidden": true,
+      "canonical_id": "redmond-red-gallagher",
+      "can_proxy": false,
+      "notes": "RP twin of Redmond Gallagher. Hidden — Redmond folder only on canonical.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "redmond-red-gallagher",
+      "display_name": "Redmond \"Red\" Gallagher",
+      "story_path": "campaigns/tropic-gooner/characters/discord/redmond-red-gallagher.md",
+      "discord_username": "Sean (he/him)",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical sheet (Sean). Portrait: Character Images/Redmond.",
+      "aliases": [
+        "sean-he-him",
+        "red"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/sean-he-him.md",
+        "campaigns/tropic-gooner/characters/discord/red.md"
+      ],
+      "image_path": "Character Images/Redmond/IMG_5795.jpg",
+      "doc_attachments": [
+        "attachments/IMG_5788.jpg"
+      ],
+      "images": [
+        "Character Images/Redmond/IMG_5795.jpg",
+        "Character Images/Redmond/IMG_5794.jpg",
+        "characters/portraits/redmond-red-gallagher/IMG_5788.jpg"
+      ]
+    },
+    {
+      "id": "rosalina-bonetto",
+      "display_name": "Rosalinda Bonetto",
+      "story_path": "campaigns/tropic-gooner/characters/discord/rosalina-bonetto.md",
+      "discord_username": "Twofell",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical sheet (Twofell). Merged Rosa + Rosalinda + twofell stub (2026-07-12). Aka Rosa/Rosalina. Unretired 2026-07-12. Gallery intentionally empty (image_path=\"\" images=[]): partner faceclaims → jinpei-mclaren; cars/map/misc → characters/portraits/_quarantine-rosalina-misattr/. doc_attachments cleared so Chars does not re-resolve sheet basenames to Jinpei. Re-upload Rosalina faceclaim when available.",
+      "aliases": [
+        "Rosa",
+        "rosa",
+        "Rosalina",
+        "rosalina",
+        "Rosalina Bonetto",
+        "Rosalinda",
+        "rosalinda",
+        "Rosalinda Bonetto",
+        "twofell"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/rosa.md",
+        "campaigns/tropic-gooner/characters/discord/rosalinda.md",
+        "campaigns/tropic-gooner/characters/discord/twofell.md"
+      ],
+      "images": [],
+      "image_path": "",
+      "doc_attachments": [],
+      "relations": [
+        {
+          "to_id": "jinpei-mclaren",
+          "type": "fwb",
+          "label": "FWB / situationship (mechanic partner)"
+        }
+      ]
+    },
+    {
+      "id": "sister-minerva",
+      "display_name": "Sister Minerva",
+      "story_path": "campaigns/tropic-gooner/characters/discord/sister-minerva.md",
+      "discord_username": "Mayday",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical sheet (Mayday). RP twin minerva.md hidden. Portrait: Character Images/Minerva/Minerva.jpg.",
+      "aliases": [
+        "mayday",
+        "minerva"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/mayday.md",
+        "campaigns/tropic-gooner/characters/discord/minerva.md"
+      ],
+      "image_path": "Character Images/Minerva/Minerva.jpg",
+      "doc_attachments": [
+        "attachments/Minerva.jpg",
+        "attachments/Minerva4.jpg",
+        "attachments/MnervaPiercings.png"
+      ],
+      "images": [
+        "characters/portraits/sister-minerva/Minerva.jpg",
+        "characters/portraits/sister-minerva/Minerva4.jpg",
+        "characters/portraits/sister-minerva/MnervaPiercings.png"
+      ]
+    },
+    {
+      "id": "toga",
+      "display_name": "Toga",
+      "story_path": "campaigns/tropic-gooner/characters/discord/toga.md",
+      "discord_username": "Hiatus Cause Life",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "pc",
+      "hidden": false,
+      "can_proxy": false,
+      "notes": "Canonical. Portrait: Character Images/Toga (![[IMG_3524.jpg]]).",
+      "aliases": [
+        "hiatus-cause-life"
+      ],
+      "duplicate_paths": [
+        "campaigns/tropic-gooner/characters/discord/hiatus-cause-life.md"
+      ],
+      "image_path": "Character Images/Toga/IMG_3524.jpg",
+      "images": [
+        "characters/portraits/toga/01610508607e19008c22a6a64cd57c14.jpg",
+        "characters/portraits/toga/SPOILER_IMG_5478.jpg",
+        "characters/portraits/toga/dTEuanBn.png"
+      ],
+      "doc_attachments": [
+        "attachments/01610508607e19008c22a6a64cd57c14.jpg",
+        "attachments/SPOILER_IMG_5478.jpg",
+        "attachments/dTEuanBn.png",
+        "attachments/tweeload_uQJuhGRg.mov"
+      ]
+    },
+    {
+      "id": "twofell",
+      "display_name": "Twofell",
+      "story_path": "campaigns/tropic-gooner/characters/discord/twofell.md",
+      "discord_username": "",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "stub",
+      "role": "author-stub",
+      "hidden": true,
+      "canonical_id": "rosalina-bonetto",
+      "can_proxy": false,
+      "notes": "Discord author stub for Rosalina Bonetto. Hidden.",
+      "aliases": [],
+      "duplicate_paths": []
+    },
+    {
+      "id": "wholesomeest-boi",
+      "display_name": "Wholesomeest Boi",
+      "story_path": "campaigns/tropic-gooner/characters/discord/wholesomeest-boi.md",
+      "discord_username": "WHOLESOMEest Boi",
+      "discord_user_id": "",
+      "player_name": "",
+      "status": "active",
+      "role": "gm",
+      "hidden": true,
+      "can_proxy": false,
+      "notes": "Campaign GM (user) — not a playable PC. Shown as GM chip, not default roster tile.",
+      "aliases": [
+        "wholesome-boi",
+        "WHOLESOMEest Boi"
+      ],
+      "duplicate_paths": []
+    }
+  ]
+}

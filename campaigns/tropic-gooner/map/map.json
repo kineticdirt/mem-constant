@@ -1,9 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "campaign": "tropic-gooner",
   "brand": "Primavera",
   "title": "Isla Primavera",
-  "description": "tableslop overworld — Primavera setting. Marker label/name = vibes.png spellings (SoT); lore renames kept in aliases. Removed Orchid Falls + Nueva Vista pins (not on vibes.png).",
+  "description": "tableslop overworld — Primavera setting. Marker label/name = vibes.png spellings (SoT); lore renames kept in aliases. Removed Orchid Falls + Nueva Vista pins (not on vibes.png). Pins realigned to vibes painted labels 2026-08-01 (esp Portview #13 off mountains).",
   "base_image": "map/master-enhanced.png",
   "base_image_2k": "map/output-onlinetools-2k.png",
   "tile_pyramid": "map/pyramid.json",
@@ -18,8 +18,15 @@
   "layers_manifest": "map/layers.json",
   "base_image_status": "sharp AI terrain + HTML areas/cities/labels (strip deferred until canva-terrain export)",
   "projection": "image-percent",
-  "updated_at": "2026-07-26",
+  "updated_at": "2026-08-02",
   "name_source": "Obsidian WoD vibes.png",
+  "art_sot": {
+    "names_and_pins": "Obsidian/DND Archive/World Of Darkness/vibes.png",
+    "doc": "map/ART-SOT.md",
+    "runtime_raster": "map/master-enhanced.png",
+    "number_helper": "map/reference/updated_highlight_number_map.png"
+  },
+  "pin_palette_note": "Unique pin_color per city; region shade fills in regions-ui / REGION_SHADE_PALETTE. Neon reserved for HUD chrome only.",
   "markers": [
     {
       "id": "r01-paradise",
@@ -27,9 +34,10 @@
       "name": "Paradise",
       "label": "Paradise",
       "type": "city",
-      "x_pct": 39.0,
-      "y_pct": 55.0,
-      "coord_status": "vibes-label",
+      "x_pct": 48.32,
+      "y_pct": 57.47,
+      "pin_color": "#e8c547",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
       "note": "vibes.png label N of middle bay"
     },
@@ -39,9 +47,10 @@
       "name": "Porto Lujara",
       "label": "Porto Lujara",
       "type": "city",
-      "x_pct": 38.0,
-      "y_pct": 65.5,
-      "coord_status": "vibes-label",
+      "x_pct": 41,
+      "y_pct": 66,
+      "pin_color": "#5eb0d9",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
       "aliases": [
         "Porto Lujuria"
@@ -54,9 +63,10 @@
       "name": "Jackedsonville",
       "label": "Jackedsonville",
       "type": "city",
-      "x_pct": 32.0,
-      "y_pct": 61.0,
-      "coord_status": "vibes-label",
+      "x_pct": 35.88,
+      "y_pct": 73.85,
+      "pin_color": "#3ec9ad",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
       "aliases": [
         "Crimson Quay",
@@ -70,9 +80,10 @@
       "name": "Villa Miel",
       "label": "Villa Miel",
       "type": "town",
-      "x_pct": 21.0,
-      "y_pct": 71.0,
-      "coord_status": "vibes-label",
+      "x_pct": 23.65,
+      "y_pct": 74.89,
+      "pin_color": "#e89a3c",
+      "coord_status": "overlay-label",
       "workflow_status": "planning"
     },
     {
@@ -81,9 +92,10 @@
       "name": "San Aurelio",
       "label": "San Aurelio",
       "type": "city",
-      "x_pct": 33.0,
-      "y_pct": 93.5,
-      "coord_status": "vibes-label",
+      "x_pct": 40.12,
+      "y_pct": 86.06,
+      "pin_color": "#7bc45e",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
       "aliases": [
         "CuloVera"
@@ -96,9 +108,10 @@
       "name": "Seaside Springs",
       "label": "Seaside Springs",
       "type": "town",
-      "x_pct": 61.0,
-      "y_pct": 53.0,
-      "coord_status": "vibes-label",
+      "x_pct": 61,
+      "y_pct": 53,
+      "pin_color": "#e07a8c",
+      "coord_status": "overlay-label",
       "workflow_status": "planning"
     },
     {
@@ -107,11 +120,12 @@
       "name": "Sierra Dorado",
       "label": "Sierra Dorado",
       "type": "capital",
-      "x_pct": 41.5,
-      "y_pct": 42.5,
-      "coord_status": "vibes-label",
+      "x_pct": 43,
+      "y_pct": 43,
+      "pin_color": "#f0c530",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
-      "note": "Federal mountain capital — gold-bounded territory"
+      "note": "Federal mountain capital — pin on settlement mark E of label (not ridge crest)"
     },
     {
       "id": "r09-ruby-harbor",
@@ -119,9 +133,10 @@
       "name": "Ruby Harbor",
       "label": "Ruby Harbor",
       "type": "city",
-      "x_pct": 24.0,
-      "y_pct": 88.0,
-      "coord_status": "vibes-label",
+      "x_pct": 33.6,
+      "y_pct": 76.35,
+      "pin_color": "#45b06e",
+      "coord_status": "overlay-label",
       "workflow_status": "planning"
     },
     {
@@ -130,9 +145,10 @@
       "name": "Lagooni Seika",
       "label": "Lagooni Seika",
       "type": "town",
-      "x_pct": 47.5,
-      "y_pct": 81.0,
-      "coord_status": "vibes-label",
+      "x_pct": 51,
+      "y_pct": 84,
+      "pin_color": "#e09262",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
       "aliases": [
         "Lagoona Seika",
@@ -146,11 +162,12 @@
       "name": "Black Sand Beach Preserve",
       "label": "Black Sand Beach Preserve",
       "type": "preserve",
-      "x_pct": 45.0,
-      "y_pct": 18.0,
-      "coord_status": "vibes-label",
+      "x_pct": 48,
+      "y_pct": 15,
+      "pin_color": "#52c4bd",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
-      "note": "vibes.png N tip preserve"
+      "note": "vibes.png N tip preserve — near painted label"
     },
     {
       "id": "r13-portview",
@@ -158,10 +175,12 @@
       "name": "Portview",
       "label": "Portview",
       "type": "town",
-      "x_pct": 56.0,
-      "y_pct": 69.0,
-      "coord_status": "vibes-label",
-      "workflow_status": "planning"
+      "x_pct": 50.32,
+      "y_pct": 71.88,
+      "pin_color": "#d49248",
+      "coord_status": "overlay-label",
+      "workflow_status": "planning",
+      "note": "vibes.png Portview E coast label — was on mountains (potato ~47,65) / water (PC 56,69)"
     },
     {
       "id": "r14-federal-shores",
@@ -169,9 +188,10 @@
       "name": "InterFederal Shores",
       "label": "InterFederal Shores",
       "type": "region",
-      "x_pct": 28.0,
-      "y_pct": 36.0,
-      "coord_status": "vibes-label",
+      "x_pct": 31,
+      "y_pct": 38,
+      "pin_color": "#6aabd4",
+      "coord_status": "overlay-label",
       "workflow_status": "planning",
       "aliases": [
         "Federal Shores",
@@ -185,11 +205,13 @@
       "name": "Puckall",
       "label": "Puckall",
       "type": "region",
-      "x_pct": 37.0,
-      "y_pct": 33.0,
+      "x_pct": 37.4,
+      "y_pct": 33.4,
+      "pin_color": "#b47acc",
       "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "note": "vibes-only inland N-central (no R1–R14 lore id)"
+      "beta_deferred_lore": true,
+      "note": "vibes-only inland N-central — pin matches art; lore deferred past beta"
     },
     {
       "id": "r16-east-bayby",
@@ -198,10 +220,12 @@
       "label": "East Bayby",
       "type": "region",
       "x_pct": 54.5,
-      "y_pct": 35.5,
+      "y_pct": 36.6,
+      "pin_color": "#7a94d4",
       "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "note": "vibes-only NE coast (spelling Bayby)"
+      "beta_deferred_lore": true,
+      "note": "vibes-only NE coast — off mountain slope onto coastal green near label"
     },
     {
       "id": "r17-research-islands",
@@ -209,11 +233,13 @@
       "name": "Research Islands",
       "label": "Research Islands",
       "type": "region",
-      "x_pct": 82.0,
-      "y_pct": 89.0,
+      "x_pct": 82.5,
+      "y_pct": 93,
+      "pin_color": "#48c498",
       "coord_status": "vibes-label",
       "workflow_status": "planning",
-      "note": "vibes-only SE archipelago off main island"
+      "beta_deferred_lore": true,
+      "note": "vibes-only SE archipelago — pin on island landmass not floating label"
     }
   ]
 }

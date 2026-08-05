@@ -1,0 +1,51 @@
+{
+  "id": "nyc-mafia-dnd",
+  "title": "NYC Mafia × D&D",
+  "subtitle": "Urban fantasy · organized crime · illegal magic · Discord-managed",
+  "status": "active",
+  "name_pending": false,
+  "player_facing": true,
+  "map_href": null,
+  "discord": {
+    "guild_id": null,
+    "category_id": null,
+    "channel_id": null,
+    "notes": "NEED: guild + category/channel IDs (same shape as Euro). Inbox seeded."
+  },
+  "updated_at": "2026-07-26T19:30:00.000Z",
+  "pcs": [
+    {
+      "id": "pc-placeholder-1",
+      "name": "(PC slot — fill at table)",
+      "player": "TBD",
+      "role": "TBD",
+      "notes": "Seed row — replace with real PC when cast locks.",
+      "sheet": ""
+    }
+  ],
+  "schedule": [
+    {
+      "id": "sess-next",
+      "when": "TBD — Discord once linked",
+      "title": "Next session",
+      "location": "Discord / VTT TBD",
+      "notes": "Will mirror Discord when IDs are set."
+    }
+  ],
+  "availability": [
+    {
+      "person": "Table",
+      "windows": "Discord (pending link)",
+      "notes": "GM: paste NYC guild/category/channel IDs via Inbox."
+    }
+  ],
+  "inventory": [
+    {
+      "id": "inv-seed",
+      "item": "(party stash — empty)",
+      "owner": "party",
+      "qty": 0,
+      "notes": "Scrolls, potions, greymarket goods go here."
+    }
+  ]
+}

@@ -1,22 +1,22 @@
 # Nightlife Culture — Jazz, Vice, and Wards
 
-*Status: Canonical · Worldbuilding Detail Guide · Extends `SETTING-PEOPLES-RACES.md`*
+*Canonical · Worldbuilding detail · Extends `SETTING-PEOPLES-RACES.md` · Voice B19*
 
 ---
 
 ## 1. The Jazz Club Scene
 
-In mid-century New York (uneven temporal stack, no single pin year), the night belongs to the jazz clubs. Concentrated along West 52nd Street ("The Swing Street") and throughout Harlem, these clubs are the primary interfaces between wealthy Midtown clients, federal auditors, and the family rackets.
+Night belongs to the clubs. West 52nd ("Swing Street") and Harlem mostly — that's where Midtown money, federal auditors, and family rackets actually meet over a drink they pretend is legal.
 
 ### Primary Vice Corridors & Key Venues
 
 * **West 52nd Street (Midtown Manhattan):**
-  * **The Blue Note:** (West 52nd St). A premier bebop club operating under a *Licensed Visibility Tier*. Front-of-house is clean, human-dominated jazz; the basement cellar contains a warded icebox for bootleg healing bands and an unlicensed clockwork glass-washer. Serviced by a Moretti/Chen-Okafor split.
-  * **The Velvet Horn:** (West 52nd St). Operated by a West Chelsea French/Half-Elf glamour ring (C4). The walls are layered with *silent ward* sigils, letting patrons speak in total secrecy. Serves imported French liqueurs and **Glow-Gin** ($0.75 a glass).
+  * **The Blue Note** (52nd St): Bebop up front, *Licensed Visibility Tier*, passes inspection if you don't look downstairs. Basement icebox for bootleg healing bands. Clockwork glass-washer that isn't on anyone's ledger. Moretti/Chen-Okafor split the headache.
+  * **The Velvet Horn** (52nd St): French/Half-Elf glamour ring out of West Chelsea. Walls layered with *silent ward* sigils — patrons yap in total secrecy. French liqueurs, **Glow-Gin** ($0.75/glass). The kind of place where you forget what you said and that's the point.
   * **The Onyx Foundry:** (West 52nd St). Owned by German-Elf optics dealers (Yorkville diaspora). High-end brass fixtures, displaying licensed telescope lenses. Serves imported German pilsner ($1.50 a stein) in chilled heavy-glass mugs. No automata allowed inside the door.
 
 * **Harlem Corridor (Upper Manhattan):**
-  * **The Savoy Salon:** (Lenox Ave). A massive, human-majority ballroom with a prominent High-Elf artist minority. The stage utilizes illusion and glamour wards to project swirling auroras above the dancers. Fully protected by independent Harlem operators; federal inspectors are routinely bribed with high-end optical focuses.
+  * **The Savoy Salon** (Lenox Ave): Big human-majority ballroom, High-Elf artist minority. Stage runs illusion/glamour wards — auroras over the dancers. Independent Harlem operators; federal inspectors get bribed with optical focuses and everyone pretends that's normal.
   * **Minton's Parish:** (West 118th St). A Moretti-protected bebop venue. Features late-night jam sessions where musicians use brass saxophones as enchantment focuses. A Moretti "chaplain" conducts a weekly spirit sweep ($5.00/week protection fee) to keep the cellar free of lingering clerk-ghosts.
 
 * **Lower Manhattan & Outer Boroughs:**

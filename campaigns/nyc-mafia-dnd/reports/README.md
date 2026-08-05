@@ -1,52 +1,68 @@
 # NYC Mafia × D&D — Playable Reports Index
 
-This directory contains the canonical, GM-usable play documents and worldbuilding files for the NYC Mafia × D&D campaign (uneven temporal stack). All documents are written under the locked 1950s–1960s culture and late-1800s spell-tech canon.
+Active SoT for the **1950s–60s culture × late-1800s spell-tech** canon. Superseded drafts live in **`../_trash/`** (salvage only, not indexed in Hub Docs). Session play stubs: **`_session/`**.
 
 ---
 
-## 1. Core Worldbuilding & Setting SoT (Primary)
-
-These files represent the core rules, setting guidelines, and magical laws of the campaign. They are the primary source of truth for the table.
+## 1. Core worldbuilding (primary)
 
 | File | Description |
 |------|-------------|
-| **`LOCKS.md`** (Root) | The final, locked GM decisions regarding era, technology, families, and rules. |
-| **`SETTING-PEOPLES-RACES.md`** (Root) | The primary mapping of ethnic communities to fantasy ancestries, stereotype textures, and racket leans. |
-| **`SETTING-SPELL-TECH-TREE.md`** (Root) | The source of truth for technology, industry, medical bands, and automata threat. |
-| **`SETTING-CAPABILITY-ASYMMETRY.md`** (Root) | Explains the divide between strong medicine and weak, expensive calculator magic. |
-| **`SETTING-ANCESTRIES-WARDS.md`** (Root) | Details how human and non-human populations coexist across the city's districts. |
-| **`2026-08-01-era-and-tone.md`** | Establishes mid-century jazz-vice culture (no exact year), late-1800s tech skin, sensory palette, and diegetic gender norms. |
-| **`2026-08-01-magic-in-the-city.md`** | Details the ward-tiered visibility system, underworld magic rackets, and the existential automata threat. |
-| **`2026-08-01-law-and-magic.md`** | Explains OCU enforcement, federal desks (FAB & FSA), evidence tiers, and the underworld felony stack. |
-| **`2026-08-01-the-below.md`** | Guide to NYC's magical undercity, including access points, hazards, and a non-combat encounter table. |
-| **`2026-08-01-locations.md`** | Detailed guide to five keyed campaign locations across the boroughs and the New Jersey commuter belt. |
+| **`../LOCKS.md`** | Locked GM decisions — era, tech, families, rules. |
+|| **`../SETTING-PEOPLES-RACES.md`** | Peoples ↔ ancestry mapping (LOCKED; Western Europe dense, Eastern, Americas, Black/Aarakocra, sparse Asia, metro surrounds). |
+|| **`../SETTING-SPELL-TECH-TREE.md`** | Spell-tech, industry, medical bands, automata threat. |
+|| **`../SETTING-GILDED-INDUSTRY.md`** | Gilded Age texture, magical trains, magitech* (spell-rooted industrial craft). |
+|| **`../SETTING-SCRY-PRESS.md`** | Scry-capture, projection press, newspapers, image evidence (B21 LOCKED). |
+| **`../SETTING-CAPABILITY-ASYMMETRY.md`** | Uneven eras — strong medicine, weak computation. |
+| **`../SETTING-ANCESTRIES-WARDS.md`** | Wards, visibility, multicultural districts. |
+| **`../SETTING-ARMS.md`** | Capsule arms (no gunpowder). |
+| **`../SETTING-URBAN-FRINGE.md`** | Urban order, fringe humanoids, transit, skyline, druid designation. |
+| **`2026-08-01-era-and-tone.md`** | Mid-century jazz-vice culture, sensory palette. |
+| **`2026-08-01-magic-in-the-city.md`** | Ward visibility, underworld rackets, automata threat. |
+| **`2026-08-01-law-and-magic.md`** | OCU, federal desks, evidence tiers. |
+| **`2026-08-01-the-below.md`** | Magical undercity — access, hazards, encounters. |
+| **`2026-08-01-locations.md`** | Five keyed campaign locations. |
+| **`../map/nyc-wire-mesh.html`** | GM wire-mesh schematic map (open in browser; see `../map/README.md`). |
 
 ---
 
-## 2. Underworld Factions & Characters
-
-These files detail the syndicates, relations, and notable personnel operating across the boroughs.
+## 2. Factions & characters
 
 | File | Description |
 |------|-------------|
-| **`2026-08-01-five-families.md`** | Complete roster of the Five Families (Valenti, Moretti, Chen-Okafor, Kowalski, Ashford) with key figures and territory. |
-| **`2026-08-01-family-ancestries.md`** | Explains crew-level recruitment, mixed crews, and the human face of the Commission. |
-| **`2026-08-01-faction-relations.md`** | High-stakes friction and political boundaries between the major underworld syndicates. |
-| **`2026-08-01-npc-roster.md`** | Key NPCs, fixers, and street contacts available to players. |
-| **`2026-08-01-npc-roster-expansion.md`** | Additional street figures, salon operators, and Union representatives. |
+| **`2026-08-01-five-families.md`** | Valenti, Moretti, Chen-Okafor, Kowalski, Ashford. |
+| **`2026-08-01-family-ancestries.md`** | Crew recruitment, mixed crews, Commission faces. |
+| **`2026-08-01-faction-relations.md`** | Syndicate friction and boundaries. |
+| **`2026-08-01-npc-roster.md`** | Fixers, contacts, street NPCs. |
+| **`2026-08-01-npc-roster-expansion.md`** | Additional operators and union reps. |
+| **`2026-08-01-rumors-table.md`** | Playable rumor hooks. |
+| **`2026-08-01-police-ocu.md`** | OCU / magical crime taskforce. |
+| **`2026-08-01-player-handout.md`** | Player-facing primer (draft). |
 
 ---
 
-## 3. Demoted Session Archives (Session-Optional)
+## 3. Worldbuilding details (folder)
 
-These files contain adventure guides, player character menu options, and specific session setups. They are preserved for reference but are secondary to the core worldbuilding.
+| Path | Description |
+|------|-------------|
+| **`../worldbuilding/details/city-economics.md`** | Streets, prices, trades. |
+| **`../worldbuilding/details/nightlife-culture.md`** | Clubs, vice, jazz. |
+| **`../worldbuilding/details/capsule-arms.md`** | Capsule catalog. |
+| **`../worldbuilding/strokes/borough-city-build.md`** | Borough grain and turf strokes. |
+| **`../worldbuilding/SALVAGE-NOTES.md`** | Scaled ideas from `_trash/`. |
+
+---
+
+## 4. Session material (optional)
+
+Indexed on disk only — **`_session/`** (excluded from Hub Docs tree):
 
 | File | Description |
 |------|-------------|
-| **`2026-08-01-pc-roles.md`** | The eight underworld operator archetypes (Enforcers, Club Musicians, Chaplains, etc.). |
-| **`2026-08-01-opening-job.md`** | Worldbuilding and physical layout of the heist at The Blue Note. |
-| **`2026-08-01-session-01-outline.md`** | Smuggling transit routes, checkpoints, and physical/magical complications at the table. |
+| **`_session/2026-08-01-pc-roles.md`** | Eight operator archetypes. |
+| **`_session/2026-08-01-opening-job.md`** | Blue Note heist layout. |
+| **`_session/2026-08-01-session-01-outline.md`** | Session 1 transit/complications. |
 
 ---
 
-*Note: All legacy reports (dated pre-2026-08-01) are officially superseded and void for play.*
+*Salvage archive: `../_trash/README.md` · Progress: `progress.md`*

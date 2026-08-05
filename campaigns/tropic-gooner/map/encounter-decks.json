@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "_doc": "S2 encounter decks — authored cards keyed by region + threat tags from locked threat types (cult, vampire, corrupt cops, serial killer, corporate/Stevens). No LLM generation. Draw is GM/table later.",
+  "updated": "2026-08-01",
+  "decks": [
+    {
+      "id": "deck-r1-paradise",
+      "region_id": "R1",
+      "region_name": "Paradise",
+      "cards": [
+        {
+          "id": "enc-r1-01",
+          "title": "Festival crate left open",
+          "threat_tags": ["corrupt-cops", "crt"],
+          "hook": "CRT sonic gear staged on the boardwalk with a missing inventory seal.",
+          "pressure": "low"
+        },
+        {
+          "id": "enc-r1-02",
+          "title": "Yacht-club guest list mismatch",
+          "threat_tags": ["vampire", "kindred-cover"],
+          "hook": "Gilded Anchor RSVP shows a name that died in 2014 county news.",
+          "pressure": "med"
+        },
+        {
+          "id": "enc-r1-03",
+          "title": "Stevens cleanup van early",
+          "threat_tags": ["corporate", "stevens"],
+          "hook": "Marina med call arrives before anyone dials — who tipped them?",
+          "pressure": "med"
+        },
+        {
+          "id": "enc-r1-04",
+          "title": "Cult flyer in Java Jump bathroom",
+          "threat_tags": ["cult"],
+          "hook": "Handbill for a 'sunrise gratitude circle' with no public venue.",
+          "pressure": "low"
+        },
+        {
+          "id": "enc-r1-05",
+          "title": "Serial pattern echo",
+          "threat_tags": ["serial-killer"],
+          "hook": "Boardwalk CCTV gap matches a prior unsolved dump timing (background thread).",
+          "pressure": "high"
+        }
+      ]
+    },
+    {
+      "id": "deck-r2-porto-lujara",
+      "region_id": "R2",
+      "region_name": "Porto Lujara",
+      "cards": [
+        {
+          "id": "enc-r2-01",
+          "title": "Parade sweep missed a float",
+          "threat_tags": ["corrupt-cops", "crt"],
+          "hook": "Carnaval Route clear — one float still sealed behind the docks.",
+          "pressure": "med"
+        },
+        {
+          "id": "enc-r2-02",
+          "title": "Night Ledger overtime that never hits",
+          "threat_tags": ["corporate", "vice"],
+          "hook": "Predicted raid window passes; club books stay clean on paper.",
+          "pressure": "low"
+        },
+        {
+          "id": "enc-r2-03",
+          "title": "Cruise unload with wrong manifesto",
+          "threat_tags": ["cult", "smuggling"],
+          "hook": "Lujara Docks crate count does not match Night Ledger prediction.",
+          "pressure": "med"
+        },
+        {
+          "id": "enc-r2-04",
+          "title": "Culinary annex after-hours",
+          "threat_tags": ["vampire", "cover"],
+          "hook": "Catering students told to leave trays at a suite with no guest name.",
+          "pressure": "high"
+        }
+      ]
+    }
+  ]
+}

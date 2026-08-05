@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "_doc": "S2 fog-of-war fixtures — minimal authored polygons in map % viewBox (0–100). Potato-light; map client may ignore until fog renderer ships. Missing file must not break map (layers.json source is optional metadata today).",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fog-r15-puckall",
+        "label": "Puckall (deferred)",
+        "region": "R15",
+        "revealed": false,
+        "notes": "vibes-only — keep fogged for beta"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[78, 8], [92, 8], [92, 22], [78, 22], [78, 8]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fog-r16-east-bayby",
+        "label": "East Bayby (deferred)",
+        "region": "R16",
+        "revealed": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[88, 28], [98, 28], [98, 42], [88, 42], [88, 28]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fog-r17-research",
+        "label": "Research Islands (deferred)",
+        "region": "R17",
+        "revealed": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[70, 2], [86, 2], [86, 12], [70, 12], [70, 2]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "fog-soft-orchid-nueva",
+        "label": "Soft regions (Orchid Falls / Nueva Vista UI-only)",
+        "region": "soft",
+        "revealed": false,
+        "notes": "Not on vibes.png — fog placeholder so HUD does not invent pins"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[40, 70], [55, 70], [55, 82], [40, 82], [40, 70]]]
+      }
+    }
+  ]
+}

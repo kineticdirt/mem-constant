@@ -1,7 +1,12 @@
 {
   "version": 1,
   "viewBox": "0 0 100 100",
-  "_doc": "Z-ordered compositor stack. Empty layers are placeholders for GTA-style world data (streets, buildings, transit, etc.).",
+  "_doc": "Z-ordered compositor stack. Empty layers are placeholders for GTA-style world data (streets, buildings, transit, etc.). S2: fog + districts point at authored files; client may ignore missing sources — do not crash if file absent.",
+  "pregen": {
+    "paradise_subzones": "map/paradise-subzones.json",
+    "encounter_decks": "map/encounter-decks.json",
+    "diegetic_clock": "map/diegetic-clock.json"
+  },
   "layers": [
     { "id": "terrain-tiles", "z": 10, "kind": "raster-tiles", "label": "Terrain tiles", "toggle": false, "default": true },
     { "id": "terrain-base", "z": 11, "kind": "raster", "label": "Terrain raster", "toggle": false, "default": false },
@@ -9,8 +14,8 @@
     { "id": "elevation-shade", "z": 21, "kind": "svg", "label": "Elevation", "toggle": true, "default": false, "source": null },
     { "id": "biomes", "z": 22, "kind": "svg", "label": "Biomes", "toggle": true, "default": false, "source": null },
     { "id": "jurisdiction", "z": 30, "kind": "svg", "label": "Jurisdiction", "toggle": true, "default": false, "source": null },
-    { "id": "regions", "z": 31, "kind": "svg", "label": "Regions", "toggle": true, "default": true, "source": "map/regions-ui.json" },
-    { "id": "districts", "z": 32, "kind": "svg", "label": "Districts", "toggle": true, "default": false, "source": null },
+    { "id": "regions", "z": 31, "kind": "svg", "label": "Regions", "toggle": true, "default": false, "source": "map/regions-ui.json" },
+    { "id": "districts", "z": 32, "kind": "svg", "label": "Districts / Paradise subzones", "toggle": true, "default": false, "source": "map/paradise-subzones.json", "optional": true },
     { "id": "parcels", "z": 33, "kind": "svg", "label": "Parcels", "toggle": true, "default": false, "source": null },
     { "id": "waterways", "z": 40, "kind": "svg", "label": "Waterways", "toggle": true, "default": false, "source": null },
     { "id": "streets", "z": 41, "kind": "svg", "label": "Streets", "toggle": true, "default": false, "source": null },
@@ -22,8 +27,8 @@
     { "id": "landmarks", "z": 51, "kind": "svg", "label": "Landmarks", "toggle": true, "default": false, "source": null },
     { "id": "poi-pins", "z": 60, "kind": "html", "label": "Cities", "toggle": true, "default": true },
     { "id": "labels", "z": 61, "kind": "html", "label": "Labels", "toggle": true, "default": true },
-    { "id": "events", "z": 70, "kind": "html", "label": "Events", "toggle": true, "default": false, "source": null },
-    { "id": "fog", "z": 80, "kind": "svg", "label": "Fog of war", "toggle": true, "default": false, "source": null },
+    { "id": "events", "z": 70, "kind": "html", "label": "Events / encounters", "toggle": true, "default": false, "source": "map/encounter-decks.json", "optional": true },
+    { "id": "fog", "z": 80, "kind": "geojson", "label": "Fog of war", "toggle": true, "default": false, "source": "map/fog-polygons.geojson", "optional": true },
     { "id": "selection", "z": 90, "kind": "svg", "label": "Selection", "toggle": false, "default": true }
   ]
 }

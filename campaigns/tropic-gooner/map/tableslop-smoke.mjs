@@ -115,6 +115,47 @@ const activePins = await page.locator('.pin.is-active').count();
 if (activePins !== 1) fail(`click region card → expected 1 active pin, got ${activePins}`);
 else pass('sidebar selects region on map');
 
+// vibes.png display-name gate (CODE:TS-MAP-LABEL-LORE / TS-MAP-SOFT-PIN)
+const forbidden = [
+  'Crimson Quay', 'Crimzon Quay', 'Porto Lujuria', 'CuloVera', 'Culo Vera',
+  'Lagoona Seica', 'Lagoona Seika', 'Federal Shores', 'Orchid Falls', 'Nueva Vista',
+];
+const required = [
+  'Paradise', 'Porto Lujara', 'Jackedsonville', 'Villa Miel', 'San Aurelio',
+  'Seaside Springs', 'Sierra Dorado', 'Ruby Harbor', 'Lagooni Seika',
+  'Black Sand Beach Preserve', 'Portview', 'InterFederal Shores',
+];
+if (mapJson?.markers?.length) {
+  const labels = mapJson.markers.map((m) => m.label || m.name || '');
+  const lower = new Set(labels.map((x) => String(x).toLowerCase()));
+  for (const bad of forbidden) {
+    if (lower.has(bad.toLowerCase())) {
+      const soft = bad === 'Orchid Falls' || bad === 'Nueva Vista';
+      fail(`CODE:${soft ? 'TS-MAP-SOFT-PIN' : 'TS-MAP-LABEL-LORE'} forbidden display ${JSON.stringify(bad)}`);
+    }
+  }
+  for (const need of required) {
+    if (!labels.includes(need)) fail(`CODE:TS-MAP-LABEL-LORE missing vibes label ${JSON.stringify(need)}`);
+  }
+  if (labels.includes('Jackedsonville') && labels.includes('Porto Lujara')) {
+    pass(`vibes label gate (${labels.length} markers)`);
+  }
+} else {
+  fail('CODE:TS-API-MAP-PARSE /api/map missing markers for label gate');
+}
+
+// Region area polygons (painted boundaries) — expect core coastal + Sierra digitized
+const areas = mapJson?.regions_ui_data?.areas || [];
+if (!areas.length) {
+  fail('CODE:TS-MAP-AREAS missing regions_ui_data.areas');
+} else {
+  const polys = areas.filter((a) => a.shape === 'polygon' && a.points);
+  const needPoly = ['r01-paradise', 'r02-porto-lujuria', 'r03-crimson-quay', 'r08-sierra-dorado'];
+  const missing = needPoly.filter((id) => !polys.some((a) => a.id === id));
+  if (missing.length) fail(`CODE:TS-MAP-BOUNDARY missing polygons: ${missing.join(',')}`);
+  else pass(`boundary polygons ${polys.length} (core Paradise/Porto/Jacked/Sierra present)`);
+}
+
 const shot = path.join(outDir, 'tableslop-overworld.png');
 await page.screenshot({ path: shot, fullPage: false });
 pass(`screenshot → ${shot}`);

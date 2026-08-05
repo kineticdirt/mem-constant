@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "region_id": "R1",
+  "region_name": "Paradise",
+  "pilot": true,
+  "_doc": "PATTERN for all cities later: island region → city → sub-regions. Paradise (R1) pilot — authored subzones only (no LLM citygen). Coords are soft % of region pin neighborhood for later layer work; not street graph.",
+  "subzones": [
+    {
+      "id": "paradise-marina",
+      "name": "Marina / Gilded Anchor",
+      "tags": ["marina", "kindred-cover", "nightlife"],
+      "places": ["Gilded Anchor Yacht Club", "CiDance Paradise Tower"],
+      "notes": "Philanthropy galas; Elysium-adjacent after-hours"
+    },
+    {
+      "id": "paradise-boardwalk",
+      "name": "Boardwalk strip",
+      "tags": ["tourism", "crt-optics", "day-crowd"],
+      "places": ["Galaxy Fitness", "Java Jump"],
+      "notes": "Tourist face; CRT festival crates staged nearby"
+    },
+    {
+      "id": "paradise-crt-block",
+      "name": "CRT substation block",
+      "tags": ["police", "festival", "raid-optics"],
+      "places": ["Paradise CRT Substation"],
+      "notes": "Riot crates; never hits CiDance towers on Tier 3"
+    },
+    {
+      "id": "paradise-piu-south",
+      "name": "PIU South campus edge",
+      "tags": ["university", "interns", "hospitality"],
+      "places": ["PIU South Campus"],
+      "notes": "Hospitality interns staff hotel fronts"
+    },
+    {
+      "id": "paradise-hotel-tower",
+      "name": "CiDance tower district",
+      "tags": ["hotel", "discretion", "tourism"],
+      "places": ["CiDance Paradise Tower"],
+      "notes": "Buffet lunch; Floor 14+ companion packages"
+    }
+  ],
+  "updated": "2026-08-01"
+}
