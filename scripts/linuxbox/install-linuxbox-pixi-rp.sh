@@ -87,6 +87,15 @@ cp "${UNIT_SRC}" "${UNIT_DST}"
 # Rewrite WorkingDirectory to actual OWS path
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=${OWS}|" "${UNIT_DST}"
 
+# User units only start at boot when linger is on for the user (hermes installer
+# asserts this; pixi must too — 2026-08-05 reboot left pixi inactive until manual start).
+if ! loginctl show-user "${USER}" -p Linger 2>/dev/null | grep -q '^Linger=yes$'; then
+  loginctl enable-linger "${USER}" 2>/dev/null \
+    || sudo -n loginctl enable-linger "${USER}" 2>/dev/null \
+    || echo "WARN: linger off — run 'sudo loginctl enable-linger ${USER}' or Pixi will not auto-start at boot" >&2
+fi
+loginctl show-user "${USER}" -p Linger 2>/dev/null || true
+
 systemctl --user daemon-reload
 systemctl --user enable linuxbox-pixi-rp.service
 systemctl --user restart linuxbox-pixi-rp.service

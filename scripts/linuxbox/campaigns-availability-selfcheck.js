@@ -166,6 +166,12 @@ if (!players.includes('href="/camp/"')) throw new Error("players portal prefix")
 if (!players.includes('href="/camp/c/euro"')) throw new Error("players tracker prefix");
 if (!players.includes("Availability")) throw new Error("players glance");
 
+const { pixiServiceStatus } = require("./campaigns-availability-server.js");
+if (pixiServiceStatus(true, true) !== "up") throw new Error("pixi up");
+if (pixiServiceStatus(true, false) !== "up") throw new Error("pixi up probe-only");
+if (pixiServiceStatus(false, true) !== "degraded") throw new Error("pixi wedged = degraded");
+if (pixiServiceStatus(false, false) !== "down") throw new Error("pixi down");
+
 if (!TRACKED_IDS.includes("eurosluts")) throw new Error("tracked ids");
 if (!TRACKED_IDS.includes("tropic-gooner")) throw new Error("tropic tracked");
 listTrackers();

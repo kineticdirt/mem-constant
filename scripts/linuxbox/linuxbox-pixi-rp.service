@@ -11,8 +11,12 @@ Environment=CHAT_UI_HOST=0.0.0.0
 Environment=CHAT_UI_PORT=8767
 Environment=PYTHONUNBUFFERED=1
 ExecStart=/usr/bin/python3 scripts/unified_rp_server.py --bind 0.0.0.0 --port 8767
-Restart=on-failure
+# Boot-time transient failures (network up late, ~/pixi-rp mount not ready) must
+# not park the unit in failed state — evidence 2026-08-05 reboot: inactive until
+# manual start. always + no start-limit = keep retrying forever.
+Restart=always
 RestartSec=8
+StartLimitIntervalSec=0
 # Soft RAM guard — Pixi is OR-only (no GGUF); still keep lean on 2 GB box
 MemoryMax=700M
 

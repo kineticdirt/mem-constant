@@ -94,6 +94,18 @@
       "type": "runtime-file",
       "backup": true,
       "note": "Auto-poly draft backup; potato-owned; do not clobber with empty PC copy"
+    },
+    {
+      "glob": "campaigns/*/tracker.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "campaigns-availability-server.js writeTracker() runs on box (portal Edit form + POST /api/campaigns/:id) — potato is runtime truth for roster/schedule/inventory. Same wipe class as intel-trackers.json 2026-08-04: nyc + tropic tracker.json are git-tracked, so git reset --hard reverts box edits, and push-linuxbox.sh ships stale PC copies. Filter now drops tracker.json from PC tarballs; seed/edit trackers on-box via the portal form."
+    },
+    {
+      "glob": "campaigns/*/player-character-links.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "Box-written via POST /api/campaigns/:id/links (writeLinks). Untracked in git so reset survives it, but it had no backup/protection coverage at all."
     }
   ]
 }

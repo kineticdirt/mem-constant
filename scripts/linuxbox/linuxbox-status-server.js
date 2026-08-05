@@ -27,6 +27,7 @@ const {
   threadRelPath,
 } = require("./chat-offload-handoff");
 const docsWiki = require("./linuxbox-docs-wiki");
+const charsRegistryReadCache = require("./chars-registry-read-cache");
 
 const LISTEN_HOST = "127.0.0.1";
 const LISTEN_PORT = 8790;
@@ -3967,14 +3968,20 @@ function readCharactersRegistry(campaignId) {
 }
 
 function getCharactersRegistry(campaignId, opts = {}) {
-  return enrichCharactersRegistry(readCharactersRegistry(campaignId), campaignId, opts);
+  const key = `${campaignId}|${opts.includeHidden ? 1 : 0}`;
+  const hit = charsRegistryReadCache.get(key);
+  if (hit) return hit;
+  return charsRegistryReadCache.set(
+    key,
+    enrichCharactersRegistry(readCharactersRegistry(campaignId), campaignId, opts)
+  );
 }
 
 function writeCharactersRegistry(campaignId, data, opts = {}) {
   const abs = charactersRegistryPath(campaignId);
   if (!abs) throw new Error("no_registry");
   const { writeRegistryFile } = require("./chars-registry-persist");
-  return writeRegistryFile({
+  const result = writeRegistryFile({
     absPath: abs,
     data,
     repoRoot: REPO,
@@ -3984,6 +3991,8 @@ function writeCharactersRegistry(campaignId, data, opts = {}) {
     // Always union-keep unknown on-disk ids so SCP/partial multitask writes cannot wipe GM rows.
     preserveUnknownIds: opts.preserveUnknownIds !== false,
   });
+  charsRegistryReadCache.invalidate();
+  return result;
 }
 
 function registryBaseVersionFromBody(body) {
@@ -7962,7 +7971,17 @@ function sendJson(res, statusCode, body, publicMode) {
 
 function sendFile(res, filePath, contentType, publicMode) {
   res.writeHead(200, { ...responseHeaders(publicMode), "Content-Type": contentType });
-  fs.createReadStream(filePath).pipe(res);
+  const stream = fs.createReadStream(filePath);
+  // Unhandled stream 'error' throws and crashes the whole Hub process — the file can
+  // vanish between the route's existsSync gate and stream open (TOCTOU on portraits/icons).
+  stream.on("error", () => {
+    try {
+      res.destroy();
+    } catch {
+      /* response already gone */
+    }
+  });
+  stream.pipe(res);
 }
 
 const server = http.createServer(async (req, res) => {

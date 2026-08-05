@@ -171,6 +171,12 @@ async function unitActive(unit, scope) {
   }
 }
 
+/** Probe is truth for reachability: unit active + port dead = wedged process. */
+function pixiServiceStatus(probeOk, unitIsActive) {
+  if (probeOk) return "up";
+  return unitIsActive ? "degraded" : "down";
+}
+
 function trackerPath(id) {
   const safe = String(id || "").replace(/[^a-z0-9_-]/gi, "");
   if (!safe || safe !== id) return null;
@@ -407,7 +413,7 @@ async function collectAvailability() {
   const mapUp = mapLocal.ok;
   const mapEdgeUp = mapPublic.ok;
   const hunterUp = hunterActive;
-  const pixiUp = pixiLocal.ok || pixiUnit;
+  const pixiStatus = pixiServiceStatus(pixiLocal.ok, pixiUnit);
 
   const euroChat = buildChatSummary("eurosluts", (readTracker("eurosluts") || {}).discord);
   const nycChat = buildChatSummary("nyc-mafia-dnd", (readTracker("nyc-mafia-dnd") || {}).discord);
@@ -487,10 +493,13 @@ async function collectAvailability() {
       id: "pixi-rp",
       name: "Pixi RP",
       kind: "service",
-      status: pixiUp ? "up" : "down",
-      note: pixiUp
-        ? "Up on Tailscale/LAN :8767 (not public abhinavall)"
-        : "Pixi :8767 not reachable (LAN/Tailscale only when up)",
+      status: pixiStatus,
+      note:
+        pixiStatus === "up"
+          ? "Up on Tailscale/LAN :8767 (not public abhinavall)"
+          : pixiStatus === "degraded"
+            ? "linuxbox-pixi-rp unit active but :8767 not answering — likely wedged; restart linuxbox-pixi-rp"
+            : "Pixi :8767 not reachable (LAN/Tailscale only when up)",
       links: [],
       probes: { origin: pixiLocal, unit_active: pixiUnit },
       visibility: "private",
@@ -1270,4 +1279,5 @@ module.exports = {
   isCharacterId,
   upsertPlayerCharacterLink,
   lookupRegistryCharacter,
+  pixiServiceStatus,
 };
