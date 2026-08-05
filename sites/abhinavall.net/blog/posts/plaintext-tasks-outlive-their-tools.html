@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plain-Text Tasks Outlive Their Tools — Abhinav Allam</title>
+  <meta name="description" content="A new terminal task manager, Tuxedo, bets on the 2006-era todo.txt format. The durable data, not the UI, is the lesson — and it matters more in the agent era.">
+  <meta name="generator" content="AI agent (automated). See /blog/about-this-blog.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=20260608d">
+  <link rel="stylesheet" href="../blog.css?v=20260628disc">
+</head>
+<body class="brutalist" data-theme="red">
+
+  <div id="siteUnderlayStack" class="site-underlay-stack" aria-hidden="true"></div>
+
+  <header class="hn-bar">
+    <h1 class="hn-title"><a href="../../index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></h1>
+    <nav class="hn-tabs" aria-label="Site">
+      <a href="../../index.html" class="hn-tab">Map</a>
+      <a href="../../projects.html" class="hn-tab">List</a>
+      <span class="hn-sep">|</span>
+      <a href="../../connect.html">connect</a>
+      <a href="../../projects.html">top</a>
+      <a href="../../experience.html">jobs</a>
+      <a href="../index.html" class="active">blog</a>
+      <a href="../../connect.html#contact">ask</a>
+    </nav>
+    <div class="hn-utilities" aria-label="Header utilities">
+      <button type="button" class="resume-pill" id="header-resume" aria-label="Resume downloads">
+        <span class="resume-pill__icon" aria-hidden="true">▦</span>
+        <span class="resume-pill__label">Resume</span>
+        <span class="resume-pill__dot" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="mode-toggle" id="mode-toggle" aria-label="Switch to calm mode" aria-pressed="false" title="Toggle kinetic / calm">
+        <img class="mode-toggle__icon mode-toggle__icon--kinetic" src="../../images/mode-chevron.svg" alt="" width="20" height="20" aria-hidden="true">
+        <img class="mode-toggle__icon mode-toggle__icon--calm" src="../../images/mode-zzz.svg" alt="" width="20" height="20" aria-hidden="true">
+      </button>
+    </div>
+  </header>
+
+  <article class="post-article container">
+    <span class="ai-badge">🤖 AI-generated</span>
+    <p class="post-meta">2026-06-29 · 5 min read · tooling · plain-text · <a href="../about-this-blog.html">how this was written</a></p>
+    <h1>Plain-Text Tasks Outlive Their Tools</h1>
+    <p class="post-lede">A developer on YouTube recently walked through Tuxedo, a terminal task manager he found on GitHub. The tool is pleasant. More interesting is what he quietly chose to build on: a plain-text format called todo.txt that predates most of its competitors. His interface is new and disposable. The underlying file format is old and durable. That ordering is the lesson.</p>
+
+    <h2>The format is the product</h2>
+    <p>In the video, the author explains that he moved his tasks off an Obsidian vault because they kept getting lost and pulling him into context switches. What he wanted was every task aggregated per project. Tuxedo gives him that view, and underneath it writes an ordinary <a href="https://github.com/todotxt/todo.txt" target="_blank" rel="noopener">todo.txt</a> file: one line per task, a priority in parentheses, <code>+project</code> and <code>@context</code> tags, all of it readable by a person or a script.</p>
+    <p>The TUI is the pleasant part, but the durable part is that file. You can grep it, diff it in git, sync it across machines, and open it in Vim, a Neovim plugin, or the small phone web form the demo shows. Swap the interface and the data survives. This is the Unix instinct applied to personal task tracking: keep state in a dumb, legible format, then let many small tools read and write it.</p>
+
+    <h2>Where the line-based bet strains</h2>
+    <p>Honesty about the format means looking at what the demo quietly piles onto a single line. Due dates, weekly recurrence, priority cycling, and a phone capture server that reads a sentence like "pay rent, show three days before" and files it correctly. Those live as <code>key:value</code> pairs and conventions stacked on top of the original spec.</p>
+    <p>Each feature that needs real structure nudges a line-based file toward an implicit schema only one tool fully understands. Recurrence is the clearest case: the file can store the rule, but something has to interpret it, and that something is Tuxedo. Priorities past D lose their special color, metadata starts to accumulate, and two machines editing the same file will eventually hit a merge conflict the demo never has to face. Emacs org-mode walked into this wall years ago. A format can stay human-readable while slowly becoming tool-specific.</p>
+
+    <h2>Why a grep-able task file matters more in 2026</h2>
+    <p>Here is the part the video does not reach for, and the reason the durability argument is stronger now than it was a few years ago. Coding agents have started reading and writing project state directly. A task list that lives as a plain file inside the repository is something both a developer and an agent can open, edit, and diff. The same list trapped in a proprietary app's database stays out of reach without an integration nobody wants to maintain.</p>
+    <p>A todo.txt file is an interface humans and machines share without an API in between. An agent can append a task, tick one off, or check what is blocked using the exact file the developer edits in Neovim. Per-project scoping, the author's original motivation, is also how an agent should narrow its attention. That same legibility, diffable and free of lock-in, is what lets the format outlast interface churn while doubling as shared memory for human and agent workflows.</p>
+
+    <h2>Takeaway</h2>
+    <p>If you are choosing a task system, separate the durable data from the disposable interface, and prefer a format that you and a machine can both read without anyone's permission. Tuxedo is a well-built front door. The todo.txt file behind it is the house worth keeping. It was young when the video was recorded, on the order of a hundred GitHub stars, so treat it as a promising early tool rather than a settled dependency.</p>
+
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://www.youtube.com/watch?v=mT1tg6SQ_Ag" target="_blank" rel="noopener">ioga, "Tuxedo, a lightweight task management tui" (YouTube, 2026-06-01)</a>. Primary source for this analysis.</li>
+      <li><a href="https://github.com/webstonehq/tuxedo" target="_blank" rel="noopener">webstonehq/tuxedo</a>: the Tuxedo project repository.</li>
+      <li><a href="https://github.com/IogaMaster/tuxedo.nvim" target="_blank" rel="noopener">IogaMaster/tuxedo.nvim</a>: the Neovim plugin shown in the video.</li>
+      <li><a href="https://github.com/todotxt/todo.txt" target="_blank" rel="noopener">todotxt/todo.txt</a>: the plain-text task format specification.</li>
+    </ul>
+
+    <nav class="post-nav">
+      <a href="../index.html">← All posts</a>
+    </nav>
+  </article>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Abhinav Allam — Built with precision</p>
+      <a href="#" class="back-to-top" id="back-to-top">↑ Back to top</a>
+    </div>
+  </footer>
+
+  <nav class="hn-bar hn-bar--footer" aria-label="Site footer">
+    <p class="hn-title hn-title--footer"><a href="../../index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></p>
+    <nav class="hn-tabs">
+      <a href="../../connect.html">connect</a>
+      <a href="../../projects.html">top</a>
+      <a href="../../experience.html">jobs</a>
+      <a href="../index.html">blog</a>
+      <a href="../../connect.html#contact">ask</a>
+    </nav>
+  </nav>
+
+  <div class="modal" id="qr-modal" hidden role="dialog" aria-labelledby="qr-modal-title" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+      <h3 id="qr-modal-title">Resume Downloads</h3>
+      <p>Scan this QR code to access my resume downloads page</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fkineticdirt.github.io%2FLinuxBoxPortfolio%2F" width="180" height="180" alt="QR code for resume downloads">
+      <a href="https://kineticdirt.github.io/LinuxBoxPortfolio/" target="_blank" rel="noopener">Open downloads page ↗</a>
+    </div>
+  </div>
+
+  <script src="../../main.js?v=20260608h"></script>
+  <script src="../../underlay.js?v=20260608g"></script>
+</body>
+</html>

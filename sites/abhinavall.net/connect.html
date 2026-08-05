@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Connect — Abhinav Allam</title>
+  <meta name="description" content="Connect, explore links, skills, and contact.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260608h">
+</head>
+<body class="brutalist" data-theme="red">
+
+  <div id="siteUnderlayStack" class="site-underlay-stack" aria-hidden="true"></div>
+
+  <!-- ═══ Nav (multi-page) ═══ -->
+  <header class="hn-bar">
+    <h1 class="hn-title"><a href="index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></h1>
+    <nav class="hn-tabs" aria-label="Site">
+      <a href="index.html" class="hn-tab">Map</a>
+      <a href="projects.html" class="hn-tab">List</a>
+      <span class="hn-sep">|</span>
+      <a href="connect.html" class="active">connect</a>
+      <a href="projects.html">top</a>
+      <a href="experience.html">jobs</a>
+      <a href="blog/index.html">blog</a>
+      <a href="connect.html#contact">ask</a>
+    </nav>
+    <div class="hn-utilities" aria-label="Header utilities">
+      <button type="button" class="resume-pill" id="header-resume" aria-label="Resume downloads">
+        <span class="resume-pill__icon" aria-hidden="true">▦</span>
+        <span class="resume-pill__label">Resume</span>
+        <span class="resume-pill__dot" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="mode-toggle" id="mode-toggle" aria-label="Switch to calm mode" aria-pressed="false" title="Toggle kinetic / calm">
+        <img class="mode-toggle__icon mode-toggle__icon--kinetic" src="images/mode-chevron.svg" alt="" width="20" height="20" aria-hidden="true">
+        <img class="mode-toggle__icon mode-toggle__icon--calm" src="images/mode-zzz.svg" alt="" width="20" height="20" aria-hidden="true">
+      </button>
+    </div>
+  </header>
+  <!-- ═══ Connect (live site: social + resume QR) ═══ -->
+  <section class="connect" id="connect">
+    <div class="container">
+      <div class="section-header fade-up">
+        <p class="section-label">// Connect</p>
+        <h2 class="section-title">Find me across the web</h2>
+      </div>
+      <div class="connect-grid stagger-children">
+        <a class="connect-card fade-up" href="https://github.com/kineticdirt" target="_blank" rel="noopener">
+          <span class="connect-tag">code</span>
+          <h3>GitHub @kineticdirt</h3>
+          <p>11+ open-source repositories</p>
+        </a>
+        <a class="connect-card fade-up" href="https://www.linkedin.com/in/abhinav-allam" target="_blank" rel="noopener">
+          <span class="connect-tag">professional</span>
+          <h3>LinkedIn</h3>
+          <p>Fremont, CA · 4+ years</p>
+        </a>
+        <a class="connect-card fade-up" href="https://abhinavall.net/" target="_blank" rel="noopener">
+          <span class="connect-tag">production</span>
+          <h3>abhinavall.net</h3>
+          <p>Live portfolio with resume tools</p>
+        </a>
+        <button type="button" class="connect-card qr-trigger fade-up" id="connect-qr-btn" aria-haspopup="dialog">
+          <span class="connect-tag">resume</span>
+          <h3>Resume downloads</h3>
+          <p>Scan QR — same as live site</p>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Explore ═══ -->
+  <section class="explore" id="explore">
+    <div class="container">
+      <div class="section-header fade-up">
+        <p class="section-label">// Explore</p>
+        <h2 class="section-title">Click through — sites &amp; repos</h2>
+      </div>
+      <div class="explore-grid stagger-children">
+        <a class="explore-card fade-up" href="https://kineticdirt.github.io/LinuxBoxPortfolio/" target="_blank" rel="noopener">
+          <span class="explore-tag">github pages</span>
+          <h3>LinuxBox portfolio</h3>
+          <p>Extended showcase + resume downloads</p>
+        </a>
+        <a class="explore-card fade-up" href="https://github.com/kineticdirt/mem-constant" target="_blank" rel="noopener">
+          <span class="explore-tag">oss</span>
+          <h3>mem-constant</h3>
+          <p>Autonomous memory CLI for agents</p>
+        </a>
+        <a class="explore-card fade-up" href="https://github.com/kineticdirt/microsearch-mcp" target="_blank" rel="noopener">
+          <span class="explore-tag">mcp</span>
+          <h3>microsearch-mcp</h3>
+          <p>MCP search tooling</p>
+        </a>
+        <a class="explore-card fade-up" href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">
+          <span class="explore-tag">agents</span>
+          <h3>Hermes Agent</h3>
+          <p>Always-on agent stack reference for homelab lane</p>
+        </a>
+        <a class="explore-card fade-up" href="https://pypi.org/project/mem-constant/" target="_blank" rel="noopener">
+          <span class="explore-tag">pypi</span>
+          <h3>mem-constant on PyPI</h3>
+          <p>pip-installable memory CLI for agents</p>
+        </a>
+        <a class="explore-card fade-up" href="Mail/index.html">
+          <span class="explore-tag">inbox</span>
+          <h3>abhinav.allam@abhinavall.net</h3>
+          <p>Portfolio inbox — view messages</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Skills ═══ -->
+  <section class="skills" id="skills">
+    <div class="container">
+      <div class="section-header fade-up">
+        <p class="section-label">// Skills</p>
+        <h2 class="section-title">Tech stack</h2>
+      </div>
+      <div class="skills-grid">
+        <div class="skill-category fade-up">
+          <h3>LANG:</h3>
+          <ul>
+            <li><a href="https://www.python.org/" target="_blank" rel="noopener">Python</a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noopener">JavaScript</a></li>
+            <li><a href="https://kotlinlang.org/" target="_blank" rel="noopener">Kotlin</a></li>
+            <li><a href="https://www.java.com/" target="_blank" rel="noopener">Java</a></li>
+            <li><a href="https://www.scala-lang.org/" target="_blank" rel="noopener">Scala</a></li>
+            <li><a href="https://isocpp.org/" target="_blank" rel="noopener">C/C++</a></li>
+            <li><a href="https://www.typescriptlang.org/" target="_blank" rel="noopener">TypeScript</a></li>
+          </ul>
+        </div>
+        <div class="skill-category fade-up">
+          <h3>ML:</h3>
+          <ul>
+            <li><a href="https://pytorch.org/" target="_blank" rel="noopener">PyTorch</a></li>
+            <li><a href="https://pandas.pydata.org/" target="_blank" rel="noopener">Pandas</a></li>
+            <li><a href="https://numpy.org/" target="_blank" rel="noopener">NumPy</a></li>
+            <li><a href="https://huggingface.co/docs/transformers/model_doc/bert" target="_blank" rel="noopener">BERT</a></li>
+            <li><a href="https://stability.ai/" target="_blank" rel="noopener">Stable Diffusion</a></li>
+            <li><a href="https://spark.apache.org/" target="_blank" rel="noopener">Apache Spark</a></li>
+          </ul>
+        </div>
+        <div class="skill-category fade-up">
+          <h3>INFRA:</h3>
+          <ul>
+            <li><a href="https://cloud.google.com/" target="_blank" rel="noopener">GCP</a></li>
+            <li><a href="https://www.sqlite.org/" target="_blank" rel="noopener">SQLite3</a></li>
+            <li><a href="https://aws.amazon.com/athena/" target="_blank" rel="noopener">Amazon Athena</a></li>
+            <li><a href="https://git-scm.com/" target="_blank" rel="noopener">Git</a></li>
+          </ul>
+        </div>
+        <div class="skill-category fade-up">
+          <h3>DEV:</h3>
+          <ul>
+            <li><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">VS Code</a></li>
+            <li><a href="https://gradle.org/" target="_blank" rel="noopener">Gradle</a></li>
+            <li><a href="https://maven.apache.org/" target="_blank" rel="noopener">Maven</a></li>
+            <li><a href="https://www.postman.com/" target="_blank" rel="noopener">Postman</a></li>
+            <li><a href="https://developer.android.com/studio" target="_blank" rel="noopener">Android Studio</a></li>
+          </ul>
+        </div>
+        <div class="skill-category fade-up">
+          <h3>AGENTS:</h3>
+          <ul>
+            <li><a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">MCP</a></li>
+            <li><a href="https://www.langchain.com/" target="_blank" rel="noopener">LangChain</a></li>
+            <li><a href="https://www.llamaindex.ai/" target="_blank" rel="noopener">LlamaIndex</a></li>
+            <li><a href="https://fastify.dev/" target="_blank" rel="noopener">Fastify</a></li>
+            <li><a href="https://www.docker.com/" target="_blank" rel="noopener">Docker</a></li>
+            <li><a href="https://tailscale.com/" target="_blank" rel="noopener">Tailscale</a></li>
+          </ul>
+        </div>
+        <div class="skill-category fade-up">
+          <h3>SOFT:</h3>
+          <ul>
+            <li>Problem Solving</li><li>Collaboration</li><li>Agile/Scrum</li>
+            <li>Communication</li><li>Project Management</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Skills marquee (kinetic palette) ═══ -->
+  <section class="skills-marquee-band" aria-label="Tech stack marquee">
+    <div class="skills-marquee">
+      <span class="marquee-item">Python</span><span class="marquee-item accent-k">PyTorch</span>
+      <span class="marquee-item">JavaScript</span><span class="marquee-item accent-k">RAG</span>
+      <span class="marquee-item">Kotlin</span><span class="marquee-item accent-k">Langchain</span>
+      <span class="marquee-item">MCP</span><span class="marquee-item accent-k">FastAPI</span>
+      <span class="marquee-item">TypeScript</span><span class="marquee-item accent-k">CUDA</span>
+      <span class="marquee-item">Python</span><span class="marquee-item accent-k">PyTorch</span>
+      <span class="marquee-item">JavaScript</span><span class="marquee-item accent-k">RAG</span>
+      <span class="marquee-item">Kotlin</span><span class="marquee-item accent-k">Langchain</span>
+      <span class="marquee-item">MCP</span><span class="marquee-item accent-k">FastAPI</span>
+      <span class="marquee-item">TypeScript</span><span class="marquee-item accent-k">CUDA</span>
+    </div>
+  </section>
+
+  <!-- ═══ Contact ═══ -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <h2 class="fade-up">Get In Touch</h2>
+      <p class="fade-up">Available for opportunities. Let's build something great together.</p>
+      <div class="contact-links fade-up">
+        <a href="https://github.com/kineticdirt" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/abhinav-allam" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="Mail/index.html">Inbox</a>
+        <button type="button" id="contact-qr-btn">Resume QR</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Footer ═══ -->
+  <footer>
+    <div class="container">
+      <p>© 2026 Abhinav Allam — Built with precision</p>
+      <a href="#" class="back-to-top" id="back-to-top">↑ Back to top</a>
+    </div>
+  </footer>
+
+  <nav class="hn-bar hn-bar--footer" aria-label="Site footer">
+    <p class="hn-title hn-title--footer"><a href="index.html" class="glitch" data-text="abhinavall.net">abhinavall.net</a></p>
+    <nav class="hn-tabs">
+      <a href="connect.html">connect</a>
+      <a href="projects.html">top</a>
+      <a href="experience.html">jobs</a>
+      <a href="blog/index.html">blog</a>
+      <a href="connect.html#contact">ask</a>
+    </nav>
+  </nav>
+
+  <div class="right-fab-stack" aria-label="Quick actions">
+    <div class="chat-slot">
+      <aside class="portfolio-chat" id="chat-panel" hidden aria-label="Chat">
+        <header class="chat-header">
+          <button type="button" class="chat-close" id="chat-close" aria-label="Close chat">&times;</button>
+        </header>
+        <div class="chat-quick-prompts">
+          <button type="button" data-chat-prompt="Tell me about hackathons">Hackathons</button>
+          <button type="button" data-chat-prompt="What is mem-constant?">mem-constant</button>
+          <button type="button" data-chat-prompt="HL7 pipeline">HL7</button>
+          <button type="button" data-chat-prompt="How do I contact you?">Contact</button>
+        </div>
+        <div class="chat-log" id="chat-log" role="log" aria-live="polite"></div>
+        <form class="chat-form" id="chat-form">
+          <input type="text" id="chat-input" placeholder="Ask about projects, jobs, contact…" autocomplete="off" maxlength="280">
+          <button type="submit">Send</button>
+        </form>
+      </aside>
+      <button type="button" class="chat-toggle" id="chat-toggle" aria-expanded="false" aria-controls="chat-panel" title="Ask">
+        <span class="chat-toggle-icon" aria-hidden="true">◈</span>
+        <span class="chat-toggle-label">Ask</span>
+      </button>
+    </div>
+    <aside class="link-dock" aria-label="Quick links">
+      <button type="button" id="dock-qr" title="Resume QR">QR</button>
+      <a href="https://github.com/kineticdirt" target="_blank" rel="noopener" title="GitHub">GH</a>
+      <a href="Mail/index.html" title="Inbox — abhinav.allam@abhinavall.net">✉</a>
+    </aside>
+  </div>
+
+  <div class="modal" id="qr-modal" hidden role="dialog" aria-labelledby="qr-modal-title" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+      <h3 id="qr-modal-title">Resume Downloads</h3>
+      <p>Scan this QR code to access my resume downloads page</p>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fkineticdirt.github.io%2FLinuxBoxPortfolio%2F" width="180" height="180" alt="QR code for resume downloads">
+      <a href="https://kineticdirt.github.io/LinuxBoxPortfolio/" target="_blank" rel="noopener">Open downloads page ↗</a>
+    </div>
+  </div>
+
+  <!-- Article reader (full project write-ups) -->
+  <div class="article-modal" id="article-modal" hidden role="dialog" aria-labelledby="article-modal-title" aria-modal="true">
+    <div class="article-backdrop" data-close-article></div>
+    <div class="article-panel">
+      <header class="article-header">
+        <button type="button" class="article-close" data-close-article aria-label="Close article">&times;</button>
+        <nav class="article-breadcrumb" id="article-modal-crumb" aria-label="Breadcrumb"></nav>
+        <p class="article-modal-meta" id="article-modal-meta"></p>
+        <h2 id="article-modal-title"></h2>
+      </header>
+      <div class="article-layout">
+        <div class="article-body" id="article-modal-body"></div>
+        <aside class="article-sidebar" id="article-modal-sidebar" aria-label="Project details"></aside>
+      </div>
+      <footer class="article-footer">
+        <p class="article-links-label">Related links</p>
+        <div class="article-links" id="article-modal-links"></div>
+      </footer>
+    </div>
+  </div>
+
+
+
+  <script src="chatbot.js"></script>
+  <script src="main.js?v=20260608h"></script>
+  <script src="underlay.js?v=20260608g"></script>
+</body>
+</html>

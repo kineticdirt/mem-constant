@@ -1,0 +1,147 @@
+/* Portfolio inbox — abhinav.allam@abhinavall.net */
+.mail-main {
+  padding: 2rem 0 5rem;
+  min-height: 70vh;
+}
+
+.mail-header {
+  margin-bottom: 1.75rem;
+}
+
+.mail-address {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--cyber-yellow);
+  margin-top: 0.35rem;
+}
+
+.mail-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.mail-refresh {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mail-refresh:hover {
+  border-color: var(--cyber-yellow);
+}
+
+.mail-status {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.mail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .mail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mail-list {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.mail-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mail-item:hover,
+.mail-item.is-active {
+  background: var(--accent-dim);
+}
+
+.mail-item__from {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--cyber-yellow);
+  margin-bottom: 0.25rem;
+}
+
+.mail-item__subject {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.mail-item__meta {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.mail-detail {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 1.25rem;
+  min-height: 16rem;
+}
+
+.mail-detail__empty {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.mail-detail__head {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mail-detail__subject {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.mail-detail__meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.mail-detail__body {
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.mail-error {
+  border: 1px solid var(--box-hl-red);
+  padding: 0.85rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text);
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>tableslop design preview — Isla Primavera</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="tableslop.css"/>
+</head>
+<body>
+  <div class="design-banner" role="status">Design preview · local only · not deployed</div>
+  <header class="hud">
+    <div class="hud-brand">tableslop</div>
+    <span class="hud-setting" id="mapTitle">Isla Primavera</span>
+    <button type="button" class="hud-btn" id="labelToggle">Labels ON</button>
+    <button type="button" class="hud-btn" id="citiesToggle">Cities ON</button>
+    <div class="hud-auth">
+      <span class="hud-user">@guest · design mode</span>
+    </div>
+  </header>
+
+  <div class="game-shell">
+    <section class="map-viewport" id="viewport">
+      <div class="map-camera" id="mapCamera">
+        <div class="map-stage" id="mapStage"></div>
+      </div>
+      <div class="map-hint" id="mapHint">drag to pan · scroll to zoom · pick a region</div>
+      <div class="map-zoom-label" id="zoomLabel">—</div>
+      <div class="map-controls">
+        <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+        <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+        <button type="button" id="zoomFit" aria-label="Fit map">⌂</button>
+      </div>
+    </section>
+
+    <aside class="region-journal" id="journal">
+      <div class="journal-browse" id="journalBrowse">
+        <div class="pilot-panel">
+          <div class="pilot-name">Local pilot</div>
+          <div class="pilot-meta">Design preview — saves in this browser</div>
+          <div class="pilot-stats" id="pilotStats"></div>
+        </div>
+        <h2>◇ Legend</h2>
+        <div class="legend-grid" id="legendGrid"></div>
+        <div class="region-list" id="list"></div>
+      </div>
+
+      <div class="journal-detail is-hidden" id="journalDetail" aria-hidden="true">
+        <button type="button" class="detail-back" id="detailBack">← Regions</button>
+        <header class="detail-head">
+          <span class="detail-num" id="detailNum">R?</span>
+          <h2 class="detail-title" id="detailTitle">—</h2>
+          <p class="detail-meta" id="detailMeta">—</p>
+          <span class="lane" id="detailLane">planning</span>
+        </header>
+        <section class="detail-lore" id="detailLore"></section>
+        <label class="pilot-note-label" for="regionNote">Session note</label>
+        <textarea class="pilot-note" id="regionNote" placeholder="Notes for this region…"></textarea>
+        <div class="detail-actions">
+          <button type="button" class="detail-cta is-disabled" id="discordCta" disabled title="Wire after md-03">Open Discord channel</button>
+          <button type="button" class="detail-cta detail-cta--ghost" id="focusMapBtn">Focus on map</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="map-tooltip" id="tooltip" hidden></div>
+  <script src="viewer.js" type="module"></script>
+</body>
+</html>

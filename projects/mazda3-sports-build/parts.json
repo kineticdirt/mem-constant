@@ -1,13 +1,13 @@
 {
   "project": "mazda3-sports-build",
   "title": "Mazda3 sports build",
-  "updated_at": "2026-06-29T15:31:44-04:00",
+  "updated_at": "2026-07-22T03:13:26Z",
   "monitor": {
     "interval_days": 3,
     "last_run": "2026-06-29T15:31:44-04:00",
     "note": "Prices re-checked every 3 days by scripts/mazda3/price_monitor.py; changes appended to each part's price_history."
   },
-  "fitment_warning": "Chassis conflict: H&R springs are CX-30-specific; the CorkSport strut bar fits 2019+ Mazda 3 ONLY (not CX-30). Confirm the actual car (Tier 0).",
+  "fitment_warning": "Chassis locked: 2019+ Mazda 3. Drop CX-30-only parts (e.g. H&R CX-30 springs) or replace with Mazda 3 equivalents.",
   "parts": [
     {
       "id": "hr-springs",
@@ -68,25 +68,15 @@
     },
     {
       "id": "white-wheels",
-      "name": "White wheels (spec \u2014 no product chosen yet)",
-      "vendor": null,
-      "url": null,
+      "name": "Circuit Performance CP23 16x7 Gloss White (5x114.3 +35)",
+      "vendor": "Circuit Performance",
+      "url": "https://circuitperformance.com/product/circuit-performance-wheels-rims/cp23-wheels/circuit-performance-cp23-16x7-gloss-white-5x114-3-35mm/",
       "sku": null,
       "tier": "1-handling",
-      "fitment": "5x114.3 bolt pattern, 6-7in width, white finish. Confirm offset/diameter against the chosen chassis + tire.",
-      "status": "spec-only",
+      "fitment": "5x114.3 +35 · Mazda 3; ordered via Circuit Performance link in chat",
+      "status": "ordered",
       "currency": "USD",
       "current_price": null,
-      "spec": {
-        "color": "white",
-        "bolt_pattern": "5x114.3",
-        "width_in": "6-7",
-        "open": [
-          "pick diameter (17/18in)",
-          "confirm offset (Mazda 3/CX-30 ~ +45mm typical)",
-          "pick a model + source a link"
-        ]
-      },
       "price_history": []
     },
     {
@@ -164,6 +154,25 @@
           "note": "initial capture"
         }
       ]
+    }
+  ],
+  "vehicle": {
+    "chassis": "mazda3",
+    "chassis_label": "2019+ Mazda 3",
+    "body": null,
+    "confirmed_at": "2026-07-22T03:13:26Z",
+    "notes": "Confirmed repeatedly in Dashboard Chat (2026-07-21)."
+  },
+  "decisions": [
+    {
+      "at": "2026-07-22T03:13:26Z",
+      "fact": "chassis=mazda3 (seeded from chat confirmations)",
+      "source": "pc_seed"
+    },
+    {
+      "at": "2026-07-22T03:13:26Z",
+      "fact": "part.white-wheels ordered CP23",
+      "source": "pc_seed"
     }
   ]
 }

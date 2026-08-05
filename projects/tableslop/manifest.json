@@ -5,6 +5,7 @@
   "campaign": "tropic-gooner",
   "updated_at": "2026-07-23",
   "v1_scope": "map + regions + cast + session/Discord play loop (human 2026-07-23; not map-only)",
+  "dual_app_roadmap": "docs/plans/tableslop-dual-app-roadmap-2026-08-01.md",
   "status_lanes": ["planning", "writing", "testing", "blocked", "done", "deferred"],
   "subprojects": [
     {

@@ -77,3 +77,4 @@ Append a row when a tracked price changes (deal alerts, restocks, sale ends).
 
 - All prices captured from the linked product pages on 2026-06-29; vendors rotate sales, so verify at checkout.
 - Sources for #2, #4, #5 captured from page content; #1 and #3 from uploaded product snapshots.
+- **On-vehicle data (optional, YAGNI):** CSS Electronics AI CAN→DBC workflow — watch-only note at [`reports/mazda3/auto-data-library-2026-07-28.md`](../../reports/mazda3/auto-data-library-2026-07-28.md) ([video](https://www.youtube.com/watch?v=jQDqWuL5-nQ)). Does not replace `parts.json` / price monitor.
