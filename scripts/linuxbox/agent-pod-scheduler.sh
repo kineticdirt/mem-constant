@@ -284,6 +284,12 @@ if not (Path.home() / ".hermes" / "profiles" / profile).is_dir():
     print(f"SKIP pod={name}: hermes profile '{profile}' not installed")
     sys.exit(0)
 
+# Continuity seed must also fire when the pod scheduler owns the think tick
+# (crontab absent/deferred) — else [ops]/backlog seeds never land and lanes idle.
+seed_py = Path(repo) / "scripts/linuxbox" / "think-continuity-seed.py"
+if name == "think" and seed_py.is_file():
+    subprocess.run([sys.executable, str(seed_py), repo], check=False, capture_output=True)
+
 # Deterministic IDLE short-circuit for think/fast — Hermes still runs when work exists.
 has_work_py = Path(repo) / "scripts/linuxbox" / "agent-cycle-has-work.py"
 if name in ("think", "fast") and has_work_py.is_file():

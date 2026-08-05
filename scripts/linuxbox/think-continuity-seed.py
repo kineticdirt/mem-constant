@@ -52,10 +52,12 @@ def _save_tasks(repo: Path, data: dict) -> None:
 
 
 def _open_tasks(tasks: list) -> list[dict]:
+    # has-work and the tick picker both treat "pending" as open — the "queues
+    # quiet" signal must match or the seed fires while real work exists.
     return [
         t
         for t in tasks
-        if isinstance(t, dict) and str(t.get("status") or "").lower() == "open"
+        if isinstance(t, dict) and str(t.get("status") or "").lower() in ("open", "pending")
     ]
 
 
@@ -68,7 +70,9 @@ def _recent_task(tasks: list, task_id: str, hours: int) -> bool:
         try:
             ts = datetime.fromisoformat(raw.replace("Z", "+00:00"))
         except ValueError:
-            return True
+            # Unparseable stamp must not suppress reseeding — the open-status
+            # dedupe below still prevents duplicates.
+            return False
         if ts >= cutoff:
             return True
     return False
@@ -157,7 +161,40 @@ def seed(repo: Path) -> list[str]:
     return seeded
 
 
+def _self_check() -> int:
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        repo = Path(td)
+        (repo / "agents").mkdir(parents=True)
+        (repo / BACKLOG).write_text("- [ ] **Fix the Hub thing**\n", encoding="utf-8")
+
+        # 1) pending counts as open → backlog seed must NOT fire
+        _save_tasks(repo, {"tasks": [{"id": "t-pending", "status": "pending"}]})
+        added = seed(repo)
+        assert PW_TASK_ID in added, added
+        assert not any(a.startswith("hub-backlog-") for a in added), added
+
+        # 2) zero open + backlog [ ] → seeds one backlog task; rerun idempotent
+        _save_tasks(repo, {"tasks": []})
+        added = seed(repo)
+        assert any(a.startswith("hub-backlog-") for a in added), added
+        assert seed(repo) == [], "backlog seed not idempotent"
+
+        # 3) corrupt timestamp on a closed PW task must not suppress reseed
+        _save_tasks(
+            repo,
+            {"tasks": [{"id": PW_TASK_ID, "status": "done", "created_at": "not-a-date"}]},
+        )
+        added = seed(repo)
+        assert PW_TASK_ID in added, added
+    print("think-continuity-seed self_check OK")
+    return 0
+
+
 def main() -> int:
+    if "--self-check" in sys.argv:
+        return _self_check()
     repo = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home() / "agent-dump"
     added = seed(repo)
     for tid in added:

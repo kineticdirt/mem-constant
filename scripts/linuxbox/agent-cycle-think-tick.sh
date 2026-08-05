@@ -13,6 +13,9 @@ REPO="${HOME}/agent-dump"
 LOCK="/tmp/agent-cycle-think.lock"
 FOCUS="${REPO}/agents/state/think-focus.json"
 LOG="${REPO}/agents/runs/think-last.log"
+# Per-attempt capture (truncated inside run_hermes_once) — 429/DONE classification
+# must judge only the current attempt, not the accumulated tick log.
+ATTEMPT_LOG="${REPO}/agents/runs/think-attempt.log"
 FORM_PY="${REPO}/scripts/linuxbox/think-shell-access-form.py"
 INCIDENT_PY="${REPO}/scripts/linuxbox/think-incident-form.py"
 # Cadence throttle: cron fires every 1m but the LLM only runs if >= INTERVAL_SEC since the
@@ -1247,11 +1250,12 @@ fi
 run_hermes_once() {
   local model="$1"
   set +e
+  : > "${ATTEMPT_LOG}"
   stdbuf -oL -eL timeout "${THINK_TIMEOUT_SEC}" \
     "${HERMES_BIN}" -p think chat --yolo --max-turns "${THINK_MAX_TURNS}" \
     -m "${model}" \
     -t "${THINK_TOOLSETS}" \
-    -q "${PROMPT}" 2>&1 | tee -a "${LOG}" >/dev/null
+    -q "${PROMPT}" 2>&1 | tee -a "${LOG}" "${ATTEMPT_LOG}" >/dev/null
   echo "${PIPESTATUS[0]}"
   set -e
 }
@@ -1512,48 +1516,11 @@ ap.write_text(json.dumps(counts, indent=2) + "\n", encoding="utf-8")
 PY
 }
 
-log_is_free_429() {
-  grep -qiE 'HTTP 429|free-models-per-day|Rate limit exceeded' "${LOG}" 2>/dev/null
-}
-
-log_is_shared_free_daily() {
-  grep -qiE 'free-models-per-day' "${LOG}" 2>/dev/null
-}
-
-log_has_tool_progress() {
-  grep -qiE 'Messages:[[:space:]]*[2-9]|tool calls\)|DONE:|BLOCKED:' "${LOG}" 2>/dev/null
-}
-
-# Real DONE:/BLOCKED: from the model — NOT the prompt template
-# ("End with … DONE: <what> or BLOCKED: <why> or IDLE:.") which used to abort
-# free-rotate before mark_free_429 / paid C8 (Hub stuck on "429 BLOCKED").
-log_has_real_done_or_blocked() {
-  LOG="${LOG}" python3 - <<'PY'
-import os, re
-from pathlib import Path
-p = Path(os.environ.get("LOG") or "")
-try:
-    text = p.read_text(encoding="utf-8", errors="replace")
-except Exception:
-    raise SystemExit(1)
-# Free 429 in this attempt → keep rotating; template DONE must not win.
-if re.search(r"HTTP\s*429|free-models-per-day|Rate limit exceeded", text, re.I):
-    raise SystemExit(1)
-pat = re.compile(r"^\s*(DONE|BLOCKED)\s*:(.*)$", re.I | re.M)
-for m in pat.finditer(text):
-    line = m.group(0)
-    rest = (m.group(2) or "").strip()
-    up = line.upper()
-    if sum(up.count(k) for k in ("DONE:", "BLOCKED:", "IDLE:")) > 1:
-        continue
-    if not rest or re.fullmatch(r"[./|\s\-]*", rest):
-        continue
-    if re.search(r"<what|<why|pick one:", rest, re.I):
-        continue
-    raise SystemExit(0)
-raise SystemExit(1)
-PY
-}
+# Per-attempt 429/DONE classification lives in the lib (attempt-scoped — one early
+# 429 must not poison DONE detection or mark_free_429 for the rest of the tick).
+# Self-check: bash scripts/linuxbox/lib/think-log-classify.sh --self-check
+# shellcheck source=lib/think-log-classify.sh
+source "${REPO}/scripts/linuxbox/lib/think-log-classify.sh"
 
 IFS=',' read -r -a _FREE_CHAIN <<< "${THINK_FREE_MODELS}"
 rc=1
@@ -1648,7 +1615,7 @@ else
       break
     fi
     if log_is_free_429; then
-      _reset="$(grep -oE "X-RateLimit-Reset['\": ]+[0-9]+" "${LOG}" 2>/dev/null | head -1 | grep -oE '[0-9]+$' || true)"
+      _reset="$(grep -oE "X-RateLimit-Reset['\": ]+[0-9]+" "${ATTEMPT_LOG}" 2>/dev/null | head -1 | grep -oE '[0-9]+$' || true)"
       _reset_iso=""
       if [[ -n "${_reset}" ]]; then
         _reset_iso="$(python3 -c "from datetime import datetime,timezone; print(datetime.fromtimestamp(int('${_reset}')/1000, tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))" 2>/dev/null || true)"

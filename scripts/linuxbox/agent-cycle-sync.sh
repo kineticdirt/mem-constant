@@ -9,6 +9,10 @@ cd "${REPO}"
 mkdir -p "${REPO}/agents/state"
 date -Iseconds > "${REPO}/agents/state/sync-tick.last"
 
+# Keep durable ~/bin shadows (tick re-exec + has-work preference) in lockstep with
+# the repo — stale-shadow prevention (pc-2026-08-05). Atomic mv; no-op when equal.
+bash "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" 2>/dev/null || true
+
 python3 "${REPO}/scripts/linuxbox/human-inbox-normalize.py" "${REPO}" --quiet 2>/dev/null || true
 bash "${REPO}/scripts/linuxbox/kill-stale-chromium.sh" 2>/dev/null || true
 bash "${REPO}/scripts/linuxbox/apply-git-bundle.sh" 2>/dev/null || true
