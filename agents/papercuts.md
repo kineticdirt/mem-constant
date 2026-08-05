@@ -20,6 +20,24 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 
 ---
 
+## pc-2026-08-05-deploy-list-new-file-miss
+- **Date:** 2026-08-05
+- **Lane:** ops | hub
+- **Area:** `scripts/pc/push-linuxbox.sh` PATHS lists
+- **Severity:** annoying
+- **Complaint:** New repo files ride `--finished` only if hand-added to `DASHBOARD_PATHS`/`SCRIPTS_LINUXBOX` lists; a missing entry = deployed server requires a module that never ships → crash loop (`Cannot find module './chars-registry-read-cache'` at 18:22, plus tick would have failed on missing `lib/think-log-classify.sh`).
+- **Proposed fix:** added the 5 missing entries (done); longer-term generate the lists from `require()`/`source` scan or a git-diff check in push.
+- **Status:** fixed 2026-08-05 — `chars-registry-read-cache.js` (dashboard), `refresh-bin-shadows.sh`, `lib/think-log-classify.sh`, `think-continuity-seed.py`, `resource_governor.py` (scripts) added; manifest paths_hint synced.
+
+## pc-2026-08-05-hub-exit-mmap-8790-wedge
+- **Date:** 2026-08-05
+- **Lane:** hub | ops
+- **Area:** `linuxbox-status.service` / `:8790`
+- **Severity:** blocking
+- **Complaint:** Hub node (PID since 04:29) stuck in `exit_mmap` D-state → zombie + orphan LISTEN on `:8790` (~394 CLOSE_WAIT). systemd unit wedged `deactivating/final-sigkill` (MainPID=0); restarts hit EADDRINUSE. CF returned **524**. SIGKILL/cgroup.kill cannot finish `exit_mmap`. Only clean fix is reboot (or temp port hop 8791).
+- **Proposed fix:** Add a Hub health watchdog (curl `:8790` fail + unit stuck deactivating >2m → `systemctl reset-failed` + reboot-or-port-hop) next to `hermes-gateway-watchdog`. Log papercut on trip. Also prefer `KillMode=mixed` + shorter stop so children don't leave orphan listens.
+- **Status:** in-progress 2026-08-05 (holder `hub-watchdog-audit`, PC) — built `scripts/linuxbox/linuxbox-status-watchdog.sh` (+ installer, `--self-check`), covers Hub/origin-proxy/cloudflared: D-state, hung-listener (probe 000), wedged-deactivating >120s → reset-failed+start, else `failed_needs_reboot` (auto-reboot opt-in `HUB_WATCHDOG_REBOOT=1`, default off). Also: `--max-time 10` on alert-check :8790 curl, `hub_down`/`hub_hung` checks in `agents/linuxbox-alerts.json`. **Pending:** potato deploy (`push-linuxbox.sh --finished`) + run installer + live verify. KillMode=mixed deferred — would not clear an `exit_mmap` kernel wedge, and control-group already kills orphan children harder.
+
 ## pc-2026-08-05-think-tick-stale-bin-shadow
 - **Date:** 2026-08-05
 - **Lane:** think
