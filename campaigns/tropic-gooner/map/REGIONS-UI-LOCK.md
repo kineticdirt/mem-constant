@@ -12,6 +12,20 @@ Holder: `tableslop-regions-ui-protect` + hard rule `gm-borders-never-clear` (202
 - Protect already in place — agents must not empty `regions-ui.json` “to reset,” “clean,” or “migrate palette.”
 - **NEVER** run `sync-overlay-coords.mjs` or `digitize-region-polygons.mjs --apply` against live potato when GM polygons exist — both scripts now **REFUSE** (coords/map-only for sync-overlay).
 
+## HEAD carries GM truth (2026-08-04 decision — stubs never win)
+
+- GM regions-ui **v19 (371 verts: r01-paradise 277, r03-crimson-quay 94) is committed to HEAD** (PC `master`).
+  Before this, HEAD held the v4 ellipse stub (31 verts), so any `git reset --hard` / bundle apply that
+  bypassed skip-worktree restored **stubs over GM borders**. Now a reset restores v19 instead.
+- **`.gitignore` entry removed** (`campaigns/*/map/regions-ui.json`): the file is deliberately tracked.
+  Chosen over "keep gitignored but commit once" because tracked+ignored is a contradictory state that
+  invites the next agent to treat the file as untracked and re-stub HEAD.
+- **skip-worktree stays applied** on potato and PC: live GM **Draw→Save border** writes stay local
+  (no git noise, deploys don't revert them). HEAD is the safety floor, not the live source.
+- **Intentional commit path** (after GM saves new borders): potato→PC pull, `guard --accept` to bump
+  watermark, `git update-index --no-skip-worktree …regions-ui.json`, commit, re-apply `--skip-worktree`,
+  push bundle so potato HEAD matches.
+
 ## Root cause (2026-08-01 wipe — evidence)
 
 | Evidence | Detail |
@@ -55,8 +69,8 @@ git ls-files -v campaigns/tropic-gooner/map/regions-ui.json   # expect leading S
 ```
 
 - **skip-worktree** keeps the file on disk and tells git not to checkout HEAD over it during reset (preferred on potato).
-- Repo **`.gitignore`** lists `campaigns/*/map/regions-ui.json` for hygiene on new clones; already-tracked copies need skip-worktree (or `git rm --cached` + commit to untrack without deleting disk).
-- **Do not** commit ellipse stubs to `main` as the “source of truth” — potato HUD owns geometry; `protected-paths.py` GM-rich restore + `tableslop-gm-borders-autorestore.sh` after bundle/pull are backup layers only.
+- **`.gitignore` no longer lists regions-ui** (removed 2026-08-04) — the file is intentionally tracked; skip-worktree on potato/PC keeps live GM saves local until an intentional commit (see decision section above).
+- **Never** commit ellipse stubs over GM verts in HEAD — HEAD now carries real v19 (2026-08-04). Potato HUD owns live geometry; `protected-paths.py` GM-rich restore + `tableslop-gm-borders-autorestore.sh` after bundle/pull are backup layers only.
 - PC may keep a pulled copy or local stub; use skip-worktree locally if you edit GM borders on PC without intending to push stubs.
 
 ## Agent checklist (after map touch / deploy)
