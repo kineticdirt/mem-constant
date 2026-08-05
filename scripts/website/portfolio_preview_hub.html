@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Portfolio previews — Abhinav Allam</title>
   <style>
-    :root { color-scheme: dark light; --bar: #111; --fg: #eee; --accent: #3b82f6; }
+    :root { color-scheme: dark light; --bar: #111; --fg: #eee; --accent: #3b82f6; --pick: #00ff88; }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: system-ui, sans-serif; background: #0a0a0a; color: var(--fg); }
     header {
@@ -20,9 +20,11 @@
       padding: 0.45rem 0.85rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
     }
     .tabs button[aria-selected="true"] { border-color: var(--accent); background: #1e3a5f; }
+    .tabs button.recommended { border-color: var(--pick); }
+    .tabs button.recommended[aria-selected="true"] { background: #0d3320; border-color: var(--pick); }
     .tabs button:hover { border-color: #666; }
     .meta { font-size: 0.75rem; opacity: 0.75; width: 100%; }
-    iframe { width: 100%; height: calc(100vh - 56px); border: 0; background: #fff; }
+    iframe { width: 100%; height: calc(100vh - 72px); border: 0; background: #fff; }
     .open-full { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
     .open-full:hover { text-decoration: underline; }
   </style>
@@ -31,14 +33,19 @@
   <header>
     <h1>Portfolio redesign — preview hub</h1>
     <nav class="tabs" role="tablist" aria-label="Site versions">
-      <button type="button" role="tab" id="tab-v1" aria-selected="true" aria-controls="frame" data-src="v1-system/index.html">v1 · System</button>
-      <button type="button" role="tab" id="tab-v2" aria-selected="false" aria-controls="frame" data-src="v2-editorial/index.html">v2 · Editorial</button>
+      <button type="button" role="tab" id="tab-v4" class="recommended" aria-selected="true" aria-controls="frame" data-src="v4-fusion/index.html">v4 · Fusion ★</button>
+      <button type="button" role="tab" id="tab-v1" aria-selected="false" aria-controls="frame" data-src="v1-system/index.html">v1 · System</button>
       <button type="button" role="tab" id="tab-v3" aria-selected="false" aria-controls="frame" data-src="v3-kinetic/index.html">v3 · Kinetic</button>
+      <button type="button" role="tab" id="tab-v2" aria-selected="false" aria-controls="frame" data-src="v2-editorial/index.html">v2 · Editorial</button>
+      <button type="button" role="tab" id="tab-v5" aria-selected="false" aria-controls="frame" data-src="v5-circuit/index.html">v5 · Circuit</button>
+      <button type="button" role="tab" id="tab-v6" aria-selected="false" aria-controls="frame" data-src="v6-aurora/index.html">v6 · Aurora</button>
+      <button type="button" role="tab" id="tab-v7" aria-selected="false" aria-controls="frame" data-src="v7-hermes/index.html">v7 · Hermes</button>
+      <button type="button" role="tab" id="tab-v8" aria-selected="false" aria-controls="frame" data-src="v8-brutalist-map/index.html">v8 · Brutalist</button>
     </nav>
-    <a class="open-full" id="open-full" href="v1-system/index.html" target="_blank" rel="noopener">Open full page ↗</a>
-    <p class="meta">Three separate sites · toggle to compare · research notes in each folder (<code>research.md</code>)</p>
+    <a class="open-full" id="open-full" href="v4-fusion/index.html" target="_blank" rel="noopener">Open full page ↗</a>
+    <p class="meta">v7 ← Hermes Agent · v8 ← Brutalist HN + U24 map · research.md in each folder</p>
   </header>
-  <iframe id="frame" title="Portfolio preview" src="v1-system/index.html"></iframe>
+  <iframe id="frame" title="Portfolio preview" src="v4-fusion/index.html"></iframe>
   <script>
     const tabs = document.querySelectorAll('.tabs button');
     const frame = document.getElementById('frame');

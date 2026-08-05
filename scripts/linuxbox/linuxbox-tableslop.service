@@ -1,0 +1,19 @@
+[Unit]
+Description=tableslop campaign map viewer (localhost:8765)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=abhinav
+WorkingDirectory=/home/abhinav/agent-dump/scripts/linuxbox
+EnvironmentFile=-/home/abhinav/.linuxbox-tableslop/.env
+Environment=TABLESLOP_HOST=127.0.0.1
+Environment=TABLESLOP_PORT=8765
+Environment=TABLESLOP_CAMPAIGN=tropic-gooner
+ExecStart=/usr/bin/node /home/abhinav/agent-dump/scripts/linuxbox/tableslop-server.js
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

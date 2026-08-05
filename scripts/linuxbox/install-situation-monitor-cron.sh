@@ -45,6 +45,7 @@ delete_if_exists "situation-hermes"
 "${HERMES_BIN}" cron create "0 9 * * *" "${HERMES_PROMPT}" \
   --name situation-hermes \
   --workdir "${REPO}" \
+  --profile think \
   --deliver local
 
 echo "Installed situation-rss (08:00 UTC) and situation-hermes (09:00 UTC)."

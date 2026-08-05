@@ -26,13 +26,14 @@ const {
   appendGroupchatRecentActivity,
   threadRelPath,
 } = require("./chat-offload-handoff");
+const docsWiki = require("./linuxbox-docs-wiki");
 
 const LISTEN_HOST = "127.0.0.1";
 const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db-20260726-chars-portrait-fix-r1";
+const DASH_BUILD = "db-20260804-hub-obs-lanes-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -46,6 +47,13 @@ const INBOX_SEEDS = path.join(REPO, "agents", "inbox-seeds.json");
 const USER_TASKS_FILE = path.join(REPO, "agents", "user-tasks.json");
 const MAZDA_PARTS_FILE = path.join(REPO, "projects", "mazda3-sports-build", "parts.json");
 const HERMES_BIN = path.join(process.env.HOME || "/home/abhinav", ".local/bin/hermes");
+const CURSOR_AGENT_BIN = path.join(process.env.HOME || "/home/abhinav", ".local/bin/agent");
+const CURSOR_AGENT_SCRIPT = path.join(__dirname, "cursor-agent-run.sh");
+const CURSOR_LANE_STATUS_SCRIPT = path.join(__dirname, "cursor-lane-status.sh");
+const FREE_MODELS_HEALTH_SCRIPT = path.join(__dirname, "free-models-health.sh");
+const FREE_MODELS_HEALTH_CACHE = path.join(REPO, "agents", "state", "free-models-health.json");
+const AGENT_GOAL_CONTROL_FILE = path.join(REPO, "agents", "state", "agent-goal-control.json");
+const CURSOR_AGENT_ENV = path.join(process.env.HOME || "/home/abhinav", ".cursor-agent.env");
 const SITUATION_DIR = "reports/situation-monitor";
 const CODE_DISCOVERY_DIR = "reports/code-discovery";
 const INTEL_CONFIG = path.join(REPO, "agents", "intel-trackers.json");
@@ -73,13 +81,16 @@ const CAMPAIGNS = {
     label: "NYC Mafia × D&D",
     progress: "campaigns/nyc-mafia-dnd/reports/progress.md",
     reportsDir: "campaigns/nyc-mafia-dnd/reports",
-    storyDirs: ["story"],
+    // characters/ + worldbuilding/ + root SETTING-*/LOCKS*.md for Docs tree
+    storyDirs: ["story", "characters", "worldbuilding"],
+    campaignRootMd: true,
   },
   "tropic-gooner": {
     label: "Tropic Gooner (Hunter: The Reckoning)",
     progress: "campaigns/tropic-gooner/reports/progress.md",
     reportsDir: "campaigns/tropic-gooner/reports",
-    storyDirs: ["Things and Places of Note", "Organizations", "Plot Lines", "characters", "places"],
+    // Include story/ so CAMPAIGN_WRITE short-form story/*.md is indexed (was invisible).
+    storyDirs: ["story", "Things and Places of Note", "Organizations", "Plot Lines", "characters", "places"],
     charactersRegistry: "campaigns/tropic-gooner/characters-registry.json",
   },
 };
@@ -239,10 +250,15 @@ function getModelBudgetRoutingForUi() {
   };
 }
 
+/** Cursor CLI lane — paid, explicit pick only; never in free-first failover chains. */
+function isCursorChatModelId(id) {
+  return /^cursor:/i.test(String(id || "").trim());
+}
+
 /** OpenRouter uses `:free`; ZenMux free slugs use a `-free` suffix (e.g. kimi-k3-free). */
 function isChatFreeModelId(id) {
   const s = String(id || "").trim();
-  if (!s || CHAT_SUNSET_MODELS.has(s)) return false;
+  if (!s || CHAT_SUNSET_MODELS.has(s) || isCursorChatModelId(s)) return false;
   if (s.includes(":free")) return true;
   const afterProvider = s.includes(":") ? s.slice(s.indexOf(":") + 1) : s;
   const leaf = afterProvider.split("/").pop() || "";
@@ -425,7 +441,7 @@ function writeChatModelUsage(data) {
   }
 }
 
-function recordChatModelUsage(modelId, outcome) {
+function recordChatModelUsage(modelId, outcome, meta = null) {
   const id = String(modelId || "").trim();
   if (!id) return;
   const data = readChatModelUsage();
@@ -438,16 +454,32 @@ function recordChatModelUsage(modelId, outcome) {
       moderation: 0,
       rate_limit: 0,
       last_used: 0,
+      last_work: null,
+      last_mode: null,
     };
   }
   const row = data.models[id];
   row.attempts = (row.attempts || 0) + 1;
   row.last_used = Date.now();
+  if (meta && typeof meta === "object") {
+    if (meta.work) row.last_work = String(meta.work).trim().slice(0, 160);
+    if (meta.mode) row.last_mode = String(meta.mode).trim().slice(0, 40);
+  }
   if (outcome === "ok") row.ok = (row.ok || 0) + 1;
   else if (outcome === "daily_limit") row.daily_limit = (row.daily_limit || 0) + 1;
   else if (outcome === "moderation") row.moderation = (row.moderation || 0) + 1;
   else if (outcome === "rate_limit") row.rate_limit = (row.rate_limit || 0) + 1;
   else row.fail = (row.fail || 0) + 1;
+  // Keep a short recent trail for Hub insight (what was attempted).
+  if (!Array.isArray(data.recent)) data.recent = [];
+  data.recent.unshift({
+    at: new Date().toISOString(),
+    model: id,
+    outcome: String(outcome || "fail"),
+    work: row.last_work || null,
+    mode: row.last_mode || null,
+  });
+  data.recent = data.recent.slice(0, 24);
   writeChatModelUsage(data);
   // Mirror into shared swarm budget state
   try {
@@ -538,10 +570,17 @@ function chatModelUsageSummary() {
     daily_limit: row.daily_limit || 0,
     moderation: row.moderation || 0,
     last_used: row.last_used || 0,
+    last_work: row.last_work || null,
+    last_mode: row.last_mode || null,
     free: isChatFreeModelId(id),
+    cursor: isCursorChatModelId(id),
   }));
   rows.sort((a, b) => b.attempts - a.attempts);
-  return { day: data.day, models: rows.slice(0, 16) };
+  return {
+    day: data.day,
+    models: rows.slice(0, 16),
+    recent: Array.isArray(data.recent) ? data.recent.slice(0, 12) : [],
+  };
 }
 
 function loadChatModes() {
@@ -582,7 +621,9 @@ function loadChatModes() {
           profile: "code",
           response_mode: "workshop",
           show_model_picker: true,
-          routing: "free_first",
+          routing: "cursor_default",
+          default_model: "cursor:auto",
+          cursor_on_free_fail: true,
         },
       ],
     };
@@ -1027,26 +1068,53 @@ function readHumanInbox() {
   return mergeInboxSeeds(readHumanInboxRaw());
 }
 
+/** Consumed watermark IDs — survive answered[] truncation (slice cap) so seeds cannot re-open. */
+function readInboxConsumedIds() {
+  const fp = path.join(REPO, "agents", "state", "inbox-consumed.json");
+  if (!fs.existsSync(fp)) return new Set();
+  try {
+    const data = JSON.parse(fs.readFileSync(fp, "utf8"));
+    const consumed = data && typeof data.consumed === "object" ? data.consumed : {};
+    return new Set(Object.keys(consumed).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
 /** Ponytail: seeds are read-only canon questions — show until answered by id (or same question text). */
 function mergeInboxSeeds(data) {
   const answeredIds = new Set((data.answered || []).map((q) => q.id).filter(Boolean));
-  const answeredQuestions = new Set(
-    (data.answered || []).map((q) => inboxNormQuestion(q.question)).filter(Boolean)
-  );
+  for (const id of readInboxConsumedIds()) answeredIds.add(id);
+  const seeds = readInboxSeeds();
+  const seedIds = new Set(seeds.map((s) => s.id).filter(Boolean));
+  const seedQuestions = new Set(seeds.map((s) => inboxNormQuestion(s.question)).filter(Boolean));
+  const answeredSeedQuestions = new Set();
+  for (const q of data.answered || []) {
+    const nq = inboxNormQuestion(q.question);
+    if (nq && (seedIds.has(q.id) || seedQuestions.has(nq))) answeredSeedQuestions.add(nq);
+  }
+  // Seed question text for consumed-only IDs (answered[] may have dropped them).
+  for (const seed of seeds) {
+    if (seed.id && answeredIds.has(seed.id)) {
+      const nq = inboxNormQuestion(seed.question);
+      if (nq) answeredSeedQuestions.add(nq);
+    }
+  }
   const merged = {
     open: dedupeInboxOpen(data.open || []),
     answered: data.answered || [],
   };
-  // Drop ad-hoc open copies of already-answered seed topics (id drift / pod re-ask).
+  // Drop ad-hoc open copies of already-answered *seed* topics (id drift / pod re-ask).
+  // Do not text-collapse distinct incident ids (e.g. runtime-verify-YYYYMMDD).
   merged.open = merged.open.filter((q) => {
     if (q.id && answeredIds.has(q.id)) return false;
     const nq = inboxNormQuestion(q.question);
-    if (nq && answeredQuestions.has(nq)) return false;
+    if (nq && answeredSeedQuestions.has(nq) && (!q.id || seedIds.has(q.id))) return false;
     return true;
   });
-  for (const seed of readInboxSeeds()) {
+  for (const seed of seeds) {
     if (!seed.id || answeredIds.has(seed.id)) continue;
-    if (answeredQuestions.has(inboxNormQuestion(seed.question))) continue;
+    if (answeredSeedQuestions.has(inboxNormQuestion(seed.question))) continue;
     const idx = merged.open.findIndex((q) => q.id === seed.id);
     if (idx >= 0) {
       const existing = merged.open[idx];
@@ -1116,7 +1184,19 @@ function replyHumanInbox(id, answer) {
   item.answered_at = new Date().toISOString();
   raw.open = raw.open.filter((q) => q.id !== id);
   raw.answered.unshift(item);
-  raw.answered = raw.answered.slice(0, 50);
+  // Cap bulk history but never drop seed / consumed IDs — truncation was re-opening seeds.
+  const seedIds = new Set(readInboxSeeds().map((s) => s.id).filter(Boolean));
+  const consumedIds = readInboxConsumedIds();
+  const head = raw.answered.slice(0, 50);
+  const headIds = new Set(head.map((q) => q && q.id).filter(Boolean));
+  for (const q of raw.answered.slice(50)) {
+    if (!q || !q.id) continue;
+    if ((seedIds.has(q.id) || consumedIds.has(q.id)) && !headIds.has(q.id)) {
+      head.push(q);
+      headIds.add(q.id);
+    }
+  }
+  raw.answered = head;
   writeHumanInbox(raw);
   return { ok: true, id, answer: clean };
 }
@@ -1127,17 +1207,11 @@ function readLaneHeartbeat(filename) {
   return fs.readFileSync(stamp, "utf8").trim() || null;
 }
 
-async function collectFastCrontabStatus() {
-  try {
-    const { stdout } = await execFileAsync("bash", ["-lc", "crontab -l 2>/dev/null | grep -c agent-cycle-fast-tick || echo 0"], {
-      timeout: 5000,
-      maxBuffer: 4096,
-    });
-    const active = parseInt(stdout.trim(), 10) >= 1;
-    return { active, lastRun: readLaneHeartbeat("fast-tick.last") };
-  } catch {
-    return { active: false, lastRun: null };
-  }
+/** Deterministic sync (inbox/git/swarm) — runs at think-tick start; no LLM. */
+function collectSyncLaneStatus(thinkCrontab) {
+  const lastRun = readLaneHeartbeat("sync-tick.last");
+  const active = !!(thinkCrontab && thinkCrontab.active);
+  return { active, lastRun };
 }
 
 async function collectThinkCrontabStatus() {
@@ -1321,7 +1395,11 @@ function buildWorkPipeline() {
       const focus = JSON.parse(fs.readFileSync(fp, "utf8"));
       last_think_status = String(focus?.status || "") || null;
       const blurb = String(focus?.blurb || "");
+      // Paid C8 path embeds free-cap words in the success blurb ("PAID C8 …"); that is
+      // not a free-429 failure — do not treat it as fakeDone or Hub stays "stalled" forever.
+      const paidC8Ok = /^PAID\s+C8\b/i.test(blurb);
       const fakeDone =
+        !paidC8Ok &&
         /HTTP\s*429|free-models-per-day|Rate limit exceeded|API call failed after/i.test(blurb);
       // Hermes often exits 0 on 429 and focus stays status=done — do not count as success.
       if (
@@ -1417,7 +1495,8 @@ function buildWorkPipeline() {
 
 /** Human labels for pod ids (run-index often only has name=think + summary="pod think"). */
 const POD_HUMAN = {
-  fast: { label: "Fast lane", kind: "tick", kind_label: "last fast tick" },
+  fast: { label: "Sync · deterministic", kind: "tick", kind_label: "last sync" },
+  sync: { label: "Sync · deterministic", kind: "tick", kind_label: "last sync" },
   think: { label: "Think / ops lane", kind: "tick", kind_label: "last think tick" },
   meta: { label: "Dashboard meta", kind: "meta", kind_label: "last meta work" },
   code: { label: "Code lane", kind: "ops", kind_label: "last code work" },
@@ -1436,6 +1515,200 @@ function stripMdLite(s) {
     .trim();
 }
 
+/** Latest think report blurb (archive or repo LATEST.md). */
+function readThinkReportHead() {
+  const paths = [
+    path.join("/mnt/archive/logs/think-reports", "LATEST.md"),
+    path.join(REPO, "reports", "think-ticks", "LATEST.md"),
+  ];
+  for (const p of paths) {
+    if (!fs.existsSync(p)) continue;
+    try {
+      const raw = fs.readFileSync(p, "utf8");
+      const blurbM = raw.match(/\*\*blurb:\*\*\s*(.+)/i);
+      const taskM = raw.match(/\*\*task_id:\*\*\s*`([^`]+)`/i);
+      const exitM = raw.match(/\*\*exit:\*\*\s*(\S+)/);
+      const blurb = blurbM ? stripMdLite(blurbM[1]) : "";
+      const task_id = taskM && taskM[1] !== "—" ? taskM[1].trim() : null;
+      if (blurb && blurb !== "—") {
+        return {
+          blurb: blurb.slice(0, 160),
+          task_id,
+          exit: exitM ? exitM[1] : null,
+        };
+      }
+      const h1 = raw.match(/^#\s+(.+)/m);
+      if (h1) {
+        return { blurb: stripMdLite(h1[1]).slice(0, 160), task_id: null, exit: exitM ? exitM[1] : null };
+      }
+    } catch {
+      /* try next path */
+    }
+  }
+  return null;
+}
+
+/** Hub-facing last think outcome — think-focus.json then LATEST report. */
+function readLastThinkSummary() {
+  try {
+    const fp = path.join(REPO, "agents", "state", "think-focus.json");
+    if (fs.existsSync(fp)) {
+      const f = JSON.parse(fs.readFileSync(fp, "utf8"));
+      const status = String(f?.status || "");
+      const blurbRaw = String(f?.blurb || "");
+      const rateLimited = /HTTP\s*429|free-models-per-day|Rate limit exceeded|API call failed after/i.test(
+        blurbRaw
+      );
+      const statusOut = rateLimited && status === "done" ? "failed" : status;
+      const blurb = summarizeThinkBlurb(blurbRaw, f?.task_id, statusOut);
+      if (blurb && blurb !== "think") {
+        return {
+          blurb: blurb.slice(0, 160),
+          task_id: f?.task_id ? String(f.task_id).slice(0, 80) : null,
+          status: statusOut || null,
+          at: f?.updated_at || null,
+        };
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+  const rep = readThinkReportHead();
+  if (rep?.blurb) {
+    return {
+      blurb: rep.blurb,
+      task_id: rep.task_id || null,
+      status: rep.exit === "0" ? "done" : rep.exit ? "failed" : null,
+      at: null,
+    };
+  }
+  return null;
+}
+
+/** Parse one think-shell-access-form markdown report. */
+function parseThinkReportFile(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, "utf8");
+    const endedM = raw.match(/\*\*ended:\*\*\s*(\S+)/i);
+    const exitM = raw.match(/\*\*exit:\*\*\s*(\S+)/);
+    const blurbM = raw.match(/\*\*blurb:\*\*\s*(.+)/i);
+    const taskM = raw.match(/\*\*task_id:\*\*\s*`([^`]+)`/i);
+    if (!endedM) return null;
+    const endedMs = new Date(endedM[1]).getTime();
+    if (!Number.isFinite(endedMs)) return null;
+    const blurb = blurbM ? stripMdLite(blurbM[1]) : "";
+    const exitRaw = exitM ? exitM[1] : null;
+    const exitNum = exitRaw != null && exitRaw !== "—" ? Number(exitRaw) : null;
+    return {
+      ended: endedM[1],
+      ended_ms: endedMs,
+      exit: Number.isFinite(exitNum) ? exitNum : exitRaw,
+      blurb: blurb.slice(0, 160),
+      task_id: taskM && taskM[1] !== "—" ? taskM[1].trim() : null,
+      path: filePath,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Recent think reports (archive + repo fallback), newest ended first. */
+function loadRecentThinkReports(limit = 48) {
+  const roots = [
+    path.join("/mnt/archive/logs/think-reports"),
+    path.join(REPO, "reports", "think-ticks"),
+  ];
+  const files = [];
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue;
+    try {
+      const walk = (dir, depth) => {
+        if (depth > 4 || files.length > limit * 3) return;
+        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, ent.name);
+          if (ent.isDirectory()) walk(full, depth + 1);
+          else if (/\.md$/i.test(ent.name) && /form-\d{8}T/i.test(ent.name)) {
+            try {
+              files.push({ path: full, mtime: fs.statSync(full).mtimeMs });
+            } catch {
+              /* skip */
+            }
+          }
+        }
+      };
+      walk(root, 0);
+    } catch {
+      /* skip root */
+    }
+  }
+  files.sort((a, b) => b.mtime - a.mtime);
+  const out = [];
+  const seen = new Set();
+  for (const f of files) {
+    if (out.length >= limit) break;
+    const parsed = parseThinkReportFile(f.path);
+    if (!parsed || seen.has(parsed.ended)) continue;
+    seen.add(parsed.ended);
+    out.push(parsed);
+  }
+  out.sort((a, b) => b.ended_ms - a.ended_ms);
+  return out;
+}
+
+function matchByTimestamp(ts, rows, tsKey, maxDeltaMs = 360000) {
+  const t = new Date(ts).getTime();
+  if (!Number.isFinite(t) || !rows?.length) return null;
+  let best = null;
+  let bestDelta = Infinity;
+  for (const row of rows) {
+    const ms = row[tsKey];
+    if (!Number.isFinite(ms)) continue;
+    const d = Math.abs(ms - t);
+    if (d < bestDelta && d <= maxDeltaMs) {
+      bestDelta = d;
+      best = row;
+    }
+  }
+  return best;
+}
+
+function thinkOutcomeLabel(exitVal) {
+  if (exitVal === 0 || exitVal === "0") return "ok";
+  if (exitVal === 124 || exitVal === -1) return "timeout";
+  if (exitVal == null) return null;
+  return `exit ${exitVal}`;
+}
+
+function formatThinkTickDetail(rep) {
+  if (rep?.blurb) {
+    const oc = thinkOutcomeLabel(rep.exit);
+    return oc ? `${rep.blurb} · ${oc}`.slice(0, 120) : rep.blurb.slice(0, 120);
+  }
+  return "";
+}
+
+function resolveThinkPodDetail(pod, thinkReports, harnessRows, lastThinkSummary) {
+  const stored =
+    String(pod.detail || pod.blurb || "").trim() ||
+    (pod.summary && !/^pod\s+/i.test(pod.summary) && pod.summary !== pod.name
+      ? String(pod.summary).trim()
+      : "");
+  if (stored) return stripMdLite(stored).slice(0, 120);
+  const rep = matchByTimestamp(pod.ts, thinkReports, "ended_ms");
+  const fromReport = formatThinkTickDetail(rep);
+  if (fromReport) return fromReport;
+  const mh = matchThinkHarnessRow(pod.ts, harnessRows, 360000);
+  if (mh?.blurb) {
+    const oc = mh.outcome || thinkOutcomeLabel(mh.exit);
+    return oc ? `${mh.blurb} · ${oc}`.slice(0, 120) : String(mh.blurb).slice(0, 120);
+  }
+  if (lastThinkSummary?.blurb && pod.ts && lastThinkSummary.at) {
+    const d = Math.abs(new Date(pod.ts).getTime() - new Date(lastThinkSummary.at).getTime());
+    if (d <= 360000) return lastThinkSummary.blurb.slice(0, 120);
+  }
+  return "";
+}
+
 function enrichPodRun(raw, detailHint) {
   const name = String(raw.name || "?").slice(0, 48);
   const meta = POD_HUMAN[name] || {
@@ -1444,13 +1717,17 @@ function enrichPodRun(raw, detailHint) {
     kind_label: `last ${name} run`,
   };
   const summary = String(raw.summary || "").slice(0, 140);
-  const idle = !!raw.idle || /\bIDLE\b/i.test(summary);
-  let outcome = "ok";
-  if (idle) outcome = "idle";
-  else if (raw.exit === -1) outcome = "fail";
-  else if (raw.exit != null && raw.exit !== 0) outcome = "fail";
+  const idle = !!raw.idle || /\bIDLE\b/i.test(summary) || String(raw.outcome || "").toLowerCase() === "idle";
+  let outcome = String(raw.outcome || "").toLowerCase();
+  if (!outcome) {
+    if (idle) outcome = "idle";
+    else if (raw.exit === -1 || raw.exit === 124) outcome = "fail";
+    else if (raw.exit != null && raw.exit !== 0) outcome = "fail";
+    else outcome = "ok";
+  }
   const generic = !summary || /^pod\s+/i.test(summary) || summary === name;
-  const detail = stripMdLite(detailHint || (!generic ? summary : "")).slice(0, 120);
+  const rowBlurb = stripMdLite(raw.blurb || "").slice(0, 120);
+  const detail = rowBlurb || stripMdLite(detailHint || (!generic ? summary : "")).slice(0, 120);
   return {
     name,
     label: meta.label,
@@ -1463,8 +1740,192 @@ function enrichPodRun(raw, detailHint) {
     idle,
     outcome,
     detail,
+    blurb: rowBlurb || null,
+    task_id: raw.task_id ? String(raw.task_id).slice(0, 80) : null,
     meaningful: meta.kind !== "tick",
   };
+}
+
+/** Skip prompt templates like "End with … DONE: / BLOCKED: / IDLE:." (false Hub BLOCKED). */
+function isThinkOutcomeTemplateLine(line) {
+  const up = String(line || "").toUpperCase();
+  return (
+    sumCount(up, "DONE:") + sumCount(up, "BLOCKED:") + sumCount(up, "IDLE:") > 1 ||
+    /END WITH EXACTLY ONE LINE:\s*DONE:/i.test(line || "")
+  );
+}
+
+function sumCount(hay, needle) {
+  let n = 0;
+  let i = 0;
+  const h = String(hay || "");
+  const ndl = String(needle || "");
+  if (!ndl) return 0;
+  while ((i = h.indexOf(ndl, i)) !== -1) {
+    n += 1;
+    i += ndl.length;
+  }
+  return n;
+}
+
+/** Last real DONE:/BLOCKED:/IDLE: in log tail (mirrors think-shell-access-form._infer_outcome). */
+function lastThinkOutcomeFromLogTail(tail) {
+  const re = /^\s*(?:[*_`#>\-\s]*)?(DONE|BLOCKED|IDLE)\s*:\s*(.*)$/gim;
+  let last = null;
+  let m;
+  while ((m = re.exec(String(tail || ""))) !== null) {
+    const line = m[0];
+    const rest = String(m[2] || "").trim();
+    if (isThinkOutcomeTemplateLine(line)) continue;
+    if (!rest || /^[./|\s\-]*$/.test(rest)) continue;
+    last = { kind: m[1].toUpperCase(), rest };
+  }
+  return last;
+}
+
+/** Recent meta-harness think runs (newest first) — backfill when run-index lacks blurbs. */
+function harnessBlurbFromRun(j) {
+  const logPath = j.log_path ? String(j.log_path) : "";
+  if (logPath && fs.existsSync(logPath)) {
+    try {
+      const raw = fs.readFileSync(logPath, "utf8");
+      const tail = raw.slice(-12000);
+      const outcome = lastThinkOutcomeFromLogTail(tail);
+      if (outcome) {
+        return stripMdLite(`${outcome.kind}: ${outcome.rest}`).slice(0, 120);
+      }
+      if (/HTTP\s*429|free-models-per-day/i.test(tail) && !/PAID\s+C8\b/i.test(tail)) {
+        return "HTTP 429 free cap";
+      }
+      if (/PAID C8|PAID last-resort/i.test(tail)) {
+        const lane = j.task_id ? String(j.task_id).replace(/^lane:/, "") : "think";
+        return `PAID C8 · ${lane}`.slice(0, 120);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  let blurb = j.task_id ? String(j.task_id).replace(/^lane:/, "") : "";
+  if (j.model) blurb = `${blurb ? `${blurb} · ` : ""}${String(j.model).split("/").pop()}`.slice(0, 120);
+  const score = j.score || {};
+  if (score.detected_outcome) {
+    blurb = `${blurb ? `${blurb} · ` : ""}${score.detected_outcome}`.slice(0, 120);
+  }
+  const exit = j.exit_code != null ? Number(j.exit_code) : null;
+  return blurb || (exit === 0 ? "INTENT_OK" : exit === 124 ? "timeout" : exit != null ? `exit ${exit}` : "think");
+}
+
+function readThinkHarnessRecent(limit = 16) {
+  const dir = path.join(REPO, "agents", "meta-harness", "runs", "think");
+  if (!fs.existsSync(dir)) return [];
+  try {
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => {
+        const fp = path.join(dir, f);
+        const st = fs.statSync(fp);
+        return { fp, mtime: st.mtimeMs };
+      })
+      .sort((a, b) => b.mtime - a.mtime)
+      .slice(0, Math.max(limit, 24));
+    const out = [];
+    for (const { fp } of files) {
+      try {
+        const j = JSON.parse(fs.readFileSync(fp, "utf8"));
+        const at = j.at || null;
+        if (!at) continue;
+        const exit = j.exit_code != null ? Number(j.exit_code) : null;
+        const blurb = harnessBlurbFromRun(j);
+        out.push({
+          at,
+          ts: at,
+          exit,
+          task_id: j.task_id ? String(j.task_id).slice(0, 80) : null,
+          blurb: blurb || (exit === 0 ? "INTENT_OK" : exit === 124 ? "timeout" : `exit ${exit}`),
+          outcome: exit === 0 ? "ok" : exit === 124 ? "timeout" : "fail",
+          intent: j.intent || null,
+        });
+      } catch {
+        /* skip bad file */
+      }
+    }
+    return out.slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
+/** Per-pod meta-harness scores for the Hub Meta tab (read-only; trend oldest->newest). */
+function readMetaHarnessPods(trendLimit = 5) {
+  const root = path.join(REPO, "agents", "meta-harness", "runs");
+  if (!fs.existsSync(root)) return [];
+  let podDirs = [];
+  try {
+    podDirs = fs
+      .readdirSync(root, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort();
+  } catch {
+    return [];
+  }
+  const pods = [];
+  for (const pod of podDirs) {
+    const dir = path.join(root, pod);
+    let files = [];
+    try {
+      files = fs
+        .readdirSync(dir)
+        .filter((f) => f.endsWith(".json"))
+        .sort();
+    } catch {
+      continue;
+    }
+    if (!files.length) continue;
+    const runs = [];
+    for (const f of files.slice(-Math.max(trendLimit, 8))) {
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+        const at = j.at || null;
+        if (!at) continue;
+        const score = j.score || {};
+        runs.push({
+          at,
+          total: score.total ?? null,
+          outcome: score.detected_outcome || null,
+          intent: j.intent || null,
+          exit: j.exit_code != null ? Number(j.exit_code) : null,
+          task_id: j.task_id ? String(j.task_id).slice(0, 80) : null,
+          model: j.model ? String(j.model) : null,
+        });
+      } catch {
+        /* skip bad file */
+      }
+    }
+    if (!runs.length) continue;
+    runs.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    pods.push({ pod, latest: runs[runs.length - 1], trend: runs.slice(-trendLimit), run_count: files.length });
+  }
+  return pods;
+}
+
+function matchThinkHarnessRow(podTs, harnessRows, windowMs = 300000) {
+  if (!podTs || !harnessRows?.length) return null;
+  const t = Date.parse(podTs);
+  if (!Number.isFinite(t)) return null;
+  let best = null;
+  let bestDelta = windowMs + 1;
+  for (const h of harnessRows) {
+    const ht = Date.parse(h.at || h.ts || "");
+    if (!Number.isFinite(ht)) continue;
+    const delta = Math.abs(ht - t);
+    if (delta <= windowMs && delta < bestDelta) {
+      best = h;
+      bestDelta = delta;
+    }
+  }
+  return best;
 }
 
 /** Recent pod/lane ticks from run-index (newest first). */
@@ -1487,6 +1948,10 @@ function readRecentPodRuns(limit = 8) {
           exit: j.exit ?? null,
           summary,
           idle,
+          blurb: j.blurb ? String(j.blurb).slice(0, 240) : null,
+          detail: j.detail ? String(j.detail).slice(0, 240) : j.blurb ? String(j.blurb).slice(0, 240) : null,
+          task_id: j.task_id ? String(j.task_id).slice(0, 80) : null,
+          outcome: j.outcome ? String(j.outcome).slice(0, 32) : null,
         });
       } catch {
         /* skip bad line */
@@ -1584,6 +2049,24 @@ function readMetaLaneSummary() {
   const metaRun = metaRunRaw
     ? enrichPodRun(metaRunRaw, open[0] || lastDone?.text || "")
     : null;
+  const lastThink = readLastThinkSummary();
+  const lastThinkReport = loadRecentThinkReports(1)[0] || null;
+  const lastThinkRun = lastThinkReport
+    ? {
+        what: lastThinkReport.blurb,
+        when: lastThinkReport.ended,
+        outcome: thinkOutcomeLabel(lastThinkReport.exit) || "ok",
+        task_id: lastThinkReport.task_id || null,
+        report_path: lastThinkReport.path,
+      }
+    : lastThink
+      ? {
+          what: lastThink.blurb,
+          when: lastThink.at,
+          outcome: lastThink.status || "ok",
+          task_id: lastThink.task_id || null,
+        }
+      : null;
 
   return {
     blurb:
@@ -1593,6 +2076,14 @@ function readMetaLaneSummary() {
     open_preview: open.slice(0, 6),
     last_done: lastDone,
     last_meta_run: metaRun,
+    last_think_run: lastThink
+      ? {
+          what: lastThink.blurb,
+          when: lastThink.at,
+          outcome: lastThink.status || (lastThink.task_id ? "done" : "ok"),
+          task_id: lastThink.task_id || null,
+        }
+      : null,
     smoke,
     backlog_path: backlogPath,
     task_path: taskPath,
@@ -1787,6 +2278,297 @@ function summarizeThinkBlurb(raw, taskId, status) {
   return s.slice(0, 160);
 }
 
+/** Last think model id for Hub observatory (OpenRouter slug, no provider prefix). */
+function readThinkModelHint() {
+  try {
+    const ep = path.join(REPO, "agents", "state", "think-paid-escalate.json");
+    if (fs.existsSync(ep)) {
+      const j = JSON.parse(fs.readFileSync(ep, "utf8"));
+      const lm = String(j?.last_model || "").trim();
+      if (lm) return lm.replace(/^openrouter\//i, "");
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    const fp = path.join(REPO, "agents", "state", "think-focus.json");
+    if (fs.existsSync(fp)) {
+      const blurb = String(JSON.parse(fs.readFileSync(fp, "utf8"))?.blurb || "");
+      const paid = blurb.match(
+        /PAID\s+C8[^\n]*?\s+([a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*(?::free)?)/i
+      );
+      if (paid) return paid[1];
+      const on429 = blurb.match(/(?:HTTP\s*429|on)\s+([a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*(?::free)?)/i);
+      if (on429) return on429[1];
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    const f429 = path.join(REPO, "agents", "state", "think-free-429.json");
+    if (fs.existsSync(f429)) {
+      const st = JSON.parse(fs.readFileSync(f429, "utf8"));
+      const paid = String(st?.paid_model || "").trim();
+      if (paid && (st?.paid_last_resort === true || st?.paid_last_resort === "true")) {
+        return paid.replace(/^openrouter\//i, "");
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/** Cursor Auto lane — delegates to cursor-lane-status.sh --json (single detector). */
+function readCursorLaneStatus() {
+  const idle = {
+    running: false,
+    pid: null,
+    processes: [],
+    job_label: null,
+    log_path: null,
+    log_mtime: null,
+    last_exit: null,
+    age_sec: null,
+  };
+  if (!fs.existsSync(CURSOR_LANE_STATUS_SCRIPT)) return idle;
+  try {
+    const out = execFileSync("bash", [CURSOR_LANE_STATUS_SCRIPT, "--json"], {
+      encoding: "utf8",
+      timeout: 4000,
+      env: { ...process.env, AGENT_DUMP: REPO },
+    });
+    const parsed = JSON.parse(String(out || "").trim());
+    if (!parsed || typeof parsed !== "object") return idle;
+    return { ...idle, ...parsed };
+  } catch {
+    return idle;
+  }
+}
+
+/** Cached free-model readiness (~30m TTL inside free-models-health.sh). Prefer cache file. */
+function readFreeModelsHealth(opts = {}) {
+  const force = !!opts.force;
+  const idle = {
+    any_up: false,
+    cursor_fallback_recommended: true,
+    summary: "unprobed",
+    cache_hit: false,
+    age_sec: null,
+    ttl_sec: 1800,
+    checked_at: null,
+  };
+  if (!force && fs.existsSync(FREE_MODELS_HEALTH_CACHE)) {
+    try {
+      const cached = JSON.parse(fs.readFileSync(FREE_MODELS_HEALTH_CACHE, "utf8"));
+      const ttl = Number(cached.ttl_sec || 1800);
+      const age = Math.floor(Date.now() / 1000) - Number(cached.checked_epoch || 0);
+      if (Number.isFinite(age) && age >= 0 && age <= ttl) {
+        return {
+          ...idle,
+          ...cached,
+          any_up: !!cached.any_up,
+          cursor_fallback_recommended:
+            cached.cursor_fallback_recommended != null
+              ? !!cached.cursor_fallback_recommended
+              : !cached.any_up,
+          cache_hit: true,
+          age_sec: age,
+          ttl_sec: ttl,
+        };
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  // Also honor think-free-429 full-day blocklist without spawning a probe.
+  try {
+    const f429 = path.join(REPO, "agents", "state", "think-free-429.json");
+    if (fs.existsSync(f429)) {
+      const st = JSON.parse(fs.readFileSync(f429, "utf8"));
+      const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      if (st?.day === day) {
+        const blocked = Array.isArray(st.models_429) ? st.models_429 : [];
+        let chain = [];
+        try {
+          const swap = JSON.parse(
+            fs.readFileSync(path.join(REPO, "agents", "model-budget", "think-free-swap.json"), "utf8")
+          );
+          chain = Array.isArray(swap.ordered) ? swap.ordered : [];
+        } catch {
+          chain = [];
+        }
+        if (chain.length && chain.every((m) => blocked.includes(m))) {
+          return {
+            ...idle,
+            any_up: false,
+            cursor_fallback_recommended: true,
+            summary: `0/${chain.length} free up (think-free-429 full day blocklist)`,
+            blocked_count: blocked.length,
+            chain_size: chain.length,
+            cache_hit: false,
+            checked_at: new Date().toISOString(),
+            probe: "think-free-429",
+          };
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  if (!fs.existsSync(FREE_MODELS_HEALTH_SCRIPT)) return idle;
+  try {
+    const args = [];
+    if (force) args.push("--force");
+    args.push("--json");
+    const out = execFileSync("bash", [FREE_MODELS_HEALTH_SCRIPT, ...args], {
+      encoding: "utf8",
+      timeout: 90000,
+      env: { ...process.env, AGENT_DUMP: REPO },
+    });
+    const parsed = JSON.parse(String(out || "").trim());
+    if (!parsed || typeof parsed !== "object") return idle;
+    return {
+      ...idle,
+      ...parsed,
+      any_up: !!parsed.any_up,
+      cursor_fallback_recommended:
+        parsed.cursor_fallback_recommended != null
+          ? !!parsed.cursor_fallback_recommended
+          : !parsed.any_up,
+    };
+  } catch {
+    return idle;
+  }
+}
+
+function defaultAgentGoalControl() {
+  return {
+    version: 1,
+    pause: false,
+    pause_reason: "",
+    redirect_goal: "",
+    human_note: "",
+    updated_at: null,
+    updated_by: null,
+  };
+}
+
+function readAgentGoalControl() {
+  try {
+    if (!fs.existsSync(AGENT_GOAL_CONTROL_FILE)) return defaultAgentGoalControl();
+    const raw = JSON.parse(fs.readFileSync(AGENT_GOAL_CONTROL_FILE, "utf8"));
+    if (!raw || typeof raw !== "object") return defaultAgentGoalControl();
+    return {
+      ...defaultAgentGoalControl(),
+      ...raw,
+      pause: !!raw.pause,
+      pause_reason: String(raw.pause_reason || "").slice(0, 300),
+      redirect_goal: String(raw.redirect_goal || "").slice(0, 500),
+      human_note: String(raw.human_note || "").slice(0, 800),
+    };
+  } catch {
+    return defaultAgentGoalControl();
+  }
+}
+
+function writeAgentGoalControl(patch = {}, who = "hub") {
+  const cur = readAgentGoalControl();
+  const next = {
+    ...cur,
+    pause: typeof patch.pause === "boolean" ? patch.pause : cur.pause,
+    pause_reason:
+      patch.pause_reason != null
+        ? String(patch.pause_reason).trim().slice(0, 300)
+        : cur.pause_reason,
+    redirect_goal:
+      patch.redirect_goal != null
+        ? String(patch.redirect_goal).trim().slice(0, 500)
+        : cur.redirect_goal,
+    human_note:
+      patch.human_note != null
+        ? String(patch.human_note).trim().slice(0, 800)
+        : cur.human_note,
+    updated_at: new Date().toISOString(),
+    updated_by: String(who || "hub").slice(0, 40),
+  };
+  if (patch.clear_redirect === true) next.redirect_goal = "";
+  fs.mkdirSync(path.dirname(AGENT_GOAL_CONTROL_FILE), { recursive: true });
+  fs.writeFileSync(AGENT_GOAL_CONTROL_FILE, JSON.stringify(next, null, 2) + "\n");
+  // Mirror pause into think-paused.json so crontab think can honor it without new parsers.
+  try {
+    const pausePath = path.join(REPO, "agents", "state", "think-paused.json");
+    fs.writeFileSync(
+      pausePath,
+      JSON.stringify(
+        {
+          paused: !!next.pause,
+          reason: next.pause
+            ? next.pause_reason || next.redirect_goal || "Paused from Hub Tasks Active now"
+            : "",
+          updated_at: next.updated_at,
+          source: "agent-goal-control",
+        },
+        null,
+        2
+      ) + "\n"
+    );
+  } catch (err) {
+    console.warn("think-paused mirror:", err.message || err);
+  }
+  return next;
+}
+
+/** Live goal insight for Hub Tasks — what think/Cursor think they are doing + human override. */
+function buildAgentGoalsInsight() {
+  const control = readAgentGoalControl();
+  const cursor = readCursorLaneStatus();
+  const health = readFreeModelsHealth();
+  let think = null;
+  try {
+    const fp = path.join(REPO, "agents", "state", "think-focus.json");
+    if (fs.existsSync(fp)) {
+      const f = JSON.parse(fs.readFileSync(fp, "utf8"));
+      if (f && typeof f === "object") {
+        think = {
+          status: f.status || null,
+          task_id: f.task_id || null,
+          blurb: summarizeThinkBlurb(f.blurb, f.task_id, f.status),
+          started_at: f.started_at || null,
+          updated_at: f.updated_at || null,
+        };
+      }
+    }
+  } catch {
+    think = null;
+  }
+  const liveGoal =
+    (control.redirect_goal && control.redirect_goal.trim()) ||
+    (cursor.running && cursor.job_label) ||
+    (think && think.blurb) ||
+    "";
+  return {
+    live_goal: String(liveGoal).slice(0, 240),
+    think,
+    cursor: {
+      running: !!cursor.running,
+      job_label: cursor.job_label || null,
+      age_sec: cursor.age_sec ?? null,
+      last_exit: cursor.last_exit ?? null,
+    },
+    free_models: {
+      any_up: !!health.any_up,
+      summary: health.summary || null,
+      age_sec: health.age_sec ?? null,
+      checked_at: health.checked_at || null,
+      cache_hit: !!health.cache_hit,
+      ttl_sec: health.ttl_sec || 1800,
+      cursor_fallback_recommended: !!health.cursor_fallback_recommended,
+    },
+    control,
+  };
+}
+
 function readThinkFocusRun() {
   const p = path.join(REPO, "agents", "state", "think-focus.json");
   if (!fs.existsSync(p)) return null;
@@ -1826,6 +2608,7 @@ function buildRunningNow() {
   const chat = listChatJobsInFlight();
   const pod = readCurrentPodRun();
   const thinkFocus = readThinkFocusRun();
+  const cursorLane = readCursorLaneStatus();
   // Prefer live crontab think focus over stale pod-scheduler current
   const tick = thinkFocus || pod;
   const lastCompleted = readLastCompletedPod();
@@ -1868,9 +2651,14 @@ function buildRunningNow() {
     chat_queued: chat.queued,
     pod: tick,
     think_focus: thinkFocus,
+    think_lane: {
+      provider: "OpenRouter",
+      model_hint: readThinkModelHint(),
+    },
+    cursor_lane: cursorLane,
     live_log: liveLog,
     last_completed: focusLast || lastCompleted,
-    anything: chat.jobs.length > 0 || !!tick,
+    anything: chat.jobs.length > 0 || !!tick || !!cursorLane.running,
   };
 }
 
@@ -2011,31 +2799,32 @@ function buildPrometheusMetrics() {
 async function collectAgentState(lite = false) {
   // lite skips only expensive `hermes cron list` — heartbeats + crontab grep stay
   // (swap pressure was blanking lanes → Hub "no recent run" despite ticks).
-  const [health, cronRaw, fastCrontab, thinkCrontab] = await Promise.all([
+  const [health, cronRaw, thinkCrontab] = await Promise.all([
     collectHealth(),
     lite ? Promise.resolve("") : collectCronSummary(),
-    collectFastCrontabStatus(),
     collectThinkCrontabStatus(),
   ]);
   const lanes = parseLaneCrons(cronRaw);
-  const podHints = readPodSchedulerLaneHints();
-  const fastLast =
-    fastCrontab.lastRun || lanes["agent-cycle-fast"]?.last_run || podHints.fast || null;
+  delete lanes["agent-cycle-fast"];
+  const syncLane = collectSyncLaneStatus(thinkCrontab);
+  const syncLast =
+    syncLane.lastRun || lanes["agent-cycle-sync"]?.last_run || readPodSchedulerLaneHints().fast || null;
   const thinkLast =
-    thinkCrontab.lastRun || lanes["agent-cycle-think"]?.last_run || podHints.think || null;
-  if (fastCrontab.active || fastLast) {
-    lanes["agent-cycle-fast"] = {
-      name: "agent-cycle-fast",
-      schedule: fastCrontab.active ? "~30s (crontab)" : lanes["agent-cycle-fast"]?.schedule || "~30s",
-      last_run: fastLast,
-      status: fastCrontab.active ? "active" : lanes["agent-cycle-fast"]?.status || "pending",
+    thinkCrontab.lastRun || lanes["agent-cycle-think"]?.last_run || readPodSchedulerLaneHints().think || null;
+  if (syncLane.active || syncLast) {
+    lanes["agent-cycle-sync"] = {
+      name: "agent-cycle-sync",
+      schedule: syncLane.active ? "1m · deterministic" : lanes["agent-cycle-sync"]?.schedule || "deterministic",
+      last_run: syncLast,
+      status: syncLast ? "ok" : syncLane.active ? "active" : "pending",
+      deterministic: true,
     };
   }
   if (thinkCrontab.active || thinkLast) {
     lanes["agent-cycle-think"] = {
       name: "agent-cycle-think",
       schedule: thinkCrontab.active
-        ? "1m (crontab)"
+        ? "1m · LLM ~8m"
         : lanes["agent-cycle-think"]?.schedule || "1m",
       last_run: thinkLast,
       status: thinkCrontab.active ? "active" : lanes["agent-cycle-think"]?.status || "pending",
@@ -2097,6 +2886,7 @@ async function collectAgentState(lite = false) {
   const maintenanceOpen = countUncheckedMd("agents/maintenance-progress.md");
   const runningNow = buildRunningNow();
   const metaLane = readMetaLaneSummary();
+  const lastThinkSummary = readLastThinkSummary();
   // Cached 10s in linuxbox-systems — Hub bars + pop-out without a second sampler.
   const hostResources = await readHostMetrics();
   const campaignNext = {};
@@ -2108,16 +2898,51 @@ async function collectAgentState(lite = false) {
     meta_next: stripMdLite(metaLane?.next_item || dashboardBacklog[0] || "").slice(0, 120),
     campaign_next: campaignNext,
   });
-  const recentPodsEnriched = recentPodsRaw.slice(0, 8).map((p) => {
-    const name = p.name;
-    let hint = "";
-    if (name === "think" || name === "meta") {
-      hint = stripMdLite(currentTaskStatus).slice(0, 120);
-    } else if (campaignNext[name]) {
-      hint = campaignNext[name];
+  const recentPodsEnriched = (() => {
+    const thinkReports = loadRecentThinkReports(32);
+    const harness = readThinkHarnessRecent(24);
+    return recentPodsRaw.slice(0, 8).map((p) => {
+      const name = p.name;
+      let hint = "";
+      if (name === "think" || name === "meta") {
+        hint = resolveThinkPodDetail(p, thinkReports, harness, lastThinkSummary);
+      } else if (campaignNext[name]) {
+        hint = campaignNext[name];
+      }
+      return enrichPodRun(p, hint);
+    });
+  })();
+
+  const tableslopErrors = (() => {
+    try {
+      const p = path.join(REPO, "reports", "tableslop-errors", "LATEST.json");
+      if (!fs.existsSync(p)) return null;
+      const j = JSON.parse(fs.readFileSync(p, "utf8"));
+      const errs = (j.findings || []).filter((f) => f.severity === "error");
+      const priority = new Set([
+        "TS-MAP-GM-BORDERS-MISSING",
+        "TS-MAP-CITY-BORDER-MISSING",
+      ]);
+      errs.sort((a, b) => {
+        const ap = priority.has(a.code) ? 0 : 1;
+        const bp = priority.has(b.code) ? 0 : 1;
+        return ap - bp;
+      });
+      return {
+        ok: !!j.ok,
+        collected_at: j.collected_at || null,
+        error_count: errs.length,
+        warn_count: j.warn_count || 0,
+        // Keep Hub glance lean — border corrector codes first
+        errors: errs.slice(0, 8).map((f) => ({
+          code: f.code,
+          detail: String(f.detail || "").slice(0, 160),
+        })),
+      };
+    } catch {
+      return null;
     }
-    return enrichPodRun(p, hint);
-  });
+  })();
 
   return {
     updated_at: new Date().toISOString(),
@@ -2129,6 +2954,7 @@ async function collectAgentState(lite = false) {
     lanes,
     inbox_open_count: inbox.open.length,
     campaigns,
+    tableslop_errors: tableslopErrors,
     all_reports: allReports.slice(0, 16),
     dashboard_backlog_open: dashboardBacklog,
     meta_lane: metaLane,
@@ -2147,11 +2973,15 @@ async function collectAgentState(lite = false) {
     },
     recent_pods: recentPodsEnriched,
     last_run: lastRun,
+    last_think_summary: lastThinkSummary,
     maintenance_open: maintenanceOpen,
     running_now: runningNow,
+    cursor_lane: runningNow.cursor_lane,
     current_pod: runningNow.pod,
     observability: readObservabilityLinks(),
     chat_model_usage: chatModelUsageSummary(),
+    agent_goals: buildAgentGoalsInsight(),
+    free_models_health: readFreeModelsHealth(),
     work_pipeline: buildWorkPipeline(),
     model_budget: {
       policy: CHAT_FREE_FIRST ? "free_first" : "paid_first",
@@ -2236,15 +3066,18 @@ function readUserTasksStore() {
   if (!fs.existsSync(USER_TASKS_FILE)) {
     return { version: 2, projects: [], tasks: [] };
   }
+    const raw = fs.readFileSync(USER_TASKS_FILE, "utf8");
   try {
-    const data = JSON.parse(fs.readFileSync(USER_TASKS_FILE, "utf8"));
+    // ponytail: think ticks sometimes hand-edit trailing commas into user-tasks.json
+    const data = JSON.parse(raw.replace(/,(\s*[}\]])/g, "$1"));
     const tasks = Array.isArray(data.tasks) ? data.tasks : [];
     let projects = Array.isArray(data.projects) ? data.projects : [];
     if (!projects.length && (data.version || 1) < 2) {
       projects = defaultUserProjects();
     }
     return { version: 2, projects, tasks };
-  } catch {
+  } catch (err) {
+    console.error("readUserTasksStore: parse failed:", err.message);
     return { version: 2, projects: defaultUserProjects(), tasks: [] };
   }
 }
@@ -2733,7 +3566,7 @@ function humanGroupLabel(key) {
     Organizations: "Organizations",
     "Plot Lines": "Plot & timeline",
     "Things and Places of Note": "Lore & regions",
-    story: "Story",
+    story: "Wiki seed (story/)",
     lore: "Lore",
     "(root)": "Other",
   };
@@ -4264,9 +5097,9 @@ function buildChatSystemStatusBlock(context = null) {
       lines.push("hermes-gateway: unknown");
     }
 
-    const fastLast = readLaneHeartbeat("fast-tick.last");
+    const syncLast = readLaneHeartbeat("sync-tick.last");
     const thinkLast = readLaneHeartbeat("think-tick.last");
-    lines.push(`fast last tick: ${fastLast || "n/a"}`);
+    lines.push(`sync last: ${syncLast || "n/a"}`);
     lines.push(`think last tick: ${thinkLast || "n/a"}`);
 
     const inbox = readHumanInbox();
@@ -4673,9 +5506,114 @@ function isRetryableChatModelError(text) {
 // keep Hermes' default (auto→openrouter) routing — behaviour unchanged without a prefix.
 function parseModelProvider(modelId) {
   const m = String(modelId ?? "");
+  const cursorMatch = /^cursor:(.+)$/i.exec(m);
+  if (cursorMatch) return { provider: "cursor", model: cursorMatch[1] || "auto" };
   const match = /^(zenmux|openrouter):(.+)$/.exec(m);
   if (match) return { provider: match[1], model: match[2] };
   return { provider: null, model: m };
+}
+
+async function execCursorChatOnce(prompt, modelId = "cursor:auto", execOpts = {}) {
+  const { model: cursorVariant } = parseModelProvider(modelId);
+  const timeoutMs = Number(execOpts.timeoutMs) || 300_000;
+  const timeoutSec = Math.max(30, Math.round(timeoutMs / 1000));
+  if (!fs.existsSync(CURSOR_AGENT_SCRIPT)) {
+    return {
+      error: "Cursor agent wrapper missing on potato (scripts/linuxbox/cursor-agent-run.sh).",
+      model: modelId,
+    };
+  }
+  const env = {
+    ...process.env,
+    AGENT_DUMP: REPO,
+    CURSOR_AGENT_TIMEOUT_SEC: String(timeoutSec),
+    PATH: `${path.dirname(CURSOR_AGENT_BIN)}${path.delimiter}${process.env.PATH || ""}`,
+  };
+  if (fs.existsSync(CURSOR_AGENT_ENV)) {
+    try {
+      const raw = fs.readFileSync(CURSOR_AGENT_ENV, "utf8");
+      for (const line of raw.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eq = trimmed.indexOf("=");
+        if (eq <= 0) continue;
+        const key = trimmed.slice(0, eq).trim();
+        let val = trimmed.slice(eq + 1).trim();
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (key && env[key] == null) env[key] = val;
+      }
+    } catch {
+      /* non-fatal — script also sources env file */
+    }
+  }
+  const header = [
+    "You are the linuxbox Cursor SDK agent for ~/agent-dump.",
+    "Use repo skills (.cursor/skills/), AGENTS.md, ponytail YAGNI.",
+    "Smallest correct diff; one concrete verify step.",
+    `Lane: cursor:${cursorVariant || "auto"} via Python SDK (paid — explicit pick only).`,
+    "",
+  ].join("\n");
+  const fullPrompt = `${header}${String(prompt ?? "")}`;
+  env.CURSOR_VARIANT = "auto";
+  env.CURSOR_SDK_MODEL = "auto";
+  env.CURSOR_SDK_RUNTIME = process.env.CURSOR_SDK_RUNTIME || "local";
+  env.CURSOR_SDK_AUTO_ONLY = "1";
+  env.CURSOR_SDK_PYTHON =
+    process.env.CURSOR_SDK_PYTHON ||
+    path.join(process.env.HOME || "/home/abhinav", "venvs/cursor-sdk/bin/python");
+  let stdout = "";
+  let stderr = "";
+  try {
+    const result = await execFileAsync("bash", [CURSOR_AGENT_SCRIPT, fullPrompt], {
+      cwd: REPO,
+      env,
+      timeout: timeoutMs + 15_000,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    stdout = result.stdout || "";
+    stderr = result.stderr || "";
+  } catch (err) {
+    const out = hermesChatCombinedOutput(err, "") || String(err.message || err);
+    if (isHermesExecTimeout(err) || /timed out after/i.test(out)) {
+      return {
+        error: `Cursor SDK agent timed out (>${Math.round(timeoutMs / 1000)}s).`,
+        raw: out,
+        model: modelId,
+        timed_out: true,
+      };
+    }
+    if (/exit 125|No CURSOR_API_KEY|not logged in|auth failed/i.test(out)) {
+      return {
+        error: "Cursor SDK not authenticated — set CURSOR_API_KEY in ~/.cursor-agent.env on potato.",
+        raw: out,
+        model: modelId,
+      };
+    }
+    if (/exit 127|cursor-sdk not installed|not importable|not found/i.test(out)) {
+      return {
+        error:
+          "cursor-sdk missing — use ~/venvs/cursor-sdk (uv Python 3.12) or set CURSOR_SDK_PYTHON.",
+        raw: out,
+        model: modelId,
+      };
+    }
+    return { error: summarizeHermesFailure(out) || "Cursor SDK agent failed.", raw: out, model: modelId };
+  }
+  const out = hermesChatCombinedOutput(stdout, stderr);
+  const reply = String(out || "").trim();
+  if (!reply) {
+    return {
+      error: "Cursor agent returned empty output.",
+      raw: out,
+      model: modelId,
+    };
+  }
+  return { reply, raw: out, model: modelId, provider: "cursor" };
 }
 
 async function execHermesChatOnce(profile, prompt, modelId = null, execOpts = {}) {
@@ -5383,8 +6321,14 @@ function chatHistoryFromThread(thread) {
 const CHAT_JOBS = new Map();
 const CHAT_JOB_TTL_MS = 15 * 60 * 1000;
 const CHAT_JOB_TIMEOUT_MS = 4 * 60 * 1000;
+/** Cursor SDK jobs may run up to ~5m; keep stale-fail slightly above that. */
+const CURSOR_CHAT_JOB_TIMEOUT_MS = 6 * 60 * 1000;
+/** Hermes OR/ZenMux Hub chat — independent of Cursor SDK lane. */
 const CHAT_QUEUE = [];
+/** Cursor SDK Auto Hub chat — parallel worker (does not block Hermes think or Hermes Hub chat). */
+const CURSOR_CHAT_QUEUE = [];
 let chatWorkerBusy = false;
+let cursorChatWorkerBusy = false;
 
 function loadChatJobs() {
   if (!fs.existsSync(CHAT_JOBS_FILE)) return;
@@ -5435,21 +6379,36 @@ function pruneChatJobs() {
 }
 
 function failStaleChatJobs() {
-  const cutoff = Date.now() - CHAT_JOB_TIMEOUT_MS;
+  const now = Date.now();
   for (const job of CHAT_JOBS.values()) {
     if (job.status !== "pending" && job.status !== "queued") continue;
     const started = job.started_at || job.created_at;
-    if (started >= cutoff) continue;
+    const limit =
+      job.lane === "cursor" || isCursorChatModelId(job.preferred_model)
+        ? CURSOR_CHAT_JOB_TIMEOUT_MS
+        : CHAT_JOB_TIMEOUT_MS;
+    if (started >= now - limit) continue;
     updateChatJob(job, {
       status: "error",
-      error: "Chat timed out (>4m). Hermes may be busy — retry with less context or wait a minute.",
-      finished_at: Date.now(),
+      error:
+        job.lane === "cursor"
+          ? "Cursor chat timed out (>6m). Retry or run via SSH `cursor-agent-run.sh`."
+          : "Chat timed out (>4m). Hermes may be busy — retry with less context or wait a minute.",
+      finished_at: now,
     });
   }
 }
 
-function chatQueueDepth() {
+function hermesChatQueueDepth() {
   return CHAT_QUEUE.length + (chatWorkerBusy ? 1 : 0);
+}
+
+function cursorChatQueueDepth() {
+  return CURSOR_CHAT_QUEUE.length + (cursorChatWorkerBusy ? 1 : 0);
+}
+
+function chatQueueDepth() {
+  return hermesChatQueueDepth() + cursorChatQueueDepth();
 }
 
 function findInFlightChatJobForThread(threadId) {
@@ -5461,7 +6420,10 @@ function findInFlightChatJobForThread(threadId) {
   for (const item of CHAT_QUEUE) {
     if (item.threadId === threadId) return item.job;
   }
-  if (chatWorkerBusy) {
+  for (const item of CURSOR_CHAT_QUEUE) {
+    if (item.threadId === threadId) return item.job;
+  }
+  if (chatWorkerBusy || cursorChatWorkerBusy) {
     const busy = [...CHAT_JOBS.values()].find(
       (j) => j.thread_id === threadId && j.status === "pending" && j.started_at
     );
@@ -5478,15 +6440,83 @@ function shouldSkipDuplicateBotAppend(threadId, text) {
 }
 
 function refreshQueuedJobDepths() {
-  let idx = 0;
-  if (chatWorkerBusy) idx = 1;
+  let hermesIdx = chatWorkerBusy ? 1 : 0;
   for (const item of CHAT_QUEUE) {
-    updateChatJob(item.job, { status: "queued", queue_depth: idx });
-    idx += 1;
+    updateChatJob(item.job, { status: "queued", queue_depth: hermesIdx, lane: "hermes" });
+    hermesIdx += 1;
+  }
+  let cursorIdx = cursorChatWorkerBusy ? 1 : 0;
+  for (const item of CURSOR_CHAT_QUEUE) {
+    updateChatJob(item.job, { status: "queued", queue_depth: cursorIdx, lane: "cursor" });
+    cursorIdx += 1;
   }
 }
 
-function drainChatQueue() {
+function finishChatJobSideEffects(job, threadId, result) {
+  if (result.error) {
+    updateChatJob(job, { status: "error", error: result.error, finished_at: Date.now(), ...result });
+    if (threadId) {
+      try {
+        if (!shouldSkipDuplicateBotAppend(threadId, result.error)) {
+          appendChatThreadMessage(threadId, "bot", result.error, true);
+        }
+      } catch {
+        /* non-fatal */
+      }
+    }
+    return;
+  }
+  updateChatJob(job, { status: "done", finished_at: Date.now(), ...result });
+  if (!threadId) return;
+  try {
+    let replyText = result.reply || "";
+    let writeArts = [];
+    const campId = (() => {
+      try {
+        return readChatThread(threadId)?.context?.campaign;
+      } catch {
+        return null;
+      }
+    })();
+    if (campId && /<<<\s*CAMPAIGN_WRITE/i.test(replyText)) {
+      const applied = applyCampaignWriteDirectives(replyText, campId);
+      replyText = applied.reply;
+      writeArts = applied.artifacts || [];
+      if (writeArts.length) {
+        result.reply = replyText;
+        result.campaign_writes = writeArts;
+      }
+    }
+    const projId = (() => {
+      try {
+        return readChatThread(threadId)?.context?.project_id;
+      } catch {
+        return null;
+      }
+    })();
+    if (projId === "mazda3-sports-build" && /<<<\s*PROJECT_WRITE/i.test(replyText)) {
+      const applied = applyProjectWriteDirectives(replyText, projId);
+      replyText = applied.reply;
+      if (applied.artifacts?.length) {
+        writeArts = [...writeArts, ...applied.artifacts];
+        result.reply = replyText;
+        result.project_writes = applied.artifacts;
+      }
+    }
+    if (!shouldSkipDuplicateBotAppend(threadId, replyText)) {
+      appendChatThreadMessage(threadId, "bot", replyText, false, {
+        model: result.model || undefined,
+        paid_retry: !!result.paid_retry,
+        free_fallback: !!result.free_fallback,
+        artifacts: writeArts.length ? writeArts : undefined,
+      });
+    }
+  } catch {
+    /* non-fatal */
+  }
+}
+
+function drainHermesChatQueue() {
   if (chatWorkerBusy || !CHAT_QUEUE.length) return;
   const next = CHAT_QUEUE.shift();
   if (!next) return;
@@ -5494,7 +6524,7 @@ function drainChatQueue() {
   refreshQueuedJobDepths();
   const { job, message, profile, context, history, responseMode, threadId, preferredModel, chatModeId } =
     next;
-  updateChatJob(job, { status: "pending", started_at: Date.now(), queue_depth: 0 });
+  updateChatJob(job, { status: "pending", started_at: Date.now(), queue_depth: 0, lane: "hermes" });
   runHermesChat(message, profile, context, {
     history,
     responseMode,
@@ -5502,68 +6532,7 @@ function drainChatQueue() {
     chatModeId,
   })
     .then((result) => {
-      if (result.error) {
-        updateChatJob(job, { status: "error", error: result.error, finished_at: Date.now(), ...result });
-        if (threadId) {
-          try {
-            if (!shouldSkipDuplicateBotAppend(threadId, result.error)) {
-              appendChatThreadMessage(threadId, "bot", result.error, true);
-            }
-          } catch {
-            /* non-fatal */
-          }
-        }
-      } else {
-        updateChatJob(job, { status: "done", finished_at: Date.now(), ...result });
-        if (threadId) {
-          try {
-            let replyText = result.reply || "";
-            let writeArts = [];
-            const campId = (() => {
-              try {
-                return readChatThread(threadId)?.context?.campaign;
-              } catch {
-                return null;
-              }
-            })();
-            if (campId && /<<<\s*CAMPAIGN_WRITE/i.test(replyText)) {
-              const applied = applyCampaignWriteDirectives(replyText, campId);
-              replyText = applied.reply;
-              writeArts = applied.artifacts || [];
-              if (writeArts.length) {
-                result.reply = replyText;
-                result.campaign_writes = writeArts;
-              }
-            }
-            const projId = (() => {
-              try {
-                return readChatThread(threadId)?.context?.project_id;
-              } catch {
-                return null;
-              }
-            })();
-            if (projId === "mazda3-sports-build" && /<<<\s*PROJECT_WRITE/i.test(replyText)) {
-              const applied = applyProjectWriteDirectives(replyText, projId);
-              replyText = applied.reply;
-              if (applied.artifacts?.length) {
-                writeArts = [...writeArts, ...applied.artifacts];
-                result.reply = replyText;
-                result.project_writes = applied.artifacts;
-              }
-            }
-            if (!shouldSkipDuplicateBotAppend(threadId, replyText)) {
-              appendChatThreadMessage(threadId, "bot", replyText, false, {
-                model: result.model || undefined,
-                paid_retry: !!result.paid_retry,
-                free_fallback: !!result.free_fallback,
-                artifacts: writeArts.length ? writeArts : undefined,
-              });
-            }
-          } catch {
-            /* non-fatal */
-          }
-        }
-      }
+      finishChatJobSideEffects(job, threadId, result);
     })
     .catch((err) => {
       updateChatJob(job, {
@@ -5576,6 +6545,43 @@ function drainChatQueue() {
       chatWorkerBusy = false;
       drainChatQueue();
     });
+}
+
+function drainCursorChatQueue() {
+  if (cursorChatWorkerBusy || !CURSOR_CHAT_QUEUE.length) return;
+  const next = CURSOR_CHAT_QUEUE.shift();
+  if (!next) return;
+  cursorChatWorkerBusy = true;
+  refreshQueuedJobDepths();
+  const { job, message, profile, context, history, responseMode, threadId, preferredModel, chatModeId } =
+    next;
+  updateChatJob(job, { status: "pending", started_at: Date.now(), queue_depth: 0, lane: "cursor" });
+  runHermesChat(message, profile, context, {
+    history,
+    responseMode,
+    preferredModel,
+    chatModeId,
+  })
+    .then((result) => {
+      finishChatJobSideEffects(job, threadId, result);
+    })
+    .catch((err) => {
+      updateChatJob(job, {
+        status: "error",
+        error: err.message || "chat_failed",
+        finished_at: Date.now(),
+      });
+    })
+    .finally(() => {
+      cursorChatWorkerBusy = false;
+      drainChatQueue();
+    });
+}
+
+function drainChatQueue() {
+  // Parallel lanes: Hermes OR/ZenMux and Cursor SDK Auto do not wait on each other.
+  drainHermesChatQueue();
+  drainCursorChatQueue();
 }
 
 function startChatJob(message, profile, context, chatOpts = {}) {
@@ -5606,13 +6612,18 @@ function startChatJob(message, profile, context, chatOpts = {}) {
   if (inFlight) {
     return inFlight.job_id;
   }
+  const preferredModel = chatOpts.preferredModel || null;
+  const useCursorLane = isCursorChatModelId(preferredModel);
+  const lane = useCursorLane ? "cursor" : "hermes";
+  const ahead = useCursorLane ? cursorChatQueueDepth() : hermesChatQueueDepth();
   const id = crypto.randomBytes(8).toString("hex");
-  const ahead = chatQueueDepth();
   const job = {
     job_id: id,
     status: ahead ? "queued" : "pending",
     created_at: Date.now(),
     queue_depth: ahead,
+    lane,
+    preferred_model: preferredModel,
     thread_id: chatOpts.threadId || null,
     message_index:
       Number.isInteger(chatOpts.messageIndex) && chatOpts.messageIndex >= 0
@@ -5621,18 +6632,20 @@ function startChatJob(message, profile, context, chatOpts = {}) {
   };
   CHAT_JOBS.set(id, job);
   persistChatJobs();
-  CHAT_QUEUE.push({
+  const item = {
     job,
     message,
     profile,
     context,
     history: chatOpts.history || [],
     responseMode: chatOpts.responseMode || "brief",
-    preferredModel: chatOpts.preferredModel || null,
+    preferredModel,
     chatModeId: chatOpts.chatModeId || null,
     threadId: chatOpts.threadId || null,
     skipUserAppend: !!chatOpts.skipUserAppend,
-  });
+  };
+  if (useCursorLane) CURSOR_CHAT_QUEUE.push(item);
+  else CHAT_QUEUE.push(item);
   drainChatQueue();
   return id;
 }
@@ -5685,7 +6698,11 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
     for (const modelId of modelChain) {
       triedModels.push(modelId);
       try {
-        const result = await execHermesChatOnce(prof, prompt, modelId, execOpts);
+        const result = isCursorChatModelId(modelId)
+          ? await execCursorChatOnce(prompt, modelId, {
+              timeoutMs: chatOpts.cursorTimeoutMs || 300_000,
+            })
+          : await execHermesChatOnce(prof, prompt, modelId, execOpts);
         if (result.error) {
           lastErr = result.error;
           if (isOpenRouterDailyLimit(result.raw || result.error)) {
@@ -5821,20 +6838,67 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
     return { kind: "exhausted" };
   }
 
-  // Explicit model pick → try first; then free-first (or paid-first) failover. No pick → free-first default.
+  // Model routing:
+  // - Explicit cursor:auto → Cursor only
+  // - Agent coding (cursor_default) + Auto → Cursor first (screenshots + portfolio)
+  // - Free pool known-down (~30m free-models-health / day blocklist) → Cursor when allowed
+  // - Else free-first / paid-first (Cursor not in free rotate list)
   loadModelBudgetConfig();
   const preferFree = CHAT_FREE_FIRST;
+  const routing = String(chatMode?.routing || "free_first");
+  const freeHealth = readFreeModelsHealth();
+  const freeDown = !!freeHealth.cursor_fallback_recommended && !freeHealth.any_up;
+  const wantCursorDefault =
+    routing === "cursor_default" ||
+    (!preferredModel && chatMode?.default_model && isCursorChatModelId(chatMode.default_model));
+  const allowCursorOnFreeFail =
+    !!chatMode?.cursor_on_free_fail || routing === "cursor_default" || wantCursorDefault;
   const phases = [];
-  if (preferredModel) {
-    const pinnedIsFree = isChatFreeModelId(preferredModel);
-    phases.push({ chain: [preferredModel], allowFree: pinnedIsFree, pinned: true });
-  }
-  if (preferFree) {
-    phases.push({ chain: freeChain.filter((m) => m !== preferredModel), allowFree: true });
-    phases.push({ chain: paidChain.filter((m) => m !== preferredModel), allowFree: false });
+  if (preferredModel && isCursorChatModelId(preferredModel)) {
+    phases.push({ chain: [preferredModel], allowFree: false, pinned: true, cursorOnly: true });
+  } else if (wantCursorDefault && !preferredModel) {
+    phases.push({ chain: ["cursor:auto"], allowFree: false, cursorOnly: true });
+    if (!freeDown) {
+      if (preferFree) {
+        phases.push({ chain: freeChain.filter((m) => !isCursorChatModelId(m)), allowFree: true });
+        phases.push({ chain: paidChain.filter((m) => !isCursorChatModelId(m)), allowFree: false });
+      } else {
+        phases.push({ chain: paidChain.filter((m) => !isCursorChatModelId(m)), allowFree: false });
+        phases.push({ chain: freeChain.filter((m) => !isCursorChatModelId(m)), allowFree: true });
+      }
+    }
   } else {
-    phases.push({ chain: paidChain.filter((m) => m !== preferredModel), allowFree: false });
-    phases.push({ chain: freeChain.filter((m) => m !== preferredModel), allowFree: true });
+    if (preferredModel) {
+      const pinnedIsFree = isChatFreeModelId(preferredModel);
+      phases.push({ chain: [preferredModel], allowFree: pinnedIsFree, pinned: true });
+    }
+    if (freeDown && allowCursorOnFreeFail && !preferredModel) {
+      phases.push({ chain: ["cursor:auto"], allowFree: false, cursorOnly: true });
+    } else if (preferFree) {
+      phases.push({
+        chain: freeChain.filter((m) => m !== preferredModel && !isCursorChatModelId(m)),
+        allowFree: true,
+      });
+      phases.push({
+        chain: paidChain.filter((m) => m !== preferredModel && !isCursorChatModelId(m)),
+        allowFree: false,
+      });
+      if (allowCursorOnFreeFail) {
+        phases.push({ chain: ["cursor:auto"], allowFree: false, cursorOnly: true });
+      }
+    } else {
+      phases.push({
+        chain: paidChain.filter((m) => m !== preferredModel && !isCursorChatModelId(m)),
+        allowFree: false,
+      });
+      phases.push({
+        chain: freeChain.filter((m) => m !== preferredModel && !isCursorChatModelId(m)),
+        allowFree: true,
+      });
+      if (allowCursorOnFreeFail) {
+        phases.push({ chain: ["cursor:auto"], allowFree: false, cursorOnly: true });
+      }
+    }
   }
 
   for (const phase of phases) {
@@ -5844,6 +6908,10 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
       if (result.kind === "ok" && preferredModel) {
         result.payload.preferred_model = preferredModel;
       }
+      if (result.kind === "ok" && (wantCursorDefault || freeDown)) {
+        result.payload.free_models_down = freeDown || undefined;
+        result.payload.routing = wantCursorDefault ? "cursor_default" : result.payload.routing;
+      }
       return result.payload;
     }
     // daily_limit / exhausted → next phase
@@ -5851,20 +6919,24 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
 
   if (hitDailyLimit) {
     const freeTried = triedModels.filter((m) => isChatFreeModelId(m));
-    const paidTried = triedModels.filter((m) => !isChatFreeModelId(m));
+    const paidTried = triedModels.filter((m) => !isChatFreeModelId(m) && !isCursorChatModelId(m));
+    const cursorTried = triedModels.filter((m) => isCursorChatModelId(m));
     const freeBit = freeTried.length
       ? `Free path failed first (:free models are $0 but still hit OpenRouter/provider RPM·RPD·capacity limits — not the USD cap). Tried: ${freeTried.join(" → ")}.`
-      : "Free path was not reached.";
+      : freeDown
+        ? "Free pool marked down (30m free-models-health / day blocklist) — skipped thrash."
+        : "Free path was not reached.";
     const paidBit = paidTried.length
       ? `Paid ops path then hit daily USD cap (policy target $${OPENROUTER_OPS_DAILY_USD}). Tried: ${paidTried.join(" → ")}.`
       : `Paid ops path hit daily USD cap (policy target $${OPENROUTER_OPS_DAILY_USD}).`;
+    const cursorBit = cursorTried.length ? ` Cursor also tried: ${cursorTried.join(" → ")}.` : "";
     return {
-      error: `${freeBit} ${paidBit} Wait for UTC reset, top up, or raise key limit (set-openrouter-key-limit.sh).`,
+      error: `${freeBit} ${paidBit}${cursorBit} Wait for UTC reset, top up, or raise key limit (set-openrouter-key-limit.sh).`,
       profile: prof,
       context_used: !!context,
       failover_tried: triedModels,
       openrouter_daily_limit: true,
-      free_exhausted: freeTried.length > 0 || undefined,
+      free_exhausted: freeTried.length > 0 || freeDown || undefined,
     };
   }
 
@@ -5884,6 +6956,7 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
     failover_tried: triedModels,
     retried_models: triedModels.length ? triedModels : undefined,
     openrouter_daily_limit: hitDailyLimit || undefined,
+    free_models_down: freeDown || undefined,
   };
 }
 
@@ -6234,8 +7307,20 @@ async function fetchStockQuotes(symbols) {
 
 async function fetchSocialFeeds(feeds) {
   const out = [];
-  // Cap keeps /api/intel latency bounded on 2GB box; raised 12→20 for science/AI/policy/OSINT expansion (2026-07-25).
-  for (const feed of feeds.slice(0, 20)) {
+  // Cap latency on 2GB box. Prefer world/breaking news feeds when list is long.
+  const ranked = [...(feeds || [])].sort((a, b) => {
+    const score = (f) => {
+      const p = String(f?.platform || "");
+      if (p === "aggregator" || p === "news") return 0;
+      if (p === "osint" || p === "policy") return 1;
+      if (p === "markets") return 2;
+      if (p === "reddit" && /world/i.test(String(f?.name || ""))) return 0;
+      return 3;
+    };
+    return score(a) - score(b);
+  });
+  // ponytail: 40 ≈ world-first mix without multi-minute /api/intel; raise only with cache hits (38 feeds configured 2026-08-05)
+  for (const feed of ranked.slice(0, 40)) {
     const slug = feedCacheSlug(feed);
     const cached = readRssCache(slug);
     const ttlMs = feed.platform === "reddit" ? REDDIT_CACHE_TTL_MS : RSS_CACHE_TTL_MS;
@@ -6692,6 +7777,14 @@ function splitPublicPath(pathname) {
   return { publicMode: null, pathname };
 }
 
+/** Mirror tunnel-origin-proxy: bare :8790 requests may still carry /Linuxbox prefix. */
+function stripLinuxboxPrefix(pathname) {
+  const m = String(pathname || "").match(/^\/Linuxbox(\/.*)?$/i);
+  if (!m) return pathname;
+  const rest = m[1] || "/";
+  return rest.startsWith("/") ? rest : `/${rest}`;
+}
+
 // DASHBOARD_OPEN: temporary public-access toggle (reversible without code changes).
 //   "off"/unset -> token required for public (default, secure)
 //   "read"      -> public GET/HEAD allowed; mutating methods (POST) still need token
@@ -6874,7 +7967,9 @@ function sendFile(res, filePath, contentType, publicMode) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://127.0.0.1");
-  const { publicMode, pathname } = splitPublicPath(url.pathname);
+  const split = splitPublicPath(url.pathname);
+  const pathname = stripLinuxboxPrefix(split.pathname);
+  const publicMode = split.publicMode;
 
   if (!isAuthorized(req, pathname, publicMode)) {
     send401(res, publicMode);
@@ -6988,16 +8083,45 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, 403, { error: "admin_required" }, publicMode);
         return;
       }
+      const rn = buildRunningNow();
       sendJson(
         res,
         200,
         {
-          running_now: buildRunningNow(),
+          running_now: rn,
+          cursor_lane: rn.cursor_lane,
           live_log: readThinkLiveLog(),
           updated_at: new Date().toISOString(),
         },
         publicMode
       );
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/agent-goals") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(
+        res,
+        200,
+        {
+          ...buildAgentGoalsInsight(),
+          usage: chatModelUsageSummary(),
+          updated_at: new Date().toISOString(),
+        },
+        publicMode
+      );
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/meta-harness") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, { pods: readMetaHarnessPods(5), updated_at: new Date().toISOString() }, publicMode);
       return;
     }
 
@@ -7187,6 +8311,11 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/docs-wiki.js") {
+      sendFile(res, path.join(STATIC_DIR, "docs-wiki.js"), "application/javascript; charset=utf-8", publicMode);
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/intel") {
       sendJson(res, 200, await collectIntelState(), publicMode);
       return;
@@ -7212,6 +8341,104 @@ const server = http.createServer(async (req, res) => {
       const campaignId = url.searchParams.get("campaign");
       const relPath = url.searchParams.get("path");
       sendJson(res, 200, readStoryDoc(campaignId, relPath), publicMode);
+      return;
+    }
+
+    // Docs wiki (tree / edit / comments / graph) — admin Linuxbox only
+    if (req.method === "GET" && pathname === "/api/docs/tree") {
+      const campaign = url.searchParams.get("campaign") || null;
+      const include_archived =
+        url.searchParams.get("include_archived") === "1" ||
+        url.searchParams.get("include_archived") === "true" ||
+        campaign === "spacequest";
+      sendJson(
+        res,
+        200,
+        docsWiki.listDocsTree(REPO, CAMPAIGNS, { campaign, include_archived }),
+        publicMode
+      );
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/docs/doc") {
+      const relPath = url.searchParams.get("path");
+      try {
+        sendJson(res, 200, docsWiki.readDocsDoc(REPO, CAMPAIGNS, relPath), publicMode);
+      } catch (err) {
+        sendJson(res, err.status || 400, { error: err.message || "doc_read_failed" }, publicMode);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/docs/comments") {
+      const relPath = url.searchParams.get("path");
+      if (!relPath) {
+        sendJson(res, 400, { error: "path_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, docsWiki.listDocComments(REPO, relPath), publicMode);
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/docs/graph") {
+      const campaign = url.searchParams.get("campaign") || null;
+      const limitRaw = url.searchParams.get("limit");
+      const limit = limitRaw != null && limitRaw !== "" ? Number(limitRaw) : undefined;
+      sendJson(
+        res,
+        200,
+        docsWiki.buildDocsGraph(REPO, CAMPAIGNS, {
+          campaign,
+          ...(Number.isFinite(limit) ? { limit } : {}),
+        }),
+        publicMode
+      );
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/docs/resolve") {
+      try {
+        sendJson(
+          res,
+          200,
+          docsWiki.resolveDocsEntity(REPO, CAMPAIGNS, {
+            q: url.searchParams.get("q") || url.searchParams.get("slug") || url.searchParams.get("id"),
+            campaign: url.searchParams.get("campaign") || null,
+          }),
+          publicMode
+        );
+      } catch (err) {
+        sendJson(res, err.status || 400, { error: err.message || "resolve_failed" }, publicMode);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/docs/versions") {
+      try {
+        const relPath = url.searchParams.get("path");
+        if (!relPath) {
+          sendJson(res, 400, { error: "path_required" }, publicMode);
+          return;
+        }
+        sendJson(res, 200, docsWiki.listDocVersions(REPO, relPath), publicMode);
+      } catch (err) {
+        sendJson(res, err.status || 400, { error: err.message || "versions_failed" }, publicMode);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/docs/version") {
+      try {
+        const relPath = url.searchParams.get("path");
+        const vid = url.searchParams.get("id") || url.searchParams.get("version");
+        if (!relPath || !vid) {
+          sendJson(res, 400, { error: "path_and_id_required" }, publicMode);
+          return;
+        }
+        sendJson(res, 200, docsWiki.readDocVersion(REPO, relPath, vid), publicMode);
+      } catch (err) {
+        sendJson(res, err.status || 400, { error: err.message || "version_read_failed" }, publicMode);
+      }
       return;
     }
 
@@ -7340,17 +8567,112 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "PUT" && pathname === "/api/docs/doc") {
+      const maxBytes = 600 * 1024;
+      let raw;
+      try {
+        raw = await readBody(req, maxBytes);
+      } catch (err) {
+        sendJson(res, err.message === "body_too_large" ? 413 : 400, { error: err.message || "bad_body" }, publicMode);
+        return;
+      }
+      let body = {};
+      try {
+        body = raw ? JSON.parse(raw) : {};
+      } catch {
+        sendJson(res, 400, { error: "invalid_json" }, publicMode);
+        return;
+      }
+      try {
+        const saved = docsWiki.writeDocsDoc(REPO, CAMPAIGNS, body.path, body.content, body.base_hash);
+        sendJson(res, 200, { ok: true, ...saved }, publicMode);
+      } catch (err) {
+        sendJson(res, err.status || 400, { error: err.message || "doc_write_failed" }, publicMode);
+      }
+      return;
+    }
+
     if (req.method === "POST") {
       const maxBytes =
         pathname === "/api/characters-registry/upload"
           ? Math.ceil(CHAR_PORTRAIT_UPLOAD_MAX * 1.4) + 8 * 1024
-          : 64 * 1024;
+          : pathname.startsWith("/api/docs/")
+            ? 100 * 1024
+            : 64 * 1024;
       const raw = await readBody(req, maxBytes);
       let body = {};
       try {
         body = raw ? JSON.parse(raw) : {};
       } catch {
         sendJson(res, 400, { error: "invalid_json" }, publicMode);
+        return;
+      }
+
+      if (pathname === "/api/docs/character-sheet") {
+        try {
+          sendJson(res, 200, docsWiki.createCharacterSheet(REPO, CAMPAIGNS, body), publicMode);
+        } catch (err) {
+          sendJson(res, err.status || 400, { error: err.message || "create_sheet_failed", path: err.path }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/docs/character-beta") {
+        try {
+          const out = await docsWiki.runCharacterBeta(REPO, CAMPAIGNS, body);
+          sendJson(res, 200, out, publicMode);
+        } catch (err) {
+          sendJson(
+            res,
+            err.status || 500,
+            {
+              error: err.message || "beta_failed",
+              hint: err.hint || undefined,
+              detail: err.detail || undefined,
+              model: err.model || undefined,
+            },
+            publicMode
+          );
+        }
+        return;
+      }
+
+      if (pathname === "/api/docs/propose-from-reports") {
+        try {
+          const out = await docsWiki.proposeFromReports(REPO, CAMPAIGNS, body);
+          sendJson(res, 200, out, publicMode);
+        } catch (err) {
+          sendJson(res, err.status || 400, { error: err.message || "propose_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/docs/restore-version") {
+        try {
+          const out = docsWiki.restoreDocVersion(REPO, CAMPAIGNS, body.path || body.doc_path, body.id || body.version);
+          sendJson(res, 200, out, publicMode);
+        } catch (err) {
+          sendJson(res, err.status || 400, { error: err.message || "restore_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/docs/comments") {
+        try {
+          sendJson(res, 200, docsWiki.addDocComment(REPO, CAMPAIGNS, body), publicMode);
+        } catch (err) {
+          sendJson(res, err.status || 400, { error: err.message || "comment_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname.startsWith("/api/docs/comments/")) {
+        const commentId = pathname.slice("/api/docs/comments/".length);
+        try {
+          sendJson(res, 200, docsWiki.patchDocComment(REPO, CAMPAIGNS, commentId, body), publicMode);
+        } catch (err) {
+          sendJson(res, err.status || 400, { error: err.message || "comment_patch_failed" }, publicMode);
+        }
         return;
       }
 
@@ -7390,6 +8712,20 @@ const server = http.createServer(async (req, res) => {
           sendJson(res, 201, { ...result, offload: true, note: "Queued for laptop/PC — not running on potato" }, publicMode);
         } catch (err) {
           sendJson(res, 400, { error: err.message || "offload_failed" }, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/agent-goals") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        try {
+          const next = writeAgentGoalControl(body, "hub");
+          sendJson(res, 200, { ok: true, control: next, goals: buildAgentGoalsInsight() }, publicMode);
+        } catch (err) {
+          sendJson(res, 400, { error: err.message || "goal_update_failed" }, publicMode);
         }
         return;
       }

@@ -1,8 +1,16 @@
 {
-  "_doc": "Registry for Hub Systems panel — health, icons, control actions. See docs/agents/linuxbox-systems-panel.md",
-  "schema_version": "1.0.0",
-  "registry_version": "1.0.0",
+  "_doc": "Registry for Hub Systems panel — health, icons, control actions. See docs/agents/linuxbox-systems-panel.md. `ref` = short stable name for humans/agents (shown on cards); `id` = API/control key (do not rename casually).",
+  "schema_version": "1.1.0",
+  "registry_version": "1.1.0",
   "changelog": [
+    {
+      "version": "1.1.0",
+      "date": "2026-07-25",
+      "changes": [
+        "Add ref short names (hub, tableslop, hermes, hunter, pixi, …)",
+        "Register pixi (linuxbox-pixi-rp :8767)"
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-07-07",
@@ -12,6 +20,7 @@
   "systems": [
     {
       "id": "tunnel-abhinavall",
+      "ref": "tunnel-abhinavall",
       "label": "abhinavall.net",
       "subtitle": "Site · Hub · Intel",
       "kind": "tunnel",
@@ -23,6 +32,7 @@
     },
     {
       "id": "tunnel-tableslop",
+      "ref": "tunnel-tableslop",
       "label": "map.tableslop.org",
       "subtitle": "Isla Primavera map",
       "kind": "tunnel",
@@ -34,6 +44,7 @@
     },
     {
       "id": "portfolio",
+      "ref": "portfolio",
       "label": "abhinavall.net origin",
       "subtitle": ":3000 Node",
       "kind": "app",
@@ -44,6 +55,7 @@
     },
     {
       "id": "dashboard",
+      "ref": "hub",
       "label": "Linuxbox Hub",
       "subtitle": ":8790",
       "kind": "app",
@@ -54,6 +66,7 @@
     },
     {
       "id": "tableslop-app",
+      "ref": "tableslop",
       "label": "tableslop server",
       "subtitle": ":8765",
       "kind": "app",
@@ -63,7 +76,19 @@
       "health_url": "http://127.0.0.1:8765/health"
     },
     {
+      "id": "pixi",
+      "ref": "pixi",
+      "label": "Pixi RP",
+      "subtitle": ":8767 OpenRouter",
+      "kind": "app",
+      "icon": "pixi",
+      "unit": "linuxbox-pixi-rp.service",
+      "scope": "user",
+      "health_url": "http://127.0.0.1:8767/"
+    },
+    {
       "id": "hermes-ops",
+      "ref": "hermes",
       "label": "Hermes gateway",
       "subtitle": "ops / think",
       "kind": "agent",
@@ -73,6 +98,7 @@
     },
     {
       "id": "hermes-hunter",
+      "ref": "hunter",
       "label": "Hunter gateway",
       "subtitle": "Discord RP",
       "kind": "agent",
@@ -82,6 +108,7 @@
     },
     {
       "id": "pod-scheduler",
+      "ref": "scheduler",
       "label": "Agent scheduler",
       "subtitle": "30s timer",
       "kind": "agent",

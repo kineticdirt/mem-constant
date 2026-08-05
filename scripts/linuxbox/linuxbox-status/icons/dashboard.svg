@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="dashboard">
+  <rect width="32" height="32" rx="4" fill="#0a0a0c"/>
+  <rect x="6" y="8" width="8" height="7" rx="1" stroke="#6ec8ff" stroke-width="1.2"/>
+  <rect x="18" y="8" width="8" height="7" rx="1" stroke="#6ec8ff" stroke-width="1.2"/>
+  <rect x="6" y="18" width="20" height="7" rx="1" stroke="#b8e986" stroke-width="1.2"/>
+</svg>

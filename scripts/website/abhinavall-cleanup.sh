@@ -4,7 +4,7 @@ set -euo pipefail
 
 WORK_ROOT="${1:-}"
 if [[ -z "${WORK_ROOT}" ]]; then
-  echo "usage: abhinavall_cleanup.sh <work-root>" >&2
+  echo "usage: abhinavall-cleanup.sh <work-root>" >&2
   exit 2
 fi
 

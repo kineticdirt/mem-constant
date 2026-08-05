@@ -52,6 +52,25 @@ if ! grep -qE '^WRITER_BOT_OPENROUTER_API_KEY=sk-' "${ENV_FILE}" 2>/dev/null; th
   fi
 fi
 
+# Pull ZenMux key from Hermes when Pixi env lacks one (never print the key).
+# Used for zenmux:<slug> presets (e.g. zenmux:moonshotai/kimi-k3-free).
+if ! grep -qE '^ZENMUX_API_KEY=.+' "${ENV_FILE}" 2>/dev/null; then
+  HERMES_ENV="${HOME}/.hermes/.env"
+  if [[ -f "${HERMES_ENV}" ]]; then
+    ZKEY="$(grep -E '^ZENMUX_API_KEY=' "${HERMES_ENV}" | head -1 | cut -d= -f2- | tr -d '\r' || true)"
+    if [[ -n "${ZKEY}" ]]; then
+      if grep -qE '^ZENMUX_API_KEY=' "${ENV_FILE}"; then
+        sed -i "s|^ZENMUX_API_KEY=.*|ZENMUX_API_KEY=${ZKEY}|" "${ENV_FILE}"
+      else
+        printf '\nZENMUX_API_KEY=%s\n' "${ZKEY}" >>"${ENV_FILE}"
+      fi
+      echo "Filled ZenMux key into ${ENV_FILE} from ~/.hermes/.env"
+    else
+      echo "WARN: no ZENMUX_API_KEY in ~/.hermes/.env — ZenMux presets will 503 until set" >&2
+    fi
+  fi
+fi
+
 chmod 600 "${ENV_FILE}"
 
 # Symlink env into OWS so unified_rp_server load_repo_rp_env_files finds it.

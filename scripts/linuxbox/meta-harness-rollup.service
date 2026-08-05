@@ -1,0 +1,9 @@
+[Unit]
+Description=Meta-Harness campaign score rollup
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/agent-dump
+Environment=REPO=%h/agent-dump
+ExecStart=%h/agent-dump/scripts/linuxbox/meta-harness-rollup.sh

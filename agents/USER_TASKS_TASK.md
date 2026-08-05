@@ -9,8 +9,9 @@ Work **human-created tasks** grouped under optional **projects** (`agents/user-t
 ## One tick
 
 1. Read `agents/user-tasks.json` — pick the **oldest** task with `status: "open"`.
-   **Priority within this lane:** (1) Hub **Fix this** tasks — title starts with `[ops]` or body starts with `## Fix this`, especially `Urgency: soon`; (2) `project_id: tableslop` when present; (3) otherwise oldest open.
-2. If `project_id` set, read project row + skim `charter_path` (e.g. `projects/infranet/README.md`).
+   **Priority within this lane:** (1) Hub **Fix this** tasks — title starts with `[ops]` or body starts with `## Fix this`, especially `Urgency: soon`; (2) **same-tier continuous RR** — product boards (`tableslop` / `PIXI_RP` / `portfolio-progress`) **and** campaign progress (`nyc-mafia-dnd` / `tropic-gooner`) open `[ ]` (think picker round-robins so campaigns are not starved by map/RP); prefer one tick box over mega product tasks; (3) product projects `tableslop` / **`pixi-rp`** / `abhinavall-portfolio` when boards empty; (4) otherwise oldest open.
+   For **tableslop** / **portfolio**, use **free-first** models (`agents/TABLESLOP_PROJECT_TASK.md`, `agents/portfolio-progress.md`).
+2. If `project_id` set, read project row + skim `charter_path` (e.g. `projects/infranet/README.md`). For **`research-bookmarks`**, also read `agents/research-bookmarks-source.json` — use local ingest/digest only (no X API); if inbox missing, ask login once then skip.
 3. If `context.story_path` set, skim that markdown under `campaigns/`.
 4. If `context.chat_thread_id` set, read `agents/state/chat-threads/{id}.json` — use recent turns as research brief (thread is gitignored runtime state; do not delete it).
 5. Do **one** concrete step toward completing the task (patch, doc, config, verify).
@@ -33,8 +34,9 @@ budget, buy/no-buy, taste/preference, anything irreversible**. For these:
    with a one-line note in `body`.
 3. **Never guess** a preference or an irreversible/spend decision to force a task closed.
    Answers arrive on the `/Linuxbox/` **Inbox** tab and flow back via `agents/state/human-inbox.json`.
+   Post questions with `"task_id": "<user-task uuid>"` so `consume-inbox-answers.py` (fast tick) can mark the task `done` after the GM answers.
 
-**Inbox copy:** `context` must explain what you are asking and why (2–4 sentences). Include a lore pointer path when applicable (e.g. `campaigns/tropic-gooner/reports/organizations/stevens-co.md` or `reports/faction-registry.md` PRI row) so the GM can answer without hunting files. For choice questions, add `option_help` parallel to `options[]`. Never post bare acronyms (PRI-####, CRT, etc.) without a plain-language summary in `context`.
+**Inbox copy:** `context` must explain what you are asking and why (2–4 sentences). Include a lore pointer path when applicable (e.g. `campaigns/tropic-gooner/reports/organizations/stevens-co.md` or `reports/faction-registry.md` PRI row) so the GM can answer without hunting files. For choice questions, add `option_help` parallel to `options[]`. Never post bare acronyms (PRI-####, CRT, etc.) without a plain-language summary in `context`. **Prose style (required):** follow `agents/INBOX_PROSE.md` — direct ask, varied syntax, concrete system nouns + one consequence; **forbid** antithesis templates (“It’s not X or Y, it’s Z”), “In today’s fast-paced…”, stacked em-dashes, symmetrical tricolons, fake certainty; option labels in plain English (no buzzword pairs).
 
 ## Do not
 

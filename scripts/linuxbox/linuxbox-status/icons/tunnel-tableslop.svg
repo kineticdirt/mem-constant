@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="tableslop tunnel">
+  <rect width="32" height="32" rx="4" fill="#0a0a0c"/>
+  <path d="M6 22 L16 8 L26 22 Z" stroke="#ff6ec8" stroke-width="1.5" fill="none"/>
+  <circle cx="16" cy="17" r="3" fill="#b8e986"/>
+  <path d="M4 26h24" stroke="#6ec8ff" stroke-width="1" opacity="0.5"/>
+</svg>

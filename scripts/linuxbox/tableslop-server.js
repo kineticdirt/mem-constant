@@ -35,7 +35,67 @@ const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
 const FEEDBACK_DIR = path.join(REPO, "reports", "tableslop-feedback");
 const USER_TASKS_JSON = path.join(REPO, "agents", "user-tasks.json");
 const FEEDBACK_MAX_BYTES = 2.5 * 1024 * 1024;
+/** Proxy player campaign trackers (:8768) under /camp on map.tableslop.org (optional interim; canonical = campaigns.tableslop.org). */
+const CAMPAIGNS_ORIGIN =
+  process.env.TABLESLOP_CAMPAIGNS_ORIGIN || "http://127.0.0.1:8768";
 const CHAR_IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
+/**
+ * Unique region shade palette (R1–R17) — map fills/strokes only.
+ * Neon/vaporwave stays on HUD chrome only. Opacity owned by CSS fill-opacity (~0.28).
+ * Pin accents: CITY_PIN_PALETTE / markers[].pin_color (also unique per city).
+ */
+const REGION_SHADE_PALETTE = {
+  1: { fill: "#c4a035", stroke: "#8a7020" },
+  2: { fill: "#3d7a9e", stroke: "#2a5570" },
+  3: { fill: "#2a8f7a", stroke: "#1d6556" },
+  4: { fill: "#c17a28", stroke: "#8a561c" },
+  5: { fill: "#5a9a45", stroke: "#3f6e30" },
+  6: { fill: "#b85a6a", stroke: "#82404c" },
+  7: { fill: "#6a7088", stroke: "#4a5060" },
+  8: { fill: "#d4a820", stroke: "#957518" },
+  9: { fill: "#2d7a4e", stroke: "#1f5536" },
+  10: { fill: "#b8734a", stroke: "#825234" },
+  11: { fill: "#3a8a85", stroke: "#28615e" },
+  12: { fill: "#7a6e5a", stroke: "#554c3e" },
+  13: { fill: "#a06a2e", stroke: "#704a20" },
+  14: { fill: "#4a7a9e", stroke: "#345670" },
+  15: { fill: "#8a5a9e", stroke: "#5f3e6e" },
+  16: { fill: "#5a6e9e", stroke: "#3e4c6e" },
+  17: { fill: "#2e8a6a", stroke: "#20604a" },
+};
+/** Unique pin ring/fill per city (map data — not HUD neon). */
+const CITY_PIN_PALETTE = {
+  1: "#e8c547",
+  2: "#5eb0d9",
+  3: "#3ec9ad",
+  4: "#e89a3c",
+  5: "#7bc45e",
+  6: "#e07a8c",
+  7: "#9aa3b8",
+  8: "#f0c530",
+  9: "#45b06e",
+  10: "#e09262",
+  11: "#52c4bd",
+  12: "#c4b08a",
+  13: "#d49248",
+  14: "#6aabd4",
+  15: "#b47acc",
+  16: "#7a94d4",
+  17: "#48c498",
+};
+function regionShadePaint(regionNum) {
+  const n = Math.max(1, Number(regionNum) || 1);
+  return REGION_SHADE_PALETTE[n] || REGION_SHADE_PALETTE[((n - 1) % 17) + 1] || REGION_SHADE_PALETTE[1];
+}
+function cityPinColor(markerOrRegion) {
+  if (markerOrRegion && typeof markerOrRegion === "object") {
+    if (markerOrRegion.pin_color) return String(markerOrRegion.pin_color);
+    const n = Number(markerOrRegion.region) || 0;
+    if (n && CITY_PIN_PALETTE[n]) return CITY_PIN_PALETTE[n];
+  }
+  const n = Math.max(1, Number(markerOrRegion) || 1);
+  return CITY_PIN_PALETTE[n] || CITY_PIN_PALETTE[((n - 1) % 17) + 1] || "#c4a035";
+}
 /** Canonical id → Character Images/<Folder>/ — same map as dashboard (no inventing faces). */
 const CHAR_IMAGE_FOLDER_BY_ID = {
   "ellaine-mishpit": "Ellaine",
@@ -255,20 +315,22 @@ function viewerHtml(_userLabel) {
   .map-area-svg {
     width:100%; height:100%; display:block; overflow:visible;
   }
+  /* Region fills: natural washes (opaque hex + fill-opacity). Neon/vaporwave = HUD chrome only. */
   .map-area-zone {
-    fill:rgba(255,113,206,.12); stroke:var(--pink); stroke-width:.35;
+    fill:#6b8f71; fill-opacity:0.18; stroke:#4a6b52; stroke-width:.5;
     vector-effect:non-scaling-stroke; pointer-events:all; cursor:pointer;
-    transition:fill .15s, stroke-width .15s, filter .15s;
+    transition:fill .15s, fill-opacity .15s, stroke .15s, stroke-width .15s, filter .15s, opacity .15s;
   }
+  /* Hover/selected: slight bump — large mustard polys looked solid at ≥0.34 */
   .map-area-zone:hover {
-    fill:rgba(1,205,254,.22); stroke:var(--cyan); stroke-width:.55;
-    filter:drop-shadow(0 0 6px var(--glow-cyan));
+    fill-opacity:0.24 !important; stroke:#7ef6ff !important; stroke-width:1.05 !important;
+    filter:drop-shadow(0 0 3px rgba(1,205,254,.55));
   }
   .map-area-zone.is-active {
-    fill:rgba(255,251,150,.2); stroke:var(--sun); stroke-width:.65;
-    filter:drop-shadow(0 0 10px rgba(255,251,150,.5));
+    fill-opacity:0.26 !important; stroke:#fff59a !important; stroke-width:1.25 !important;
+    filter:drop-shadow(0 0 4px rgba(255,251,150,.55));
   }
-  .map-area-zone.is-dim { opacity:.35; }
+  .map-area-zone.is-dim { opacity:.28; }
   .map-layer--poi-pins .pin { pointer-events:auto; }
   .fb-modal {
     position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center;
@@ -339,38 +401,41 @@ function viewerHtml(_userLabel) {
   .pin {
     position:absolute; transform:translate(-50%,-50%);
     width:28px; height:28px; padding:0; border:none; border-radius:50%;
-    background:linear-gradient(135deg, var(--pink), var(--magenta));
-    border:2px solid var(--sun);
-    box-shadow:0 0 14px var(--glow-pink), 0 0 4px var(--sun);
+    /* Default replaced per-city via pin_color / CITY_PIN_PALETTE (map data, not HUD neon) */
+    background:#c4a035;
+    border:2px solid #1a1208;
+    box-shadow:0 0 10px rgba(0,0,0,.55), 0 0 4px rgba(255,255,255,.25);
     cursor:pointer;
     font:1rem VT323,monospace; color:#fff;
+    text-shadow:0 1px 2px #000;
     transition:transform .15s, box-shadow .15s;
   }
   .pin:hover, .pin.is-active {
     transform:translate(-50%,-50%) scale(1.2);
-    box-shadow:0 0 22px var(--glow-pink), 0 0 16px var(--glow-cyan); z-index:2;
+    box-shadow:0 0 16px rgba(0,0,0,.65), 0 0 10px rgba(255,255,255,.35); z-index:2;
   }
-  .pin--capital { background:linear-gradient(135deg, var(--sun), #ff9e00); color:#1a0533; }
-  .pin--town { background:linear-gradient(135deg, var(--purple), #6b2d9e); }
-  .pin--preserve { background:linear-gradient(135deg, var(--cyan), #0099bb); }
-  .pin--region { background:linear-gradient(135deg, #666, #999); }
+  /* Type classes no longer force neon — unique pin_color wins via inline style */
+  .pin--capital { color:#1a1208; font-weight:700; }
+  .pin--town { }
+  .pin--preserve { }
+  .pin--region { }
   .map-label-layer {
     position:absolute; inset:0; pointer-events:none;
   }
   .map-label {
     position:absolute; transform:translate(-50%,-100%);
     font: clamp(11px, 1.35vw, 18px) VT323,monospace;
-    color:var(--sun); letter-spacing:.04em;
-    text-shadow:0 1px 0 #000, 0 0 4px #0d0221, 0 0 10px var(--glow-pink);
+    color:#e8dcc0; letter-spacing:.04em;
+    text-shadow:0 1px 0 #000, 0 0 4px #0d0221, 0 1px 3px #000;
     white-space:nowrap; opacity:.95;
     -webkit-font-smoothing:antialiased;
     transition:opacity .15s, transform .15s;
   }
-  .map-label--city { color:var(--pink); }
-  .map-label--town { color:var(--purple); }
-  .map-label--capital { color:var(--sun); font-size:clamp(12px, 1.5vw, 20px); }
-  .map-label--preserve { color:var(--cyan); }
-  .map-label--region { color:#ccc; font-size:clamp(10px, 1.2vw, 16px); }
+  .map-label--city { }
+  .map-label--town { }
+  .map-label--capital { font-size:clamp(12px, 1.5vw, 20px); }
+  .map-label--preserve { }
+  .map-label--region { font-size:clamp(10px, 1.2vw, 16px); }
   .map-label.is-dim { opacity:.38; }
   .map-label.is-active {
     opacity:1; transform:translate(-50%,-100%) scale(1.08);
@@ -420,6 +485,7 @@ function viewerHtml(_userLabel) {
   .legend-chip--preserve { border-color:var(--cyan); }
   .legend-chip--region { border-color:#888; color:#ccc; }
   .legend-chip--city { border-color:var(--pink); }
+  .legend-chip--stub { opacity:.72; border-style:dashed; }
   .region-list { overflow:auto; flex:1; padding:10px 10px 14px; position:relative; z-index:1; }
   .region-card {
     display:block; width:100%; text-align:left; margin:0 0 8px; padding:11px 12px;
@@ -441,6 +507,11 @@ function viewerHtml(_userLabel) {
   }
   .region-card strong { display:block; color:var(--cyan); font-weight:400; font-size:1.05rem; text-shadow:0 0 8px var(--glow-cyan); }
   .region-card .meta { color:var(--muted); font-size:.78rem; margin-top:4px; }
+  .region-card .pip-warn {
+    display:block; margin-top:4px; font-size:.72rem; color:var(--sun);
+    letter-spacing:.04em;
+  }
+  .legend-chip--mismatch { outline:1px dashed var(--sun); outline-offset:2px; }
   .lane {
     display:inline-block; margin-top:6px; padding:2px 8px;
     font-size:.62rem; text-transform:uppercase; letter-spacing:.1em;
@@ -520,6 +591,64 @@ function viewerHtml(_userLabel) {
   .pin.is-dragging { cursor:grabbing; z-index:30; transform:translate(-50%,-50%) scale(1.15); }
   .map-viewport.is-edit-mode { cursor:default; }
   .map-viewport.is-edit-mode .map-hint { color:var(--sun); border-color:rgba(255,251,150,.45); }
+  .map-viewport.is-draw-mode { cursor:crosshair; }
+  .map-viewport.is-draw-mode.is-snap-hot { cursor:cell; }
+  .map-viewport.is-draw-mode .map-hint { color:var(--cyan); border-color:rgba(1,205,254,.45); }
+  .draw-bar {
+    display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px;
+    padding:4px 10px 6px; background:rgba(13,2,33,.92);
+    border-bottom:1px solid rgba(1,205,254,.35); font-size:.72rem;
+  }
+  .draw-bar[hidden] { display:none !important; }
+  .draw-bar label { color:var(--muted); letter-spacing:.04em; }
+  .draw-bar select {
+    background:var(--panel); color:var(--text); border:1px solid var(--line);
+    font:inherit; padding:3px 6px; max-width:14rem;
+  }
+  .draw-bar .hud-res { padding:3px 8px; font-size:.7rem; }
+  .draw-bar .hud-res:disabled { opacity:.4; cursor:not-allowed; }
+  .draw-bar .hud-save.is-ready { border-color:var(--sun); color:var(--sun); }
+  .draw-bar .draw-snap-hint { color:var(--muted); font-size:.68rem; letter-spacing:.02em; max-width:28rem; }
+  .draw-bar #drawStatus.is-err { color:#ff8a9a; }
+  .draw-bar #drawStatus.is-ok { color:var(--sun); }
+  .map-draw-svg {
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:35; overflow:visible;
+  }
+  /* Draw preview: teal wash (readable); cyan stroke stays HUD chrome */
+  .map-draw-poly { fill:#46827d; fill-opacity:0.22; stroke:var(--cyan); stroke-width:0.45; }
+  .map-draw-line { fill:none; stroke:rgba(1,205,254,.75); stroke-width:0.4; stroke-dasharray:0.9 0.55; }
+  /* viewBox 0–100: r≈0.12 ≈ ~1–2px on typical viewport; soft HUD cyan, not opaque black squares */
+  .map-draw-vert {
+    fill:rgba(1,205,254,.4); stroke:rgba(255,113,206,.35); stroke-width:0.04;
+    opacity:.55; vector-effect:non-scaling-stroke;
+  }
+  .map-draw-vert.is-snapped {
+    fill:rgba(255,251,150,.85); stroke:rgba(255,113,206,.9); stroke-width:0.08;
+    opacity:1;
+  }
+  /* Editable handles on a loaded/closed border — larger than draw verts */
+  .map-draw-vert.is-edit {
+    fill:rgba(1,205,254,.75); stroke:rgba(255,251,150,.85); stroke-width:0.1;
+    opacity:.95;
+  }
+  .map-draw-vert.is-edit-sel {
+    fill:rgba(255,251,150,.95); stroke:rgba(255,113,206,.95); stroke-width:0.14;
+    opacity:1;
+  }
+  /* Neighbor region corners/mids — NOT map-art black squares */
+  .map-draw-snap-target {
+    fill:rgba(255,113,206,.35); stroke:rgba(255,113,206,.55); stroke-width:0.05;
+    opacity:.55; vector-effect:non-scaling-stroke;
+  }
+  .map-draw-snap-target.is-mid {
+    fill:rgba(255,113,206,.18); stroke:rgba(255,113,206,.4); stroke-width:0.04;
+    opacity:.4;
+  }
+  .map-draw-snap-ghost {
+    fill:none; stroke:rgba(255,251,150,.95); stroke-width:0.12;
+    opacity:.9; vector-effect:non-scaling-stroke;
+  }
   .pin.is-active { box-shadow: 0 0 22px var(--glow-pink), 0 0 16px var(--glow-cyan); }
 
   .region-card {
@@ -623,9 +752,43 @@ function viewerHtml(_userLabel) {
     }
     .fx-scanlines { display: none; }
   }
+
+  /* ─── Day theme: daylight vaporwave pastel — chrome/backdrop only; map art & GM data untouched ─── */
+  body.day {
+    --void:#f3e9f7; --panel:#fdf3fa; --line:#d63384; --text:#2a1440; --muted:#6d5a8a;
+    --pink:#d63384; --cyan:#0a7d99; --purple:#7a3fd4; --sun:#8a6d00; --magenta:#c1005f;
+    --glow-pink:rgba(214,51,132,.3); --glow-cyan:rgba(10,125,153,.28);
+    background:#f3e9f7;
+  }
+  body.day .hud {
+    background:linear-gradient(180deg, rgba(253,243,250,.98), rgba(243,233,247,.98));
+    box-shadow:0 0 24px rgba(214,51,132,.18);
+  }
+  body.day .map-viewport { background:linear-gradient(180deg,#e8f6fb 0%,#fdeaf5 100%); }
+  body.day .region-journal {
+    background:linear-gradient(180deg, rgba(253,243,250,.97) 0%, rgba(243,233,247,.99) 100%);
+    box-shadow:-8px 0 32px rgba(214,51,132,.14);
+  }
+  body.day .pilot-note { background:rgba(255,255,255,.85); color-scheme:light; }
+  body.day .cast-card { background:rgba(255,255,255,.72); }
+  body.day .cast-face { background:rgba(255,255,255,.85); }
+  body.day .cast-detail { background:rgba(253,243,250,.55); }
+  body.day .cast-detail .cast-hero { background:#e9dff0; }
+  body.day .cast-sheet { background:rgba(255,255,255,.72); }
+  body.day .map-tooltip,
+  body.day .map-hint,
+  body.day .map-zoom-label,
+  body.day .map-controls button,
+  body.day .draw-bar { background:rgba(253,243,250,.92); }
+  body.day .fb-card { background:rgba(253,243,250,.97); }
+  body.day .fb-card textarea,
+  body.day .fb-card input[type=text] { background:rgba(255,255,255,.75); }
+  body.day .lane--done { color:#0f7a5c; border-color:#0f7a5c; }
+  body.day .draw-bar #drawStatus.is-err { color:#c2233f; }
 </style>
 </head>
 <body>
+<script>try{if(localStorage.getItem('tableslop-theme')==='day')document.body.classList.add('day');}catch(e){}</script>
 <header class="hud">
   <div class="hud-brand">tableslop</div>
   <span class="hud-setting" id="mapTitle">Isla Primavera</span>
@@ -635,10 +798,26 @@ function viewerHtml(_userLabel) {
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
   <button type="button" class="hud-res" id="castToggle" aria-pressed="false">Cast</button>
   <button type="button" class="hud-res hud-edit" id="editToggle">Edit</button>
+  <button type="button" class="hud-res" id="drawToggle">Draw borders</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
+  <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
   <div class="hud-auth" id="authSlot"></div>
 </header>
+<div class="draw-bar" id="drawBar" hidden>
+  <!-- v1: parent region (R#) only. Next: nest city sub-regions (e.g. paradise-subzones.json); do not hardcode flat R1–R14 forever. -->
+  <label for="drawRegionSelect">Region</label>
+  <select id="drawRegionSelect" aria-label="Assign polygon to region"></select>
+  <button type="button" class="hud-res" id="drawLoadBtn" title="Load this region's saved polygon into the editor">Load border</button>
+  <button type="button" class="hud-res" id="drawRebindBtn" hidden title="Keep unsaved verts but change Save target to the selected region">Rebind</button>
+  <button type="button" class="hud-res is-on" id="drawSnapBtn" aria-pressed="true" title="While placing NEW vertices only: stick to other regions' corner/mid-edge dots (pink when Snap ON). Not the black squares on the art.">Snap edges ON</button>
+  <span class="draw-snap-hint" id="drawSnapHint">Snap = stick to other regions' corner dots (shown when Snap ON)</span>
+  <button type="button" class="hud-res" id="drawUndoBtn">Undo pt</button>
+  <button type="button" class="hud-res" id="drawCloseBtn">Close poly</button>
+  <button type="button" class="hud-res" id="drawClearBtn">Clear</button>
+  <button type="button" class="hud-res hud-save" id="drawSaveBtn">Save border</button>
+  <span id="drawStatus" style="color:var(--muted)"></span>
+</div>
 <div class="fb-modal" id="fbModal" hidden>
   <div class="fb-card" role="dialog" aria-labelledby="fbTitle">
     <h3 id="fbTitle">Report map issue</h3>
@@ -693,6 +872,26 @@ function viewerHtml(_userLabel) {
 </div>
 <div class="map-tooltip" id="tooltip" hidden></div>
 <script>
+(function () {
+  var THEME_KEY = 'tableslop-theme';
+  var dayBtn = document.getElementById('dayToggle');
+  function applyTheme(mode) {
+    var day = mode === 'day';
+    document.body.classList.toggle('day', day);
+    if (dayBtn) {
+      dayBtn.setAttribute('aria-pressed', day ? 'true' : 'false');
+      dayBtn.textContent = day ? 'Night' : 'Day';
+    }
+  }
+  var savedTheme = 'night';
+  try { savedTheme = localStorage.getItem(THEME_KEY) === 'day' ? 'day' : 'night'; } catch (e) {}
+  applyTheme(savedTheme);
+  if (dayBtn) dayBtn.addEventListener('click', function () {
+    var next = document.body.classList.contains('day') ? 'night' : 'day';
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next);
+  });
+})();
 const PROFILE_KEY = 'tableslop-primavera-profile-v1';
 const MIN_ZOOM = 0.12;
 const MAX_ZOOM = 4;
@@ -704,6 +903,27 @@ let uiLabelsVisible = true;
 let uiAreasVisible = true;
 let uiCitiesVisible = true;
 let editMode = false;
+let drawMode = false;
+let drawVerts = [];
+let drawClosed = false;
+/**
+ * Region id that current drawVerts belong to.
+ * Save MUST use this (not a stale/mismatched dropdown) so map-click sync cannot
+ * write Porto verts under Paradise (or wipe the wrong id).
+ */
+let drawBoundRegionId = null;
+/** Snap new clicks to nearby verts/mid-edges of OTHER regions (map % coords). Default ON. */
+let drawSnapEnabled = true;
+/** Map-% distance for snap + edit hit-tests (was 0.85 — too picky for GM). */
+const DRAW_SNAP_THRESH = 1.6;
+const DRAW_VERT_HIT = 1.1;
+const DRAW_EDGE_HIT = 0.9;
+let drawSnapHover = null;
+/** Index of vertex being dragged while editing a closed border; null if none. */
+let drawVertDrag = null;
+/** Selected vertex index for Delete/Backspace while editing. */
+let drawSelectedVert = null;
+let regionsDirty = false;
 let coordsDirty = false;
 let meCache = null;
 let cameraReady = false;
@@ -1171,6 +1391,16 @@ function setMarkerCoord(id, x_pct, y_pct) {
 function updateEditHint() {
   const hint = document.getElementById('mapHint');
   if (!hint) return;
+  if (drawMode) {
+    if (drawClosed) {
+      hint.textContent = 'EDIT BORDER — drag yellow handles · click edge to add · Alt+click / Del removes vert · Save border';
+    } else if (drawSnapEnabled) {
+      hint.textContent = 'DRAW — pink dots = snap targets (other regions) · yellow ring = snapped · black art squares are NOT snaps';
+    } else {
+      hint.textContent = 'DRAW — click map to add vertices · Close poly (≥3 pts) · pan still works if you drag';
+    }
+    return;
+  }
   hint.textContent = editMode
     ? 'EDIT — drag pins to reposition · Save coords when done'
     : 'drag to pan · scroll to zoom · legend to focus';
@@ -1181,6 +1411,1031 @@ function refreshPins() {
   if (!pinLayer || !mapDataCache) return;
   pinLayer.innerHTML = '';
   placePins(pinLayer, mapDataCache.markers || []);
+}
+
+function setDrawStatus(msg, kind) {
+  const el = document.getElementById('drawStatus');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('is-err', kind === 'err');
+  el.classList.toggle('is-ok', kind === 'ok');
+}
+
+/** Save enabled when ≥3 finite verts and a region is bound/selected (edit mode already closed). */
+function syncDrawSaveBtnState() {
+  const saveBtn = document.getElementById('drawSaveBtn');
+  const closeBtn = document.getElementById('drawCloseBtn');
+  const sel = document.getElementById('drawRegionSelect');
+  const id = drawBoundRegionId || (sel && sel.value);
+  const nValid = validDrawVerts(drawVerts).length;
+  const canSave = drawMode && nValid >= 3 && Boolean(id);
+  if (saveBtn && !saveBtn.dataset.saving) {
+    saveBtn.disabled = !canSave;
+    saveBtn.classList.toggle('is-ready', canSave);
+    saveBtn.title = canSave
+      ? 'Save border (Ctrl+S)'
+      : (nValid < 3 ? 'Need ≥3 points' : 'Pick a region');
+  }
+  if (closeBtn) {
+    closeBtn.textContent = drawClosed && nValid >= 3 ? 'Closed ✓' : 'Close poly';
+    closeBtn.title = drawClosed && nValid >= 3
+      ? 'Polygon closed — click Save border (or Ctrl+S)'
+      : 'Close polygon (≥3 points), then Save';
+  }
+  syncDrawRebindBtn();
+}
+
+function regionDrawLabel(id) {
+  const m = markerById(id);
+  return (m && (m.label || m.name)) || id;
+}
+
+function syncDrawRebindBtn() {
+  const btn = document.getElementById('drawRebindBtn');
+  const sel = document.getElementById('drawRegionSelect');
+  if (!btn) return;
+  const selectedId = sel && sel.value;
+  const mismatch = Boolean(
+    drawMode && drawVerts.length && drawBoundRegionId && selectedId && drawBoundRegionId !== selectedId
+  );
+  btn.hidden = !mismatch;
+  if (mismatch) {
+    const tgt = regionDrawLabel(selectedId);
+    btn.textContent = 'Rebind → ' + tgt;
+    btn.title = 'Keep ' + drawVerts.length + ' verts; Save border as ' + tgt;
+  }
+}
+
+function rebindDrawVertsToSelectedRegion() {
+  const sel = document.getElementById('drawRegionSelect');
+  const nextId = sel && sel.value;
+  if (!nextId || !drawVerts.length) return false;
+  drawBoundRegionId = nextId;
+  markDrawDirty();
+  syncDrawRebindBtn();
+  syncDrawSaveBtnState();
+  const label = regionDrawLabel(nextId);
+  setDrawStatus('Rebound ' + drawVerts.length + ' verts to ' + label + ' — click Save border', 'ok');
+  showDrawToast('Save target: ' + label, 'ok');
+  return true;
+}
+
+/** Dirty verts bound elsewhere: rebind, clear+switch, or cancel (caller reverts select). */
+function tryDrawRegionSwitch(nextId) {
+  if (!drawVerts.length || !drawBoundRegionId || drawBoundRegionId === nextId) return true;
+  const fromLabel = regionDrawLabel(drawBoundRegionId);
+  const toLabel = regionDrawLabel(nextId);
+  if (window.confirm(
+    'Unsaved verts are bound to "' + fromLabel + '".\\n\\n' +
+    'OK = Keep verts and rebind to "' + toLabel + '" (Save writes ' + toLabel + ').\\n' +
+    'Cancel = offer Clear-and-switch or stay on ' + fromLabel + '.'
+  )) {
+    drawBoundRegionId = nextId;
+    markDrawDirty();
+    syncDrawRebindBtn();
+    syncDrawSaveBtnState();
+    setDrawStatus('Rebound to ' + toLabel + ' — Save border when ready', 'ok');
+    return true;
+  }
+  if (window.confirm(
+    'Clear ' + drawVerts.length + ' unsaved verts and switch to "' + toLabel + '"?'
+  )) {
+    clearDrawVerts();
+    drawBoundRegionId = nextId;
+    syncDrawRebindBtn();
+    return true;
+  }
+  return false;
+}
+
+function syncDrawSnapBtn() {
+  const btn = document.getElementById('drawSnapBtn');
+  if (!btn) return;
+  btn.textContent = drawSnapEnabled ? 'Snap edges ON' : 'Snap edges OFF';
+  btn.classList.toggle('is-on', drawSnapEnabled);
+  btn.setAttribute('aria-pressed', drawSnapEnabled ? 'true' : 'false');
+  const hint = document.getElementById('drawSnapHint');
+  if (hint) {
+    hint.textContent = drawSnapEnabled
+      ? "Snap = stick to other regions' corner dots (shown when Snap ON)"
+      : 'Snap OFF — clicks place free vertices (no neighbor stick)';
+  }
+}
+
+/** Saved polygon for a region id, or null if empty / missing. */
+function getRegionSavedPoints(id) {
+  if (!id || !mapDataCache) return null;
+  const areas = (mapDataCache.regions_ui_data && mapDataCache.regions_ui_data.areas) || [];
+  const a = areas.find(function(x) { return x && x.id === id; });
+  if (!a || (a.shape && a.shape !== 'polygon')) return null;
+  const pts = parseAreaPoints(a.points);
+  return pts.length >= 3 ? pts : null;
+}
+
+/** Parse SVG points="x,y x,y …" into {x,y}[]. */
+function parseAreaPoints(pointsStr) {
+  if (!pointsStr || typeof pointsStr !== 'string') return [];
+  return pointsStr.trim().split(/\s+/).map(function(pair) {
+    const parts = pair.split(',');
+    const x = parseFloat(parts[0]);
+    const y = parseFloat(parts[1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x: x, y: y };
+  }).filter(Boolean);
+}
+
+/** Normalize one draw vertex ({x,y} or [x,y]) to finite map coords, or null. */
+function xyFromDrawVert(v) {
+  if (!v) return null;
+  let x;
+  let y;
+  if (Array.isArray(v)) {
+    x = Number(v[0]);
+    y = Number(v[1]);
+  } else {
+    x = Number(v.x != null ? v.x : v[0]);
+    y = Number(v.y != null ? v.y : v[1]);
+  }
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return { x: +x.toFixed(2), y: +y.toFixed(2) };
+}
+
+/** Keep only finite draw verts (fixes array-format drafts and NaN slots). */
+function validDrawVerts(raw) {
+  const out = [];
+  (raw || []).forEach(function(v) {
+    const p = xyFromDrawVert(v);
+    if (p) out.push({ x: p.x, y: p.y, snapped: Boolean(v && v.snapped) });
+  });
+  return out;
+}
+
+/** Serialize draw verts → SVG points string; null when <3 finite verts. */
+function serializeDrawVerts(raw) {
+  const verts = validDrawVerts(raw);
+  if (verts.length < 3) return { verts: verts, pointsStr: null };
+  const pointsStr = verts.map(function(v) { return v.x + ',' + v.y; }).join(' ');
+  return { verts: verts, pointsStr: pointsStr };
+}
+
+function showDrawToast(msg, kind) {
+  let el = document.getElementById('drawToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'drawToast';
+    el.setAttribute('role', 'status');
+    el.style.cssText = 'position:fixed;bottom:4.5rem;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 14px;border-radius:6px;font-size:.78rem;letter-spacing:.03em;max-width:92vw;pointer-events:none;transition:opacity .2s';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg || '';
+  el.style.background = kind === 'err' ? 'rgba(120,20,40,.92)' : 'rgba(10,30,50,.92)';
+  el.style.color = kind === 'err' ? '#ffb4c0' : '#e8f4ff';
+  el.style.border = '1px solid ' + (kind === 'err' ? '#ff8a9a' : 'var(--sun,#ffd54a)');
+  el.style.opacity = '1';
+  clearTimeout(el._hideTimer);
+  el._hideTimer = window.setTimeout(function() { el.style.opacity = '0'; }, kind === 'err' ? 5000 : 2800);
+}
+
+/** Ray-cast point-in-polygon (percent map coords). poly = [{x,y}, …]. */
+function pointInPolygon(x, y, poly) {
+  const n = poly && poly.length;
+  if (!n || n < 3) return false;
+  let inside = false;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y;
+    const xj = poly[j].x, yj = poly[j].y;
+    const denom = (yj - yi) || 1e-15;
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / denom + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+/**
+ * Bind city pins → containing area by PIP.
+ * Sets marker.region_id / containing_area_id; area.pin_ids; mismatch flags.
+ */
+function bindPinsToAreas() {
+  if (!mapDataCache) return;
+  const markers = mapDataCache.markers || [];
+  const areas = (mapDataCache.regions_ui_data && mapDataCache.regions_ui_data.areas) || [];
+  markers.forEach(function(m) {
+    m.containing_area_id = null;
+    m.region_id = null;
+    m.area_pin_mismatch = false;
+  });
+  areas.forEach(function(a) {
+    a.pin_ids = [];
+    a.display_pin_name = null;
+    a.pin_mismatch = false;
+  });
+  const polys = [];
+  areas.forEach(function(a) {
+    if (!a || (a.shape && a.shape !== 'polygon')) return;
+    const pts = parseAreaPoints(a.points);
+    if (pts.length >= 3) polys.push({ a: a, pts: pts });
+  });
+  markers.forEach(function(m) {
+    if (m.x_pct == null || m.y_pct == null) return;
+    const x = +m.x_pct;
+    const y = +m.y_pct;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    for (let i = 0; i < polys.length; i++) {
+      const row = polys[i];
+      if (!pointInPolygon(x, y, row.pts)) continue;
+      m.containing_area_id = row.a.id;
+      m.region_id = row.a.id;
+      row.a.pin_ids.push(m.id);
+      if (!row.a.display_pin_name) {
+        row.a.display_pin_name = m.label || m.name || m.id;
+      }
+      if (m.id !== row.a.id) {
+        m.area_pin_mismatch = true;
+        row.a.pin_mismatch = true;
+      }
+      break;
+    }
+  });
+}
+
+/** First city pin inside verts (for Draw Save suggest). */
+function findPinInsideVerts(verts) {
+  if (!verts || verts.length < 3 || !mapDataCache) return null;
+  const poly = verts.map(function(v) { return { x: +v.x, y: +v.y }; });
+  const markers = mapDataCache.markers || [];
+  for (let i = 0; i < markers.length; i++) {
+    const m = markers[i];
+    if (m.x_pct == null || m.y_pct == null) continue;
+    if (pointInPolygon(+m.x_pct, +m.y_pct, poly)) return m;
+  }
+  return null;
+}
+
+/** Area hover/label: prefer pin name inside poly; warn if area id ≠ that pin. */
+function areaDisplayTip(a) {
+  if (!a) return '';
+  const idName = displayNameForRegionId(a.id, a.name);
+  if (a.pin_ids && a.pin_ids.length) {
+    const pin = markerById(a.pin_ids[0]);
+    const pinName = (pin && (pin.label || pin.name)) || a.display_pin_name || idName;
+    if (a.pin_mismatch) return pinName + ' ⚠ area labeled ' + idName;
+    return pinName;
+  }
+  return idName;
+}
+
+/**
+ * Snap targets from OTHER regions' polygons: vertices + mid-edge points.
+ * excludeId = region currently being drawn (do not snap to its own old geom).
+ */
+function collectDrawSnapTargets(excludeId) {
+  const areas = (mapDataCache && mapDataCache.regions_ui_data && mapDataCache.regions_ui_data.areas) || [];
+  const out = [];
+  areas.forEach(function(a) {
+    if (!a || a.id === excludeId) return;
+    if (a.shape && a.shape !== 'polygon') return;
+    const pts = parseAreaPoints(a.points);
+    if (pts.length < 2) return;
+    pts.forEach(function(p) {
+      out.push({ x: p.x, y: p.y, kind: 'vertex', from: a.id });
+    });
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const a0 = pts[i];
+      const a1 = pts[(i + 1) % n];
+      out.push({
+        x: (a0.x + a1.x) / 2,
+        y: (a0.y + a1.y) / 2,
+        kind: 'mid',
+        from: a.id,
+      });
+    }
+  });
+  return out;
+}
+
+function findDrawSnapTarget(x_pct, y_pct) {
+  if (!drawSnapEnabled) return null;
+  const sel = document.getElementById('drawRegionSelect');
+  // Exclude the region being drawn (bound id), not a mismatched dropdown.
+  const excludeId = drawBoundRegionId || (sel && sel.value);
+  const targets = collectDrawSnapTargets(excludeId);
+  let best = null;
+  let bestD = DRAW_SNAP_THRESH;
+  for (let i = 0; i < targets.length; i++) {
+    const t = targets[i];
+    const dx = t.x - x_pct;
+    const dy = t.y - y_pct;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d <= bestD) {
+      bestD = d;
+      best = t;
+    }
+  }
+  return best;
+}
+
+function setDrawSnapHover(target) {
+  drawSnapHover = target;
+  const vp = document.getElementById('viewport');
+  if (vp) vp.classList.toggle('is-snap-hot', Boolean(target));
+}
+
+function updateDrawSnapHoverFromPointer(clientX, clientY) {
+  if (!drawMode || drawClosed || !drawSnapEnabled) {
+    setDrawSnapHover(null);
+    return;
+  }
+  const p = pointerToMapPct(clientX, clientY);
+  if (!p) {
+    setDrawSnapHover(null);
+    return;
+  }
+  setDrawSnapHover(findDrawSnapTarget(p.x_pct, p.y_pct));
+}
+
+/** Nearest draw vertex index within DRAW_VERT_HIT, or -1. */
+function hitDrawVertexIndex(x_pct, y_pct) {
+  let best = -1;
+  let bestD = DRAW_VERT_HIT;
+  for (let i = 0; i < drawVerts.length; i++) {
+    const v = drawVerts[i];
+    const d = Math.hypot(v.x - x_pct, v.y - y_pct);
+    if (d <= bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/**
+ * Nearest edge for insert-on-edge while editing a closed poly.
+ * Returns { index: insertAfter, x, y } or null.
+ */
+function hitDrawEdgeInsert(x_pct, y_pct) {
+  if (drawVerts.length < 2) return null;
+  const n = drawVerts.length;
+  let best = null;
+  let bestD = DRAW_EDGE_HIT;
+  for (let i = 0; i < n; i++) {
+    const a0 = drawVerts[i];
+    const a1 = drawVerts[(i + 1) % n];
+    const dx = a1.x - a0.x;
+    const dy = a1.y - a0.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 < 1e-8) continue;
+    let t = ((x_pct - a0.x) * dx + (y_pct - a0.y) * dy) / len2;
+    if (t < 0.08 || t > 0.92) continue; // avoid verts (use vert hit instead)
+    const px = a0.x + t * dx;
+    const py = a0.y + t * dy;
+    const d = Math.hypot(px - x_pct, py - y_pct);
+    if (d <= bestD) {
+      bestD = d;
+      best = { index: i + 1, x: +px.toFixed(2), y: +py.toFixed(2) };
+    }
+  }
+  return best;
+}
+
+const DRAW_DRAFT_KEY = 'tableslop-draw-draft-v1';
+
+function persistDrawDraft() {
+  try {
+    const verts = validDrawVerts(drawVerts);
+    if (verts.length < 3) {
+      localStorage.removeItem(DRAW_DRAFT_KEY);
+      return;
+    }
+    localStorage.setItem(DRAW_DRAFT_KEY, JSON.stringify({
+      v: 1,
+      id: drawBoundRegionId,
+      closed: drawClosed,
+      dirty: regionsDirty,
+      verts: verts.map(function(p) {
+        return { x: p.x, y: p.y, snapped: Boolean(p.snapped) };
+      }),
+      saved_at: new Date().toISOString(),
+    }));
+  } catch (_) { /* quota / private mode */ }
+}
+
+function clearDrawDraft() {
+  try { localStorage.removeItem(DRAW_DRAFT_KEY); } catch (_) { /* ignore */ }
+}
+
+/** Restore draft verts into editor (shared by confirm + silent save paths). */
+function applyDrawDraftPayload(d) {
+  const verts = validDrawVerts(d && d.verts);
+  if (verts.length < 3) return false;
+  drawVerts = verts;
+  drawBoundRegionId = (d && d.id) || drawBoundRegionId || null;
+  drawClosed = !d || d.closed !== false;
+  drawSelectedVert = null;
+  drawVertDrag = null;
+  regionsDirty = true;
+  const sel = document.getElementById('drawRegionSelect');
+  if (sel && drawBoundRegionId) sel.value = drawBoundRegionId;
+  const saveBtn = document.getElementById('drawSaveBtn');
+  if (saveBtn) saveBtn.classList.add('is-dirty');
+  renderDrawPreview();
+  updateEditHint();
+  syncDrawSaveBtnState();
+  return true;
+}
+
+/** Restore unsaved verts after hard-refresh (GM mid-draw safety net). */
+function tryRestoreDrawDraft() {
+  try {
+    const raw = localStorage.getItem(DRAW_DRAFT_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.verts) || d.verts.length < 3) return false;
+    const nValid = validDrawVerts(d.verts).length;
+    if (nValid < 3) return false;
+    const label = d.id || 'region';
+    if (!window.confirm(
+      'Restore unsaved border draft (' + nValid + ' pts' +
+      (d.id ? ' · ' + d.id : '') + ')? Cancel discards the draft.'
+    )) {
+      clearDrawDraft();
+      return false;
+    }
+    applyDrawDraftPayload(d);
+    setDrawStatus('Restored draft ' + drawVerts.length + ' pts · ' + label + ' — Save border now', 'ok');
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/** Save-time draft restore — no confirm (GM already clicked Save). */
+function tryRestoreDrawDraftSilent() {
+  try {
+    const raw = localStorage.getItem(DRAW_DRAFT_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.verts) || validDrawVerts(d.verts).length < 3) return false;
+    return applyDrawDraftPayload(d);
+  } catch (_) {
+    return false;
+  }
+}
+
+function markDrawDirty() {
+  regionsDirty = true;
+  const saveBtn = document.getElementById('drawSaveBtn');
+  if (saveBtn) saveBtn.classList.add('is-dirty');
+  syncDrawSaveBtnState();
+  persistDrawDraft();
+}
+
+/**
+ * Load saved polygon for the selected region into the draw editor.
+ * @param {{force?:boolean}} opts — force=true skips dirty confirm (Load border click).
+ */
+function loadBorderForSelectedRegion(opts) {
+  opts = opts || {};
+  const sel = document.getElementById('drawRegionSelect');
+  const id = sel && sel.value;
+  if (!id) {
+    setDrawStatus('Pick a region');
+    return false;
+  }
+  const pts = getRegionSavedPoints(id);
+  if (!pts) {
+    setDrawStatus('No saved border for this region — draw new');
+    return false;
+  }
+  if (!opts.force && drawVerts.length && regionsDirty) {
+    setDrawStatus('Unsaved pts — Clear or click Load border');
+    return false;
+  }
+  if (opts.force && drawVerts.length && regionsDirty) {
+    if (!window.confirm('Replace current unsaved vertices with saved border?')) return false;
+  }
+  drawVerts = pts.map(function(p) {
+    return { x: +Number(p.x).toFixed(2), y: +Number(p.y).toFixed(2), snapped: false };
+  });
+  drawBoundRegionId = id;
+  drawClosed = true;
+  drawSelectedVert = null;
+  drawVertDrag = null;
+  regionsDirty = false;
+  setDrawSnapHover(null);
+  const saveBtn = document.getElementById('drawSaveBtn');
+  if (saveBtn) saveBtn.classList.remove('is-dirty');
+  renderDrawPreview();
+  updateEditHint();
+  syncDrawSaveBtnState();
+  const m = markerById(id);
+  setDrawStatus('Loaded ' + drawVerts.length + ' pts · editing · ' + ((m && (m.label || m.name)) || id) + ' — Save ready');
+  return true;
+}
+
+function deleteSelectedDrawVertex() {
+  if (!drawClosed || drawSelectedVert == null) return;
+  if (drawVerts.length <= 3) {
+    setDrawStatus('Need ≥3 verts — cannot delete');
+    return;
+  }
+  drawVerts.splice(drawSelectedVert, 1);
+  drawSelectedVert = null;
+  markDrawDirty();
+  renderDrawPreview();
+  updateEditHint();
+}
+
+/** v1: parent region markers only. Nesting stub: later union options from city *-subzones.json (draw target = region OR sub-region). */
+function fillDrawRegionSelect() {
+  const sel = document.getElementById('drawRegionSelect');
+  if (!sel || !mapDataCache) return;
+  const markers = (mapDataCache.markers || []).slice().sort(function(a, b) {
+    return (a.region || 999) - (b.region || 999);
+  });
+  const prev = sel.value;
+  sel.innerHTML = markers.map(function(m) {
+    const num = m.region != null ? 'R' + m.region + ' · ' : '';
+    const label = m.label || m.name || m.id;
+    const has = getRegionSavedPoints(m.id) ? ' ●' : '';
+    return '<option value="' + escapeHtml(m.id) + '">' + escapeHtml(num + label + has) + '</option>';
+  }).join('');
+  if (prev && markers.some(function(m) { return m.id === prev; })) sel.value = prev;
+  if (!sel.dataset.loadBound) {
+    sel.dataset.loadBound = '1';
+    sel.addEventListener('change', function() {
+      if (!drawMode) return;
+      const nextId = sel.value;
+      // Verts already bound to another region: confirm rebind / clear+switch / cancel.
+      if (drawVerts.length && drawBoundRegionId && drawBoundRegionId !== nextId) {
+        if (regionsDirty) {
+          if (!tryDrawRegionSwitch(nextId)) {
+            sel.value = drawBoundRegionId;
+            syncDrawRebindBtn();
+            setDrawStatus(
+              'Still editing ' + regionDrawLabel(drawBoundRegionId) + ' — Rebind or Clear',
+              'err'
+            );
+            return;
+          }
+        } else {
+          // Clean editor (loaded border): switch means leave that border alone on disk.
+          clearDrawVerts();
+        }
+      }
+      if (!drawBoundRegionId && drawVerts.length) drawBoundRegionId = nextId;
+      // Auto-load when region already has geom and editor is empty / clean
+      if (getRegionSavedPoints(nextId)) {
+        if (!drawVerts.length || !regionsDirty) loadBorderForSelectedRegion({});
+        else setDrawStatus('Has saved border — click Load border');
+      } else if (!drawVerts.length) {
+        drawBoundRegionId = nextId;
+        setDrawStatus('No saved border — draw new');
+      }
+    });
+  }
+}
+
+function ensureDrawSvg() {
+  const stage = document.getElementById('mapStage');
+  if (!stage) return null;
+  let svg = document.getElementById('drawPreviewSvg');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'drawPreviewSvg';
+    svg.setAttribute('class', 'map-draw-svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    stage.appendChild(svg);
+  }
+  return svg;
+}
+
+function renderDrawPreview() {
+  const svg = ensureDrawSvg();
+  if (!svg) return;
+  svg.innerHTML = '';
+  if (!drawMode) return;
+
+  // Drop invalid slots so UI count matches what Save will serialize.
+  if (drawVerts.length) {
+    const normalized = validDrawVerts(drawVerts);
+    if (normalized.length >= 3 && normalized.length !== drawVerts.length) {
+      drawVerts = normalized;
+    }
+  }
+
+  // Neighbor snap targets (pink) — only while placing new verts with Snap ON
+  if (drawSnapEnabled && !drawClosed) {
+    const sel = document.getElementById('drawRegionSelect');
+    const excludeId = drawBoundRegionId || (sel && sel.value);
+    collectDrawSnapTargets(excludeId).forEach(function(t) {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('class', 'map-draw-snap-target' + (t.kind === 'mid' ? ' is-mid' : ''));
+      c.setAttribute('cx', String(t.x));
+      c.setAttribute('cy', String(t.y));
+      c.setAttribute('r', t.kind === 'mid' ? '0.18' : '0.28');
+      svg.appendChild(c);
+    });
+  }
+
+  if (drawVerts.length) {
+    const ser = serializeDrawVerts(drawVerts);
+    const pts = ser.pointsStr;
+    if (pts && ser.verts.length >= 3) {
+      if (drawClosed) {
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('class', 'map-draw-poly');
+        poly.setAttribute('points', pts);
+        svg.appendChild(poly);
+      } else {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        line.setAttribute('class', 'map-draw-line');
+        line.setAttribute('points', pts);
+        svg.appendChild(line);
+      }
+    }
+    ser.verts.forEach(function(v, i) {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      let cls = 'map-draw-vert';
+      if (drawClosed) {
+        cls += ' is-edit';
+        if (drawSelectedVert === i) cls += ' is-edit-sel';
+      } else if (v.snapped) {
+        cls += ' is-snapped';
+      }
+      c.setAttribute('class', cls);
+      c.setAttribute('cx', String(v.x));
+      c.setAttribute('cy', String(v.y));
+      let r = 0.12;
+      if (drawClosed) r = drawSelectedVert === i ? 0.42 : 0.35;
+      else if (v.snapped) r = 0.22;
+      c.setAttribute('r', String(r));
+      svg.appendChild(c);
+    });
+  }
+  if (drawSnapHover && !drawClosed) {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    g.setAttribute('class', 'map-draw-snap-ghost');
+    g.setAttribute('cx', String(drawSnapHover.x));
+    g.setAttribute('cy', String(drawSnapHover.y));
+    g.setAttribute('r', '0.55');
+    svg.appendChild(g);
+  }
+  const n = validDrawVerts(drawVerts).length;
+  let status = n + ' pt' + (n === 1 ? '' : 's') + (drawClosed ? ' · editing' : '');
+  if (drawSnapHover && !drawClosed) status += ' · snap ' + (drawSnapHover.kind || 'edge');
+  if (drawClosed && drawSelectedVert != null) status += ' · vert #' + (drawSelectedVert + 1);
+  if (drawClosed && n >= 3) status += ' · Save ready';
+  setDrawStatus(status);
+  syncDrawSaveBtnState();
+  if (regionsDirty && n >= 3) persistDrawDraft();
+}
+
+function clearDrawVerts() {
+  drawVerts = [];
+  drawClosed = false;
+  drawSelectedVert = null;
+  drawVertDrag = null;
+  drawBoundRegionId = null;
+  regionsDirty = false;
+  setDrawSnapHover(null);
+  // Keep draft until explicit Clear after confirm — only wipe draft when empty clear is intentional.
+  clearDrawDraft();
+  renderDrawPreview();
+  updateEditHint();
+  const saveBtn = document.getElementById('drawSaveBtn');
+  if (saveBtn) saveBtn.classList.remove('is-dirty');
+  syncDrawSaveBtnState();
+}
+
+function addDrawVertex(x_pct, y_pct) {
+  if (drawClosed) {
+    setDrawStatus('Editing — drag handles / click edge / Clear to redraw · Save border when done');
+    return;
+  }
+  const sel = document.getElementById('drawRegionSelect');
+  if (!drawBoundRegionId && sel && sel.value) drawBoundRegionId = sel.value;
+  const snap = findDrawSnapTarget(x_pct, y_pct);
+  const x = snap ? snap.x : x_pct;
+  const y = snap ? snap.y : y_pct;
+  drawVerts.push({
+    x: +Number(x).toFixed(2),
+    y: +Number(y).toFixed(2),
+    snapped: Boolean(snap),
+  });
+  markDrawDirty();
+  setDrawSnapHover(null);
+  renderDrawPreview();
+  updateEditHint();
+}
+
+function closeDrawPolygon() {
+  if (drawVerts.length < 3) {
+    setDrawStatus('Need ≥3 points to close', 'err');
+    syncDrawSaveBtnState();
+    return;
+  }
+  // Already closed (edit mode): Close is a no-op gate — tell GM to Save.
+  if (drawClosed) {
+    setDrawStatus(drawVerts.length + ' pts · editing · already closed — click Save border (or Ctrl+S)', 'ok');
+    syncDrawSaveBtnState();
+    return;
+  }
+  drawClosed = true;
+  drawSelectedVert = null;
+  markDrawDirty();
+  setDrawSnapHover(null);
+  renderDrawPreview();
+  updateEditHint();
+  setDrawStatus(drawVerts.length + ' pts · editing · Save ready (Ctrl+S)', 'ok');
+  syncDrawSaveBtnState();
+}
+
+/**
+ * Persist current drawVerts to bound/selected region.
+ * Edit mode: polygon is already closed — do NOT require Close again.
+ */
+async function saveDrawBorder() {
+  const saveBtn = document.getElementById('drawSaveBtn');
+  if (saveBtn && saveBtn.dataset.saving === '1') return false;
+  const sel = document.getElementById('drawRegionSelect');
+  // Bound id wins over dropdown — prevents map-select race writing wrong region.
+  let id = drawBoundRegionId || (sel && sel.value);
+  if (!id) {
+    setDrawStatus('Pick a region before Save', 'err');
+    showDrawToast('Pick a region before Save', 'err');
+    alert('Pick a region');
+    return false;
+  }
+  if (sel && sel.value !== id) sel.value = id;
+
+  // Normalize in-memory verts; restore draft if editor looks closed but coords are missing.
+  let ser = serializeDrawVerts(drawVerts);
+  if (ser.verts.length < 3 && tryRestoreDrawDraftSilent()) {
+    ser = serializeDrawVerts(drawVerts);
+  }
+  if (ser.verts.length >= 3) drawVerts = ser.verts;
+
+  if (ser.verts.length < 3) {
+    const rawN = (drawVerts && drawVerts.length) || 0;
+    const msg = rawN >= 3
+      ? 'Verts in editor are invalid — restore draft or redraw (' + rawN + ' slots, 0 finite coords)'
+      : 'Need ≥3 points to save (editor empty — restore draft?)';
+    setDrawStatus(msg, 'err');
+    showDrawToast(msg, 'err');
+    alert(msg);
+    return false;
+  }
+
+  // Edit / already-closed: auto-close so Save never blocks on Close poly.
+  if (!drawClosed) {
+    drawClosed = true;
+    drawSelectedVert = null;
+    setDrawSnapHover(null);
+    renderDrawPreview();
+    updateEditHint();
+  }
+
+  const pointsStr = ser.pointsStr;
+  if (!pointsStr) {
+    const msg = 'Cannot serialize border — restore draft or redraw';
+    setDrawStatus(msg, 'err');
+    showDrawToast(msg, 'err');
+    alert(msg);
+    return false;
+  }
+
+  const m = markerById(id);
+  const label = (m && (m.label || m.name)) || id;
+  showDrawToast('Saving ' + label + ' · ' + ser.verts.length + ' verts · ' + id, 'ok');
+
+  // PIP suggest only when region is NOT explicitly bound (GM chose target).
+  // Bound draw must Save as-is — confirm→cancel was stranding mid-edit saves.
+  if (!drawBoundRegionId) {
+    const insidePin = findPinInsideVerts(drawVerts);
+    if (insidePin && insidePin.id !== id) {
+      const curM = markerById(id);
+      const curLabel = (curM && (curM.label || curM.name)) || id;
+      const sugLabel = insidePin.label || insidePin.name || insidePin.id;
+      if (window.confirm(
+        'Pin "' + sugLabel + '" is inside this border, but Save target is "' + curLabel +
+        '". Switch Save to ' + sugLabel + '?'
+      )) {
+        id = insidePin.id;
+        drawBoundRegionId = id;
+        if (sel) sel.value = id;
+      }
+    }
+  }
+  const areas = (mapDataCache.regions_ui_data && mapDataCache.regions_ui_data.areas) || [];
+  const prev = areas.find(function(a) { return a.id === id; }) || {};
+  const prevPts = parseAreaPoints(prev.points);
+  if (prevPts.length >= 3) {
+    const prevLabel = (m && (m.label || m.name)) || prev.name || id;
+    if (!window.confirm('Replace existing border for ' + prevLabel + ' (' + prevPts.length + ' pts → ' + drawVerts.length + ' pts)?')) {
+      setDrawStatus('Save cancelled — ' + drawVerts.length + ' pts still in editor (not lost)', 'err');
+      showDrawToast('Save cancelled — ' + drawVerts.length + ' pts kept', 'err');
+      syncDrawSaveBtnState();
+      return false;
+    }
+  }
+  const regionNum = m && m.region != null ? m.region : prev.region;
+  const paint = shadeForArea({ id: id, region: regionNum, fill: prev.fill, stroke: prev.stroke });
+  const area = {
+    id: id,
+    region: regionNum,
+    name: (m && (m.label || m.name)) || prev.name || id,
+    shape: 'polygon',
+    points: pointsStr,
+    stroke: paint.stroke,
+    fill: paint.fill,
+    note: 'GM Draw borders ' + new Date().toISOString().slice(0, 10),
+  };
+  if (saveBtn) {
+    saveBtn.dataset.saving = '1';
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+  }
+  try {
+    const r = await fetch('/api/map/regions-ui', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ area: area, enabled: true }),
+    });
+    let out = {};
+    try { out = await r.json(); } catch (_) { out = {}; }
+    if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
+    if (!mapDataCache.regions_ui_data) mapDataCache.regions_ui_data = { areas: [], viewBox: '0 0 100 100' };
+    mapDataCache.regions_ui_data.enabled = true;
+    const list = mapDataCache.regions_ui_data.areas || [];
+    // Update ONLY the saved id — never touch sibling region geom in client cache.
+    const ix = list.findIndex(function(a) { return a.id === id; });
+    if (ix >= 0) list[ix] = Object.assign({}, list[ix], area); else list.push(area);
+    mapDataCache.regions_ui_data.areas = list;
+    bindPinsToAreas();
+    clearDrawDraft();
+    clearDrawVerts();
+    uiAreasVisible = true;
+    saveProfile({ showAreas: true });
+    const areasBtn = document.getElementById('areasToggle');
+    if (areasBtn) areasBtn.textContent = 'Areas ON';
+    const stage = document.getElementById('mapStage');
+    if (stage) renderMapStage(stage, mapDataCache, loadProfile());
+    syncDrawUi();
+    refreshRegionListPipHints();
+    if (saveBtn) saveBtn.textContent = 'Saved ✓';
+    setDrawStatus('Saved ' + ((m && (m.label || m.name)) || id) + ' (' + (out.points || ser.verts.length) + ' pts)', 'ok');
+    showDrawToast('Saved ' + label + ' · ' + (out.points || ser.verts.length) + ' pts', 'ok');
+    window.setTimeout(function() {
+      if (saveBtn) saveBtn.textContent = 'Save border';
+    }, 2000);
+    return true;
+  } catch (err) {
+    const msg = (err && err.message) || String(err);
+    if (saveBtn) saveBtn.textContent = 'Save failed';
+    persistDrawDraft();
+    setDrawStatus('Save failed: ' + msg + ' — ' + drawVerts.length + ' pts still in editor', 'err');
+    alert('Save border failed: ' + msg);
+    window.setTimeout(function() {
+      if (saveBtn) saveBtn.textContent = 'Save border';
+    }, 2500);
+    return false;
+  } finally {
+    if (saveBtn) {
+      delete saveBtn.dataset.saving;
+      saveBtn.disabled = false;
+    }
+    syncDrawSaveBtnState();
+  }
+}
+
+function syncDrawUi() {
+  const btn = document.getElementById('drawToggle');
+  const bar = document.getElementById('drawBar');
+  const vp = document.getElementById('viewport');
+  if (btn) {
+    btn.textContent = drawMode ? 'Draw ON' : 'Draw borders';
+    btn.classList.toggle('is-on', drawMode);
+  }
+  if (bar) bar.hidden = !drawMode;
+  if (vp) {
+    vp.classList.toggle('is-draw-mode', drawMode);
+    if (!drawMode) vp.classList.remove('is-snap-hot');
+  }
+  syncDrawSnapBtn();
+  if (drawMode) {
+    fillDrawRegionSelect();
+    // Show areas while drawing so prior GM borders stay visible under the preview
+    if (!uiAreasVisible) {
+      uiAreasVisible = true;
+      saveProfile({ showAreas: true });
+      const areasBtn = document.getElementById('areasToggle');
+      if (areasBtn) areasBtn.textContent = 'Areas ON';
+      const stage = document.getElementById('mapStage');
+      if (stage && mapDataCache) renderMapStage(stage, mapDataCache, loadProfile());
+    }
+    // Auto-load if current dropdown region already has a border and editor empty
+    const sel = document.getElementById('drawRegionSelect');
+    if (sel && !drawVerts.length && getRegionSavedPoints(sel.value)) {
+      loadBorderForSelectedRegion({});
+    }
+  } else {
+    setDrawSnapHover(null);
+    drawVertDrag = null;
+    drawSelectedVert = null;
+    const svg = document.getElementById('drawPreviewSvg');
+    if (svg) svg.remove();
+  }
+  renderDrawPreview();
+  updateEditHint();
+}
+
+function initDrawMode() {
+  const btn = document.getElementById('drawToggle');
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  const undoBtn = document.getElementById('drawUndoBtn');
+  const closeBtn = document.getElementById('drawCloseBtn');
+  const clearBtn = document.getElementById('drawClearBtn');
+  const saveBtn = document.getElementById('drawSaveBtn');
+  const snapBtn = document.getElementById('drawSnapBtn');
+  const loadBtn = document.getElementById('drawLoadBtn');
+  const rebindBtn = document.getElementById('drawRebindBtn');
+
+  btn.onclick = function() {
+    drawMode = !drawMode;
+    if (drawMode && editMode) {
+      editMode = false;
+      saveProfile({ editMode: false });
+      initEditMode(loadProfile());
+      refreshPins();
+    }
+    if (!drawMode) {
+      if (drawVerts.length >= 3) persistDrawDraft();
+      // Leaving draw: keep draft in localStorage; clear only in-memory preview.
+      drawVerts = [];
+      drawClosed = false;
+      drawSelectedVert = null;
+      drawVertDrag = null;
+      // keep drawBoundRegionId in draft; null in-memory
+      drawBoundRegionId = null;
+      regionsDirty = false;
+      setDrawSnapHover(null);
+      const svg = document.getElementById('drawPreviewSvg');
+      if (svg) svg.remove();
+    }
+    syncDrawUi();
+    if (drawMode && !drawVerts.length) tryRestoreDrawDraft();
+  };
+  if (snapBtn) snapBtn.onclick = function() {
+    drawSnapEnabled = !drawSnapEnabled;
+    if (!drawSnapEnabled) setDrawSnapHover(null);
+    syncDrawSnapBtn();
+    updateEditHint();
+    renderDrawPreview();
+  };
+  if (loadBtn) loadBtn.onclick = function() {
+    loadBorderForSelectedRegion({ force: true });
+  };
+  if (rebindBtn) rebindBtn.onclick = function() {
+    rebindDrawVertsToSelectedRegion();
+  };
+  if (undoBtn) undoBtn.onclick = function() {
+    if (!drawVerts.length) return;
+    if (drawClosed && drawSelectedVert != null) {
+      deleteSelectedDrawVertex();
+      return;
+    }
+    // Editing closed poly: Undo without a selected vert removes last pt but keeps closed if ≥3.
+    if (drawClosed && drawVerts.length > 3) {
+      drawVerts.pop();
+      markDrawDirty();
+      renderDrawPreview();
+      updateEditHint();
+      return;
+    }
+    drawVerts.pop();
+    drawClosed = false;
+    drawSelectedVert = null;
+    regionsDirty = drawVerts.length > 0;
+    renderDrawPreview();
+    updateEditHint();
+    syncDrawSaveBtnState();
+  };
+  if (closeBtn) closeBtn.onclick = closeDrawPolygon;
+  if (clearBtn) clearBtn.onclick = function() {
+    if (drawVerts.length >= 3 && regionsDirty) {
+      if (!window.confirm('Clear ' + drawVerts.length + ' unsaved points? Draft will be discarded.')) return;
+    }
+    clearDrawVerts();
+  };
+  if (saveBtn) saveBtn.onclick = function() { saveDrawBorder(); };
+  syncDrawUi();
+  syncDrawSaveBtnState();
+  // After Draw UI ready: offer restore if hard-refresh wiped the editor.
+  if (drawMode && !drawVerts.length) tryRestoreDrawDraft();
 }
 
 function initEditMode(profile) {
@@ -1199,6 +2454,11 @@ function initEditMode(profile) {
   updateEditHint();
   btn.onclick = function() {
     editMode = !editMode;
+    if (editMode && drawMode) {
+      drawMode = false;
+      clearDrawVerts();
+      syncDrawUi();
+    }
     saveProfile({ editMode });
     initEditMode(loadProfile());
     refreshPins();
@@ -1467,40 +2727,177 @@ function initMapCamera() {
   vp.addEventListener('pointerdown', function(e) {
     if (e.button > 1) return;
     if (e.target.closest('.pin, .map-controls, button')) return;
+    // Edit closed border: start vertex drag instead of pan
+    if (drawMode && drawClosed && e.button === 0) {
+      const p = pointerToMapPct(e.clientX, e.clientY);
+      if (p) {
+        const vi = hitDrawVertexIndex(p.x_pct, p.y_pct);
+        if (vi >= 0) {
+          drawVertDrag = {
+            id: e.pointerId,
+            index: vi,
+            x: e.clientX,
+            y: e.clientY,
+            moved: false,
+          };
+          drawSelectedVert = vi;
+          renderDrawPreview();
+          vp.setPointerCapture(e.pointerId);
+          return;
+        }
+      }
+    }
     panDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, camX: camera.x, camY: camera.y, moved: false };
     vp.classList.add('is-dragging');
     vp.setPointerCapture(e.pointerId);
   });
 
   vp.addEventListener('pointermove', function(e) {
-    if (!panDrag || panDrag.id !== e.pointerId) return;
-    const dx = e.clientX - panDrag.x;
-    const dy = e.clientY - panDrag.y;
-    if (Math.abs(dx) + Math.abs(dy) > 4) panDrag.moved = true;
-    camera.x = panDrag.camX + dx;
-    camera.y = panDrag.camY + dy;
-    applyCamera(false);
+    if (drawVertDrag && drawVertDrag.id === e.pointerId) {
+      const p = pointerToMapPct(e.clientX, e.clientY);
+      if (p && drawVerts[drawVertDrag.index]) {
+        if (Math.abs(e.clientX - drawVertDrag.x) + Math.abs(e.clientY - drawVertDrag.y) > 3) {
+          drawVertDrag.moved = true;
+        }
+        let x = p.x_pct;
+        let y = p.y_pct;
+        // Snap while dragging a handle if Snap ON
+        if (drawSnapEnabled) {
+          const snap = findDrawSnapTarget(x, y);
+          if (snap) {
+            x = snap.x;
+            y = snap.y;
+            drawVerts[drawVertDrag.index].snapped = true;
+          } else {
+            drawVerts[drawVertDrag.index].snapped = false;
+          }
+        }
+        drawVerts[drawVertDrag.index].x = +Number(x).toFixed(2);
+        drawVerts[drawVertDrag.index].y = +Number(y).toFixed(2);
+        markDrawDirty();
+        renderDrawPreview();
+      }
+      return;
+    }
+    if (panDrag && panDrag.id === e.pointerId) {
+      const dx = e.clientX - panDrag.x;
+      const dy = e.clientY - panDrag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 4) panDrag.moved = true;
+      camera.x = panDrag.camX + dx;
+      camera.y = panDrag.camY + dy;
+      applyCamera(false);
+      return;
+    }
+    if (drawMode && !drawClosed && drawSnapEnabled) {
+      const prev = drawSnapHover;
+      updateDrawSnapHoverFromPointer(e.clientX, e.clientY);
+      const next = drawSnapHover;
+      const changed = (!prev && next) || (prev && !next)
+        || (prev && next && (prev.x !== next.x || prev.y !== next.y));
+      if (changed) renderDrawPreview();
+    }
   });
 
   vp.addEventListener('pointerup', function(e) {
+    if (drawVertDrag && drawVertDrag.id === e.pointerId) {
+      const wasClick = !drawVertDrag.moved;
+      const idx = drawVertDrag.index;
+      drawVertDrag = null;
+      if (wasClick && e.altKey) {
+        drawSelectedVert = idx;
+        deleteSelectedDrawVertex();
+      } else {
+        drawSelectedVert = idx;
+        renderDrawPreview();
+      }
+      return;
+    }
     if (!panDrag || panDrag.id !== e.pointerId) return;
     vp.classList.remove('is-dragging');
+    const wasClick = !panDrag.moved;
     if (panDrag.moved) scheduleCameraSave();
     panDrag = null;
+    if (drawMode && wasClick && !e.target.closest('.pin, .map-controls, button, .draw-bar, select')) {
+      const p = pointerToMapPct(e.clientX, e.clientY);
+      if (!p) return;
+      if (drawClosed) {
+        // Insert vertex on edge (not near existing vert — those start drag)
+        const edge = hitDrawEdgeInsert(p.x_pct, p.y_pct);
+        if (edge) {
+          drawVerts.splice(edge.index, 0, { x: edge.x, y: edge.y, snapped: false });
+          drawSelectedVert = edge.index;
+          markDrawDirty();
+          renderDrawPreview();
+          updateEditHint();
+        }
+        return;
+      }
+      addDrawVertex(p.x_pct, p.y_pct);
+    }
   });
 
   vp.addEventListener('pointercancel', function() {
     vp.classList.remove('is-dragging');
     panDrag = null;
+    drawVertDrag = null;
   });
 
   vp.addEventListener('dblclick', function(e) {
-    if (e.target.closest('.pin, .map-controls')) return;
+    if (e.target.closest('.pin, .map-controls, .draw-bar')) return;
+    if (drawMode) {
+      e.preventDefault();
+      if (!drawClosed) closeDrawPolygon();
+      return;
+    }
     zoomAt(1.35, e.clientX, e.clientY);
   });
 
   window.addEventListener('keydown', function(e) {
-    if (e.target.closest('textarea, input')) return;
+    if (e.target.closest('textarea, input, select')) return;
+    // Ctrl+S / Cmd+S — save border while drawing/editing (do not lose verts).
+    if (drawMode && (e.key === 's' || e.key === 'S') && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      saveDrawBorder();
+      return;
+    }
+    if (drawMode && (e.key === 'Delete' || e.key === 'Backspace')) {
+      if (drawClosed && drawSelectedVert != null) {
+        e.preventDefault();
+        deleteSelectedDrawVertex();
+        return;
+      }
+    }
+    if (drawMode && e.key === 'Escape') {
+      if (drawVerts.length >= 3 && regionsDirty) {
+        if (!window.confirm('Clear ' + drawVerts.length + ' unsaved points? (draft kept in browser for restore)')) return;
+        persistDrawDraft();
+        // Clear editor only — draft remains for Draw ON restore.
+        drawVerts = [];
+        drawClosed = false;
+        drawSelectedVert = null;
+        drawVertDrag = null;
+        drawBoundRegionId = null;
+        regionsDirty = false;
+        setDrawSnapHover(null);
+        renderDrawPreview();
+        updateEditHint();
+        syncDrawSaveBtnState();
+        setDrawStatus('Cleared editor — draft kept; toggle Draw to restore', 'ok');
+        return;
+      }
+      clearDrawVerts();
+      return;
+    }
+    if (drawMode && !drawClosed && (e.key === 'Enter' || e.key === 'c' || e.key === 'C')) {
+      closeDrawPolygon();
+      return;
+    }
+    // Enter while editing closed poly → Save (Close already done).
+    if (drawMode && drawClosed && e.key === 'Enter') {
+      e.preventDefault();
+      saveDrawBorder();
+      return;
+    }
     if (e.key === '+' || e.key === '=') {
       const r = vp.getBoundingClientRect();
       zoomAt(1.2, r.left + r.width / 2, r.top + r.height / 2);
@@ -1521,12 +2918,49 @@ function buildLegendGrid(markers) {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'legend-chip legend-chip--' + (m.type || 'default');
+    if (m.beta_deferred_lore) chip.className += ' legend-chip--stub';
+    if (m.area_pin_mismatch) chip.className += ' legend-chip--mismatch';
     chip.dataset.id = m.id;
-    chip.title = (m.label || m.name || m.id) + ' — click to focus';
+    const pc = cityPinColor(m);
+    chip.style.background = pc;
+    chip.style.borderColor = pc;
+    chip.style.color = '#111';
+    let title = (m.label || m.name || m.id) + (m.beta_deferred_lore ? ' (vibes stub · lore deferred)' : '') + ' — click to focus';
+    if (m.containing_area_id) {
+      title += ' · area ' + m.containing_area_id;
+      if (m.area_pin_mismatch) title += ' (⚠ id mismatch)';
+    } else {
+      title += ' · no containing area';
+    }
+    chip.title = title;
     chip.textContent = m.region != null ? String(m.region) : '?';
     chip.addEventListener('click', function() { selectMarker(m.id, { focus: true }); });
     grid.appendChild(chip);
   });
+}
+
+/** Update side-panel cards with PIP area / mismatch hints (no full rebuild). */
+function refreshRegionListPipHints() {
+  const listEl = document.getElementById('list');
+  if (!listEl || !mapDataCache) return;
+  listEl.querySelectorAll('.region-card').forEach(function(btn) {
+    const m = markerById(btn.dataset.id);
+    if (!m) return;
+    let warn = btn.querySelector('.pip-warn');
+    if (m.area_pin_mismatch && m.containing_area_id) {
+      const areaName = displayNameForRegionId(m.containing_area_id, m.containing_area_id);
+      const msg = '⚠ pin inside area labeled ' + areaName;
+      if (!warn) {
+        warn = document.createElement('span');
+        warn.className = 'pip-warn';
+        btn.appendChild(warn);
+      }
+      warn.textContent = msg;
+    } else if (warn) {
+      warn.remove();
+    }
+  });
+  buildLegendGrid(mapDataCache.markers || []);
 }
 
 function markVisited(id) {
@@ -1569,11 +3003,48 @@ function syncNoteField(id) {
   }
   noteEl.hidden = false;
   labelEl.hidden = false;
+  const m = markerById(id);
+  const name = (m && (m.label || m.name)) || id;
+  const num = m && m.region != null ? 'R' + m.region + ' · ' : '';
+  labelEl.textContent = 'Region note · ' + num + name;
   const p = loadProfile();
   noteEl.value = (p.notes && p.notes[id]) || '';
   noteEl.oninput = () => {
     saveProfile({ notes: { [id]: noteEl.value } });
   };
+}
+
+/**
+ * Keep Draw toolbar Region <select> in sync with map focus/selection.
+ * Runs even when Draw is OFF so turning Draw ON shows the focused region.
+ * While Draw has bound verts, do NOT steal the dropdown (wrong-id Save wipe).
+ */
+function syncDrawRegionSelectToActive(id) {
+  if (!id || !mapDataCache) return;
+  fillDrawRegionSelect();
+  const sel = document.getElementById('drawRegionSelect');
+  if (!sel) return;
+  let has = false;
+  for (let i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === id) { has = true; break; }
+  }
+  if (!has) return;
+  // Protect in-progress border unless GM confirms rebind or clear+switch.
+  if (drawMode && drawVerts.length && drawBoundRegionId && drawBoundRegionId !== id) {
+    if (!tryDrawRegionSwitch(id)) {
+      if (sel.value !== drawBoundRegionId) sel.value = drawBoundRegionId;
+      syncDrawRebindBtn();
+      setDrawStatus(
+        'Still editing ' + regionDrawLabel(drawBoundRegionId) + ' — Rebind → ' + regionDrawLabel(id) + ' or Clear',
+        'err'
+      );
+      return;
+    }
+  }
+  if (sel.value === id) return;
+  sel.value = id;
+  // Fire change so Load border / snap exclude follow when Draw is ON
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 function labelsUiEnabled() {
@@ -1586,6 +3057,58 @@ function areasUiEnabled() {
 
 function citiesUiEnabled() {
   return mapDataCache && mapDataCache.overlay_layer === 'ui' && uiCitiesVisible;
+}
+
+/** Unique R1–R17 map fills — neon HUD colors never used for region fills. */
+const REGION_SHADE_PALETTE = {
+  1: { fill: '#c4a035', stroke: '#8a7020' },
+  2: { fill: '#3d7a9e', stroke: '#2a5570' },
+  3: { fill: '#2a8f7a', stroke: '#1d6556' },
+  4: { fill: '#c17a28', stroke: '#8a561c' },
+  5: { fill: '#5a9a45', stroke: '#3f6e30' },
+  6: { fill: '#b85a6a', stroke: '#82404c' },
+  7: { fill: '#6a7088', stroke: '#4a5060' },
+  8: { fill: '#d4a820', stroke: '#957518' },
+  9: { fill: '#2d7a4e', stroke: '#1f5536' },
+  10: { fill: '#b8734a', stroke: '#825234' },
+  11: { fill: '#3a8a85', stroke: '#28615e' },
+  12: { fill: '#7a6e5a', stroke: '#554c3e' },
+  13: { fill: '#a06a2e', stroke: '#704a20' },
+  14: { fill: '#4a7a9e', stroke: '#345670' },
+  15: { fill: '#8a5a9e', stroke: '#5f3e6e' },
+  16: { fill: '#5a6e9e', stroke: '#3e4c6e' },
+  17: { fill: '#2e8a6a', stroke: '#20604a' },
+};
+const CITY_PIN_PALETTE = {
+  1: '#e8c547', 2: '#5eb0d9', 3: '#3ec9ad', 4: '#e89a3c', 5: '#7bc45e',
+  6: '#e07a8c', 7: '#9aa3b8', 8: '#f0c530', 9: '#45b06e', 10: '#e09262',
+  11: '#52c4bd', 12: '#c4b08a', 13: '#d49248', 14: '#6aabd4', 15: '#b47acc',
+  16: '#7a94d4', 17: '#48c498',
+};
+function cityPinColor(m) {
+  if (m && m.pin_color) return String(m.pin_color);
+  const n = Number(m && m.region) || 0;
+  return CITY_PIN_PALETTE[n] || CITY_PIN_PALETTE[((Math.max(1, n) - 1) % 17) + 1] || '#c4a035';
+}
+
+function isNeonShadeColor(s) {
+  if (!s) return true;
+  const t = String(s).toLowerCase().replace(/\s/g, '');
+  return /255,113,206|ff71ce|185,103,255|b967ff|255,251,150|fffb96|1,205,254|01cdfe|c0c0c0|#c0c0c0|180,180,180/.test(t);
+}
+
+function shadeForArea(a) {
+  let n = Number(a && a.region) || 0;
+  if (!n && a && a.id) {
+    const m = markerById(a.id);
+    if (m && m.region != null) n = Number(m.region);
+  }
+  if (!n || n < 1) n = 1;
+  const pal = REGION_SHADE_PALETTE[n] || REGION_SHADE_PALETTE[((n - 1) % 17) + 1] || REGION_SHADE_PALETTE[1];
+  // Keep non-neon custom fills from JSON; override legacy neon/vaporwave shades for display
+  const fill = a && a.fill && !isNeonShadeColor(a.fill) ? a.fill : pal.fill;
+  const stroke = a && a.stroke && !isNeonShadeColor(a.stroke) ? a.stroke : pal.stroke;
+  return { fill: fill, stroke: stroke };
 }
 
 function placeRegionAreas(container, areasData) {
@@ -1612,14 +3135,21 @@ function placeRegionAreas(container, areasData) {
     }
     shape.setAttribute('class', 'map-area-zone');
     shape.dataset.id = a.id;
-    if (a.stroke) shape.style.stroke = a.stroke;
-    if (a.fill) shape.style.fill = a.fill;
+    const paint = shadeForArea(a);
+    shape.style.fill = paint.fill;
+    shape.style.stroke = paint.stroke;
+    // Inline fillOpacity so large mustard polys cannot look solid if CSS loses.
+    shape.style.fillOpacity = a.id === activeId ? '0.26' : '0.18';
     if (activeId && a.id !== activeId) shape.classList.add('is-dim');
     if (a.id === activeId) shape.classList.add('is-active');
     shape.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
-    shape.addEventListener('click', function() { selectMarker(a.id, { focus: true }); });
-    // SoT: pin markers[].label — never show stale regions-ui lore names
-    const tip = displayNameForRegionId(a.id, a.name);
+    shape.addEventListener('click', function() {
+      // Prefer focusing the pin inside this area when PIP matched
+      const focusId = (a.pin_ids && a.pin_ids[0]) || a.id;
+      selectMarker(focusId, { focus: true });
+    });
+    // Prefer pin name for containing area; warn if area id ≠ pin inside
+    const tip = areaDisplayTip(a);
     shape.addEventListener('mouseenter', function(e) {
       showTooltip(tip, e.clientX, e.clientY);
     });
@@ -1693,6 +3223,7 @@ function placeMapLabels(container, markers) {
     // SoT: name uses pin coords only (ignore stale label_x/y_pct).
     el.style.left = m.x_pct + '%';
     el.style.top = m.y_pct + '%';
+    el.style.color = cityPinColor(m);
     el.textContent = m.label || m.name || m.id;
     if (activeId && m.id !== activeId) el.classList.add('is-dim');
     if (m.id === activeId) el.classList.add('is-active');
@@ -1758,6 +3289,7 @@ function selectMarker(id, opts) {
   activeId = id;
   markVisited(id);
   syncNoteField(id);
+  syncDrawRegionSelectToActive(id);
   document.querySelectorAll('.pin, .region-card, .legend-chip').forEach(function(el) {
     el.classList.toggle('is-active', el.dataset.id === id);
   });
@@ -1827,6 +3359,7 @@ async function load() {
   initAreaToggle(data, profile);
   initCitiesToggle(data, profile);
   initEditMode(profile);
+  initDrawMode();
   initFeedbackUi();
   coordsDirty = Object.keys(profile.coord_overrides || {}).length > 0;
   const castBtn = document.getElementById('castToggle');
@@ -1841,6 +3374,7 @@ async function load() {
     return;
   }
   const markers = data.markers || [];
+  bindPinsToAreas();
   initMapCamera();
   buildLegendGrid(markers);
   renderMapStage(stage, data, profile);
@@ -1855,8 +3389,13 @@ async function load() {
     const coord = (m.x_pct != null && m.y_pct != null)
       ? m.x_pct.toFixed(1) + '%, ' + m.y_pct.toFixed(1) + '%' : 'unmapped';
     const lane = m.workflow_status || 'planning';
-    btn.innerHTML = num + '<strong>' + label + '</strong><span class="meta">' + kind + ' · ' + coord +
+    let html = num + '<strong>' + label + '</strong><span class="meta">' + kind + ' · ' + coord +
       '</span><span class="lane lane--' + lane + '">' + lane + '</span>';
+    if (m.area_pin_mismatch && m.containing_area_id) {
+      html += '<span class="pip-warn">⚠ pin inside area labeled ' +
+        displayNameForRegionId(m.containing_area_id, m.containing_area_id) + '</span>';
+    }
+    btn.innerHTML = html;
     btn.addEventListener('click', function() { selectMarker(m.id, { focus: true }); });
     listEl.appendChild(btn);
   });
@@ -1875,6 +3414,7 @@ function finishMapStage(stage, markers, profile) {
   const areaLayer = layerEl(stack, 'regions');
   const pinLayer = layerEl(stack, 'poi-pins');
   const labelLayer = layerEl(stack, 'labels');
+  bindPinsToAreas();
   if (areaLayer) {
     areaLayer.innerHTML = '';
     if (mapDataCache && mapDataCache.regions_ui_data) {
@@ -1893,6 +3433,7 @@ function finishMapStage(stage, markers, profile) {
   syncAreaLayerVisibility();
   syncCitiesLayerVisibility();
   syncLabelLayerVisibility();
+  if (typeof renderDrawPreview === 'function') renderDrawPreview();
   restoreCameraFromProfile(profile || loadProfile(), !prefersReducedMotion);
   cameraReady = true;
   scheduleTileUpdate();
@@ -1983,6 +3524,9 @@ function placePins(stage, markers) {
     pin.className = 'pin pin--' + (m.type || 'default') + (editMode ? ' is-editable' : '');
     pin.dataset.id = m.id;
     pin.style.pointerEvents = 'auto';
+    const pc = cityPinColor(m);
+    pin.style.background = pc;
+    pin.style.borderColor = '#1a1208';
     const num = m.region != null ? m.region : '';
     pin.innerHTML = '<span class="pin-num">' + num + '</span>';
     pin.style.left = m.x_pct + '%';
@@ -2061,6 +3605,82 @@ function alignAreaNamesToMarkers(markers, regionsUiData) {
   }
 }
 
+/** Server-side ray-cast PIP (percent coords). poly = [[x,y],…] or [{x,y}]. */
+function pointInPolygonServer(x, y, poly) {
+  const n = poly && poly.length;
+  if (!n || n < 3) return false;
+  let inside = false;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const pi = poly[i];
+    const pj = poly[j];
+    const xi = Array.isArray(pi) ? +pi[0] : +pi.x;
+    const yi = Array.isArray(pi) ? +pi[1] : +pi.y;
+    const xj = Array.isArray(pj) ? +pj[0] : +pj.x;
+    const yj = Array.isArray(pj) ? +pj[1] : +pj.y;
+    const denom = (yj - yi) || 1e-15;
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / denom + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function parseAreaPointsServer(pointsStr) {
+  if (!pointsStr || typeof pointsStr !== "string") return [];
+  return pointsStr.trim().split(/\s+/).map((pair) => {
+    const parts = pair.split(",");
+    const x = parseFloat(parts[0]);
+    const y = parseFloat(parts[1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x, y };
+  }).filter(Boolean);
+}
+
+/**
+ * Bind pins → containing area by PIP for /api/map payloads.
+ * Pins bind by containment (ray-cast), not manual region_id alone.
+ */
+function bindPinsToAreasServer(markers, regionsUiData) {
+  if (!regionsUiData || !Array.isArray(regionsUiData.areas)) return;
+  const areas = regionsUiData.areas;
+  for (const m of markers || []) {
+    m.containing_area_id = null;
+    m.region_id = null;
+    m.area_pin_mismatch = false;
+  }
+  for (const a of areas) {
+    a.pin_ids = [];
+    a.display_pin_name = null;
+    a.pin_mismatch = false;
+  }
+  const polys = [];
+  for (const a of areas) {
+    if (!a || (a.shape && a.shape !== "polygon")) continue;
+    const pts = parseAreaPointsServer(a.points);
+    if (pts.length >= 3) polys.push({ a, pts });
+  }
+  for (const m of markers || []) {
+    if (m.x_pct == null || m.y_pct == null) continue;
+    const x = +m.x_pct;
+    const y = +m.y_pct;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    for (const row of polys) {
+      if (!pointInPolygonServer(x, y, row.pts)) continue;
+      m.containing_area_id = row.a.id;
+      m.region_id = row.a.id;
+      row.a.pin_ids.push(m.id);
+      if (!row.a.display_pin_name) {
+        row.a.display_pin_name = markerDisplayName(m) || m.id;
+      }
+      if (m.id !== row.a.id) {
+        m.area_pin_mismatch = true;
+        row.a.pin_mismatch = true;
+      }
+      break;
+    }
+  }
+}
+
 function alignBoardNamesToMarkers(board, markers) {
   if (!board || !Array.isArray(board.regions)) return board;
   const byId = Object.create(null);
@@ -2074,8 +3694,17 @@ function alignBoardNamesToMarkers(board, markers) {
   };
 }
 
-// ponytail: merge map + board once per mtime — linuxbox serves cached JSON, not disk per hit
-let mapJsonCache = { mtimeMs: 0, data: null };
+// ponytail: merge map + board once per mtime — bust when map.json OR regions-ui.json changes
+let mapJsonCache = { mapMtimeMs: 0, regionsMtimeMs: 0, data: null };
+
+function regionsUiMtimeMs() {
+  try {
+    if (fs.existsSync(REGIONS_UI_JSON)) return fs.statSync(REGIONS_UI_JSON).mtimeMs;
+  } catch (_) {
+    /* stat best-effort */
+  }
+  return 0;
+}
 
 function loadMapJson() {
   if (!fs.existsSync(MAP_JSON)) {
@@ -2083,7 +3712,12 @@ function loadMapJson() {
   }
   try {
     const st = fs.statSync(MAP_JSON);
-    if (mapJsonCache.data && mapJsonCache.mtimeMs === st.mtimeMs) {
+    const ruiMs = regionsUiMtimeMs();
+    if (
+      mapJsonCache.data &&
+      mapJsonCache.mapMtimeMs === st.mtimeMs &&
+      mapJsonCache.regionsMtimeMs === ruiMs
+    ) {
       return mapJsonCache.data;
     }
     const data = JSON.parse(fs.readFileSync(MAP_JSON, "utf8"));
@@ -2132,6 +3766,7 @@ function loadMapJson() {
       try {
         data.regions_ui_data = JSON.parse(fs.readFileSync(regionsAbs, "utf8"));
         alignAreaNamesToMarkers(data.markers, data.regions_ui_data);
+        // coords may override x_pct below — re-bind after coords merge
       } catch {
         data.regions_ui_data = null;
       }
@@ -2166,7 +3801,10 @@ function loadMapJson() {
         data.layers_manifest = [];
       }
     }
-    mapJsonCache = { mtimeMs: st.mtimeMs, data };
+    if (data.regions_ui_data) {
+      bindPinsToAreasServer(data.markers, data.regions_ui_data);
+    }
+    mapJsonCache = { mapMtimeMs: st.mtimeMs, regionsMtimeMs: ruiMs, data };
     return data;
   } catch (err) {
     return { campaign: CAMPAIGN, markers: [], error: err.message };
@@ -2433,6 +4071,134 @@ function readBody(req) {
   });
 }
 
+/** GM polygon stats — gate empty/stub writes (REGIONS-UI-LOCK.md). */
+function countGmPolyStats(ui) {
+  const areas = ui && ui.areas ? ui.areas : [];
+  let polyCount = 0;
+  let totalVerts = 0;
+  for (const a of areas) {
+    if (!a || a.shape === "ellipse") continue;
+    const n = parseAreaPointsServer(String(a.points || "")).length;
+    if (n >= 3) {
+      polyCount += 1;
+      totalVerts += n;
+    }
+  }
+  return { polyCount, totalVerts };
+}
+
+/** Write regions-ui.json with autosave bak + refuse GM polygon wipe. */
+function writeRegionsUiJson(ui, reason) {
+  if (fs.existsSync(REGIONS_UI_JSON)) {
+    const prev = JSON.parse(fs.readFileSync(REGIONS_UI_JSON, "utf8"));
+    const prevStats = countGmPolyStats(prev);
+    const nextStats = countGmPolyStats(ui);
+    if (prevStats.polyCount > 0 && nextStats.polyCount === 0) {
+      throw new Error(
+        "refusing regions-ui write (" +
+          reason +
+          "): would wipe " +
+          prevStats.polyCount +
+          " GM polygon(s)"
+      );
+    }
+    if (prevStats.totalVerts > 0 && nextStats.totalVerts < prevStats.totalVerts) {
+      throw new Error(
+        "refusing regions-ui write (" +
+          reason +
+          "): GM verts " +
+          prevStats.totalVerts +
+          " → " +
+          nextStats.totalVerts
+      );
+    }
+  }
+  if (fs.existsSync(REGIONS_UI_JSON)) {
+    try {
+      const bak =
+        REGIONS_UI_JSON +
+        ".bak-autosave-" +
+        new Date().toISOString().replace(/[:.]/g, "").slice(0, 15) +
+        "Z";
+      fs.copyFileSync(REGIONS_UI_JSON, bak);
+    } catch (_) {
+      /* bak best-effort */
+    }
+  }
+  fs.writeFileSync(REGIONS_UI_JSON, JSON.stringify(ui, null, 2) + "\n");
+}
+
+/** Persist one GM-drawn region polygon → regions-ui.json */
+function saveRegionAreas(bodyStr) {
+  const payload = JSON.parse(bodyStr || "{}");
+  const area = payload.area;
+  if (!area || typeof area !== "object" || !area.id) {
+    throw new Error("area object with id required");
+  }
+  const nextId = String(area.id);
+  const pts = String(area.points || "").trim();
+  const ptCount = parseAreaPointsServer(pts).length;
+  if (area.shape === "polygon" || area.shape == null) {
+    if (ptCount < 3) {
+      throw new Error(
+        "polygon needs ≥3 finite vertices (got " + ptCount + ") — refusing empty/clear save"
+      );
+    }
+  }
+
+  let ui = {
+    version: 1,
+    viewBox: "0 0 100 100",
+    areas: [],
+    enabled: true,
+  };
+  if (fs.existsSync(REGIONS_UI_JSON)) {
+    ui = JSON.parse(fs.readFileSync(REGIONS_UI_JSON, "utf8"));
+  }
+  ui.areas = ui.areas || [];
+
+  // Hard rule: never zero-out an existing GM polygon (unless explicit allow_clear).
+  const prevIx = ui.areas.findIndex((a) => a && a.id === nextId);
+  const prev = prevIx >= 0 ? ui.areas[prevIx] : null;
+  if (prev && prev.shape === "polygon") {
+    const prevCount = parseAreaPointsServer(String(prev.points || "")).length;
+    if (prevCount >= 3 && ptCount < 3 && payload.allow_clear !== true) {
+      throw new Error(
+        "refusing to clear existing border for " + nextId + " (" + prevCount + " pts) — set allow_clear to confirm"
+      );
+    }
+  }
+
+  // Never touch sibling regions — only merge into nextId.
+  const paint = regionShadePaint(area.region);
+  const next = {
+    id: nextId,
+    region: area.region != null ? area.region : undefined,
+    name: String(area.name || area.id),
+    shape: area.shape || "polygon",
+    points: pts,
+    stroke: area.stroke || paint.stroke,
+    fill: area.fill || paint.fill,
+    note: area.note || ("GM Draw borders " + new Date().toISOString().slice(0, 10)),
+  };
+  if (next.region === undefined) delete next.region;
+
+  // Auto-bak before every write (recover from wipe) — handled in writeRegionsUiJson.
+  if (prevIx >= 0) ui.areas[prevIx] = { ...ui.areas[prevIx], ...next };
+  else ui.areas.push(next);
+
+  if (payload.enabled === true || payload.enabled === false) ui.enabled = payload.enabled;
+  else ui.enabled = true;
+  ui.version = Number(ui.version || 1) + 1;
+  ui.updated_at = new Date().toISOString().slice(0, 10);
+  ui._doc =
+    "Selectable SVG areas — GM Draw borders owns live polygons. Draft auto geometry: regions-ui.draft.json";
+  ui.draft_backup = "map/regions-ui.draft.json";
+  writeRegionsUiJson(ui, "saveRegionAreas");
+  mapJsonCache = { mapMtimeMs: 0, regionsMtimeMs: 0, data: null };
+  return { ok: true, id: next.id, version: ui.version, updated_at: ui.updated_at, points: ptCount };
+}
+
 /** Persist dragged pin coords → coords.json, map.json, regions-ui.json */
 function saveMapCoords(bodyStr) {
   const payload = JSON.parse(bodyStr);
@@ -2480,10 +4246,10 @@ function saveMapCoords(bodyStr) {
       if (a.shape === "polygon") return a;
       return { ...a, cx: +Number(c.x_pct).toFixed(2), cy: +Number(c.y_pct).toFixed(2) };
     });
-    fs.writeFileSync(REGIONS_UI_JSON, JSON.stringify(ui, null, 2) + "\n");
+    writeRegionsUiJson(ui, "saveMapCoords");
   }
 
-  mapJsonCache = { mtimeMs: 0, data: null };
+  mapJsonCache = { mapMtimeMs: 0, regionsMtimeMs: 0, data: null };
   return { ok: true, saved: Object.keys(regions).length, updated_at: coords.updated_at };
 }
 
@@ -2566,6 +4332,55 @@ function saveMapFeedback(bodyStr) {
 async function handleRequest(req, res) {
   const url = req.url.split("?")[0];
   const q = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+  // Player campaign trackers live on linuxbox :8768 — expose via public map host as /camp/*
+  // so players do not need potato MagicDNS. Canonical host remains campaigns.tableslop.org.
+  if (url === "/camp" || url === "/camp/" || url.startsWith("/camp/")) {
+    const suffix = url === "/camp" || url === "/camp/" ? "/" : url.slice("/camp".length);
+    const target = new URL(suffix + (q.search || ""), CAMPAIGNS_ORIGIN);
+    try {
+      await new Promise((resolve, reject) => {
+        const headers = { ...req.headers, host: target.host };
+        delete headers["accept-encoding"];
+        headers["x-forwarded-prefix"] = "/camp";
+        headers["x-forwarded-host"] = req.headers.host || "";
+        const preq = http.request(
+          {
+            protocol: target.protocol,
+            hostname: target.hostname,
+            port: target.port || 80,
+            path: target.pathname + target.search,
+            method: req.method,
+            headers,
+          },
+          (pres) => {
+            const outHeaders = { ...pres.headers };
+            // Fix Location redirects back under /camp
+            if (outHeaders.location) {
+              try {
+                const loc = new URL(outHeaders.location, CAMPAIGNS_ORIGIN);
+                if (loc.origin === new URL(CAMPAIGNS_ORIGIN).origin) {
+                  outHeaders.location = "/camp" + loc.pathname + loc.search;
+                }
+              } catch {
+                /* keep */
+              }
+            }
+            res.writeHead(pres.statusCode || 502, outHeaders);
+            pres.pipe(res);
+            pres.on("end", resolve);
+            pres.on("error", reject);
+          }
+        );
+        preq.on("error", reject);
+        req.pipe(preq);
+      });
+    } catch (err) {
+      res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("campaigns origin unreachable on linuxbox :8768");
+    }
+    return;
+  }
 
   if (url === "/health") {
     sendJson(res, {
@@ -2675,6 +4490,20 @@ async function handleRequest(req, res) {
     try {
       const body = await readBody(req);
       const result = saveMapCoords(body);
+      sendJson(res, result, 200);
+    } catch (err) {
+      sendJson(res, { error: err.message || "save failed" }, 400);
+    }
+    return;
+  }
+  if (url === "/api/map/regions-ui" && req.method === "POST") {
+    if (REQUIRE_AUTH && !session) {
+      sendJson(res, { error: "login required" }, 401);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      const result = saveRegionAreas(body);
       sendJson(res, result, 200);
     } catch (err) {
       sendJson(res, { error: err.message || "save failed" }, 400);

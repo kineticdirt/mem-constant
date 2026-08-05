@@ -1,0 +1,54 @@
+{
+  "_doc": "Canonical FREE swap order for think (and Hub free routing). Outer think tick rotates hermes -m through this list on 429/empty. Hermes same-provider fallback_providers does NOT swap model ids (retries -m 3×) — this file is the real failover SoT. Cap ~8–12. Re-probe with .staging/model-probe/probe_free_models.py before editing. Never add paid. Skip sunset/dead in _do_not_readd.",
+  "version": 1,
+  "updated": "2026-07-29",
+  "probe": ".staging/model-probe/probe_free_models.py",
+  "policy": {
+    "inbox_when": "entire ordered list 429/fail for the UTC day AND paid last-resort disabled/failed (not primary-only)",
+    "skip_hermes_when": "never by default — after full free exhaust, think uses THINK_PAID_MODEL (deepseek/deepseek-v4-flash) until free reset; set THINK_PAID_ON_FREE_EXHAUSTED=0 (alias THINK_ALLOW_PAID_LAST_RESORT=0) to restore skip",
+    "paid_scenarios": "C8 only: (1) free pool exhausted THINK_PAID_ON_FREE_EXHAUSTED; (2) verified free failure THINK_PAID_ON_VERIFIED_FREE_FAIL after THINK_PAID_FREE_FAIL_N harness verify-fails (default 2). See agents/THINK_SECURITY_CHECKS.md C8.",
+    "paid_last_resort": "deepseek/deepseek-v4-flash (ops OpenRouter key; scenario 1 after free rotate/fast-probe exhaust, or scenario 2 one paid after N verified free fails)",
+    "shared_daily_cap_note": "OpenRouter free-models-per-day-high-balance is often one shared pool across :free ids (Limit 1000 RPD) — still rotate/probe the full list before scenario-1 paid.",
+    "mid_day_reprobe": "when models_429 covers full ordered list, think-tick re-probes before paid (false exhaust / mid-day recovery)",
+    "availability_check": "daily hermes-model-health (06:45) + weekly probe-free-models-weekly.sh (Sun) → reports/model-probe/ + last_probe here"
+  },
+  "ordered": [
+    "poolside/laguna-xs-2.1:free",
+    "inclusionai/ling-3.0-flash:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "cohere/north-mini-code:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "poolside/laguna-s-2.1:free",
+    "google/gemma-4-31b-it:free",
+    "openai/gpt-oss-20b:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-nano-9b-v2:free"
+  ],
+  "labels": {
+    "poolside/laguna-xs-2.1:free": "Laguna XS 2.1 free (default head)",
+    "inclusionai/ling-3.0-flash:free": "Ling 3.0 Flash free (fast)",
+    "nvidia/nemotron-3-super-120b-a12b:free": "Nemotron 3 Super 120B free",
+    "cohere/north-mini-code:free": "North Mini Code free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free": "Nemotron 3 Ultra 550B free",
+    "poolside/laguna-s-2.1:free": "Laguna S 2.1 free",
+    "google/gemma-4-31b-it:free": "Gemma 4 31B IT free",
+    "openai/gpt-oss-20b:free": "GPT-OSS 20B free",
+    "nvidia/nemotron-3-nano-30b-a3b:free": "Nemotron 3 Nano 30B free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": "Nemotron 3 Nano Omni reasoning free",
+    "google/gemma-4-26b-a4b-it:free": "Gemma 4 26B A4B IT free",
+    "nvidia/nemotron-nano-9b-v2:free": "Nemotron Nano 9B v2 free"
+  },
+  "_do_not_readd": {
+    "tencent/hy3:free": "OpenRouter sunset 2026-07-21",
+    "qwen/qwen3-next-80b-a3b-instruct:free": "delisted 2026-07-24 — paid variant only",
+    "zenmux:moonshotai/kimi-k3-free": "404 invalid_model, never existed",
+    "stepfun/step-3.7-flash": "paid/demoted — burned think budget"
+  },
+  "last_probe": {
+    "at": "2026-07-25T16:35Z",
+    "key": "ops ~/.hermes/.env OPENROUTER_API_KEY",
+    "result": "all 8 FAIL HTTP 429 free-models-per-day-high-balance (shared pool Remaining=0; reset ~2026-07-26T00:00:00Z)"
+  }
+}

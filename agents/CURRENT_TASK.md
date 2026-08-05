@@ -1,37 +1,52 @@
 # Hermes task inbox — linuxbox agent cycles
 
-**Status:** active — **dashboard meta lane (priority)** + campaign worldbuilding when dashboard backlog clear
+**Status:** active — **`[ops]` first**, then continuous **project + campaign** (same-tier RR), then meta markers, then quiet **education → research**, then IDLE.
+
+**Four continuous lanes:** **campaign · project · research · education** — research = studies/benchmarks (`research-studies-progress.md`); education = human SI (`self-improvement-progress.md`). Both only when ops + project/campaign are quiet. Full arch: `docs/agents/continuous-lanes.md`.
 
 ## Profiles (cron split)
 
 | Cron | Profile | Schedule | Role |
 |------|---------|----------|------|
-| `agent-cycle-fast` | **fast** (Laguna free) | every **~1m** light (flock; IDLE short-circuit) | deterministic sync + inbox ack, IDLE |
-| `agent-cycle-think` | **think** | crontab **1m** + **adaptive throttle**: **5m** quiet / **1m** if ≥4 open user-tasks | **one** step below |
+| `agent-cycle-think` | **think** | crontab **1m**; LLM **~8m** (`THINK_INTERVAL_SEC=480`) | sync (deterministic) + **one** lane step |
 
-**Ops note (2026-07-23):** Prefer crontab ticks only; keep `agent-pod-scheduler.timer` disabled unless dual-fire is redesigned (was stacking with crontab → Hub thrash). Profile `state.db` guarded by `hermes-profile-db-guard.sh` (S1).
+**Sync (no LLM):** `agent-cycle-sync.sh` at start of each think tick — inbox normalize, git bundle/pull, consume-inbox-answers, swarm-dispatch. **Fast lane removed** 2026-08-01.
+
+**Setup injection:** `think-setup-context.py` prepends `CLAUDE.md` + lane SoT into Hermes prompt (see `agents/think-agent-setup.md`).
+
+**Parallel engines (2026-08-01)** — SoT `docs/plans/hermes-parallel-lanes-2026-08-01.md`:
+| Lane | Engine | When |
+|------|--------|------|
+| **Agent 1** | Hermes **think/chat** via OpenRouter + ZenMux (free-first / C8) | Cron + Hub non-Cursor chat — must keep running while Cursor is busy. **Single** think flock (`/tmp/agent-cycle-think.lock`). |
+| **Agent 2** | Potato **Cursor SDK Auto** (`cursor:auto`, `CURSOR_SDK_AUTO_ONLY=1`) | Explicit Hub Agent-coding / SSH `cursor-agent-run.sh` (nohup OK). **Not** on 1m think cron. **Not** a second OR think flock / Discord bot. |
+
+Hub Chat runs Cursor and Hermes on **separate workers** (do not serialize). Think flock is think-only — never waits on Cursor. Multitask disk locks only for shared protected files (chars-registry etc.), not for “Cursor vs Hermes”. Hunter Discord gateway stays singular.
+
+**Ops note (NYC FOCUS — 2026-08-01 gear `nyc-wb-gear-change`):** Stop prioritizing Tableslop **map draw** for agents (borders sacred / GM-owned pause). **Cursor Auto ∥ Hermes** focus **NYC Mafia × D&D worldbuilding** — boroughs + campaign parts. Phase F done; **Phase G** open in `campaigns/nyc-mafia-dnd/worldbuilding/progress.md`. GM questions: `worldbuilding/drip/2026-08-01-boroughs-gm-questions.md`. Cursor Auto drafts `draft-dependent` borough stroke stubs only for unlocked forks — do not invent locks.
 
 Human questions → `agents/state/human-inbox.json` · answers via `/Linuxbox/` **Inbox** tab.
 
+**Papercuts:** lane friction (repeated 429s, unclear env, bad UX, regressions) → log to `agents/papercuts.md` (`docs/agents/papercuts.md`); resolve autonomously when safe.
+
 ## Lane rotation (`agent-cycle-think` only)
 
-1. **Repo sync (do not block on this).** Fast tick already runs `apply-git-bundle.sh` + `git-pull-and-deploy.sh`. Think must **not** run `git pull` / `git pull --ff-only` via the terminal tool. If the tree is dirty or HTTPS pull would fail (private `Linuxbox` repo — sync is PC→box **git bundle**), **skip sync and continue** to the next lane. **Never** open an inbox question solely for git pull / "terminal safety guard". Optional read-only: `git status -sb`.
-2. **Dashboard meta lane (priority)** — if `agents/LINUXBOX_DASHBOARD_BACKLOG.md` has unchecked `[ ]` in **Open** → read **`agents/LINUXBOX_DASHBOARD_TASK.md`**, implement **one** item, verify `:8790`, restart `linuxbox-status` if server JS changed, mark done, **stop**.
-3. **Daily maintenance lane** — if `agents/maintenance-progress.md` has unchecked `[ ]` → read **`agents/DAILY_MAINTENANCE_TASK.md`**, fix **one** item (Intel feeds, GitHub-sourced RSS alternatives), verify `/Intel/`, mark done, **stop**.
-3b. **System integrity lane** — if `agents/system-integrity-progress.md` has unchecked `[ ]` in **Open — build** → read **`agents/SYSTEM_INTEGRITY_TASK.md`**, complete **one** checkbox, verify per task, mark done, **stop**. (After build: daily cron runs `system-integrity-check.sh`; think lane only if progress has follow-up items.)
-4. **Ponytail cleanup lane** — if `agents/PONYTAIL_CLEANUP_BOARD.md` has unchecked `[ ]` in **Backlog** → read **`agents/PONYTAIL_CLEANUP_TASK.md`**, complete **one** card (fix/refine only — **no file deletions**), verify, mark Done, **stop**.
-5. **User tasks lane** — if `agents/user-tasks.json` has any task with `status: "open"` → read **`agents/USER_TASKS_TASK.md`**, complete **one** step, update task status, **stop**. **Priority:** Hub **Fix this** (`[ops]` / `## Fix this`) first, then `project_id: tableslop`, else oldest open (see USER_TASKS_TASK.md).
-5b. **Security code audit (optional, deepsec)** — if `agents/deepsec-config.json` has `"enabled": true` **and** `agents/security-code-audit-progress.md` has unchecked `[ ]` in **Open** → read **`agents/SECURITY_CODE_AUDIT_TASK.md`**, run **`bash scripts/linuxbox/deepsec-scan.sh`** (scan-only, no `process`), **stop**. Default: `enabled: false` — lane skipped.
-6. **Campaign lanes (alternate each tick)** — **ops pod only**; RP campaigns run on **dedicated RP pods** (see `agents/agent-pods.manifest.json`):
-   - **SpaceQuest** — if `campaigns/spacequest/reports/progress.md` has unchecked `[ ]` → read **`agents/SPACEQUEST_WORLDBUILDING_TASK.md`**, complete **one** item, stop.
-   - **NYC Mafia × D&D** — else if `campaigns/nyc-mafia-dnd/reports/progress.md` has unchecked `[ ]` → read **`agents/NYC_MAFIA_DND_TASK.md`**, complete **one** item, stop.
-   - **Tropic Gooner** (island/map/orgs — **not** Hunter layer) — else if `campaigns/tropic-gooner/reports/progress.md` has unchecked `[ ]` → read **`agents/TROPIC_GOONER_TASK.md`**, complete **one** item, stop.
+**Picker (code SoT):** `scripts/linuxbox/agent-cycle-think-tick.sh` — not this prose. Order:
 
-   **Hunter: The Reckoning** runs on profile **`hunter-reckoning`** (RP **$5/day** pool), cron **`pod-hunter-reckoning`**, spec **`agents/HUNTER_RECKONING_TASK.md`**, progress **`campaigns/tropic-gooner/reports/progress-hunter.md`** — **not** this ops rotation.
-6. **Portfolio lane** — if `.staging/portfolio-redesign/` exists in repo **or** USB mounted, and open `user-tasks` with `project_id: abhinavall-portfolio` **or** `agents/PORTFOLIO_OVERNIGHT_TASK.md` / corporate task has unchecked items → **one** portfolio/blog step (prefer repo `.staging/` over USB when both exist). Preview-only; no auto-deploy to live abhinavall.net.
-7. **Blog lane** — else if blog progress has unchecked items → **`agents/BLOG_AI_LANE_TASK.md`**, one step.
-7b. **Research bookmarks** — cron ~every **3 days** (+ Sunday floor) asks login / digests ingest; think lane only advances open `research-bookmarks` user-tasks. **No** X API, **no** continuous scraping, **no** posting.
-8. **NousAgent lane** — else **`agents/NOUSAGENT_ITERATION_TASK.md`**, one step.
+1. **Repo sync (do not block on this).** Sync tick (`agent-cycle-sync.sh` at think start) runs `apply-git-bundle.sh` + `git-pull-and-deploy.sh`. Think must **not** run `git pull` / `git pull --ff-only` via the terminal tool. If the tree is dirty or HTTPS pull would fail (private `Linuxbox` repo — sync is PC→box **git bundle**), **skip sync and continue** to the next lane. **Never** open an inbox question solely for git pull / "terminal safety guard". Optional read-only: `git status -sb`.
+2. **Urgent `[ops]` / Fix-this** user-tasks — Hub Fix this first (`agents/USER_TASKS_TASK.md`).
+3. **SAME TIER — product boards + campaign progress (round-robin)** — pick **one** open `[ ]` from continuous boards (state: `agents/state/think-continuous-rr.json`), flip `[ ]`→`[x]` + Done line (enforce-lane safety net):
+   - **Product:** `agents/tableslop-progress.md` · `agents/PIXI_RP_PROGRESS.md` · `agents/portfolio-progress.md` (free-first; portfolio preview-only)
+   - **Campaign (ops think):** `campaigns/nyc-mafia-dnd/reports/progress.md` · `campaigns/tropic-gooner/reports/progress.md`
+   - ~~**SpaceQuest**~~ — **ARCHIVED** 2026-07-24. Skip.
+   - **Hunter: The Reckoning** — dedicated pod `hunter-reckoning` / `progress-hunter.md` — **not** this RR (still in has-work markers).
+4. **Other product user-tasks** (`tableslop` / `pixi-rp` / `abhinavall-portfolio`) when continuous boards are empty.
+5. **Remaining open user-tasks** (mazda3, infranet, linuxbox non-ops, …).
+6. **Other markers (after product+campaign)** — dashboard backlog, maintenance, system integrity, ponytail, deepsec (if enabled), nousagent — one `[ ]` via has-work reason.
+7. **Education (quiet continuous)** — `agents/self-improvement-progress.md` / `SELF_IMPROVEMENT_TASK.md` — human drills (math, speech, tech, **EM styles → teaching**) → `reports/self-improvement/` and/or `reports/education/` and/or one Hub Inbox `si-*`/`edu-*` (free-first; distinct from AI-stack `SELF_IMPROVE_PROGRESS.md`). Arch: `docs/agents/continuous-lanes.md`.
+8. **Research (quiet continuous)** — `agents/research-studies-progress.md` / `RESEARCH_STUDIES_TASK.md` — **after education, before IDLE**. Studies / free-model evals → `reports/research/`. Free-only (`agents/research-studies-models.json`; default Nemotron-super). Not education; not X **research-bookmarks**. Sibling-owned — do not wipe.
+9. **Research bookmarks** — open `research-bookmarks` user-tasks / `agents/RESEARCH_BOOKMARKS_TASK.md` (usually via user-tasks). **No** X API.
+
+Specs: tableslop → `TABLESLOP_PROJECT_TASK.md`; pixi → `PIXI_RP_TASK.md`; portfolio → `PORTFOLIO_REDESIGN_TASK.md` / `BLOG_AI_LANE_TASK.md`; nyc → `NYC_MAFIA_DND_TASK.md`; tropic → `TROPIC_GOONER_TASK.md`; dashboard → `LINUXBOX_DASHBOARD_TASK.md`; education → `SELF_IMPROVEMENT_TASK.md`; research → `RESEARCH_STUDIES_TASK.md`.
 
 If nothing unchecked → reply **IDLE** only.
 
@@ -41,13 +56,18 @@ When a lane finishes all checkboxes → skip it until human adds work.
 
 | Lane | Spec | Progress |
 |------|------|----------|
-| **SpaceQuest** | `agents/SPACEQUEST_WORLDBUILDING_TASK.md` | `campaigns/spacequest/reports/progress.md` |
+| ~~**SpaceQuest**~~ | ARCHIVED on USB PERSONAL | see `campaigns/SPACE QUEST-ARCHIVED.md` |
 | **Hunter: The Reckoning** | `agents/HUNTER_RECKONING_TASK.md` (pod `hunter-reckoning`, RP $5) | `campaigns/tropic-gooner/reports/progress-hunter.md` |
 | **Tropic Gooner** (island/map) | `agents/TROPIC_GOONER_TASK.md` (RP pod) | `campaigns/tropic-gooner/reports/progress.md` |
-| **NYC Mafia × D&D** | `agents/NYC_MAFIA_DND_TASK.md` | `campaigns/nyc-mafia-dnd/reports/progress.md` |
+| **NYC Mafia × D&D** | `agents/NYC_MAFIA_DND_TASK.md` | `campaigns/nyc-mafia-dnd/worldbuilding/progress.md` |
 | **Dashboard** | `agents/LINUXBOX_DASHBOARD_TASK.md` | `agents/LINUXBOX_DASHBOARD_BACKLOG.md` |
 | **System integrity** | `agents/SYSTEM_INTEGRITY_TASK.md` | `agents/system-integrity-progress.md` |
 | **Ponytail cleanup** | `agents/PONYTAIL_CLEANUP_TASK.md` | `agents/PONYTAIL_CLEANUP_BOARD.md` |
+| **tableslop (map / v1)** | `agents/TABLESLOP_PROJECT_TASK.md` | `agents/tableslop-progress.md` (+ `projects/tableslop/manifest.json`) |
+| **Pixi RP** | `agents/PIXI_RP_TASK.md` | `agents/PIXI_RP_PROGRESS.md` |
+| **Portfolio / blog (continuous)** | `agents/PORTFOLIO_REDESIGN_TASK.md` / `BLOG_AI_LANE_TASK.md` | `agents/portfolio-progress.md` |
+| **Education (human SI)** | `agents/SELF_IMPROVEMENT_TASK.md` | `agents/self-improvement-progress.md` → `reports/self-improvement/` + `reports/education/` |
+| **Research (studies / benchmarks)** | `agents/RESEARCH_STUDIES_TASK.md` | `agents/research-studies-progress.md` → `reports/research/` (models: `research-studies-models.json`) |
 | **Security (deepsec, optional)** | `agents/SECURITY_CODE_AUDIT_TASK.md` | `agents/security-code-audit-progress.md` + `agents/deepsec-config.json` |
 
 ## Legacy lanes (USB)

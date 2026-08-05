@@ -1,0 +1,15 @@
+[Unit]
+Description=abhinavall.net tunnel origin proxy (8780 -> portfolio :3000)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=abhinav
+WorkingDirectory=/home/abhinav/agent-dump/scripts/linuxbox
+ExecStart=/usr/bin/node /home/abhinav/agent-dump/scripts/linuxbox/tunnel-origin-proxy.js
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

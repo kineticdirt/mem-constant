@@ -11,6 +11,8 @@ WorkingDirectory=/home/abhinav/agent-dump/scripts/linuxbox
 # 0.0.0.0 so Tailscale/LAN can hit :8768; cloudflared still uses 127.0.0.1
 Environment=CAMPAIGNS_AVAIL_HOST=0.0.0.0
 Environment=CAMPAIGNS_AVAIL_PORT=8768
+Environment=AGENT_DUMP=/home/abhinav/agent-dump
+# Optional: set CAMPAIGNS_TRACKER_KEY in a drop-in to require X-Tracker-Key on POST
 ExecStart=/usr/bin/node /home/abhinav/agent-dump/scripts/linuxbox/campaigns-availability-server.js
 Restart=on-failure
 RestartSec=3

@@ -1,0 +1,12 @@
+[Unit]
+Description=Hermes agent pod scheduler (manifest-driven)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=abhinav
+WorkingDirectory=/home/abhinav/agent-dump
+ExecStart=/bin/bash /home/abhinav/agent-dump/scripts/linuxbox/agent-pod-scheduler.sh
+
+[Install]
+WantedBy=multi-user.target

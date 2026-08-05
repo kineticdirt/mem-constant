@@ -12,70 +12,123 @@
   },
   "profiles": {
     "think": {
-      "pool": "ops",
+      "pool": "free",
       "chain": [
-        "nousresearch/hermes-4-70b",
-        "stepfun/step-3.7-flash",
-        "deepseek/deepseek-v4-flash",
-        "z-ai/glm-5.2"
-      ]
+        "poolside/laguna-xs-2.1:free",
+        "inclusionai/ling-3.0-flash:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "cohere/north-mini-code:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "poolside/laguna-s-2.1:free",
+        "google/gemma-4-31b-it:free",
+        "openai/gpt-oss-20b:free",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-nano-9b-v2:free"
+      ],
+      "note": "Free-first wide pool (2026-07-29): SoT agents/model-budget/think-free-swap.json. Hermes fallback_providers does not swap same-provider ids — outer think tick hermes -m rotate is real failover. After FULL free list 429: mid-day re-probe before paid DeepSeek (THINK_PAID_MODEL). Skip content-safety / VL-only free ids."
     },
     "chat": {
       "pool": "ops",
       "chain": [
-        "nousresearch/hermes-4-70b",
-        "stepfun/step-3.7-flash",
+        "poolside/laguna-xs-2.1:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
         "deepseek/deepseek-v4-flash",
         "z-ai/glm-5.2"
       ],
-      "note": "Dashboard Chat only — OpenRouter; never pc-bonsai-failover patched."
+      "note": "Dashboard Chat (interactive, not every-minute). Free-first; DeepSeek is the paid head, GLM 5.2 its backup."
     },
     "meta": {
       "pool": "ops",
       "chain": [
-        "z-ai/glm-5.2",
-        "stepfun/step-3.7-flash",
+        "cohere/north-mini-code:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
         "deepseek/deepseek-v4-flash",
-        "nousresearch/hermes-4-70b"
-      ]
+        "z-ai/glm-5.2"
+      ],
+      "note": "Free code model first (2026-07-24). GLM 5.2 kept only as DeepSeek's backup. Step removed."
     },
     "code": {
       "pool": "ops",
       "chain": [
-        "z-ai/glm-5.2",
-        "stepfun/step-3.7-flash",
+        "cohere/north-mini-code:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
         "deepseek/deepseek-v4-flash",
-        "nousresearch/hermes-4-70b"
-      ]
+        "z-ai/glm-5.2"
+      ],
+      "note": "Free code model first (2026-07-24). GLM 5.2 kept only as DeepSeek's backup. Step removed."
     },
     "fast": {
       "pool": "free",
       "chain": [
         "poolside/laguna-xs-2.1:free",
-        "qwen/qwen3-next-80b-a3b-instruct:free",
+        "inclusionai/ling-3.0-flash:free",
         "deepseek/deepseek-v4-flash"
       ],
-      "note": "Free-first ticks: Laguna then Qwen; DeepSeek paid last resort. hy3 removed (sunset 2026-07-21)."
+      "note": "Free-first ticks; DeepSeek paid last resort. Qwen :free removed 2026-07-24 (delisted from OpenRouter — paid variant only)."
     }
   },
   "chat_profile_chain": ["chat", "think", "meta", "code"],
-  "chat_paid_model_note": "Dashboard Chat free-first. Brief/minor paid head = DeepSeek; mid = stepfun/step-3.7-flash before Hermes/GLM; workshop prefers Step then DeepSeek then quality. See agents/model-budget/config.json.",
+  "chat_paid_model_note": "Dashboard Chat free-first. Paid head = DeepSeek; GLM 5.2 sits behind it as DeepSeek's backup (user directive 2026-07-24). Step removed. See agents/model-budget/config.json.",
   "chat_venice_last_resort": "cognitivecomputations/dolphin-mistral-24b-venice-edition",
   "chat_paid_minor": "deepseek/deepseek-v4-flash",
-  "chat_paid_mid": "stepfun/step-3.7-flash",
+  "chat_paid_mid": "z-ai/glm-5.2",
   "chat_free_models": [
     "poolside/laguna-xs-2.1:free",
-    "qwen/qwen3-next-80b-a3b-instruct:free"
+    "inclusionai/ling-3.0-flash:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "cohere/north-mini-code:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "poolside/laguna-s-2.1:free",
+    "google/gemma-4-31b-it:free",
+    "openai/gpt-oss-20b:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-nano-9b-v2:free"
   ],
   "chat_free_last_resort": [
     "poolside/laguna-xs-2.1:free",
-    "qwen/qwen3-next-80b-a3b-instruct:free"
+    "inclusionai/ling-3.0-flash:free",
+    "cohere/north-mini-code:free",
+    "openai/gpt-oss-20b:free"
   ],
   "chat_free_first": true,
+  "dead_models": {
+    "_doc": "Probe-verified nonexistent/delisted. Leaving these in a chain silently burns a retry hop on every call. Re-probe: .staging/model-probe/probe_free_models.py",
+    "moonshotai/kimi-k3-free": {
+      "confirmed": "2026-07-24",
+      "evidence": "ZenMux /v1/chat/completions -> HTTP 404 {'type':'invalid_model'}; absent from live 145-model catalog",
+      "note": "Phantom slug from a 2026-07-18 picker screenshot. Real moonshotai/kimi-k3 exists but is PAID $3/M in, $15/M out — do not substitute."
+    },
+    "qwen/qwen3-next-80b-a3b-instruct:free": {
+      "confirmed": "2026-07-24",
+      "evidence": "absent from OpenRouter /models zero-cost set; only the paid qwen/qwen3-next-80b-a3b-instruct remains",
+      "note": "Was fast+think fallback and dashboard Chat free model — both chains were falling through to paid."
+    }
+  },
   "sunset_models": {
     "tencent/hy3:free": {
       "sunset": "2026-07-21",
       "note": "Removed from primary chains before sunset — do not re-add."
+    }
+  },
+  "route_404_policy": {
+    "_doc": "Human policy 2026-07-20: a 404 may mean the AI route is gone OR never existed. Demote/skip for live ticks immediately. Do NOT delete a model from options until it has been confirmed nonexistent on DAILY probes for OVER ONE WEEK. Only then remove it as an option.",
+    "min_daily_miss_days": 7,
+    "actions_on_404": ["demote_from_primary", "keep_on_watchlist", "do_not_delete_yet"],
+    "delete_only_after": "7 consecutive daily confirms that the route/model is nonexistent"
+  },
+  "route_watchlist": {
+    "nousresearch/hermes-4-70b": {
+      "first_404_at": "2026-07-20",
+      "symptom": "OpenRouter HTTP 404 — no endpoints support tool use (and /models probe 404)",
+      "status": "watching",
+      "daily_miss_count": 1,
+      "last_checked": "2026-07-20",
+      "delete_eligible_on_or_after": "2026-07-28",
+      "note": "Kept as option in meta/code chains + watchlist. Not think/chat primary. Delete ONLY after ≥7 daily confirms still nonexistent."
     }
   },
   "delist_patterns": [

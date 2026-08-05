@@ -7,7 +7,10 @@ Topics for the **daily Hermes digest** (`situation-hermes` cron on linuxbox). In
 - US macro and Fed / rates (markets)
 - Middle East and Ukraine geopolitical developments
 - AI industry: models, regulation, major product launches
+- Science & research: climate, physics, biology signals with policy impact
+- Policy / law: national-security law, platform regulation, cyber law
 - Cybersecurity: major breaches and zero-days
+- OSINT: verifiable open-source investigations (conflict, disinfo)
 - Tech antitrust and platform policy (optional)
 
 ## Rules for the agent
@@ -15,6 +18,7 @@ Topics for the **daily Hermes digest** (`situation-hermes` cron on linuxbox). In
 - Prefer **web_search** only (not browser) unless a topic needs live interaction.
 - Cite URLs; no invented headlines.
 - If a topic had no meaningful change in 48h, say so in one line.
+- Prefer primary reporting over vendor blogs; note when a claim is contested.
 
 ## Your edits
 

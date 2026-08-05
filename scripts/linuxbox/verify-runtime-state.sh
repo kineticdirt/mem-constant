@@ -6,7 +6,8 @@
 #   3. dashboard :8790 answers 200 (skipped when service not present, e.g. PC)
 #   4. roster API count >= manifest min_visible
 # On failure: append agents/state/dashboard-deploy-alerts.jsonl + open a
-# human-inbox question (stable per-day id), exit 1.
+# human-inbox question (stable per-day id + fail_sig dedupe), exit 1.
+# On PASS: auto-close any open runtime-verify-fail-* (stale incidents).
 set -uo pipefail
 
 REPO="${LINUXBOX_AGENT_DUMP:-${HOME}/agent-dump}"
@@ -102,8 +103,110 @@ else
   echo "verify: linuxbox-status service not present here — skipping live checks"
 fi
 
+# 5. GM-drawn tableslop borders (potato-owned regions-ui.json)
+RUI_FILE="${REPO}/campaigns/tropic-gooner/map/regions-ui.json"
+if [[ -f "${RUI_FILE}" ]]; then
+  if ! python3 - "${RUI_FILE}" "${REPO}/campaigns/tropic-gooner/map" <<'PY'
+import glob, json, sys
+from pathlib import Path
+
+rui_path, map_dir = sys.argv[1], sys.argv[2]
+
+def poly_count(path):
+    data = json.load(open(path, encoding="utf-8"))
+    areas = data.get("areas") or []
+    if isinstance(areas, dict):
+        areas = list(areas.values())
+    polys = {}
+    for a in areas:
+        if not isinstance(a, dict) or a.get("shape") == "ellipse":
+            continue
+        pts = a.get("points") or ""
+        n = 0
+        if isinstance(pts, str) and pts.strip():
+            n = len([x for x in pts.replace(",", " ").split() if x.strip()]) // 2
+        elif isinstance(pts, list):
+            n = len(pts)
+        if n >= 3:
+            polys[a.get("id", "?")] = n
+    return data.get("version"), polys
+
+live_ver, live_polys = poly_count(rui_path)
+bak_best = {}
+for bak in sorted(glob.glob(str(Path(map_dir) / "regions-ui.json.bak-*"))):
+    try:
+        _, polys = poly_count(bak)
+        if len(polys) > len(bak_best):
+            bak_best = polys
+    except Exception:
+        pass
+
+if not live_polys and bak_best:
+    detail = (
+        f"live_v={live_ver} gm_polys=0; richest_bak has "
+        + ",".join(f"{k}:{v}" for k, v in sorted(bak_best.items()))
+    )
+    print("FAIL", detail)
+    raise SystemExit(1)
+if live_polys:
+    print(
+        "verify: gm-borders ok v=%s polys=%s"
+        % (live_ver, ",".join(f"%s:%d" % (k, v) for k, v in sorted(live_polys.items())))
+    )
+PY
+  then
+    FAILS+=("tableslop GM borders missing (regions-ui.json empty while backup has polys)")
+  fi
+  # 5b. watermark vert baseline (catches partial regression + stub vs known-good)
+  GUARD="${REPO}/scripts/linuxbox/tableslop-gm-borders-guard.sh"
+  if [[ -f "${GUARD}" ]]; then
+    if ! bash "${GUARD}"; then
+      FAILS+=("tableslop GM borders watermark regression (tableslop-gm-borders-guard.sh)")
+    fi
+  fi
+fi
+
 if [[ ${#FAILS[@]} -eq 0 ]]; then
   echo "verify-runtime-state: PASS (${CONTEXT})"
+  # Auto-close stale open runtime-verify-* (incident fixed; stop clogging Hub Inbox)
+  python3 - "${REPO}" "${CONTEXT}" <<'PY' || true
+import json, os, sys, datetime
+repo, context = sys.argv[1], sys.argv[2]
+inbox = os.path.join(repo, "agents", "state", "human-inbox.json")
+try:
+    data = json.load(open(inbox, encoding="utf-8"))
+except Exception:
+    raise SystemExit(0)
+if isinstance(data, list):
+    raise SystemExit(0)
+if not isinstance(data, dict):
+    raise SystemExit(0)
+data.setdefault("open", [])
+data.setdefault("answered", [])
+now = datetime.datetime.utcnow().isoformat() + "Z"
+still_open, closed = [], []
+for q in data.get("open") or []:
+    if not isinstance(q, dict):
+        continue
+    qid = str(q.get("id") or "")
+    if qid.startswith("runtime-verify-fail-") and not q.get("answer"):
+        item = dict(q)
+        item["answer"] = (
+            "YES — auto-closed: verify PASS now (%s). Prior failure was stale/fixed."
+            % context
+        )
+        item["answered_at"] = now
+        item["status"] = "answered"
+        data["answered"].insert(0, item)
+        closed.append(qid)
+    else:
+        still_open.append(q)
+if closed:
+    data["open"] = still_open
+    json.dump(data, open(inbox, "w", encoding="utf-8"), indent=2)
+    open(inbox, "a", encoding="utf-8").write("\n")
+    print("verify: auto-closed inbox %s" % ", ".join(closed))
+PY
   exit 0
 fi
 
@@ -115,25 +218,77 @@ for f in "${FAILS[@]}"; do
     "${CONTEXT}" "${f//\"/\'}" "$(date -u -Iseconds)" >> "${ALERT_LOG}"
 done
 
-# Open a human-inbox question (stable per-day id; never re-ask an answered one)
+# Open a human-inbox question (stable per-day id; never re-ask answered day-id;
+# skip identical failure signature when already open or answered NO/known-noise)
 python3 - "${REPO}" "${CONTEXT}" "$(printf '%s; ' "${FAILS[@]}")" <<'PY' || true
-import json, os, sys, datetime
+import hashlib, json, os, re, sys, datetime
 repo, context, detail = sys.argv[1], sys.argv[2], sys.argv[3]
 inbox = os.path.join(repo, "agents", "state", "human-inbox.json")
 try:
     data = json.load(open(inbox, encoding="utf-8"))
 except Exception:
     data = {"open": [], "answered": []}
+# ponytail: agents sometimes write a bare array — normalize before append
+if isinstance(data, list):
+    open_items, answered = [], []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        if item.get("answered_at") or item.get("status") == "answered" or item.get("answer"):
+            answered.append(item)
+        else:
+            open_items.append(item)
+    data = {"open": open_items, "answered": answered}
+elif not isinstance(data, dict):
+    data = {"open": [], "answered": []}
+data.setdefault("open", [])
+data.setdefault("answered", [])
+
+def norm_fail_detail(s):
+    # Collapse whitespace; keep concrete markers (dash-build ids, paths) in sig
+    return re.sub(r"\s+", " ", (s or "").strip().lower())
+
+fail_sig = hashlib.sha1(norm_fail_detail(detail).encode("utf-8")).hexdigest()[:16]
 qid = "runtime-verify-fail-%s" % datetime.datetime.utcnow().strftime("%Y%m%d")
-known = {q.get("id") for q in (data.get("open") or [])} | {
+known_ids = {q.get("id") for q in (data.get("open") or [])} | {
     q.get("id") for q in (data.get("answered") or [])
 }
-if qid not in known:
+
+def item_sig(q):
+    if not isinstance(q, dict):
+        return ""
+    if q.get("fail_sig"):
+        return str(q.get("fail_sig"))
+    ctx = str(q.get("context") or "")
+    m = re.search(r"failures:\s*(.*?)(?:\s*check agents/state|\s*$)", ctx, re.I | re.S)
+    blob = m.group(1) if m else ctx
+    return hashlib.sha1(norm_fail_detail(blob).encode("utf-8")).hexdigest()[:16]
+
+# Already open with same signature → do not stack another day-id
+for q in data.get("open") or []:
+    if str(q.get("id") or "").startswith("runtime-verify-fail-") and item_sig(q) == fail_sig:
+        print("verify: inbox already open for fail_sig=%s (%s)" % (fail_sig, q.get("id")))
+        raise SystemExit(0)
+
+# Answered NO / known-noise for this signature → do not re-fire identical alert
+_noise = re.compile(r"^(no\b)|known|noise|expected|intentional|ignore", re.I)
+for q in data.get("answered") or []:
+    if not str(q.get("id") or "").startswith("runtime-verify-fail-"):
+        continue
+    if item_sig(q) != fail_sig:
+        continue
+    ans = str(q.get("answer") or "")
+    if _noise.search(ans.strip()):
+        print("verify: skip inbox (answered NO/noise for fail_sig=%s)" % fail_sig)
+        raise SystemExit(0)
+
+if qid not in known_ids:
     data.setdefault("open", []).append(
         {
             "id": qid,
             "type": "ops",
             "from": "verify-runtime-state",
+            "fail_sig": fail_sig,
             "question": "Runtime state verification FAILED after a deploy/bundle apply. Roster/dashboard may have regressed. Investigate now?",
             "context": "Context: %s. Failures: %s Check agents/state/dashboard-deploy-alerts.jsonl and docs/runtime-state-protection.md. Options: YES = a human/PC agent should triage; NO = known/expected (e.g. intentional rollback)."
             % (context, detail),
@@ -143,6 +298,8 @@ if qid not in known:
     )
     json.dump(data, open(inbox, "w", encoding="utf-8"), indent=2)
     open(inbox, "a", encoding="utf-8").write("\n")
-    print("verify: opened inbox question %s" % qid)
+    print("verify: opened inbox question %s fail_sig=%s" % (qid, fail_sig))
+else:
+    print("verify: inbox id %s already known — not re-opening" % qid)
 PY
 exit 1

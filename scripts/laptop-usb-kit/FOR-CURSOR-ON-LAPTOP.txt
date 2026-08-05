@@ -96,6 +96,10 @@ Clone path (if not present):
   git clone https://github.com/kineticdirt/mem-constant.git agent-dump
   (or pull if clone exists)
 
+**Linuxbox workspace (Remote SSH):** read
+  E:\LAPTOP-LINUXBOX-WORKSPACE.txt
+  (git pull, ssh potato, Cursor Remote SSH to ~/agent-dump, [LAPTOP] OPEN CHANNEL)
+
 Coordination ledger (append [LAPTOP] lines before/after work):
   AI_GROUPCHAT.md  in repo root — pull before edit if using git remote.
 

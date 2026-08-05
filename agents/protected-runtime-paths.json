@@ -1,7 +1,7 @@
 {
-  "_doc": "Runtime-truth paths — potato is the source of truth for these while services run. Every wipe-capable script (git reset --hard, stash, PC push tarballs) MUST consult this file via scripts/linuxbox/protected-paths.py. Canonical contract: docs/runtime-state-protection.md.",
+  "_doc": "Runtime-truth paths \u2014 potato is the source of truth for these while services run. Every wipe-capable script (git reset --hard, stash, PC push tarballs) MUST consult this file via scripts/linuxbox/protected-paths.py. Canonical contract: docs/runtime-state-protection.md.",
   "version": 1,
-  "updated": "2026-07-15",
+  "updated": "2026-08-01",
   "types": {
     "versioned-json": "JSON with monotonic top-level `version`; on restore keep local when local.version >= incoming.version",
     "runtime-file": "single file; local (on-box) copy always wins over git/tarball",
@@ -12,29 +12,88 @@
       "glob": "campaigns/*/characters-registry.json",
       "type": "versioned-json",
       "backup": true,
-      "verify": { "api": "/api/characters-registry?campaign=tropic-gooner", "min_visible": 10 },
+      "verify": {
+        "api": "/api/characters-registry?campaign=tropic-gooner",
+        "min_visible": 10
+      },
       "note": "GM roster truth; dashboard bumps version on every write"
     },
-    { "glob": "agents/user-tasks.json", "type": "runtime-file", "backup": true, "note": "dashboard-created tasks live on potato" },
-    { "glob": "agents/archive-meta.json", "type": "runtime-file", "backup": true, "note": "appended by archive_meta.py on box" },
-    { "glob": "agents/swarm-queue.json", "type": "runtime-file", "backup": true, "note": "dequeued by swarm-dispatch.sh on box" },
-    { "glob": "agents/dashboard-lane-state.json", "type": "runtime-file", "backup": true },
+    {
+      "glob": "agents/user-tasks.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "dashboard-created tasks live on potato"
+    },
+    {
+      "glob": "agents/intel-trackers.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "Hub News/Intel feed list; _doc declares potato runtime SoT. 2026-08-04 20:30 EDT a git op on potato silently reverted the 30-feed runtime copy to a stale 4-feed git version (found by news-lane-expand). Local copy must win over git/tarball."
+    },
+    {
+      "glob": "agents/archive-meta.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "appended by archive_meta.py on box"
+    },
+    {
+      "glob": "agents/swarm-queue.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "dequeued by swarm-dispatch.sh on box"
+    },
+    {
+      "glob": "agents/dashboard-lane-state.json",
+      "type": "runtime-file",
+      "backup": true
+    },
+    {
+      "glob": "agents/model-budget/chat-catalog.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "Hub Chat Models picker rows. Untracked scp overlays were repeatedly clobbered/stale (sunset hy3, zero free after CHAT_SUNSET filter \u2192 empty Free head/fallback). Prefer ALSO committing to Linuxbox main so bundle deploys ship updates; explicit scp still wins. Do not re-add sunset ids (hy3, qwen:free, kimi-k3-free)."
+    },
     {
       "glob": "agents/state/**",
       "type": "runtime-dir",
       "backup": true,
-      "allow_push": ["agents/state/.gitkeep", "agents/state/multitask-locks/.gitkeep"],
-      "note": "chat-threads, human-inbox, multitask-locks, run-index, watermarks — all box runtime"
+      "allow_push": [
+        "agents/state/.gitkeep",
+        "agents/state/multitask-locks/.gitkeep"
+      ],
+      "note": "chat-threads, human-inbox, multitask-locks, run-index, watermarks \u2014 all box runtime"
     },
     {
       "glob": "campaigns/*/characters/portraits/**",
       "type": "runtime-dir",
       "backup": false,
-      "exclude": ["**/README.md"],
-      "note": "uploaded portrait images; big binaries — backed up separately, never git-owned"
+      "exclude": [
+        "**/README.md"
+      ],
+      "note": "uploaded portrait images; big binaries \u2014 backed up separately, never git-owned"
     },
-    { "glob": "campaigns/tropic-gooner/map/coords.json", "type": "runtime-file", "backup": true, "note": "tableslop edit-mode drag+save writes on box; PC deploys via push-tableslop-map.sh scp (explicit wins)" },
-    { "glob": "campaigns/tropic-gooner/map/map.json", "type": "runtime-file", "backup": true },
-    { "glob": "campaigns/tropic-gooner/map/regions-ui.json", "type": "runtime-file", "backup": true }
+    {
+      "glob": "campaigns/tropic-gooner/map/coords.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "tableslop edit-mode drag+save writes on box; PC deploys via push-tableslop-map.sh scp (explicit wins)"
+    },
+    {
+      "glob": "campaigns/tropic-gooner/map/map.json",
+      "type": "runtime-file",
+      "backup": true
+    },
+    {
+      "glob": "campaigns/tropic-gooner/map/regions-ui.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "Potato owns live GM Draw\u2192Save borders. Never SCP empty PC stubs over potato; pull potato\u2192PC to sync. push-tableslop-map.sh excludes by default (PUSH_REGIONS_UI=1 only after non-empty pull). Same class as characters-registry."
+    },
+    {
+      "glob": "campaigns/tropic-gooner/map/regions-ui.draft.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "Auto-poly draft backup; potato-owned; do not clobber with empty PC copy"
+    }
   ]
 }

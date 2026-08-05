@@ -1,0 +1,8 @@
+[Unit]
+Description=Run agent compiled-intent static gate
+
+[Service]
+Type=oneshot
+User=abhinav
+WorkingDirectory=/home/abhinav/agent-dump
+ExecStart=/bin/bash /home/abhinav/agent-dump/scripts/linuxbox/agent-intent-gate.sh

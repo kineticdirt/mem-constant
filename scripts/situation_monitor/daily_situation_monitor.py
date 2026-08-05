@@ -22,8 +22,42 @@ from typing import Iterable
 
 
 DEFAULT_TIMEOUT_SECONDS = 15
-DEFAULT_MAX_ITEMS_PER_SOURCE = 8
-DEFAULT_MAX_HEADLINES = 30
+# Cap per source so one vendor blog cannot dominate when others fail.
+DEFAULT_MAX_ITEMS_PER_SOURCE = 4
+DEFAULT_MAX_HEADLINES = 56
+# Cap per category so markets/cyber cannot bury science/policy/OSINT.
+DEFAULT_MAX_PER_CATEGORY = 8
+# Soft-cap BBC family so briefs are not UK-wire wallpaper when other feeds are healthy.
+DEFAULT_MAX_BBC_FAMILY = 2
+BBC_FAMILY_RE = re.compile(r"^BBC\b", re.I)
+
+# Source-tag → brief category (prefer tags over title keywords).
+TAG_TO_CATEGORY = {
+    "geopolitics": "geopolitics",
+    "world": "geopolitics",
+    "markets": "markets",
+    "macro": "markets",
+    "ai": "ai",
+    "cybersecurity": "cybersecurity",
+    "cyber": "cybersecurity",
+    "science": "science",
+    "policy": "policy",
+    "osint": "osint",
+    "tech": "tech",
+    "social": "tech",
+}
+
+CATEGORY_ORDER = (
+    "geopolitics",
+    "markets",
+    "ai",
+    "science",
+    "policy",
+    "cybersecurity",
+    "osint",
+    "tech",
+    "general",
+)
 
 
 @dataclass
@@ -117,17 +151,81 @@ def _normalize_whitespace(value: str) -> str:
 
 
 def _category_for_headline(headline: Headline) -> str:
-    text = f"{headline.title} {' '.join(headline.tags)}".lower()
+    # Prefer explicit source tags (stops cyber titles landing in "ai" via keyword "AI").
+    for tag in headline.tags:
+        mapped = TAG_TO_CATEGORY.get(tag.lower().strip())
+        if mapped:
+            return mapped
+    text = headline.title.lower()
     rules = [
-        ("geopolitics", ["war", "conflict", "sanction", "treaty", "border", "nato", "geopolit"]),
-        ("markets", ["stocks", "bond", "inflation", "rate", "fed", "market", "economy", "oil"]),
-        ("ai", ["ai", "model", "llm", "gpu", "inference", "openai", "anthropic", "gemma"]),
         ("cybersecurity", ["breach", "ransomware", "vulnerability", "cyber", "exploit", "malware"]),
+        ("geopolitics", ["war", "conflict", "sanction", "treaty", "border", "nato", "geopolit"]),
+        ("markets", ["stocks", "bond", "inflation", "fed ", "market", "economy", "oil price"]),
+        ("ai", [" llm", "llm ", "openai", "anthropic", "inference", "foundation model"]),
+        ("science", ["climate", "genome", "physics", "astronomy", "biology", "quantum"]),
+        ("policy", ["regulation", "congress", "sanctions law", "executive order"]),
+        ("osint", ["open source intel", "satellite imagery", "geolocat"]),
     ]
     for category, keywords in rules:
         if any(k in text for k in keywords):
             return category
+    if " ai" in f" {text}" or text.startswith("ai ") or "artificial intelligence" in text:
+        return "ai"
     return "general"
+
+
+def _categorize_headlines(
+    headlines: Iterable[Headline],
+    max_headlines: int,
+    max_per_category: int = DEFAULT_MAX_PER_CATEGORY,
+    max_bbc_family: int = DEFAULT_MAX_BBC_FAMILY,
+) -> dict[str, list[Headline]]:
+    categorized: dict[str, list[Headline]] = {}
+    bbc_per_cat: dict[str, int] = {}
+    seen_titles: set[str] = set()
+    kept = 0
+    for item in headlines:
+        if kept >= max_headlines:
+            break
+        title_key = item.title.lower()
+        if title_key in seen_titles:
+            continue
+        cat = _category_for_headline(item)
+        bucket = categorized.setdefault(cat, [])
+        if len(bucket) >= max_per_category:
+            continue
+        if BBC_FAMILY_RE.match(item.source or ""):
+            if bbc_per_cat.get(cat, 0) >= max_bbc_family:
+                continue
+            bbc_per_cat[cat] = bbc_per_cat.get(cat, 0) + 1
+        bucket.append(item)
+        seen_titles.add(title_key)
+        kept += 1
+    return categorized
+
+
+def _write_stock_brief(out_dir: Path, run_at_utc: dt.datetime, categorized: dict[str, list[Headline]]) -> Path | None:
+    items = list(categorized.get("markets", [])) + list(categorized.get("macro", []))
+    if not items:
+        return None
+    stamp = run_at_utc.strftime("%Y%m%d-%H%M%S")
+    lines = [
+        f"# Daily Stock & Markets Brief ({run_at_utc.strftime('%Y-%m-%d %H:%M UTC')})",
+        "",
+        f"- Headlines: {len(items)}",
+        "",
+        "## Markets",
+    ]
+    for h in items:
+        link_part = f" ([link]({h.link}))" if h.link else ""
+        lines.append(f"- {h.title} — `{h.source}`{link_part}")
+    lines.append("")
+    content = "\n".join(lines)
+    dated = out_dir / f"stock-brief-{stamp}.md"
+    latest = out_dir / "LATEST-STOCK-BRIEF.md"
+    _write(dated, content)
+    _write(latest, content)
+    return dated
 
 
 def _render_markdown(
@@ -135,18 +233,26 @@ def _render_markdown(
     headlines: Iterable[Headline],
     max_headlines: int,
     source_errors: list[str],
+    sources_ok: int,
+    sources_total: int,
 ) -> str:
-    all_items = list(headlines)[:max_headlines]
-    categorized: dict[str, list[Headline]] = {}
-    for item in all_items:
-        categorized.setdefault(_category_for_headline(item), []).append(item)
-
+    categorized = _categorize_headlines(headlines, max_headlines)
+    all_items = []
+    for group in categorized.values():
+        all_items.extend(group)
     lines: list[str] = []
     lines.append(f"# Daily Situation Brief ({run_at_utc.strftime('%Y-%m-%d %H:%M UTC')})")
     lines.append("")
     lines.append("## Snapshot")
     lines.append(f"- Headlines captured: {len(all_items)}")
-    lines.append(f"- Categories present: {', '.join(sorted(categorized.keys())) if categorized else 'none'}")
+    lines.append(f"- Sources OK: {sources_ok}/{sources_total}")
+    if categorized:
+        counts = ", ".join(
+            f"{cat}={len(categorized[cat])}" for cat in CATEGORY_ORDER if cat in categorized
+        )
+        lines.append(f"- By category: {counts}")
+    else:
+        lines.append("- Categories present: none")
     lines.append("")
     lines.append("## Priority Watchlist")
     watchlist = _build_watchlist(categorized)
@@ -155,7 +261,9 @@ def _render_markdown(
     if not watchlist:
         lines.append("- No watchlist items inferred from current sources.")
 
-    for category in sorted(categorized.keys()):
+    for category in CATEGORY_ORDER:
+        if category not in categorized:
+            continue
         lines.append("")
         lines.append(f"## {category.title()}")
         for h in categorized[category]:
@@ -166,7 +274,7 @@ def _render_markdown(
     lines.append("")
     lines.append("## Mem-Constant Handoff Draft")
     lines.append("Promote to archive only if still relevant after current milestone:")
-    for item in watchlist[:5]:
+    for item in watchlist[:6]:
         lines.append(f"- {item}")
     lines.append("")
     lines.append("Keep operational continuity in working cache:")
@@ -185,12 +293,12 @@ def _render_markdown(
 
 def _build_watchlist(categorized: dict[str, list[Headline]]) -> list[str]:
     watchlist: list[str] = []
-    for category in ("geopolitics", "markets", "ai", "cybersecurity"):
+    for category in ("geopolitics", "markets", "ai", "science", "policy", "cybersecurity", "osint"):
         items = categorized.get(category, [])
         if not items:
             continue
         sample = items[0]
-        watchlist.append(f"{category.title()}: monitor '{sample.title}'")
+        watchlist.append(f"{category.title()}: monitor '{sample.title}' ({sample.source})")
     return watchlist
 
 
@@ -277,17 +385,24 @@ def main() -> int:
         except (urllib.error.URLError, ET.ParseError, TimeoutError, OSError) as exc:
             source_errors.append(f"{source.name}: {exc}")
 
+    sources_ok = len(sources) - len(source_errors)
     markdown = _render_markdown(
         run_at_utc=run_at_utc,
         headlines=all_headlines,
         max_headlines=args.max_headlines,
         source_errors=source_errors,
+        sources_ok=sources_ok,
+        sources_total=len(sources),
     )
 
     stamp = run_at_utc.strftime("%Y%m%d-%H%M%S")
     output_path = out_dir / f"situation-brief-{stamp}.md"
+    latest_path = out_dir / "LATEST-BRIEF.md"
     _write(output_path, markdown)
+    _write(latest_path, markdown)
 
+    categorized = _categorize_headlines(all_headlines, args.max_headlines)
+    stock_path = _write_stock_brief(out_dir, run_at_utc, categorized)
     watchlist = []
     for line in markdown.splitlines():
         if line.startswith("- ") and ": monitor '" in line:
@@ -302,7 +417,10 @@ def main() -> int:
             f"""
             OK: wrote situation brief
             - output: {output_path}
-            - headlines: {len(all_headlines)}
+            - latest: {latest_path}
+            - stock_brief: {stock_path or "none (no markets headlines)"}
+            - headlines_raw: {len(all_headlines)}
+            - sources_ok: {sources_ok}/{len(sources)}
             - source_errors: {len(source_errors)}
             """
         ).strip()

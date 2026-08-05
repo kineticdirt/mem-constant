@@ -9,10 +9,10 @@ HERMES_SCRIPTS="${HOME}/.hermes/scripts"
 
 mkdir -p "${HERMES_SCRIPTS}"
 install -m 755 "${REPO}/scripts/website/abhinavall_check.sh" "${HERMES_SCRIPTS}/abhinavall-check.sh"
-install -m 755 "${REPO}/scripts/website/abhinavall_cleanup.sh" "${HERMES_SCRIPTS}/abhinavall-cleanup.sh"
+install -m 755 "${REPO}/scripts/website/abhinavall-cleanup.sh" "${HERMES_SCRIPTS}/abhinavall-cleanup.sh"
 
 HERMES_PROMPT="$(cat <<'EOF'
-Workdir /home/abhinav/agent-dump. Read agents/WEBSITE_ABHINAVALL.md. Use web_extract on https://abhinavall.net/ only (not browser). If /media/abhinav/PERSONAL is mounted, write report to /media/abhinav/PERSONAL/agent-work/abhinavall-net/reports/review-YYYYMMDD.md (today UTC); else ~/agent-dump/reports/website-abhinavall/reports/. Sections: Site status, Content freshness (1 paragraph), Outbound links spot-check (GitHub/LinkedIn if linked), Suggested optional updates (ideas only — do not deploy). Max 800 words. Then run: bash scripts/website/abhinavall_cleanup.sh with the same work root you used. Do not modify the live website.
+Workdir /home/abhinav/agent-dump. Read agents/WEBSITE_ABHINAVALL.md. Use web_extract on https://abhinavall.net/ only (not browser). If /media/abhinav/PERSONAL is mounted, write report to /media/abhinav/PERSONAL/agent-work/abhinavall-net/reports/review-YYYYMMDD.md (today UTC); else ~/agent-dump/reports/website-abhinavall/reports/. Sections: Site status, Content freshness (1 paragraph), Outbound links spot-check (GitHub/LinkedIn if linked), Suggested optional updates (ideas only — do not deploy). Max 800 words. Then run: bash scripts/website/abhinavall-cleanup.sh with the same work root you used. Do not modify the live website.
 EOF
 )"
 

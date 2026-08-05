@@ -58,6 +58,6 @@ EOF
 cp -f "${out}" "${WORK_ROOT}/reports/LATEST-CHECK.md"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-bash "${SCRIPT_DIR}/abhinavall_cleanup.sh" "${WORK_ROOT}"
+bash "${SCRIPT_DIR}/abhinavall-cleanup.sh" "${WORK_ROOT}"
 
 echo "OK: ${out}"

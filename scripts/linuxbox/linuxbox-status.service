@@ -1,0 +1,19 @@
+[Unit]
+Description=linuxbox agent control dashboard (localhost:8790)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=abhinav
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+WorkingDirectory=/home/abhinav/agent-dump/scripts/linuxbox
+ExecStart=/usr/bin/node /home/abhinav/agent-dump/scripts/linuxbox/linuxbox-status-server.js
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=10
+SendSIGKILL=yes
+
+[Install]
+WantedBy=multi-user.target

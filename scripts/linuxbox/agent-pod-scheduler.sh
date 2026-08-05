@@ -50,6 +50,78 @@ now = time.time()
 sys.path.insert(0, str(Path(repo) / "scripts" / "linuxbox"))
 from resource_governor import plan_tick, write_telemetry
 
+def maybe_cursor_offload(plan, state, now, repo, manifest, meta_py):
+    """Think deferred SOLELY by the disk-swap gate while its cooldown elapsed:
+    offload ONE lane item to the Cursor Auto lane, in the background (never
+    blocks the tick). Conservative gates (2026-08-05, GM-approved):
+    MemAvailable > 600MB and at most one dispatch per 30min (stamp file).
+    cursor-agent-run.sh already forces CURSOR_SDK_AUTO_ONLY=1 (Auto only).
+    Kill-switch: CURSOR_OFFLOAD=0. If RAM is tighter, stay silent — zram and
+    the weekly flush are the real fix, not a heavy agent on a 2GB box.
+    """
+    defer = str(plan.get("defer") or "")
+    if not defer.startswith("think:swap="):
+        return
+    if os.environ.get("CURSOR_OFFLOAD", "1") != "1":
+        return
+    telem = plan.get("telemetry") or {}
+    if float(telem.get("avail_mb") or 0) <= 600:
+        return
+    try:
+        cfg = json.loads((Path(repo) / "agents" / "resource-governor.json").read_text())
+        cooldown = int(cfg.get("think_cooldown_sec", 480))
+    except Exception:
+        cooldown = 480
+    last_think = float((state.get("last_run") or {}).get("think", 0) or 0)
+    if last_think and (now - last_think) < cooldown:
+        return
+    stamp = Path(repo) / "agents" / "state" / "cursor-agent-dispatch.last"
+    if stamp.is_file():
+        try:
+            ts = datetime.fromisoformat(
+                stamp.read_text().strip().replace("Z", "+00:00")
+            ).timestamp()
+        except Exception:
+            ts = stamp.stat().st_mtime
+        if (now - ts) < 1800:
+            return
+    prompt = (
+        "Think-lane offload (Hermes deferred by disk-swap gate; Cursor Auto lane). "
+        "Workdir: agent-dump. Complete exactly ONE concrete step from the think lane: "
+        "read agents/CURRENT_TASK.md and work the first lane with unchecked [ ] items "
+        "(lane rotation per CLAUDE.md). If nothing actionable, reply IDLE only. "
+        "Append one [LINUX] line to AI_GROUPCHAT.md when work is done."
+    )
+    runner = Path(repo) / "scripts" / "linuxbox" / "cursor-agent-run.sh"
+    log_dir = Path(os.environ.get("LINUXBOX_AGENT_RUNS") or (Path(repo) / "agents" / "runs"))
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        nohup_log = log_dir / "cursor-agent-dispatch.log"
+        with open(nohup_log, "ab") as out:
+            subprocess.Popen(
+                ["nohup", "bash", str(runner), prompt],
+                cwd=repo,
+                stdout=out,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+        stamp.parent.mkdir(parents=True, exist_ok=True)
+        stamp.write_text(
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z") + chr(10)
+        )
+        if meta_py.is_file():
+            subprocess.run(
+                [
+                    sys.executable, str(meta_py), "append", "agent_runs",
+                    "cursor-offload", "0", str(nohup_log),
+                    f"swap-gate offload: dispatched cursor-agent-run ({defer})",
+                ],
+                check=False,
+            )
+        print(f"CURSOR_OFFLOAD dispatched ({defer}; avail={telem.get('avail_mb')}MiB)")
+    except OSError as e:
+        print(f"CURSOR_OFFLOAD failed: {e}")
+
 plan = plan_tick(manifest, state, now, apply_gateway_spin=True)
 write_telemetry(repo, plan)
 print(
@@ -59,6 +131,7 @@ print(
 )
 if not plan.get("chosen"):
     print(f"RESOURCE defer={plan.get('defer')}")
+    maybe_cursor_offload(plan, state, now, repo, manifest, meta_py)
     sys.exit(0)
 
 name = plan["chosen"]["name"]

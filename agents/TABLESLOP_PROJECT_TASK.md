@@ -27,7 +27,8 @@ Advance **tableslop · Isla Primavera** toward v1: map + regions + cast + sessio
 2. Else open manifest — oldest task in **writing** or **testing** (skip **deferred**; skip **blocked** unless human unblocks). Split into a new tick-sized `[ ]` on the progress board rather than boiling the ocean.
 3. One concrete implement + one verify (`curl` `:8765`, Playwright smoke under `campaigns/tropic-gooner/map/tableslop-smoke.mjs`, or documented human step).
 4. Append `AI_GROUPCHAT.md` `[LINUX]`/`[PC]` line.
-5. Stop. Do not batch.
+5. Friction this tick (guard blocks legit work, confusing script, drift) → `agents/papercuts.md` (`docs/agents/papercuts.md`).
+6. Stop. Do not batch.
 
 ## After any map / deploy touch (required)
 

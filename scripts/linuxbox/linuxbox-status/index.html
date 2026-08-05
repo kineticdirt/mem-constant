@@ -5,17 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db-20260726-chars-portrait-fix-r1">
+  <meta name="dash-build" content="db-20260804-hub-obs-lanes-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet"></noscript>
+  <!-- docs-wiki FIRST: marked CDN is async — must not block Docs module load -->
+  <!-- ponytail: absolute /Linuxbox/ path — ./docs-wiki.js breaks when URL is /Linuxbox?tab=… (no trailing slash → /docs-wiki.js 404 on portfolio) -->
+  <script src="/Linuxbox/docs-wiki.js?v=db-20260802-docs-recent-r1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" async></script>
   <style>
     :root {
       --bg: #0a0a0c; --surface: #111114; --line: #2a2a32; --line-bright: #3d3d48;
       --text: #eeeef2; --muted: #888894; --accent: #6ec8ff; --lime: #b8e986;
       --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+      --accent-yellow: #e8c547;
+      --beta-gold: #e8c547;
+      --beta-gold-dim: color-mix(in srgb, #e8c547 22%, #0a0a0c);
+      --beta-gold-line: color-mix(in srgb, #e8c547 55%, #2a2a32);
       /* Active Now / think outcome tones (tick vs whole-task) */
       --aw-failed: #f87171;
       --aw-in-progress: #fb923c;
@@ -39,8 +46,15 @@
       background-size: 48px 48px;
       color: var(--text);
     }
-    .app { display: grid; grid-template-columns: var(--rail-width) 1fr; height: 100vh; }
+    /* Desktop: named areas so a visible mobile-page-select sibling cannot steal col1 */
+    .app {
+      display: grid;
+      grid-template-columns: var(--rail-width) 1fr;
+      grid-template-areas: "rail workspace";
+      height: 100vh;
+    }
     .rail {
+      grid-area: rail;
       border-right: 1px solid var(--line-bright);
       background: var(--surface);
       display: flex; flex-direction: column; align-items: stretch; padding: 0.5rem 0;
@@ -80,7 +94,54 @@
     .rail button[data-tab="chat"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 6h14v10H9l-4 3z'/%3E%3C/svg%3E"); }
     .rail button[data-tab="tasks"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6h11M9 12h11M9 18h11'/%3E%3Cpath d='m4 6 1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17'/%3E%3C/svg%3E"); }
     .rail button[data-tab="garage"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 6.5a3 3 0 0 0 3 3L20 12l-2 2-2.5-2.5a3 3 0 0 0-3-3L8 4 6 6l4.5 4.5'/%3E%3Cpath d='m5 19 5-5'/%3E%3C/svg%3E"); }
+    .rail button[data-tab="pixi"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 4 7v10l8 4 8-4V7z'/%3E%3Cpath d='M12 12 4 7M12 12l8-5M12 12v10'/%3E%3C/svg%3E"); }
     .rail button[data-tab="backlog"] { --rail-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/%3E%3C/svg%3E"); }
+    .rail-sep {
+      height: 1px; margin: 0.35rem 0.65rem; background: var(--line); opacity: 0.85; pointer-events: none;
+    }
+    .silo-glance { margin: 0 0 0.75rem; }
+    .silo-glance > h2, .system-host-glance > .system-host-glance-head h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 0.55rem;
+    }
+    .silo-glance-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 0.5rem;
+    }
+    .silo-card {
+      border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 0.55rem 0.65rem;
+      cursor: pointer; text-align: left; color: inherit; font: inherit; width: 100%;
+    }
+    .silo-card:hover { border-color: var(--accent); }
+    .silo-card .silo-name { font-weight: 600; font-size: 0.82rem; }
+    .silo-card .silo-st { font-size: 0.68rem; margin-top: 0.2rem; color: var(--muted); }
+    .silo-card .silo-st.ok { color: var(--ok); }
+    .silo-card .silo-st.warn { color: var(--warn); }
+    .silo-card .silo-st.bad { color: var(--bad); }
+    .silo-card .silo-st.off { color: var(--muted); }
+    .system-host-glance {
+      border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem 0.85rem; margin: 0 0 1rem; background: var(--surface);
+    }
+    .system-host-glance-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.55rem;
+    }
+    .system-host-glance-head h2 { margin: 0; }
+    .pixi-silo-lead { margin: 0 0 0.85rem; font-size: 0.82rem; line-height: 1.45; color: var(--muted); max-width: 40rem; }
+    .pixi-silo-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 1rem; }
+    .pixi-silo-status { border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem; background: var(--surface); }
+    .chat-ops-banner {
+      margin: 0; padding: 0.45rem 0.75rem; font-size: 0.72rem; color: var(--muted);
+      border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 90%, var(--accent));
+    }
+    .meta-philosophy {
+      border: 1px dashed var(--line-bright); border-radius: 6px; padding: 0.85rem 1rem; margin: 0 0 1rem; max-width: 42rem;
+    }
+    .meta-philosophy h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 0.45rem; }
+    .meta-philosophy p { margin: 0; font-size: 0.82rem; line-height: 1.45; }
+    .docs-search-wrap { padding: 0.5rem 0.65rem 0.65rem; border-bottom: 1px solid var(--line); }
+    .docs-search-wrap .field { margin: 0; }
+    .docs-search-wrap input[type="search"] {
+      width: 100%; box-sizing: border-box; background: #151820; border: 1px solid var(--line);
+      color: var(--text); border-radius: 4px; padding: 0.35rem 0.5rem; font: inherit;
+    }
     .rail button.active { color: var(--accent); border-left-color: var(--lime); background: #151518; }
     .rail button .dot {
       display: block; width: 6px; height: 6px; border-radius: 50%;
@@ -88,7 +149,10 @@
     }
     .rail button .dot.hidden { display: none; }
     .hidden { display: none !important; }
-    .workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .workspace {
+      grid-area: workspace;
+      display: flex; flex-direction: column; min-width: 0; min-height: 0;
+    }
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--line-bright);
@@ -328,19 +392,299 @@
       border-right: 1px solid var(--line-bright); overflow-y: auto;
       background: var(--surface); padding: 0.75rem;
     }
+    #reports > .report-index {
+      display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+    }
     .report-index h2 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
-    .report-index button {
+    /* List-style buttons only for flat report/story lists — not Docs toolbar .btn */
+    .report-index > button,
+    #report-list button,
+    #news-list button {
       display: block; width: 100%; text-align: left; background: transparent;
       border: 1px solid transparent; border-bottom: 1px solid var(--line);
       padding: 0.55rem 0.35rem; color: var(--text); cursor: pointer; font-size: 0.78rem;
     }
-    .report-index button:hover, .report-index button.active { border-color: var(--accent); background: #151820; }
-    .report-index button:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
+    .report-index > button:hover, .report-index > button.active,
+    #report-list button:hover, #report-list button.active,
+    #news-list button:hover, #news-list button.active { border-color: var(--accent); background: #151820; }
+    .report-index > button:focus-visible,
+    #report-list button:focus-visible,
+    #news-list button:focus-visible { outline: 2px solid var(--lime); outline-offset: -2px; }
     .report-index .kind-rss { color: var(--accent); }
     .report-index .kind-digest { color: var(--lime); }
     .report-index .kind-stock { color: var(--warn); }
+    /* Docs wiki tree */
+    .docs-chrome-sticky {
+      flex-shrink: 0; position: sticky; top: 0; z-index: 3;
+      background: var(--surface); padding-bottom: 0.4rem; margin-bottom: 0.35rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .docs-howto {
+      font-size: 0.62rem; color: var(--muted); line-height: 1.45; margin: 0 0 0.55rem;
+    }
+    .docs-howto code { font-size: 0.58rem; }
+    details.docs-howto-fold { margin: 0 0 0.5rem; }
+    details.docs-howto-fold > summary {
+      cursor: pointer; font-size: 0.68rem; color: var(--muted); list-style: none;
+    }
+    details.docs-howto-fold > summary::-webkit-details-marker { display: none; }
+    .docs-camp-block { margin: 0 0 0.75rem; }
+    .docs-camp-sep {
+      margin-top: 1rem; padding-top: 0.75rem;
+      border-top: 2px solid var(--line);
+    }
+    .docs-camp-head {
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem;
+    }
+    .docs-kind-group { margin: 0.25rem 0 0.45rem; }
+    .docs-kind-group > summary {
+      border-left: 3px solid var(--accent); padding-left: 0.35rem;
+    }
+    .docs-version-bar {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+      padding: 0.35rem 0.75rem; border-bottom: 1px solid var(--line);
+      background: #12151c;
+    }
+    .docs-version-bar input[type="range"] { flex: 1; min-width: 8rem; }
+    .docs-beta-panel, .docs-diff-panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+    .docs-beta-out {
+      overflow-y: auto; padding: 1.1rem 1.35rem; flex: 1;
+    }
+    .docs-diff-pre {
+      overflow: auto; padding: 0.75rem 1rem; margin: 0; flex: 1;
+      font-size: 0.72rem; line-height: 1.35; white-space: pre-wrap;
+      background: #0d1016; border-top: 1px solid var(--line);
+    }
+    details.docs-h2-fold { margin: 0.65rem 0; border-top: 1px solid var(--line); padding-top: 0.35rem; }
+    details.docs-h2-fold > summary { cursor: pointer; list-style: none; }
+    details.docs-h2-fold > summary::-webkit-details-marker { display: none; }
+    details.docs-h2-fold > summary h2 { display: inline; font-size: 1.05rem; }
+    /* Collapsed folds must not reserve height (no blank scroll deserts) */
+    details.docs-h2-fold:not([open]) > .docs-h2-fold-body { display: none; }
+    .docs-h2-bar {
+      padding: 0.4rem 0.75rem 0.5rem; border-bottom: 1px solid var(--line);
+      background: #12151c; max-height: 9.5rem; overflow-y: auto;
+    }
+    .docs-h2-bar-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .docs-h2-label {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    }
+    .docs-h2-empty { margin: 0.15rem 0 0; }
+    .docs-h2-list {
+      margin: 0; padding-left: 1.15rem; font-size: 0.72rem; line-height: 1.35;
+      columns: 2; column-gap: 1rem;
+    }
+    .docs-h2-list li { break-inside: avoid; margin: 0.1rem 0; }
+    .docs-h2-jump {
+      background: transparent; border: none; color: var(--accent); cursor: pointer;
+      font: inherit; text-align: left; padding: 0; text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .docs-h2-jump:hover { color: var(--text); }
+    .docs-comment-compose {
+      border: 1px solid var(--line-bright); padding: 0.55rem; margin-bottom: 0.65rem;
+      background: #12151c;
+    }
+    .docs-comment-compose h3 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin: 0 0 0.35rem;
+    }
+    .docs-comment-compose--idle { border-style: dashed; }
+    .docs-comment-ta {
+      width: 100%; min-height: 3.2rem; margin: 0.2rem 0 0.45rem;
+      background: var(--bg); color: var(--text); border: 1px solid var(--line);
+      padding: 0.4rem 0.45rem; font-family: inherit; font-size: 0.74rem; line-height: 1.35;
+      resize: vertical;
+    }
+    .docs-search-wrap { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.65rem; }
+    .docs-search-wrap .field { margin: 0; }
+    .docs-search-wrap .field label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .docs-search-wrap input, .docs-search-wrap select {
+      width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--text);
+      padding: 0.35rem 0.45rem; font-size: 0.75rem; font-family: inherit;
+    }
+    .docs-tree-tools { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.5rem; align-items: center; }
+    .docs-tree-tools .btn {
+      display: inline-flex; width: auto; flex: 0 0 auto; text-align: center;
+      border: 1px solid var(--line); padding: 0.35rem 0.55rem; font-size: 0.72rem;
+    }
+    .docs-tree-meta { font-size: 0.62rem; color: var(--muted); margin-bottom: 0.35rem; }
+    #reports #docs-tree { flex: 1; min-height: 0; overflow-y: auto; }
+    #docs-tree details.docs-folder { margin: 0.15rem 0; }
+    #docs-tree summary {
+      cursor: pointer; font-size: 0.72rem; color: var(--muted); list-style: none;
+      padding: 0.2rem 0; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    #docs-tree summary::-webkit-details-marker { display: none; }
+    #docs-tree .docs-folder-label { color: var(--accent); font-weight: 600; }
+    #docs-tree .docs-doc-btn {
+      display: block; width: 100%; text-align: left; background: transparent;
+      border: 1px solid transparent; border-bottom: 1px solid var(--line);
+      padding: 0.4rem 0.3rem; color: var(--text); cursor: pointer; font-size: 0.74rem;
+      font-family: inherit;
+    }
+    #docs-tree .docs-doc-btn:hover, #docs-tree .docs-doc-btn.active { border-color: var(--accent); background: #151820; }
+    .docs-badge {
+      display: inline-block; font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 0.05rem 0.3rem; border: 1px solid var(--line); color: var(--muted); vertical-align: middle;
+    }
+    .docs-badge.draft { border-color: #7aa2c7; color: #7aa2c7; }
+    .docs-badge.canon { border-color: #9ad67a; color: #9ad67a; }
+    .docs-toolbar {
+      display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
+      align-items: flex-start; padding: 0.75rem 1.25rem 0.5rem; border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .docs-toolbar-right { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    /* Prose fills main pane; comments fixed ~300px — not 68ch strip + % rail leaving a black middle */
+    .docs-reader-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      min-height: 0;
+      flex: 1;
+      align-items: start;
+    }
+    #report-reader { display: flex; flex-direction: column; }
+    #report-reader .docs-reader-split { flex: 1; min-height: 0; overflow: hidden; }
+    #report-reader .docs-reader-split > .prose,
+    #report-reader .docs-reader-split > .docs-editor {
+      overflow-y: auto;
+      padding: 1rem 1.25rem;
+      max-height: calc(100vh - 12rem);
+      width: 100%;
+      min-width: 0;
+      max-width: none; /* Docs ignores global --prose-max / 68ch */
+      box-sizing: border-box;
+    }
+    #report-reader .docs-reader-split > .docs-comments {
+      width: 100%;
+      max-width: 300px;
+      max-height: calc(100vh - 12rem);
+      box-sizing: border-box;
+    }
+    /* Legacy selectors (beta panel / non-split) keep prior scroll behavior */
+    #report-reader .docs-beta-panel .prose,
+    #report-reader > .prose,
+    #report-reader > .docs-editor { overflow-y: auto; padding: 1rem 1.25rem; max-height: calc(100vh - 12rem); }
+    .docs-editor {
+      width: 100%; min-height: 22rem; background: var(--bg); color: var(--text);
+      border: 1px solid var(--line); padding: 0.75rem; font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.78rem; line-height: 1.45; resize: vertical;
+    }
+    /* Beta panel — after .docs-editor so gold/typography win (not mono editor defaults) */
+    .docs-beta-heading {
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      font-weight: 700; letter-spacing: 0.02em;
+      background: linear-gradient(90deg, var(--beta-gold), #f5e6a3 40%, var(--text));
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent;
+    }
+    .docs-beta-scenario-label {
+      display: block; margin: 0.55rem 0.85rem 0.25rem;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--beta-gold);
+      font-family: "IBM Plex Mono", monospace;
+    }
+    textarea.docs-editor.docs-beta-scenario {
+      max-height: 11rem; min-height: 5.5rem; margin: 0 0.75rem;
+      width: calc(100% - 1.5rem); box-sizing: border-box;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      font-size: 0.95rem; font-weight: 600; line-height: 1.45;
+      letter-spacing: 0.01em; color: #f7efc8;
+      border: 1.5px solid var(--beta-gold-line);
+      background: var(--beta-gold-dim);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--beta-gold) 18%, transparent),
+        0 0 0 1px color-mix(in srgb, var(--beta-gold) 12%, transparent);
+      border-radius: 2px; padding: 0.65rem 0.75rem;
+      resize: vertical;
+    }
+    textarea.docs-editor.docs-beta-scenario:focus {
+      outline: none;
+      border-color: var(--beta-gold);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--beta-gold) 35%, transparent);
+    }
+    .docs-beta-hint { margin-left: 0.5rem; color: var(--muted); font-size: 0.68rem; }
+    .docs-beta-run-row {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 0.75rem;
+      flex-wrap: wrap; margin-top: 0.5rem; margin-bottom: 0.5rem;
+    }
+    .docs-beta-run-left { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+    .docs-beta-model-wrap {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem;
+      margin-left: auto; min-width: 12rem;
+    }
+    .docs-beta-model-select {
+      width: auto; min-width: 14rem; max-width: 22rem;
+      background: var(--bg); border: 1px solid var(--line); color: var(--text);
+      padding: 0.35rem 0.45rem; font-size: 0.72rem; font-family: inherit;
+    }
+    .docs-beta-model-active { font-size: 0.62rem; color: var(--muted); text-align: right; max-width: 22rem; }
+    .docs-beta-follow-row {
+      border-top: 1px solid var(--line); padding: 0.55rem 0.75rem 0.65rem;
+      background: #12151c; flex-shrink: 0;
+    }
+    textarea.docs-editor.docs-beta-followup {
+      width: 100%; min-height: 2.6rem; max-height: 6rem; resize: vertical;
+      margin-bottom: 0.4rem;
+    }
+    .docs-beta-follow-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+    .docs-beta-out.prose {
+      font-family: "Source Serif 4", "IBM Plex Sans", Georgia, serif;
+      font-size: 1.02rem; font-weight: 400; line-height: 1.62;
+      letter-spacing: 0.005em;
+    }
+    .docs-beta-out p { margin: 0 0 0.85em; }
+    .docs-beta-out strong, .docs-beta-out b { font-weight: 700; color: #f5e6a3; }
+    .docs-beta-out em, .docs-beta-out i { font-style: italic; color: #e8e0c8; }
+    /* Prismic-inspired: subtle fade-up reveal (not glitch/matrix/purple) */
+    @keyframes docs-beta-reveal {
+      from { opacity: 0; transform: translateY(0.45rem); filter: blur(1.5px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .docs-beta-out--fresh {
+      animation: docs-beta-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .docs-beta-out--fresh { animation: none; }
+    }
+    .docs-comments {
+      border-left: 1px solid var(--line-bright); padding: 0.75rem; overflow-y: auto;
+      background: var(--surface); max-height: calc(100vh - 12rem);
+    }
+    .docs-comments h3 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 0.5rem; }
+    .docs-comment {
+      border: 1px solid var(--line); padding: 0.5rem; margin-bottom: 0.5rem; font-size: 0.74rem;
+      background: var(--bg);
+    }
+    .docs-comment-note { margin-bottom: 0.35rem; }
+    .docs-comment-excerpt {
+      margin: 0.25rem 0; padding: 0.35rem 0.45rem; border-left: 2px solid var(--warn);
+      color: var(--muted); font-size: 0.7rem; background: #12151c;
+    }
+    .docs-comment-actions { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.35rem; }
+    .docs-graph-wrap { overflow: auto; padding: 0.5rem 1rem 1rem; }
+    .docs-progress { margin: 0.5rem 0 0.75rem; max-width: 22rem; }
+    .docs-progress-track { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+    .docs-progress-bar { height: 100%; background: var(--accent); transition: width 0.2s ease; }
+    .docs-progress-label { font-size: 0.68rem; color: var(--muted); margin-top: 0.35rem; }
+    #docs-load-status { display: block; font-size: 0.62rem; color: var(--muted); margin: 0.25rem 0 0.4rem; min-height: 0.9rem; }
+    #docs-load-status.docs-status-error, .docs-status-error { color: var(--bad); }
+    @media (max-width: 900px) {
+      .docs-reader-split { grid-template-columns: minmax(0, 1fr); }
+      #report-reader .docs-reader-split > .docs-comments {
+        max-width: none; border-left: none; border-top: 1px solid var(--line); max-height: 40vh;
+      }
+      .docs-comments { border-left: none; border-top: 1px solid var(--line); max-height: 40vh; }
+    }
     .report-reader {
       overflow-y: auto; padding: 1.25rem 1.75rem; background: var(--bg);
+    }
+    #reports #report-reader {
+      padding: 0; overflow: hidden; display: flex; flex-direction: column;
     }
     #story-reader.report-reader {
       display: flex; flex-direction: column; overflow: hidden; padding: 0;
@@ -379,17 +723,31 @@
     .prose th, .prose td { border: 1px solid var(--line-bright); padding: 0.4rem 0.55rem; text-align: left; }
     .prose th { background: var(--surface); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
 
-    /* Inbox */
-    .inbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: calc(100% - 2rem); }
+    /* Inbox — open questions dominate; answered is skim history */
+    .inbox-grid {
+      display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 0.85fr);
+      gap: 1rem; height: calc(100% - 0.5rem); align-content: stretch;
+    }
     @media (max-width: 900px) { .inbox-grid { grid-template-columns: 1fr; } }
     .inbox-col { border: 1px solid var(--line-bright); background: var(--surface); padding: 1rem; overflow-y: auto; min-width: 0; }
     .inbox-col h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.75rem; }
-    .inbox-item { border-bottom: 1px solid var(--line); padding: 0.75rem 0; }
-    .inbox-item .q { font-size: 0.88rem; margin-bottom: 0.4rem; }
-    .inbox-item .from { font-size: 0.65rem; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 0.5rem; }
+    .inbox-col--open { background: #101218; }
+    .inbox-col--answered { opacity: 0.92; }
+    .inbox-col--answered h2 { margin-bottom: 0.45rem; }
+    .inbox-answered-hint { font-size: 0.62rem; color: var(--muted); margin: -0.35rem 0 0.65rem; }
+    .inbox-item {
+      border: 1px solid var(--line); background: var(--bg); padding: 0.85rem 0.9rem; margin-bottom: 0.75rem;
+    }
+    .inbox-item:last-child { margin-bottom: 0; }
+    .inbox-col--answered .inbox-item {
+      border: none; border-bottom: 1px solid var(--line); background: transparent;
+      padding: 0.5rem 0; margin-bottom: 0;
+    }
+    .inbox-item .q { font-size: 1rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.45rem; }
+    .inbox-item .from { font-size: 0.65rem; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 0.55rem; }
     .inbox-context {
-      font-size: 0.8rem; line-height: 1.5; color: var(--text); margin: 0.45rem 0 0.65rem;
-      padding: 0.55rem 0.7rem; border-left: 3px solid var(--accent-cyan);
+      font-size: 0.84rem; line-height: 1.5; color: var(--text); margin: 0.45rem 0 0.75rem;
+      padding: 0.65rem 0.8rem; border-left: 3px solid var(--accent-cyan);
       background: rgba(110, 200, 255, 0.1);
     }
     .inbox-context-label {
@@ -397,15 +755,24 @@
       color: var(--accent-cyan); margin-bottom: 0.35rem; font-family: "IBM Plex Mono", monospace;
     }
     .inbox-context p { margin: 0; }
-    .inbox-context--missing { border-left-color: var(--accent-yellow); background: rgba(255, 220, 80, 0.09); }
-    .inbox-context--missing .inbox-context-label { color: var(--accent-yellow); }
+    .inbox-context--missing {
+      border-left-color: var(--warn); background: rgba(251, 191, 36, 0.12);
+      border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--line));
+      border-left-width: 3px;
+    }
+    .inbox-context--missing .inbox-context-label { color: var(--warn); }
     .inbox-option-help { font-size: 0.68rem; color: var(--muted); margin: 0.35rem 0 0.55rem; padding-left: 1.1rem; list-style: disc; }
     .inbox-option-help li { margin: 0.2rem 0; line-height: 1.35; }
     .inbox-tag { display: inline-block; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.1rem 0.35rem; margin-right: 0.35rem; border: 1px solid var(--line); color: var(--accent-cyan); }
-    .inbox-choices { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.5rem 0; width: 100%; }
+    .inbox-choices { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.55rem 0 0.65rem; width: 100%; }
     .inbox-choice {
-      display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.82rem; cursor: pointer;
-      width: 100%; line-height: 1.35;
+      display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.86rem; cursor: pointer;
+      width: 100%; line-height: 1.35; padding: 0.55rem 0.65rem;
+      border: 1px solid var(--line-bright); background: var(--surface);
+    }
+    .inbox-choice:hover { border-color: var(--accent); background: #151820; }
+    .inbox-choice:has(input:checked) {
+      border-color: var(--lime); background: color-mix(in srgb, var(--lime) 10%, var(--bg));
     }
     .inbox-choice input[type="radio"],
     .inbox-choice input[type="checkbox"] {
@@ -413,16 +780,23 @@
       flex-shrink: 0; accent-color: var(--accent-yellow); cursor: pointer;
     }
     .inbox-choice span { flex: 1; min-width: 0; }
-    .inbox-other-input { margin-top: 0.25rem; margin-left: 1.5rem; display: none; }
+    .inbox-other-input { margin-top: 0.25rem; margin-left: 0; display: none; }
     .inbox-other-input.visible { display: block; }
-    .inbox-yesno { display: flex; gap: 0.5rem; margin: 0.5rem 0; flex-wrap: wrap; }
+    .inbox-yesno { display: flex; gap: 0.5rem; margin: 0.55rem 0 0.65rem; flex-wrap: wrap; }
+    .inbox-yesno .btn { min-width: 5.5rem; min-height: 2.25rem; font-size: 0.88rem; }
+    .inbox-yesno .btn.picked { border-color: var(--lime); color: var(--lime); background: color-mix(in srgb, var(--lime) 12%, var(--bg)); }
+    .inbox-answer-label {
+      display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin: 0.35rem 0 0.3rem;
+    }
     .inbox-answer:focus,
     .inbox-other-input:focus,
     .field input:focus,
     .field textarea:focus,
     .field select:focus { outline: 1px solid var(--accent-yellow); border-color: var(--accent-yellow); }
     .inbox-err { font-size: 0.72rem; color: #f87171; margin-top: 0.25rem; }
-    .inbox-actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.35rem; flex-wrap: wrap; }
+    .inbox-actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.55rem; flex-wrap: wrap; }
+    .inbox-actions .btn.primary { min-height: 2.25rem; min-width: 6.5rem; font-size: 0.86rem; }
     .inbox-hint { font-size: 0.62rem; color: var(--muted); }
 
     /* === FORM SYSTEM — docs/dashboard-ui-architecture.md §3 (no global input rules) === */
@@ -485,8 +859,13 @@
     /* Chat */
     #chat.panel.fill.active {
       grid-template-columns: minmax(200px, 24%) 1fr;
-      grid-template-rows: 1fr;
+      grid-template-rows: auto 1fr;
       height: 100%; padding: 0;
+    }
+    .chat-ops-banner {
+      grid-column: 1 / -1;
+      margin: 0; padding: 0.45rem 0.75rem; font-size: 0.72rem; color: var(--muted);
+      border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 90%, var(--accent));
     }
     .chat-sidebar {
       border-right: 1px solid var(--line-bright); background: var(--surface);
@@ -814,9 +1193,9 @@
     .field { margin-bottom: 0.65rem; }
     .field label { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem; }
 
-    /* Tasks board */
+    /* Tasks board — C2: insight + your tasks lead; campaign queues compact/collapsible */
     #tasks.panel.fill.active {
-      grid-template-columns: minmax(240px, 26%) 1fr;
+      grid-template-columns: minmax(200px, 22%) 1fr;
       height: 100%; padding: 0;
     }
     .task-sidebar {
@@ -831,23 +1210,66 @@
       font-size: 0.78rem; color: var(--muted); line-height: 1.45;
     }
     .task-lane-banner strong { color: var(--text); display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; }
-    /* overflow-y:auto — overflow:hidden clipped Active now when campaign board filled the pane */
-    .task-board-wrap { overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
+    .task-board-wrap {
+      overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; min-height: 0;
+    }
+    .tasks-c2-top {
+      display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+      flex: 1 1 auto; min-height: min(70vh, 680px); border-bottom: 1px solid var(--line-bright);
+    }
+    @media (max-width: 1100px) {
+      .tasks-c2-top { grid-template-columns: 1fr; min-height: 0; }
+    }
+    .user-tasks-panel {
+      display: flex; flex-direction: column; min-height: 0; min-width: 0;
+      background: var(--bg); padding: 0.85rem 1rem 1.1rem; overflow: hidden;
+    }
+    .user-tasks-head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 0.65rem;
+      margin-bottom: 0.55rem; flex-wrap: wrap; flex-shrink: 0;
+    }
+    .user-tasks-head h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0;
+    }
+    .user-tasks-head .filter select { width: auto; min-width: 140px; font-size: 0.78rem; }
+    .task-campaign-queues {
+      flex: 0 0 auto; border-top: none; background: var(--surface);
+    }
+    .task-campaign-queues > summary {
+      list-style: none; cursor: pointer; user-select: none;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
+      padding: 0.55rem 1rem; border-bottom: 1px solid var(--line-bright);
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+      background: rgba(17,17,20,0.92);
+    }
+    .task-campaign-queues > summary::-webkit-details-marker { display: none; }
+    .task-campaign-queues > summary::after {
+      content: "▸"; font-family: "IBM Plex Mono", monospace; color: var(--accent); font-size: 0.75rem;
+    }
+    .task-campaign-queues[open] > summary::after { content: "▾"; }
+    .task-campaign-queues .task-board-toolbar {
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+    }
     .task-board-toolbar {
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-      padding: 0.65rem 1rem; border-bottom: 1px solid var(--line-bright); background: rgba(17,17,20,0.92);
+      padding: 0.45rem 1rem; border-bottom: 1px solid var(--line-bright); background: rgba(17,17,20,0.92);
       flex-shrink: 0;
     }
     .task-board-toolbar .filter select { width: auto; min-width: 160px; font-size: 0.78rem; }
     .task-board {
-      flex: 0 1 auto; max-height: min(36vh, 360px); overflow: auto;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      flex: 0 1 auto; max-height: min(22vh, 220px); overflow: auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1px; background: var(--line-bright); align-content: start;
     }
-    .task-col { background: var(--bg); display: flex; flex-direction: column; min-height: 200px; }
+    .task-col { background: var(--bg); display: flex; flex-direction: column; min-height: 140px; }
     .active-work {
-      flex: 1 0 auto; flex-shrink: 0; min-height: 200px; overflow-y: auto;
-      border-top: 1px solid var(--line-bright); background: var(--surface); padding: 0.85rem 1rem 1.1rem;
+      min-height: min(68vh, 660px); overflow-y: auto; border-right: 1px solid var(--line-bright);
+      background: var(--surface); padding: 0.85rem 1rem 1.1rem;
+      display: flex; flex-direction: column;
+    }
+    @media (max-width: 1100px) {
+      .active-work { border-right: none; border-bottom: 1px solid var(--line-bright); }
     }
     .active-work-head {
       display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
@@ -865,11 +1287,34 @@
     }
     .active-work-links a:hover { border-bottom-color: currentColor; }
     .active-work-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.55rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      align-content: start;
+      flex: 1 1 auto;
+      min-height: min(58vh, 560px);
+    }
+    @media (min-width: 1280px) {
+      .active-work-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     .active-work-card {
-      border: 1px solid var(--line); background: var(--surface); padding: 0.55rem 0.65rem; font-size: 0.78rem;
+      border: 1px solid var(--line); background: var(--bg); padding: 0.7rem 0.75rem; font-size: 0.8rem;
+      min-height: 6.5rem;
     }
+    .active-work-card.span-all { grid-column: 1 / -1; }
+    .active-work-card .aw-detail,
+    .aw-pod-detail {
+      margin: 0.2rem 0 0.35rem;
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--muted);
+      word-break: break-word;
+    }
+    .active-work-card .aw-detail.muted,
+    .aw-pod-detail.muted { font-style: italic; }
+    .aw-pod-rows { display: flex; flex-direction: column; gap: 0.35rem; }
+    .aw-pod-row { border-top: 1px solid var(--line); padding-top: 0.3rem; }
+    .aw-pod-row:first-child { border-top: none; padding-top: 0; }
     .active-work-card .aw-label,
     .hub-running-now .aw-label {
       font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem;
@@ -972,6 +1417,96 @@
       min-height: 0;
       max-height: min(52vh, 520px);
     }
+    .hub-lanes-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    @media (max-width: 720px) {
+      .hub-lanes-split { grid-template-columns: 1fr; }
+    }
+    .hub-lane-card {
+      min-width: 0;
+      min-height: 0;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      border: none;
+      background: #0c1014;
+    }
+    .hub-lane-think.hub-lane-card { background: #0c1210; }
+    .hub-lane-cursor.hub-lane-card {
+      border-left: 1px solid var(--line);
+      background: #0c1014;
+    }
+    @media (max-width: 720px) {
+      .hub-lane-cursor.hub-lane-card {
+        border-left: none;
+        border-top: 1px solid var(--line);
+      }
+    }
+    .hub-lane-head {
+      padding: 0.42rem 0.55rem;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--fg);
+      background: #0a0d12;
+    }
+    .hub-lane-think .hub-lane-head { color: var(--ok); }
+    .hub-lane-cursor .hub-lane-head { color: var(--cyan, #5eead4); }
+    .hub-lane-body { padding: 0.38rem 0.55rem 0.48rem; }
+    .hub-lane-kv {
+      display: grid;
+      grid-template-columns: 4.6rem 1fr;
+      gap: 0.18rem 0.5rem;
+      margin: 0.1rem 0;
+      align-items: baseline;
+    }
+    .hub-lane-k {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .hub-lane-v {
+      font-size: 0.72rem;
+      color: var(--fg);
+      word-break: break-word;
+    }
+    .hub-lane-v .aw-chip { margin-right: 0.25rem; vertical-align: baseline; }
+    .hub-lane-what {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.68rem;
+    }
+    .hub-lane-log {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.62rem;
+      color: var(--muted);
+      word-break: break-all;
+      line-height: 1.35;
+    }
+    .hub-heartbeats-fold {
+      margin-top: 0.45rem;
+      border: 1px solid var(--line);
+      background: #0c0e12;
+      font-size: 0.68rem;
+    }
+    .hub-heartbeats-fold summary {
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      list-style: none;
+      color: var(--muted);
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .hub-heartbeats-fold summary::-webkit-details-marker { display: none; }
+    .hub-heartbeats-fold[open] summary { margin-bottom: 0.15rem; color: var(--fg); }
+    .hub-heartbeats-fold .hub-last-completed { margin-top: 0; border: none; border-left: none; }
     .hub-live-log-wrap {
       margin-top: 0;
       border: none;
@@ -1038,22 +1573,6 @@
     }
     .hub-live-log-wrap.is-open .hub-live-log { display: block; }
     .hub-live-log.empty { color: var(--muted); font-style: italic; }
-    .hub-last-think {
-      padding: 0.45rem 0.55rem 0.4rem;
-      border-bottom: 1px solid var(--line);
-      background: #0c1210;
-      font-size: 0.78rem; line-height: 1.4;
-    }
-    .hub-last-think .aw-label {
-      margin-bottom: 0.25rem; color: var(--ok);
-      font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
-    }
-    .hub-last-think .aw-blurb {
-      margin-top: 0.25rem; color: var(--fg);
-      white-space: pre-wrap; word-break: break-word;
-      max-height: 6.5rem; overflow: auto;
-      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
-    }
     .hub-last-completed {
       margin-top: 0.45rem; padding: 0.35rem 0.5rem 0.3rem;
       border: 1px solid var(--line); border-left: 3px solid var(--muted);
@@ -1143,15 +1662,33 @@
     .task-row.done .task-mark { color: var(--ok); }
     .task-code { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--accent); margin-bottom: 0.15rem; }
     .task-empty { padding: 2rem 1rem; color: var(--muted); font-size: 0.82rem; text-align: center; }
-    .user-task-list { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; max-height: 220px; overflow-y: auto; }
+    .user-task-list {
+      display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0;
+      flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    }
     .user-task-card {
-      border: 1px solid var(--line); background: var(--surface); padding: 0.55rem 0.65rem; font-size: 0.78rem;
+      border: 1px solid var(--line); background: var(--surface); padding: 0.65rem 0.75rem; font-size: 0.8rem;
     }
     .user-task-card.done { opacity: 0.65; }
-    .user-task-card .tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+    .user-task-card .user-task-title { font-weight: 600; font-size: 0.88rem; line-height: 1.3; margin: 0.15rem 0 0.35rem; }
+    .user-task-card .user-task-meta {
+      display: flex; flex-wrap: wrap; gap: 0.35rem 0.55rem; align-items: center;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .user-task-card .user-task-status {
+      color: var(--accent); border: 1px solid var(--line); padding: 0.05rem 0.3rem;
+    }
+    .user-task-card .user-task-status.open { color: var(--aw-in-progress); border-color: color-mix(in srgb, var(--aw-in-progress) 40%, var(--line)); }
+    .user-task-card .user-task-status.done { color: var(--ok); }
+    .user-task-card .user-task-status.blocked { color: var(--bad); }
+    .user-task-card .user-task-notes {
+      font-size: 0.72rem; color: var(--muted); line-height: 1.4; margin: 0.25rem 0 0.35rem;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .user-task-card .tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.2rem; }
     .user-task-card .tag { font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--accent); border: 1px solid var(--line); padding: 0.05rem 0.3rem; }
-    .user-task-card .actions { display: flex; gap: 0.35rem; margin-top: 0.35rem; flex-wrap: wrap; }
-    .user-task-card .project-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--lime); margin-bottom: 0.2rem; }
+    .user-task-card .actions { display: flex; gap: 0.35rem; margin-top: 0.45rem; flex-wrap: wrap; }
+    .user-task-card .project-pill { font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--lime); }
     .project-card {
       border: 1px solid var(--line-bright); background: var(--surface); padding: 0.55rem 0.65rem;
       margin-bottom: 0.4rem; font-size: 0.78rem; cursor: pointer;
@@ -1434,17 +1971,27 @@
       font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
       color: var(--muted); margin-bottom: 0.4rem; font-weight: 600;
     }
+    /* Fixed cols so nowrap PID/RSS cannot visually spill under the next header (looked like a field shift). */
     .sys-proc-table {
       width: 100%; border-collapse: collapse; font-size: 0.68rem;
       font-family: "IBM Plex Mono", monospace;
+      table-layout: fixed;
     }
     .sys-proc-table th {
       text-align: left; color: var(--accent); font-weight: 500; padding: 0.15rem 0.35rem 0.35rem 0;
       border-bottom: 1px solid var(--line);
     }
-    .sys-proc-table td { padding: 0.22rem 0.35rem 0.22rem 0; vertical-align: top; }
-    .sys-proc-table td.num { text-align: right; white-space: nowrap; padding-right: 0.55rem; }
-    .sys-proc-table .cmd { max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sys-proc-table td { padding: 0.22rem 0.35rem 0.22rem 0; vertical-align: top; overflow: hidden; text-overflow: ellipsis; }
+    .sys-proc-table td.num { text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .sys-proc-table .cmd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* 4-col Top CPU/RSS (Systems): PID | CPU%/RSS | RSS/CPU% | CMD */
+    .sys-proc-table.sys-proc-table--4 col.col-pid { width: 4.75rem; }
+    .sys-proc-table.sys-proc-table--4 col.col-num { width: 3.5rem; }
+    .sys-proc-table.sys-proc-table--4 col.col-cmd { width: auto; }
+    /* 5-col Hub modal: PID | CPU% | MEM% | RSS | CMD */
+    .sys-proc-table.sys-proc-table--5 col.col-pid { width: 4.75rem; }
+    .sys-proc-table.sys-proc-table--5 col.col-num { width: 3.25rem; }
+    .sys-proc-table.sys-proc-table--5 col.col-cmd { width: auto; }
     .sys-services-label {
       font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
       color: var(--muted); margin: 0.35rem 0 0.55rem;
@@ -1603,15 +2150,24 @@
       font-size: 0.6rem; color: var(--muted); margin-top: 0.55rem; line-height: 1.45;
     }
 
-    /* Mobile — bottom tab bar, larger touch targets */
+    /* Mobile — bottom tab bar, larger touch targets (page select only ≤767) */
     @media (max-width: 768px) {
       html { font-size: calc(15px * var(--ui-scale)); }
-      .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: 100dvh; }
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        grid-template-areas:
+          "workspace"
+          "rail";
+        height: 100dvh;
+      }
       .rail {
+        grid-area: rail;
         flex-direction: row; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
         border-right: none; border-top: 1px solid var(--line-bright);
         padding: 0.25rem 0.35rem; gap: 0.15rem;
       }
+      .workspace { grid-area: workspace; min-height: 0; }
       .rail .brand { display: none; }
       .rail button {
         flex: 0 0 auto; min-width: 3.25rem; min-height: 2.75rem;
@@ -1713,12 +2269,20 @@
     .sys-actions .btn { font-size: 0.62rem; padding: 0.2rem 0.45rem; }
     .sys-flash { font-size: 0.72rem; margin-bottom: 0.5rem; min-height: 1.2em; }
 
+    /* Must stay outside media queries — potato once hid this only inside max-width:768, which left it visible on desktop and broke the 2-col grid */
     .mobile-page-select-wrap { display: none; }
     @media (max-width: 767px) {
-      .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas:
+          "pagesel"
+          "workspace"
+          "rail";
+      }
       .mobile-page-select-wrap {
         display: block;
-        grid-row: 1;
+        grid-area: pagesel;
         padding: 0.35rem 0.65rem;
         border-bottom: 1px solid var(--line-bright);
         background: var(--surface);
@@ -1733,11 +2297,12 @@
         border-radius: 4px; padding: 0.35rem 0.5rem;
       }
       .rail {
+        grid-area: rail;
         flex-direction: row; border-right: none; border-top: 1px solid var(--line-bright);
         padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
-        grid-row: 3; gap: 0;
+        gap: 0;
       }
-      .workspace { grid-row: 2; min-height: 0; }
+      .workspace { grid-area: workspace; min-height: 0; }
       .rail .brand { display: none; }
       .rail button {
         padding: 0.45rem 0.4rem; font-size: 0.5rem; border-left: none;
@@ -1767,42 +2332,43 @@
     <div class="mobile-page-select-wrap admin-only" id="mobile-page-select-wrap">
       <label for="mobile-page-select">Page</label>
       <select id="mobile-page-select" aria-label="Jump to page">
-        <option value="hub">Hub</option>
-        <option value="systems">Systems</option>
-        <option value="inbox">Inbox</option>
-        <option value="reports">Docs</option>
+        <option value="hub">System</option>
+        <option value="tasks">Tasks</option>
+        <option value="chat">Ops Chat</option>
         <option value="news">News</option>
+        <option value="reports">Docs</option>
+        <option value="pixi">Pixi RP</option>
+        <option value="garage">Mazda3</option>
+        <option value="backlog">Meta</option>
+        <option value="inbox">Inbox</option>
         <option value="campaigns">Camp</option>
-        <option value="map">Map</option>
         <option value="stories">Stories</option>
         <option value="characters">Chars</option>
-        <option value="chat">Chat</option>
-        <option value="tasks">Tasks</option>
-        <option value="garage">Build</option>
-        <option value="backlog">Meta</option>
+        <option value="systems">Host</option>
       </select>
     </div>
-    <nav class="rail" aria-label="Sections">
+    <nav class="rail" aria-label="Silos">
       <div class="brand">linuxbox</div>
-      <button type="button" class="active admin-only" data-tab="hub">Hub</button>
-      <button type="button" class="admin-only" data-tab="systems">Systems</button>
-      <button type="button" class="admin-only" data-tab="inbox">Inbox<span class="dot hidden" id="inbox-dot"></span></button>
-      <button type="button" data-tab="reports">Docs</button>
+      <button type="button" class="active admin-only" data-tab="hub" title="System — ops glance">System</button>
+      <button type="button" class="admin-only" data-tab="tasks" title="Tasks — command &amp; control">Tasks</button>
+      <button type="button" class="admin-only" data-tab="chat" title="Ops Chat — not Pixi RP">Chat</button>
       <button type="button" data-tab="news">News</button>
+      <button type="button" data-tab="reports">Docs</button>
+      <button type="button" class="admin-only" data-tab="pixi" title="Pixi RP engine :8767">Pixi</button>
+      <button type="button" class="admin-only" data-tab="garage" title="Mazda3 sports build">Mazda3</button>
+      <button type="button" class="admin-only" data-tab="backlog">Meta</button>
+      <div class="rail-sep" aria-hidden="true"></div>
+      <button type="button" class="admin-only" data-tab="inbox">Inbox<span class="dot hidden" id="inbox-dot"></span></button>
       <button type="button" class="admin-only" data-tab="campaigns">Camp</button>
-      <button type="button" class="admin-only" data-tab="map">Map</button>
       <button type="button" class="admin-only" data-tab="stories">Stories</button>
       <button type="button" class="admin-only" data-tab="characters">Chars</button>
-      <button type="button" class="admin-only" data-tab="chat">Chat</button>
-      <button type="button" class="admin-only" data-tab="tasks">Tasks</button>
-      <button type="button" class="admin-only" data-tab="garage">Build</button>
-      <button type="button" class="admin-only" data-tab="backlog">Meta</button>
+      <button type="button" class="admin-only" data-tab="systems" title="Host detail — CPU/RAM/services">Host</button>
     </nav>
 
     <div class="workspace">
       <header class="topbar">
         <div>
-          <h1 id="page-title">Hub</h1>
+          <h1 id="page-title">System</h1>
           <span class="meta" id="clock">—</span>
         </div>
         <div class="running-now-chrome admin-only" id="running-now-chrome" title="Live in-flight work"></div>
@@ -1862,6 +2428,18 @@
             </div>
             <div class="story-cta" id="ops-cta"></div>
           </div>
+          <section class="silo-glance" id="silo-glance" aria-label="Silo status at a glance">
+            <h2>Silos at a glance</h2>
+            <div class="silo-glance-grid" id="silo-glance-grid"><p class="empty">Loading…</p></div>
+            <p class="meta" style="margin:0.5rem 0 0;font-size:0.65rem">Maps live off-dashboard → <a href="https://map.tableslop.org/" target="_blank" rel="noopener">map.tableslop.org</a> · <a href="https://campaigns.tableslop.org/" target="_blank" rel="noopener">campaigns.tableslop.org</a></p>
+          </section>
+          <section class="system-host-glance" id="system-host-glance" aria-label="Host and context glance">
+            <div class="system-host-glance-head">
+              <h2>Host / context</h2>
+              <button type="button" class="btn" id="system-host-goto-host">Host detail →</button>
+            </div>
+            <div class="sys-host" id="system-host-glance-kpis"><p class="empty">Loading…</p></div>
+          </section>
           <div class="hub-running-now" id="hub-running-now" aria-label="Running now"></div>
           <div class="kpi-primary" id="kpi-primary"></div>
           <div class="kpi-secondary" id="kpi-secondary"></div>
@@ -1994,12 +2572,13 @@
 
         <section id="inbox" class="panel admin-only">
           <div class="inbox-grid">
-            <div class="inbox-col">
+            <div class="inbox-col inbox-col--open">
               <h2>Open questions</h2>
               <div id="inbox-open"><p class="empty">None</p></div>
             </div>
-            <div class="inbox-col">
+            <div class="inbox-col inbox-col--answered">
               <h2>Recent answers</h2>
+              <p class="inbox-answered-hint">History only — respond in Open questions.</p>
               <div id="inbox-answered"><p class="empty">None yet</p></div>
             </div>
           </div>
@@ -2007,11 +2586,50 @@
 
         <section id="reports" class="panel fill">
           <aside class="report-index">
-            <h2>Reports</h2>
-            <div id="report-list"></div>
+            <div class="docs-chrome-sticky">
+              <h2>Docs wiki</h2>
+              <details class="docs-howto-fold">
+                <summary>How Docs works (tap)</summary>
+                <p class="docs-howto">Not Stories / Camp. Left = tree by campaign + kind (Characters / Reports / …). Open a file for <strong>Edit / Save / Comment</strong>. Character sheets: <strong>Beta-test</strong>. Scope includes Infranet; SpaceQuest is under Archived.</p>
+              </details>
+              <div class="docs-search-wrap">
+                <div class="field">
+                  <label for="docs-campaign">Scope</label>
+                  <select id="docs-campaign"><option value="">All scopes (active)</option></select>
+                </div>
+                <div class="field">
+                  <label for="docs-search">Search</label>
+                  <input type="search" id="docs-search" placeholder="Filter tree…" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <label for="docs-smart-filter">Smart filter</label>
+                  <input type="search" id="docs-smart-filter" placeholder="e.g. kind:character · @sasha · tag:freshman" autocomplete="off" />
+                </div>
+              </div>
+              <div class="docs-tree-tools">
+                <button type="button" class="btn" id="docs-tree-refresh" title="Refetch tree (Hub poll does not)">Refresh</button>
+                <button type="button" class="btn" id="docs-new-sheet" title="Create from campaigns/_templates/character-sheet.md">New character sheet</button>
+                <button type="button" class="btn" id="docs-open-graph" title="Doc relationship graph (not campaign progress bars)">Visualize</button>
+                <span class="docs-tree-meta" id="docs-tree-meta"></span>
+              </div>
+              <span id="docs-load-status" class="meta" aria-live="polite"></span>
+            </div>
+            <div id="docs-tree"><p class="empty">Loading tree…</p></div>
+            <div id="report-list" hidden aria-hidden="true"></div>
           </aside>
           <article class="report-reader" id="report-reader">
-            <div class="empty-state">Select a report</div>
+            <div class="docs-toolbar" id="docs-reader-hint">
+              <div class="docs-toolbar-left">
+                <div class="doc-title">Docs reader</div>
+                <div class="meta">Pick a doc in the tree → Edit / Save / Comment appear here. Visualize = graph map.</div>
+              </div>
+              <div class="docs-toolbar-right">
+                <button type="button" class="btn" id="docs-hint-comment" disabled title="Select text in an open doc first">Comment</button>
+                <button type="button" class="btn" id="docs-hint-edit" disabled title="Open a writable doc from the tree">Edit</button>
+                <button type="button" class="btn" id="docs-hint-viz">Visualize</button>
+              </div>
+            </div>
+            <div class="empty-state">Select a document from the tree (or New character sheet)</div>
           </article>
         </section>
 
@@ -2068,13 +2686,13 @@
           </div>
         </section>
 
-        <section id="map" class="panel admin-only">
+        <section id="map" class="panel admin-only" hidden aria-hidden="true">
           <div class="camp-block" style="max-width:36rem">
-            <h3 style="margin:0 0 0.35rem">Isla Primavera map</h3>
-            <p class="meta" style="margin:0 0 0.75rem">The interactive campaign map lives on <strong>map.tableslop.org</strong> (linuxbox-tableslop :8765). This Hub tab is a link-out only — no baked overlay / localhost embed.</p>
+            <h3 style="margin:0 0 0.35rem">Maps live off this dashboard</h3>
+            <p class="meta" style="margin:0 0 0.75rem">Interactive map and campaign availability are separate products — not Hub panels.</p>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-              <a class="btn primary" href="https://map.tableslop.org/" target="_blank" rel="noopener">Open on map.tableslop.org →</a>
-              <a class="btn" href="https://map.tableslop.org/#cast" target="_blank" rel="noopener">Cast roster →</a>
+              <a class="btn primary" href="https://map.tableslop.org/" target="_blank" rel="noopener">map.tableslop.org →</a>
+              <a class="btn" href="https://campaigns.tableslop.org/" target="_blank" rel="noopener">campaigns.tableslop.org →</a>
             </div>
           </div>
         </section>
@@ -2200,6 +2818,7 @@
         </section>
 
         <section id="chat" class="panel fill admin-only">
+          <p class="chat-ops-banner" id="chat-ops-banner">Ops Chat — talk to data, fix misconceptions, do tasks. Not Pixi RP (use the Pixi silo for :8767).</p>
           <button type="button" class="chat-threads-backdrop" id="chat-threads-backdrop" aria-label="Close thread list" tabindex="-1"></button>
           <aside class="chat-sidebar" id="chat-sidebar">
             <div class="chat-sidebar-head">
@@ -2373,13 +2992,6 @@
             </div>
             <button type="button" class="btn primary" id="user-task-add">Create task</button>
             <p class="empty" id="user-task-result"></p>
-            <h2 style="margin-top:1rem">Your tasks</h2>
-            <div class="field"><label for="user-task-filter-project">Filter</label>
-              <select id="user-task-filter-project">
-                <option value="">All projects</option>
-              </select>
-            </div>
-            <div class="user-task-list" id="user-task-list"></div>
             <details style="margin-top:1rem">
               <summary class="meta">Add to campaign queue</summary>
               <div class="field" style="margin-top:0.5rem"><label for="task-campaign">Campaign</label>
@@ -2401,40 +3013,77 @@
             </div>
           </aside>
           <div class="task-board-wrap">
-            <div class="task-board-toolbar">
-              <span class="meta">Campaign queues (progress.md)</span>
-              <div class="filter">
-                <select id="task-filter">
-                  <option value="all">All campaigns</option>
-                  <option value="spacequest">SpaceQuest</option>
-                  <option value="tropic-gooner">Tropic Gooner (Hunter)</option>
-                  <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
-                </select>
-              </div>
+            <div class="tasks-c2-top">
+              <section class="active-work" id="active-work" aria-label="Active work">
+                <div class="active-work-head">
+                  <h2>Active now</h2>
+                  <div class="active-work-links" id="active-work-links"></div>
+                  <span class="meta" id="active-work-meta"></span>
+                </div>
+                <div id="active-work-body"><p class="active-work-empty">Loading…</p></div>
+              </section>
+              <section class="user-tasks-panel" aria-label="Your tasks">
+                <div class="user-tasks-head">
+                  <h2>Your tasks</h2>
+                  <div class="filter">
+                    <select id="user-task-filter-project" aria-label="Filter tasks by project">
+                      <option value="">All projects</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="user-task-list" id="user-task-list"></div>
+              </section>
             </div>
-            <div class="task-board" id="task-board"></div>
-            <section class="active-work" id="active-work" aria-label="Active work">
-              <div class="active-work-head">
-                <h2>Active now</h2>
-                <div class="active-work-links" id="active-work-links"></div>
-                <span class="meta" id="active-work-meta"></span>
+            <details class="task-campaign-queues">
+              <summary>
+                <span>Campaign queues (progress.md)</span>
+                <span class="meta" style="text-transform:none;letter-spacing:0;font-size:0.72rem">tap to expand</span>
+              </summary>
+              <div class="task-board-toolbar">
+                <span class="meta">Filter</span>
+                <div class="filter">
+                  <select id="task-filter">
+                    <option value="all">All campaigns</option>
+                    <option value="spacequest">SpaceQuest</option>
+                    <option value="tropic-gooner">Tropic Gooner (Hunter)</option>
+                    <option value="nyc-mafia-dnd">NYC Mafia × D&D</option>
+                  </select>
+                </div>
               </div>
-              <div id="active-work-body"><p class="active-work-empty">Loading…</p></div>
-            </section>
+              <div class="task-board" id="task-board"></div>
+            </details>
           </div>
+        </section>
+
+        <section id="pixi" class="panel admin-only">
+          <h2 style="margin:0 0 0.35rem">Pixi RP</h2>
+          <p class="pixi-silo-lead">Roleplay engine on linuxbox (<code>linuxbox-pixi-rp</code> :8767). Tailscale/LAN only — not public abhinavall.net. Separate from Ops Chat.</p>
+          <div class="pixi-silo-status" id="pixi-silo-status"><p class="empty">Loading Pixi status…</p></div>
+          <div class="pixi-silo-actions" id="pixi-silo-actions"></div>
+          <p class="meta">OpenRouter key lives in Pixi env only (<code>~/.linuxbox-pixi/</code>) — not Hermes ops.</p>
         </section>
 
         <section id="garage" class="panel admin-only">
           <div id="garage-head"></div>
-          <div id="garage-body"><p class="empty">Loading build…</p></div>
+          <div id="garage-mazda-tasks" class="meta" style="margin:0 0 0.75rem"></div>
+          <div id="garage-body"><p class="empty">Loading Mazda3 build…</p></div>
         </section>
 
         <section id="backlog" class="panel admin-only">
+          <div class="meta-philosophy" id="meta-philosophy">
+            <h2>Design philosophy (stub)</h2>
+            <p>Meta is the overarching observability + design layer for this stack — not a finished product yet. Prefer clear silos over Tasks soup; System sees everything; correctness over thrash. Observability hooks (meta-harness rollups, smoke, update gate) land here over time.</p>
+          </div>
           <div class="meta-panel-lead" id="meta-lead">
-            <h2>What Meta does</h2>
+            <h2>What Meta does today</h2>
             <p id="meta-blurb">Loading…</p>
           </div>
           <div class="meta-panel-grid" id="meta-cards"></div>
+          <div class="meta-backlog-head">
+            <h2>Meta-Harness scores</h2>
+            <span class="meta" id="meta-harness-updated"></span>
+          </div>
+          <div class="meta-panel-grid" id="meta-harness-cards"><p class="empty">Loading…</p></div>
           <div class="meta-backlog-head">
             <h2>Open backlog</h2>
             <span class="meta" id="meta-backlog-count"></span>
@@ -2452,7 +3101,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "Hub", systems: "Systems", inbox: "Inbox", reports: "Reports", news: "News", campaigns: "Campaigns", map: "Map", stories: "Stories", characters: "Characters", chat: "Chat", tasks: "Tasks", garage: "Mazda3 build", backlog: "Meta" };
+    const titles = { hub: "System", systems: "Host", inbox: "Inbox", reports: "Docs", news: "News", campaigns: "Campaigns", map: "Maps (external)", stories: "Stories", characters: "Characters", chat: "Ops Chat", tasks: "Tasks", pixi: "Pixi RP", garage: "Mazda3", backlog: "Meta" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -2473,7 +3122,7 @@
       { id: "brief-rp", label: "Brief RP", profile: "think", response_mode: "brief", show_model_picker: true, hint: "Brief RP · pick model or Auto free-first" },
       { id: "workshop", label: "Workshop", profile: "think", response_mode: "workshop", show_model_picker: true, hint: "Workshop · pick model or Auto free-first" },
       { id: "meta-ops", label: "Meta ops", profile: "meta", response_mode: "brief", show_model_picker: true, hint: "Meta ops · pick model or Auto free-first" },
-      { id: "agent-coding", label: "Agent coding", profile: "code", response_mode: "workshop", show_model_picker: true, hint: "Agent coding · pick model or Auto free-first" },
+      { id: "agent-coding", label: "Agent coding", profile: "code", response_mode: "workshop", show_model_picker: true, routing: "cursor_default", default_model: "cursor:auto", hint: "Agent coding · Cursor default (screenshots + portfolio)" },
     ];
     let chatCatalogFetchInFlight = null;
 
@@ -2536,8 +3185,12 @@
       const sel = document.getElementById("chat-model");
       if (!sel) return;
       const models = chatCatalogModels();
+      const mode = getChatModeDef(document.getElementById("chat-mode")?.value);
+      const cursorDefault = mode?.routing === "cursor_default" || mode?.default_model === "cursor:auto";
       const prev = selectedId != null ? selectedId : sel.value;
-      sel.innerHTML = `<option value="auto">Auto · free-first</option>`;
+      sel.innerHTML = cursorDefault
+        ? `<option value="auto">Auto · Cursor default</option>`
+        : `<option value="auto">Auto · free-first</option>`;
       for (const row of models) {
         const opt = document.createElement("option");
         opt.value = row.id;
@@ -2545,22 +3198,31 @@
         if (row.status === "degraded") opt.dataset.degraded = "1";
         sel.appendChild(opt);
       }
-      if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
-      else sel.value = "auto";
+      // Agent coding: prefer cursor:auto when no explicit prior pick
+      if (cursorDefault && (!prev || prev === "auto")) {
+        if ([...sel.options].some((o) => o.value === "cursor:auto")) sel.value = "cursor:auto";
+        else sel.value = "auto";
+      } else if (prev && [...sel.options].some((o) => o.value === prev)) {
+        sel.value = prev;
+      } else {
+        sel.value = "auto";
+      }
       if (!models.length) {
         const hint = document.getElementById("chat-mode-hint");
         if (hint) hint.textContent = "Model catalog empty — loading…";
         ensureChatCatalogLoaded().then((ok) => {
           if (ok) {
             populateChatModelSelect(prev);
-            const mode = getChatModeDef(document.getElementById("chat-mode")?.value);
+            const mode2 = getChatModeDef(document.getElementById("chat-mode")?.value);
             const s = document.getElementById("chat-model");
             const mv = s?.value || "auto";
             const ml =
               mv === "auto"
-                ? "Auto · free-first (Hub routing)"
+                ? mode2?.routing === "cursor_default"
+                  ? "Auto · Cursor default"
+                  : "Auto · free-first (Hub routing)"
                 : s?.selectedOptions?.[0]?.textContent?.split(" · ")[0] || mv;
-            if (hint) hint.textContent = `Using: ${ml} · ${mode.label || mode.id}`;
+            if (hint) hint.textContent = `Using: ${ml} · ${mode2.label || mode2.id}`;
           } else if (hint) {
             hint.textContent =
               "Model catalog failed to load — only Auto available. Tap ↻ or hard-refresh.";
@@ -2581,13 +3243,17 @@
       document.getElementById("chat-profile").value = mode.profile || "think";
       document.getElementById("chat-response-mode").value =
         mode.response_mode === "workshop" ? "workshop" : "brief";
-      // Always show model picker (all modes) — Auto is default; catalog rows are choosable.
       if (modelWrap) modelWrap.hidden = false;
-      populateChatModelSelect(opts.preferredModel);
-      if (opts.preferredModel) {
+      const prefer =
+        opts.preferredModel ||
+        (mode.routing === "cursor_default" || mode.default_model === "cursor:auto"
+          ? "cursor:auto"
+          : null);
+      populateChatModelSelect(prefer);
+      if (prefer) {
         const sel = document.getElementById("chat-model");
-        if (sel && [...sel.options].some((o) => o.value === opts.preferredModel)) {
-          sel.value = opts.preferredModel;
+        if (sel && [...sel.options].some((o) => o.value === prefer)) {
+          sel.value = prefer;
         }
       }
       const sel = document.getElementById("chat-model");
@@ -2595,7 +3261,9 @@
       const catalogEmpty = chatCatalogModels().length === 0;
       const modelLabel =
         modelVal === "auto"
-          ? "Auto · free-first (Hub routing)"
+          ? mode.routing === "cursor_default"
+            ? "Auto · Cursor default"
+            : "Auto · free-first (Hub routing)"
           : sel?.selectedOptions?.[0]?.textContent?.split(" · ")[0] || modelVal;
       if (hint && !catalogEmpty) {
         hint.textContent = `Using: ${modelLabel} · ${mode.label || mode.id}`;
@@ -2608,7 +3276,14 @@
     function chatRequestExtras() {
       const mode = getChatModeDef(document.getElementById("chat-mode")?.value);
       const modelVal = document.getElementById("chat-model")?.value || "auto";
-      const preferred = modelVal !== "auto" ? modelVal : null;
+      // Agent coding Auto → send cursor:auto so server takes Cursor lane (screenshots/portfolio)
+      let preferred = modelVal !== "auto" ? modelVal : null;
+      if (
+        !preferred &&
+        (mode.routing === "cursor_default" || mode.default_model === "cursor:auto")
+      ) {
+        preferred = "cursor:auto";
+      }
       return {
         chat_mode: mode.id,
         profile: mode.profile || "think",
@@ -2791,7 +3466,14 @@
       root.style.setProperty("--prose-size", `${opts.text}rem`);
       root.style.setProperty("--prose-max", opts.width === "full" ? "none" : `${opts.width}ch`);
       root.style.setProperty("--report-split", SPLIT_MAP[opts.split] || SPLIT_MAP.balanced);
-      document.querySelectorAll(".prose").forEach((el) => el.classList.toggle("prose-full", opts.width === "full"));
+      document.querySelectorAll(".prose").forEach((el) => {
+        // Docs reader always fills the main pane (see #docs-prose / docs-reader-split CSS).
+        if (el.id === "docs-prose") {
+          el.classList.add("prose-full");
+          return;
+        }
+        el.classList.toggle("prose-full", opts.width === "full");
+      });
       ["size-ui", "size-text", "size-width", "size-split"].forEach((id) => {
         const key = id.replace("size-", "");
         const el = document.getElementById(id);
@@ -2851,22 +3533,57 @@
     }
 
     function activateTab(tabId) {
+      tabId = normalizeTabId(tabId);
+      if (tabId === "map") {
+        window.open("https://map.tableslop.org/", "_blank", "noopener");
+        return;
+      }
       const btn = document.querySelector(`.rail button[data-tab="${tabId}"]`);
-      if (!btn) return;
+      const panel = document.getElementById(tabId);
+      if (!btn && !panel) return;
       activeTab = tabId;
       document.querySelectorAll(".rail button[data-tab]").forEach((b) => b.classList.remove("active"));
       document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-      btn.classList.add("active");
-      const panel = document.getElementById(activeTab);
-      if (panel) panel.classList.add("active");
+      if (btn) btn.classList.add("active");
+      if (panel) {
+        panel.hidden = false;
+        panel.classList.add("active");
+      }
       const titleEl = document.getElementById("page-title");
       if (titleEl) titleEl.textContent = titles[activeTab] || activeTab;
       const mob = document.getElementById("mobile-page-select");
       if (mob && mob.value !== activeTab) mob.value = activeTab;
       if (activeTab === "inbox") loadInbox();
       if (activeTab === "reports") {
-        if (sessionRole === "viewer") loadPublicReports();
-        else renderReports(agentData);
+        if (sessionRole === "viewer") {
+          const list = document.getElementById("report-list");
+          const tree = document.getElementById("docs-tree");
+          if (list) { list.hidden = false; list.removeAttribute("aria-hidden"); }
+          if (tree) tree.hidden = true;
+          loadPublicReports();
+        } else if (typeof docsWikiEnsureLoaded === "function") {
+          docsWikiEnsureLoaded();
+        } else if (typeof loadDocsWiki === "function") {
+          loadDocsWiki();
+        } else {
+          // Do not leave static "Loading tree…" — wiki script missing (bad src under /Linuxbox/)
+          const tree = document.getElementById("docs-tree");
+          if (tree) {
+            tree.innerHTML =
+              `<p class="empty docs-status-error">Docs wiki client failed to load (<code>docs-wiki.js</code>).<br/>` +
+              `<span class="meta">Hard-refresh, or Retry. Tree cannot stay on Loading.</span><br/>` +
+              `<button type="button" class="btn" id="docs-tree-retry-boot">Retry</button></p>`;
+            document.getElementById("docs-tree-retry-boot")?.addEventListener("click", () => {
+              if (typeof loadDocsWiki === "function") loadDocsWiki();
+              else location.reload();
+            });
+          }
+          const status = document.getElementById("docs-load-status");
+          if (status) {
+            status.textContent = "docs-wiki.js missing";
+            status.classList.add("docs-status-error");
+          }
+        }
         // ponytail: guard pre-existing undefined ref (reports keyboard-nav never defined) — stops console throw, still calls it if a later build defines it.
         if (typeof setupReportKeyboardNav === "function") setupReportKeyboardNav();
       }
@@ -2894,9 +3611,13 @@
         }
       }
       if (activeTab === "garage") loadGarage();
+      if (activeTab === "pixi") loadPixiSilo();
       if (activeTab === "systems") loadSystems();
-      if (activeTab === "hub" && sessionRole !== "viewer") load();
-      if (activeTab === "backlog") renderMeta(agentData);
+      if (activeTab === "hub" && sessionRole !== "viewer") {
+        load();
+        refreshSystemHostGlance();
+      }
+      if (activeTab === "backlog") { renderMeta(agentData); renderMetaHarness(); }
       syncHubResourcesPolling();
     }
 
@@ -4241,6 +4962,20 @@
       });
     }
 
+    function fmtTaskAge(iso) {
+      if (!iso) return "";
+      const t = Date.parse(iso);
+      if (!Number.isFinite(t)) return "";
+      const sec = Math.max(0, Math.round((Date.now() - t) / 1000));
+      if (sec < 60) return `${sec}s ago`;
+      const m = Math.floor(sec / 60);
+      if (m < 60) return `${m}m ago`;
+      const h = Math.floor(m / 60);
+      if (h < 48) return `${h}h ago`;
+      const d = Math.floor(h / 24);
+      return `${d}d ago`;
+    }
+
     function renderUserTasks(data) {
       initUserTaskTags(data?.user_task_tags);
       const pmap = projectMap(data);
@@ -4253,13 +4988,40 @@
         root.innerHTML = '<p class="empty">No tasks yet</p>';
         return;
       }
-      root.innerHTML = tasks.slice(0, 40).map((t) => {
+      // Open first, then done — keep insight dense
+      tasks = [...tasks].sort((a, b) => {
+        const ad = a.status === "done" ? 1 : 0;
+        const bd = b.status === "done" ? 1 : 0;
+        if (ad !== bd) return ad - bd;
+        return String(b.updated_at || b.created_at || "").localeCompare(String(a.updated_at || a.created_at || ""));
+      });
+      root.innerHTML = tasks.slice(0, 60).map((t) => {
         const done = t.status === "done";
+        const status = String(t.status || "open");
         const tags = (t.tags || []).map((tag) => `<span class="tag">${esc(TASK_TAG_LABELS[tag] || tag)}</span>`).join("");
-        const proj = t.project_id && pmap[t.project_id] ? `<div class="project-pill">${esc(pmap[t.project_id].name)}</div>` : "";
-        const ctx = t.context?.story_path ? `<div class="meta" style="font-size:0.65rem;margin-top:0.2rem">${esc(t.context.story_path.split("/").pop())}</div>` : "";
+        const proj = t.project_id && pmap[t.project_id]
+          ? `<span class="project-pill">${esc(pmap[t.project_id].name)}</span>`
+          : "";
+        const age = fmtTaskAge(t.updated_at || t.created_at);
+        const camp = t.context?.campaign
+          ? `<span class="meta" style="font-size:0.62rem">${esc(t.context.campaign)}</span>`
+          : "";
+        const story = t.context?.story_path
+          ? `<div class="meta" style="font-size:0.65rem;margin-top:0.15rem">${esc(t.context.story_path.split("/").pop())}</div>`
+          : "";
+        const notesRaw = String(t.body || t.notes || "").trim();
+        const notes = notesRaw
+          ? `<div class="user-task-notes">${esc(notesRaw.slice(0, 220))}${notesRaw.length > 220 ? "…" : ""}</div>`
+          : "";
         return `<div class="user-task-card${done ? " done" : ""}" data-id="${esc(t.id)}">
-          ${proj}<strong>${esc(t.title)}</strong>${ctx}
+          <div class="user-task-meta">
+            ${proj}
+            <span class="user-task-status ${esc(status)}">${esc(status)}</span>
+            ${age ? `<span class="user-task-age">${esc(age)}</span>` : ""}
+            ${camp}
+          </div>
+          <div class="user-task-title">${esc(t.title)}</div>
+          ${story}${notes}
           <div class="tags">${tags}</div>
           <div class="actions">
             ${!done ? `<button type="button" class="btn user-task-done" data-id="${esc(t.id)}">Done</button>` : ""}
@@ -5379,6 +6141,7 @@
       const lastDone = rn.last_completed || null;
       const liveLog = rn.live_log || data?.live_log || null;
       const focus = rn.think_focus || null;
+      const cursor = rn.cursor_lane || data?.cursor_lane || null;
       const parts = [];
       for (const j of jobs.slice(0, 4)) {
         const st = j.status === "queued" ? "queued" : "thinking";
@@ -5400,6 +6163,15 @@
           task_id: pod.task_id || focus?.task_id || null,
         });
       }
+      if (cursor?.running) {
+        parts.push({
+          kind: "cursor",
+          label: "Cursor Auto",
+          status: "running",
+          elapsed: cursor.age_sec != null ? fmtElapsed(Number(cursor.age_sec) * 1000) : "—",
+          blurb: cursor.job_label || null,
+        });
+      }
       const plain = [];
       const thinking = jobs.filter((j) => j.status === "thinking");
       const queued = jobs.filter((j) => j.status === "queued");
@@ -5416,6 +6188,11 @@
         const tag = pod.hung ? "HUNG " : "";
         plain.push(b ? `${tag}${pod.name}: ${b}` : `${tag}${pod.name} ${fmtElapsed(pod.elapsed_ms)}`);
       }
+      if (cursor?.running) {
+        const cj = cursor.job_label ? String(cursor.job_label).slice(0, 48) : "job";
+        const age = cursor.age_sec != null ? fmtElapsed(Number(cursor.age_sec) * 1000) : "";
+        plain.push(`Cursor: ${cj}${age ? ` · ${age}` : ""}`);
+      }
       const infoBase = {
         parts,
         anything: parts.length > 0,
@@ -5423,6 +6200,7 @@
         last_completed: lastDone,
         live_log: liveLog,
         think_focus: focus,
+        cursor_lane: cursor,
       };
       return {
         ...infoBase,
@@ -5439,17 +6217,17 @@
       const work = pods.find((p) => p.meaningful) || pods.find((p) => !p.idle) || pods[0];
       if (work) return work;
       const think = data?.lanes?.["agent-cycle-think"];
-      const fast = data?.lanes?.["agent-cycle-fast"];
+      const sync = data?.lanes?.["agent-cycle-sync"];
       const thinkTs = think?.last_run ? new Date(think.last_run).getTime() : 0;
-      const fastTs = fast?.last_run ? new Date(fast.last_run).getTime() : 0;
-      if (!thinkTs && !fastTs) return null;
-      const useThink = thinkTs >= fastTs;
-      const lane = useThink ? think : fast;
+      const syncTs = sync?.last_run ? new Date(sync.last_run).getTime() : 0;
+      if (!thinkTs && !syncTs) return null;
+      const useThink = thinkTs >= syncTs;
+      const lane = useThink ? think : sync;
       return {
-        name: useThink ? "think" : "fast",
-        label: useThink ? "Think / ops lane" : "Fast lane",
+        name: useThink ? "think" : "sync",
+        label: useThink ? "Think / ops lane" : "Sync · deterministic",
         kind: "tick",
-        kind_label: useThink ? "last think tick" : "last fast tick",
+        kind_label: useThink ? "last think tick" : "last sync",
         ts: lane.last_run,
         summary: lane.status || "tick",
         exit: null,
@@ -5515,6 +6293,28 @@
       return `<span class="aw-tone ${esc(t)}">${esc(text)}</span>`;
     }
 
+    /** Human what/outcome line for pod ticks — prefer server detail over generic "pod think". */
+    function podWhatLine(p) {
+      if (!p || typeof p !== "object") return "";
+      const blurb = String(p.blurb || "").trim();
+      if (blurb) return blurb.slice(0, 120);
+      const detail = String(p.detail || "").trim();
+      if (detail) return detail.slice(0, 120);
+      const sum = String(p.summary || "").trim();
+      const name = String(p.name || "");
+      const generic = !sum || /^pod\s+/i.test(sum) || sum === name;
+      if (!generic) return sum.slice(0, 120);
+      if (p.kind_label) return String(p.kind_label).slice(0, 120);
+      return "";
+    }
+
+    function awDetailHtml(text, tone) {
+      const t = String(text || "").trim();
+      if (!t) return "";
+      const cls = tone && tone !== "muted" ? ` aw-tone ${esc(tone)}` : "";
+      return `<div class="aw-detail${cls}">${esc(t)}</div>`;
+    }
+
     function outcomeChip(p, data) {
       const tone = awTone(p, data);
       const o = p?.outcome || (p?.idle ? "idle" : null);
@@ -5532,27 +6332,195 @@
       return awChip(String(p?.status || "—"), "muted");
     }
 
-    function hubLastThinkHtml(info, data) {
-      const last = info?.last_completed;
-      if (!last || !last.blurb) {
-        return `<div class="hub-last-think" id="hub-last-think">
-          <div class="aw-label">Last think</div>
-          <div class="running-now-idle">No think result yet</div>
-        </div>`;
+    function hubLaneKv(label, valueHtml) {
+      return `<div class="hub-lane-kv"><span class="hub-lane-k">${esc(label)}</span><span class="hub-lane-v">${valueHtml}</span></div>`;
+    }
+
+    function truncateLogPath(p) {
+      const s = String(p || "");
+      if (s.length <= 52) return s;
+      return "…" + s.slice(-49);
+    }
+
+    function humanThinkTaskLabel(data, taskId) {
+      const raw = taskId ? String(taskId).trim() : "";
+      if (!raw) return "";
+      const bare = raw.replace(/^lane:/, "");
+      const ut = (data?.user_tasks || []).find(
+        (t) =>
+          t &&
+          (String(t.id) === bare ||
+            String(t.id) === raw ||
+            `lane:${t.id}` === raw ||
+            `lane:${bare}` === raw)
+      );
+      if (ut?.title) return String(ut.title).slice(0, 80);
+      if (bare.includes("/")) {
+        const leaf = bare.split("/").pop() || bare;
+        return leaf.replace(/\.md$/i, "").slice(0, 80);
       }
-      const when = last.at || last.ts;
-      const tid = last.task_id ? `<span class="meta"> · task ${esc(String(last.task_id).slice(0, 12))}…</span>` : "";
-      const tone = awTone(last, data);
-      const st = last.status
-        ? awChip(String(last.status), tone)
-        : outcomeChip(last, data);
-      const blurbTone = tone === "muted" ? "" : ` aw-tone ${tone}`;
-      return `<div class="hub-last-think" id="hub-last-think">
-        <div class="aw-label">Last think</div>
-        <div class="aw-row">${st}<strong class="aw-tone ${esc(tone)}">think</strong>
-          <span class="aw-time">${esc(when ? fmtEtTime(when) : "—")}</span>${tid}
+      return bare.slice(0, 80);
+    }
+
+    function hubThinkLaneInsight(data, info) {
+      const rn = data?.running_now || {};
+      const focus = info?.think_focus || rn.think_focus || null;
+      const pod = info?.parts?.find((p) => p.kind === "tick") || rn.pod || null;
+      const last = info?.last_completed || rn.last_completed || null;
+      const wp = data?.work_pipeline || {};
+      const thinkCrontab = data?.lanes?.["agent-cycle-think"];
+      const metaThink = data?.meta_lane?.last_think_run;
+      const summary = data?.last_think_summary;
+      const thinkApi = rn.think_lane || data?.think_lane || {};
+
+      let status = "idle";
+      let statusTone = "muted";
+      if (focus?.hung || focus?.focus_status === "hung" || pod?.hung) {
+        status = "hung";
+        statusTone = "failed";
+      } else if (
+        focus &&
+        (focus.focus_status === "running" ||
+          String(focus.status || "").toLowerCase() === "running")
+      ) {
+        status = "active";
+        statusTone = "in_progress";
+      } else if (
+        last?.outcome === "fail" ||
+        String(last?.status || "").toLowerCase() === "failed" ||
+        wp.last_think_status === "failed"
+      ) {
+        status = "failed";
+        statusTone = "failed";
+      } else if (wp.think_paused) {
+        status = "paused";
+        statusTone = "muted";
+      }
+
+      const when =
+        (status === "active" && (focus?.started_at || focus?.updated_at)) ||
+        last?.at ||
+        last?.ts ||
+        wp.last_think_success_at ||
+        metaThink?.when ||
+        thinkCrontab?.last_run ||
+        null;
+
+      let what = humanThinkTaskLabel(data, focus?.task_id || last?.task_id || metaThink?.task_id);
+      if (!what) {
+        what = String(last?.blurb || summary?.blurb || metaThink?.what || "").trim().slice(0, 100);
+      }
+      if (!what) what = "—";
+
+      let outcome = "IDLE";
+      let outcomeTone = "muted";
+      let failReason = "";
+      if (status === "active") {
+        outcome = "running";
+        outcomeTone = "in_progress";
+      } else if (status === "hung") {
+        outcome = "fail";
+        outcomeTone = "failed";
+        failReason = "tick hung (>5m)";
+      } else if (
+        last?.outcome === "fail" ||
+        String(last?.status || "").toLowerCase() === "failed" ||
+        wp.last_think_status === "failed"
+      ) {
+        outcome = "fail";
+        outcomeTone = "failed";
+        const blob = String(last?.blurb || summary?.blurb || "").trim();
+        failReason = blob.slice(0, 100);
+        if (wp.free_429_blocked) failReason = failReason || "OpenRouter free 429 (blocked)";
+      } else if (
+        last?.outcome === "ok" ||
+        String(last?.status || "").toLowerCase() === "done"
+      ) {
+        outcome = "ok";
+        outcomeTone = "succeeded";
+      } else if (wp.last_think_success_at) {
+        outcome = "ok";
+        outcomeTone = "succeeded";
+      }
+
+      const modelRaw =
+        thinkApi.model_hint ||
+        (wp.paid_last_resort && wp.paid_last_resort_model
+          ? String(wp.paid_last_resort_model).replace(/^openrouter\//i, "")
+          : "");
+      const provider = thinkApi.provider || "OpenRouter";
+
+      return {
+        status,
+        statusTone,
+        when,
+        what,
+        outcome,
+        outcomeTone,
+        failReason,
+        modelRaw,
+        provider,
+      };
+    }
+
+    function hubThinkLaneHtml(data, info) {
+      const t = hubThinkLaneInsight(data, info);
+      const statusChip = awChip(t.status, t.statusTone);
+      const outcomeLabel =
+        t.outcome === "running" ? "in progress" : String(t.outcome || "—").toUpperCase();
+      let outcomeHtml = awChip(outcomeLabel, t.outcomeTone);
+      if (t.failReason && t.outcomeTone === "failed") {
+        outcomeHtml += `<span class="meta"> ${esc(t.failReason)}</span>`;
+      }
+      const modelHtml = t.modelRaw
+        ? `${esc(t.provider)} · <span class="hub-lane-what">${esc(String(t.modelRaw).split("/").pop())}</span>`
+        : `<span class="meta">free-first rotate</span>`;
+      return `<div class="hub-lane-card hub-lane-think" id="hub-lane-think">
+        <div class="hub-lane-head">Hermes · OpenRouter think</div>
+        <div class="hub-lane-body">
+          ${hubLaneKv("Status", statusChip)}
+          ${hubLaneKv("When", esc(t.when ? fmtEtTime(t.when) : "—"))}
+          ${hubLaneKv("What", `<span class="hub-lane-what">${esc(t.what)}</span>`)}
+          ${hubLaneKv("Outcome", outcomeHtml)}
+          ${hubLaneKv("Model", modelHtml)}
         </div>
-        <div class="aw-blurb${blurbTone}">${esc(String(last.blurb).slice(0, 160))}</div>
+      </div>`;
+    }
+
+    function hubCursorLaneHtml(cursor) {
+      const c = cursor || {};
+      const running = !!c.running;
+      const tone = running ? "in_progress" : "muted";
+      const statusChip = awChip(running ? "active" : "idle", tone);
+      const jobRaw = c.job_label ? String(c.job_label).trim() : "";
+      const jobHtml = jobRaw
+        ? esc(jobRaw.slice(0, 80))
+        : `<span class="meta">—</span>`;
+      const pid = c.pid || (Array.isArray(c.processes) && c.processes[0] ? c.processes[0].pid : null);
+      const pidHtml = pid ? esc(String(pid)) : `<span class="meta">—</span>`;
+      const exitHtml =
+        c.last_exit != null && c.last_exit !== ""
+          ? esc(String(c.last_exit))
+          : `<span class="meta">—</span>`;
+      const logPath = c.log_path ? String(c.log_path) : "";
+      const logHtml = logPath
+        ? `<span class="hub-lane-log" title="${esc(logPath)}">${esc(truncateLogPath(logPath))}</span>`
+        : `<span class="meta">—</span>`;
+      const whenBits = [];
+      if (running && c.age_sec != null) whenBits.push(fmtElapsed(Number(c.age_sec) * 1000));
+      if (!running && c.log_mtime) whenBits.push(fmtEtTime(c.log_mtime));
+      const whenHtml =
+        whenBits.length ? esc(whenBits.join(" · ")) : `<span class="meta">—</span>`;
+      return `<div class="hub-lane-card hub-lane-cursor" id="hub-lane-cursor">
+        <div class="hub-lane-head">Cursor Auto</div>
+        <div class="hub-lane-body">
+          ${hubLaneKv("Status", statusChip)}
+          ${hubLaneKv("When", whenHtml)}
+          ${hubLaneKv("Job", `<span class="hub-lane-what">${jobHtml}</span>`)}
+          ${hubLaneKv("PID", pidHtml)}
+          ${hubLaneKv("Last exit", exitHtml)}
+          ${hubLaneKv("Log", logHtml)}
+        </div>
       </div>`;
     }
 
@@ -5563,12 +6531,16 @@
         const chip = outcomeChip(p, data);
         const when = p.ts ? `<span class="aw-time">${esc(fmtEtTime(p.ts))}</span>` : "";
         const lab = esc(p.label || p.name);
-        return `<div class="aw-row">${chip}<strong class="aw-tone ${esc(tone)}">${lab}</strong>${when}</div>`;
+        const what = podWhatLine(p);
+        const whatHtml = what
+          ? `<div class="aw-pod-detail aw-tone ${esc(p.idle ? "muted" : tone)}">${esc(what)}</div>`
+          : "";
+        return `<div class="aw-pod-row"><div class="aw-row">${chip}<strong class="aw-tone ${esc(tone)}">${lab}</strong>${when}</div>${whatHtml}</div>`;
       }).join("");
       if (!last && !recent) {
         return `<div class="hub-last-completed" id="hub-last-run">
           <div class="aw-label">Heartbeats</div>
-          <div class="running-now-idle">No fast/preflight ticks yet</div>
+          <div class="running-now-idle">No sync/think heartbeats yet</div>
         </div>`;
       }
       const what = last ? (last.label || last.name || "?") : "";
@@ -5578,7 +6550,7 @@
           <span class="aw-time">${esc(last.ts ? fmtEt(last.ts) : "—")}</span></div>`
         : "";
       return `<div class="hub-last-completed" id="hub-last-run">
-        <div class="aw-label">Heartbeats (fast / preflight)</div>
+        <div class="aw-label">Heartbeats (sync / think)</div>
         ${head}
         ${recent ? `<div class="hub-recent-ticks">${recent}</div>` : ""}
       </div>`;
@@ -5676,11 +6648,18 @@
     }
 
     function hubObservatoryHtml(data, info) {
+      const cursor = data?.running_now?.cursor_lane || data?.cursor_lane || {};
       return `<div class="hub-obs-panel" id="hub-obs-panel" aria-label="Agent observability">
-        ${hubLastThinkHtml(info, data)}
+        <div class="hub-lanes-split">
+          ${hubThinkLaneHtml(data, info)}
+          ${hubCursorLaneHtml(cursor)}
+        </div>
         ${hubLiveLogHtml(info)}
       </div>
-      ${hubHeartbeatHtml(data)}`;
+      <details class="hub-heartbeats-fold">
+        <summary>Recent heartbeats (sync / think)</summary>
+        ${hubHeartbeatHtml(data)}
+      </details>`;
     }
 
     function renderRunningNow(data, mode) {
@@ -5786,7 +6765,7 @@
       const pods = data?.recent_pods || [];
       const maint = data?.maintenance_open || 0;
       const lane = (data?.current_task_status || "").replace(/\*\*/g, "").trim();
-      const fast = data?.lanes?.["agent-cycle-fast"];
+      const sync = data?.lanes?.["agent-cycle-sync"];
       const think = data?.lanes?.["agent-cycle-think"];
       const runningCard = renderRunningNow(data, "card");
 
@@ -5811,6 +6790,32 @@
 
       const cards = [runningCard];
 
+      // Goal insight — what think/Cursor are doing; human redirect/pause
+      const goals = data?.agent_goals || {};
+      const freeH = goals.free_models || data?.free_models_health || {};
+      const ctrl = goals.control || {};
+      const usage = data?.chat_model_usage || {};
+      const usageTop = (usage.models || []).slice(0, 4)
+        .map((m) => `${esc(String(m.id).split("/").pop())} ${m.ok || 0}ok/${m.attempts || 0}`)
+        .join(" · ");
+      cards.push(`<div class="active-work-card span-all" id="agent-goal-card">
+        <div class="aw-label">Current goal</div>
+        <div class="aw-tone in_progress" style="margin:0.25rem 0 0.5rem">${esc(goals.live_goal || "— idle / between ticks")}</div>
+        <div class="meta" style="font-size:0.72rem;margin-bottom:0.45rem">
+          Free models: ${freeH.any_up ? "UP" : "DOWN"} ${esc(freeH.summary || "")}
+          ${freeH.cursor_fallback_recommended ? " · Cursor fallback on" : ""}
+          ${usageTop ? `<br/>Today usage: ${usageTop}` : ""}
+        </div>
+        <label class="meta" for="goal-redirect">Redirect / note (next tick reads this)</label>
+        <textarea id="goal-redirect" rows="2" style="width:100%;margin:0.25rem 0;font:inherit" placeholder="e.g. Stop map borders; work portfolio v8 smoke instead">${esc(ctrl.redirect_goal || "")}</textarea>
+        <div class="aw-row" style="gap:0.5rem;flex-wrap:wrap;margin-top:0.35rem">
+          <button type="button" class="btn" id="goal-save">Save goal</button>
+          <button type="button" class="btn secondary" id="goal-pause">${ctrl.pause ? "Resume think" : "Pause think"}</button>
+          <button type="button" class="btn secondary" id="goal-clear">Clear redirect</button>
+        </div>
+        <p class="empty" id="goal-save-status" style="margin:0.35rem 0 0"></p>
+      </div>`);
+
       // Lane focus: color think/fast chips from last think status / live focus
       const rn = data?.running_now || {};
       const lastThink = rn.last_completed || collectRunningNow(data).last_completed || null;
@@ -5824,19 +6829,27 @@
             ? { status: wpStatus }
             : null;
       const thinkTone = thinkToneSrc ? awTone(thinkToneSrc, data) : "muted";
-      const fastTone = "muted"; // fast lane is heartbeat-only here
+      const syncTone = "muted"; // sync is deterministic heartbeat-only
       const laneTone =
         /fail|blocked|hung/i.test(lane) ? "failed"
           : liveFocus ? "in_progress"
             : /IDLE/i.test(lane) ? "muted"
               : thinkTone;
+      const lastThinkSum = data?.last_think_summary || null;
+      const laneDetail =
+        (liveFocus?.blurb && String(liveFocus.blurb).trim()) ||
+        (lastThink?.blurb && String(lastThink.blurb).trim()) ||
+        (lastThinkSum?.blurb && String(lastThinkSum.blurb).trim()) ||
+        "";
+      const laneDetailTone = liveFocus ? "in_progress" : thinkTone;
 
       cards.push(`<div class="active-work-card">
         <div class="aw-label">Lane focus</div>
         <div class="aw-tone ${esc(laneTone)}">${esc(lane || "—")}</div>
+        ${awDetailHtml(laneDetail, laneDetailTone)}
         <div class="aw-row" style="margin-top:0.4rem">
-          ${awChip("fast", fastTone)}
-          <span class="aw-time">${fast?.last_run ? esc(fmtEtTime(fast.last_run)) : "n/a"}</span>
+          ${awChip("sync", syncTone)}
+          <span class="aw-time">${sync?.last_run ? esc(fmtEtTime(sync.last_run)) : "n/a"}</span>
           ${awChip("think", thinkTone)}
           <span class="aw-time">${think?.last_run ? esc(fmtEtTime(think.last_run)) : "n/a"}</span>
         </div>
@@ -5878,15 +6891,20 @@
 
       const thinkingN = jobs.thinking ?? jobs.running ?? 0;
       const queuedN = jobs.queued ?? jobs.pending ?? 0;
+      const chatJobList = (data?.chat_jobs?.jobs || data?.running_now?.chat_jobs || []).slice(0, 4);
+      const chatRows = chatJobList.length
+        ? chatJobList.map((j) => {
+            const st = j.status === "queued" ? "queued" : "thinking";
+            const tone = st === "thinking" ? "in_progress" : "muted";
+            return `<div class="aw-row">${awChip(st, tone)}<span class="aw-tone ${esc(tone)}">${esc(j.title || "Chat")}</span><span class="aw-time">${esc(fmtElapsed(j.elapsed_ms))}</span></div>`;
+          }).join("")
+        : `<div class="aw-row">${awChip(`thinking ${thinkingN}`, thinkingN ? "in_progress" : "muted")}${awChip(`queued ${queuedN}`, queuedN ? "in_progress" : "muted")}</div>`;
       cards.push(`<div class="active-work-card">
         <div class="aw-label">Chat jobs</div>
-        <div class="aw-row">
-          ${awChip(`thinking ${thinkingN}`, thinkingN ? "in_progress" : "muted")}
-          ${awChip(`queued ${queuedN}`, queuedN ? "in_progress" : "muted")}
-        </div>
+        ${chatRows}
       </div>`);
 
-      const podRows = pods.slice(0, 6).map((p) => {
+      const podRows = pods.slice(0, 8).map((p) => {
         const tone = awTone(p, data);
         const chip = p.idle
           ? awChip("IDLE", "muted")
@@ -5898,29 +6916,248 @@
                 ? awChip("ok", "succeeded")
                 : awChip("work", "in_progress");
         const when = p.ts ? `<span class="aw-time">${esc(fmtEtTime(p.ts))}</span>` : "";
-        const sumTone = p.idle ? "muted" : (tone === "muted" ? "in_progress" : tone);
-        const sum = p.summary && !p.idle
-          ? awToneText(String(p.summary).slice(0, 60), sumTone)
-          : "";
-        const nameTone = p.idle ? "muted" : sumTone;
-        return `<div class="aw-row">${chip}<strong class="aw-tone ${esc(nameTone)}">${esc(p.name)}</strong>${when}${sum}</div>`;
+        const nameTone = p.idle ? "muted" : (tone === "muted" ? "in_progress" : tone);
+        const what = podWhatLine(p);
+        const whatHtml = what
+          ? `<div class="aw-pod-detail aw-tone ${esc(p.idle ? "muted" : nameTone)}">${esc(what)}</div>`
+          : (p.idle ? "" : `<div class="aw-pod-detail muted">${esc(p.kind_label || "tick")}</div>`);
+        return `<div class="aw-pod-row"><div class="aw-row">${chip}<strong class="aw-tone ${esc(nameTone)}">${esc(p.label || p.name)}</strong>${when}</div>${whatHtml}</div>`;
       }).join("") || '<div class="meta">No recent pod ticks</div>';
-      cards.push(`<div class="active-work-card">
+      cards.push(`<div class="active-work-card span-all">
         <div class="aw-label">Recent pod ticks</div>
-        ${podRows}
+        <div class="aw-pod-rows">${podRows}</div>
       </div>`);
 
       if (!inFlight && pods.every((p) => p.idle)) {
         body.innerHTML = `<div class="active-work-grid">${runningCard}${cards.filter((_, i) => i === 1 || i === 5).join("")}</div>`;
+        bindAgentGoalControls();
         return;
       }
 
       body.innerHTML = `<div class="active-work-grid">${cards.join("")}</div>`;
+      bindAgentGoalControls();
+    }
+
+    function bindAgentGoalControls() {
+      const statusEl = document.getElementById("goal-save-status");
+      const postGoal = async (patch) => {
+        if (statusEl) statusEl.textContent = "Saving…";
+        try {
+          const res = await fetch(`${base}/api/agent-goals`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(patch),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+          if (statusEl) statusEl.textContent = "Saved — think/Cursor will see this on the next cycle.";
+          if (agentData) agentData.agent_goals = data.goals || agentData.agent_goals;
+        } catch (e) {
+          if (statusEl) statusEl.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("goal-save")?.addEventListener("click", () => {
+        const text = document.getElementById("goal-redirect")?.value || "";
+        postGoal({ redirect_goal: text, human_note: text });
+      });
+      document.getElementById("goal-clear")?.addEventListener("click", () => {
+        const ta = document.getElementById("goal-redirect");
+        if (ta) ta.value = "";
+        postGoal({ clear_redirect: true, redirect_goal: "" });
+      });
+      document.getElementById("goal-pause")?.addEventListener("click", () => {
+        const paused = /Resume/i.test(document.getElementById("goal-pause")?.textContent || "");
+        // button says "Resume think" when currently paused
+        postGoal({
+          pause: !paused,
+          pause_reason: !paused ? "Paused from Hub Tasks Active now" : "",
+        }).then(() => {
+          const btn = document.getElementById("goal-pause");
+          if (btn) btn.textContent = !paused ? "Resume think" : "Pause think";
+        });
+      });
+    }
+
+    /** Docs silo keeps panel id #reports historically; accept docs alias. */
+    function normalizeTabId(tab) {
+      const t = String(tab || "").trim();
+      if (t === "docs" || t === "wiki") return "reports";
+      return t;
     }
 
     function goTab(tab) {
+      tab = normalizeTabId(tab);
+      if (tab === "map") {
+        window.open("https://map.tableslop.org/", "_blank", "noopener");
+        return;
+      }
       const btn = document.querySelector(`.rail button[data-tab="${tab}"]`);
       if (btn) btn.click();
+      else activateTab(tab);
+    }
+
+    function siloStatusClass(kind) {
+      if (kind === "ok") return "ok";
+      if (kind === "warn") return "warn";
+      if (kind === "bad") return "bad";
+      return "off";
+    }
+
+    function renderSiloGlance(data) {
+      const grid = document.getElementById("silo-glance-grid");
+      if (!grid) return;
+      const openN = openTasks(data).length;
+      const inboxN = data?.inbox_open_count || 0;
+      const backlogN = (data?.dashboard_backlog_open || []).length;
+      const reportsN = (data?.all_reports || []).length;
+      const pixi = data?.machines_sync?.local_pixi;
+      const pixiOk = pixi?.ok === true;
+      const pixiLine = pixi
+        ? (pixiOk ? "up · :8767" : "down / unreachable")
+        : "status unknown";
+      const mazdaOpen = (data?.user_tasks || []).filter(
+        (t) => t.project_id === "mazda3-sports-build" && t.status !== "done" && t.status !== "cancelled"
+      ).length;
+      const wp = data?.work_pipeline || {};
+      const thinkBad = wp.free_429_blocked === true;
+      const systems = Array.isArray(systemsData?.systems) ? systemsData.systems : [];
+      const findSys = (ref) => systems.find((s) => s.ref === ref || s.id === ref);
+      const tableslop = findSys("tableslop") || findSys("tableslop-app");
+      const te = data?.tableslop_errors;
+      const mapErrN = te?.error_count || 0;
+      const mapLine = mapErrN
+        ? `corrector · ${mapErrN} error${mapErrN === 1 ? "" : "s"}`
+        : (tableslop
+          ? ((tableslop.health === "ok" || tableslop.ok) ? "external · service ok" : "external · check service")
+          : "external · map.tableslop.org");
+      const mapSt = mapErrN ? "bad" : (tableslop && (tableslop.health === "ok" || tableslop.ok) ? "ok" : "off");
+      const cards = [
+        { tab: "hub", name: "System", st: thinkBad ? "warn" : "ok", line: thinkBad ? "think free blocked" : "ops glance" },
+        { tab: "tasks", name: "Tasks", st: openN ? "warn" : "ok", line: `${openN} open · inbox ${inboxN}` },
+        { tab: "chat", name: "Ops Chat", st: "ok", line: "threads · not Pixi" },
+        { tab: "news", name: "News", st: "ok", line: "briefs · markets" },
+        { tab: "reports", name: "Docs", st: reportsN ? "ok" : "off", line: `${reportsN} reports` },
+        { tab: "pixi", name: "Pixi RP", st: pixiOk ? "ok" : (pixi ? "bad" : "warn"), line: pixiLine },
+        { tab: "garage", name: "Mazda3", st: mazdaOpen ? "warn" : "ok", line: `${mazdaOpen} open tasks` },
+        { tab: "backlog", name: "Meta", st: backlogN ? "warn" : "ok", line: `${backlogN} backlog` },
+        { tab: null, name: "Maps", st: mapSt, line: mapLine, href: "https://map.tableslop.org/" },
+      ];
+      grid.innerHTML = cards.map((c) => {
+        const cls = siloStatusClass(c.st);
+        if (c.href) {
+          return `<a class="silo-card" href="${esc(c.href)}" target="_blank" rel="noopener">
+            <div class="silo-name">${esc(c.name)}</div>
+            <div class="silo-st ${cls}">${esc(c.line)}</div>
+          </a>`;
+        }
+        return `<button type="button" class="silo-card" data-silo-tab="${esc(c.tab)}">
+          <div class="silo-name">${esc(c.name)}</div>
+          <div class="silo-st ${cls}">${esc(c.line)}</div>
+        </button>`;
+      }).join("");
+      grid.querySelectorAll("button[data-silo-tab]").forEach((b) => {
+        b.onclick = () => goTab(b.dataset.siloTab);
+      });
+    }
+
+    async function refreshSystemHostGlance() {
+      const el = document.getElementById("system-host-glance-kpis");
+      if (!el || sessionRole === "viewer") return;
+      try {
+        const res = await fetch(`${base}/api/host-resources`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const host = await res.json();
+        const cpuCls = hostPctClass(host.cpu_pct, 70, 90);
+        const memCls = hostPctClass(host.mem_used_pct, 75, 90);
+        const think = lastAgentData?.think_live || agentData?.think_live || agentData?.work_pipeline || {};
+        const ctxLine = think?.current_step || think?.goal || think?.focus || agentData?.work_pipeline?.focus || "—";
+        const memHint =
+          host.mem_used_mb != null && host.mem_total_mb != null
+            ? `${host.mem_used_mb}/${host.mem_total_mb} MiB`
+            : "";
+        el.innerHTML = [
+          ["CPU", host.cpu_pct != null ? `${host.cpu_pct}%` : "?", cpuCls, host.hostname || ""],
+          ["RAM", host.mem_used_pct != null ? `${host.mem_used_pct}%` : "?", memCls, memHint],
+          ["Load", host.load_avg || "?", "", "1 / 5 / 15"],
+          ["Context", String(ctxLine).slice(0, 80), "", "think / Active Now"],
+        ]
+          .map(
+            ([l, v, c, h]) =>
+              `<div class="kpi"><div class="label">${esc(l)}</div><div class="value ${c}">${esc(String(v))}</div>${
+                h ? `<div class="hint">${esc(h)}</div>` : ""
+              }</div>`
+          )
+          .join("");
+      } catch (e) {
+        el.innerHTML = `<p class="empty">${esc(e.message || e)}</p>`;
+      }
+    }
+
+    async function loadPixiSilo() {
+      const statusEl = document.getElementById("pixi-silo-status");
+      const actionsEl = document.getElementById("pixi-silo-actions");
+      if (!statusEl) return;
+      statusEl.innerHTML = `<p class="empty">Loading Pixi status…</p>`;
+      let pixi = agentData?.machines_sync?.local_pixi || null;
+      let sysPixi = null;
+      try {
+        const res = await fetch(`${base}/api/systems`, { cache: "no-store", credentials: "same-origin" });
+        if (res.ok) {
+          const data = await res.json();
+          systemsData = data;
+          const systems = data.systems || [];
+          sysPixi = systems.find((s) => s.ref === "pixi" || s.id === "pixi");
+        }
+      } catch { /* ignore */ }
+      if (!pixi && agentData?.machines_sync) pixi = agentData.machines_sync.local_pixi;
+      const ok = pixi?.ok === true || sysPixi?.health === "ok" || sysPixi?.ok === true;
+      const url = pixi?.url || sysPixi?.url || sysPixi?.public_url || "http://127.0.0.1:8767/";
+      const detail = pixi?.detail || sysPixi?.detail || sysPixi?.note || "";
+      statusEl.innerHTML = `
+        <div class="kpi" style="display:inline-block;margin-right:1rem">
+          <div class="label">Service</div>
+          <div class="value ${ok ? "ok" : "bad"}">${ok ? "up" : "down"}</div>
+          <div class="hint">linuxbox-pixi-rp · :8767</div>
+        </div>
+        <p class="meta" style="margin:0.75rem 0 0">${esc(detail || (ok ? "Reachable on Tailscale/LAN" : "Unreachable from potato probe — check unit + env"))}</p>
+        <p class="meta">URL: <code>${esc(url)}</code></p>`;
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Open Pixi RP →</a>
+          <button type="button" class="btn" id="pixi-goto-host">Host · pixi card →</button>
+          <button type="button" class="btn" id="pixi-goto-chat">Ops Chat (not RP) →</button>
+          <button type="button" class="btn" id="pixi-goto-docs-sheet">Docs · character sheets →</button>
+          <button type="button" class="btn" id="pixi-beta-sheet" title="Engine guts path — not an iframe of :8767">Beta-test character (engine)</button>`;
+        document.getElementById("pixi-goto-host")?.addEventListener("click", () => goTab("systems"));
+        document.getElementById("pixi-goto-chat")?.addEventListener("click", () => goTab("chat"));
+        document.getElementById("pixi-goto-docs-sheet")?.addEventListener("click", () => {
+          goTab("reports");
+          try {
+            sessionStorage.setItem("linuxbox-docs-smart", "kind:character");
+          } catch { /* ignore */ }
+          const smart = document.getElementById("docs-smart-filter");
+          if (smart) {
+            smart.value = "kind:character";
+            smart.dispatchEvent(new Event("input"));
+          }
+          if (typeof loadDocsWiki === "function") loadDocsWiki();
+        });
+        document.getElementById("pixi-beta-sheet")?.addEventListener("click", () => {
+          alert(
+            "Beta-test character (engine guts)\n\n" +
+              "• Author/edit sheet in Docs (New character sheet).\n" +
+              "• Comments / post-its = correction signal for next gen.\n" +
+              "• Dry-run: python3 scripts/pixi/sheet-to-dossier.py --path <sheet.md>\n" +
+              "• Optional: --generate (OpenRouter on box).\n" +
+              "• Play interactions on Pixi RP :8767 separately — Hub does not iframe it.\n" +
+              "See docs/pixi/docs-engine-bridge.md"
+          );
+        });
+      }
     }
 
     function machineDotClass(m) {
@@ -5991,6 +7228,56 @@
       }
     }
 
+    /** Meta-Harness per-pod score cards (Meta tab) — read-only /api/meta-harness. */
+    async function renderMetaHarness() {
+      const cardsEl = document.getElementById("meta-harness-cards");
+      if (!cardsEl) return;
+      if (sessionRole === "viewer") {
+        cardsEl.innerHTML = "";
+        return;
+      }
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch(`${base}/api/meta-harness`, {
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const pods = Array.isArray(data?.pods) ? data.pods : [];
+        const upd = document.getElementById("meta-harness-updated");
+        if (upd) upd.textContent = data?.updated_at ? `updated ${fmtEt(data.updated_at)}` : "";
+        if (!pods.length) {
+          cardsEl.innerHTML = '<p class="empty">No meta-harness runs yet</p>';
+          return;
+        }
+        cardsEl.innerHTML = pods
+          .map((p) => {
+            const latest = p.latest || {};
+            const score = latest.total == null ? "—" : String(latest.total);
+            const when = latest.at ? fmtEt(latest.at) : "—";
+            const detail = [latest.outcome, latest.intent, latest.exit != null ? `exit ${latest.exit}` : null, latest.model ? String(latest.model).split("/").pop() : null]
+              .filter(Boolean)
+              .join(" · ");
+            const trend = (p.trend || [])
+              .map((r) => `<span title="${esc(r.at)}${r.outcome ? ` · ${esc(r.outcome)}` : ""}">${r.total == null ? "—" : esc(String(r.total))}</span>`)
+              .join(" · ");
+            return `<div class="meta-card">
+            <div class="aw-label">${esc(p.pod)}</div>
+            <div>Score ${esc(score)} · ${esc(when)}</div>
+            <div class="meta-paths">${esc(detail || "—")}</div>
+            <div class="meta-paths">trend (old→new): ${trend || "—"}${p.run_count != null ? ` · ${p.run_count} runs` : ""}</div>
+          </div>`;
+          })
+          .join("");
+      } catch (e) {
+        cardsEl.innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
     function renderMeta(data) {
       const m = data?.meta_lane || {};
       const blurbEl = document.getElementById("meta-blurb");
@@ -6011,6 +7298,7 @@
         const lastDone = m.last_done;
         const smoke = m.smoke;
         const metaRun = m.last_meta_run;
+        const thinkRun = m.last_think_run;
         const smokeLine = smoke
           ? (smoke.failed != null
             ? `${smoke.failed === 0 ? "pass" : "fail"} · ${smoke.passed ?? "?"} ok · ${smoke.warned ?? "?"} warn · ${smoke.date || "?"}`
@@ -6022,6 +7310,9 @@
         const metaRunLine = metaRun
           ? `${metaRun.label || metaRun.name}${metaRun.ts ? ` · ${fmtEt(metaRun.ts)}` : ""}${metaRun.outcome ? ` · ${metaRun.outcome}` : ""}${metaRun.detail ? ` — ${String(metaRun.detail).slice(0, 60)}` : (metaRun.summary ? ` — ${String(metaRun.summary).slice(0, 60)}` : "")}`
           : "no meta/dashboard tick in recent run-index";
+        const thinkRunLine = thinkRun
+          ? `What: ${String(thinkRun.what || "—").slice(0, 80)} · When: ${thinkRun.when ? fmtEt(thinkRun.when) : "—"} · Outcome: ${thinkRun.outcome || "—"}`
+          : "no think report yet";
         cardsEl.innerHTML = `
           <div class="meta-card">
             <div class="aw-label">Next meta task</div>
@@ -6030,6 +7321,10 @@
           <div class="meta-card">
             <div class="aw-label">Last Done</div>
             <div>${esc(lastDoneLine)}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">Last think tick</div>
+            <div>${esc(thinkRunLine)}</div>
           </div>
           <div class="meta-card">
             <div class="aw-label">Last meta-ish tick</div>
@@ -6098,6 +7393,10 @@
         const j = await res.json();
         if (!lastAgentData) lastAgentData = {};
         lastAgentData.running_now = j.running_now || lastAgentData.running_now;
+        if (j.cursor_lane) {
+          lastAgentData.cursor_lane = j.cursor_lane;
+          if (lastAgentData.running_now) lastAgentData.running_now.cursor_lane = j.cursor_lane;
+        }
         if (j.live_log && lastAgentData.running_now) {
           lastAgentData.running_now.live_log = j.live_log;
         }
@@ -6193,7 +7492,7 @@
       }
     }
 
-    function hubResBarHtml(label, pct, hint, warnAt, badAt, unavailable, extraHtml, resKey) {
+    function hubResBarHtml(label, pct, hint, warnAt, badAt, unavailable, extraHtml, resKey, valueLabel) {
       const key = resKey || label.toLowerCase();
       if (unavailable) {
         return `<button type="button" class="hub-res-row" data-open-resources data-res="${esc(key)}" title="Open resource detail">
@@ -6204,7 +7503,12 @@
       }
       const cls = hostPctClass(pct, warnAt, badAt);
       const width = Math.min(100, Math.max(0, pct ?? 0));
-      const pctLabel = pct != null && Number.isFinite(pct) ? `${pct}%` : "?";
+      const pctLabel =
+        valueLabel != null
+          ? String(valueLabel)
+          : pct != null && Number.isFinite(pct)
+            ? `${pct}%`
+            : "?";
       return `<button type="button" class="hub-res-row" data-open-resources data-res="${esc(key)}" title="Open resource detail">
         <div class="hub-res-head"><span class="hub-res-label">${esc(label)}</span><span class="hub-res-pct ${cls}" data-res-pct>${esc(pctLabel)}</span></div>
         <div class="sys-bar ${cls}" data-res-bar><span style="width:${width}%"></span></div>
@@ -6222,7 +7526,8 @@
         ...hr,
         // Keep heavier fields unless the light payload includes them
         top_processes: hr.top_processes || prev.top_processes,
-        gpu: hr.gpu || prev.gpu,
+        thermal: hr.thermal || prev.thermal,
+        net_link: hr.net_link || prev.net_link,
         storage: hr.storage || prev.storage,
       };
     }
@@ -6302,18 +7607,23 @@
       const body = document.getElementById("hub-resources-modal-body");
       if (!body) return;
       const hr = data.host_resources || {};
-      const gpu = hr.gpu || {};
+      const thermal = hr.thermal || {};
+      const netLink = hr.net_link || {};
       const top = hr.top_processes || {};
       const rn = data.running_now || {};
       const memHint =
         hr.mem_used_mb != null && hr.mem_total_mb != null
           ? `${hr.mem_used_mb}/${hr.mem_total_mb} MiB`
           : "";
-      const gpuLine = gpu.available
-        ? `${gpu.name || "GPU"} · ${gpu.used_pct != null ? `${gpu.used_pct}%` : "?"}`
-        : gpu.name
-          ? `${gpu.name} · ${gpu.note || "N/A"}`
-          : gpu.note || "N/A";
+      const socC = thermal.primary?.celsius;
+      const socLine =
+        thermal.available && socC != null
+          ? `${thermal.primary.label || "SoC"} · ${socC}°C`
+          : thermal.note || "N/A";
+      const linkLine =
+        netLink.available && netLink.speed_mbps > 0
+          ? `${netLink.iface || "net"} · ${netLink.speed_mbps} Mb/s`
+          : netLink.note || "N/A";
       const runningBits = [];
       if (rn.pod) {
         const podLabel =
@@ -6336,15 +7646,22 @@
         const head = cpuFirst
           ? "<tr><th>PID</th><th>CPU%</th><th>MEM%</th><th>RSS</th><th>CMD</th></tr>"
           : "<tr><th>PID</th><th>RSS</th><th>MEM%</th><th>CPU%</th><th>CMD</th></tr>";
+        const cols =
+          '<colgroup><col class="col-pid"/><col class="col-num"/><col class="col-num"/><col class="col-num"/><col class="col-cmd"/></colgroup>';
         const bodyRows = rows
           .map((p) => {
+            const pid = p.pid != null ? String(p.pid) : "";
+            const cpu = p.cpu_pct != null && Number.isFinite(Number(p.cpu_pct)) ? `${p.cpu_pct}%` : "?";
+            const mem = p.mem_pct != null && Number.isFinite(Number(p.mem_pct)) ? `${p.mem_pct}%` : "?";
+            const rss = p.rss_mb != null && Number.isFinite(Number(p.rss_mb)) ? `${p.rss_mb}M` : "?";
+            const cmd = p.command || "";
             if (cpuFirst) {
-              return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(String(p.cpu_pct))}</td><td class="num">${esc(String(p.mem_pct))}</td><td class="num">${esc(String(p.rss_mb))}M</td><td class="cmd" title="${esc(p.command || "")}">${esc(p.command || "")}</td></tr>`;
+              return `<tr><td class="num">${esc(pid)}</td><td class="num">${esc(cpu)}</td><td class="num">${esc(mem)}</td><td class="num">${esc(rss)}</td><td class="cmd" title="${esc(cmd)}">${esc(cmd)}</td></tr>`;
             }
-            return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(String(p.rss_mb))}M</td><td class="num">${esc(String(p.mem_pct))}</td><td class="num">${esc(String(p.cpu_pct))}</td><td class="cmd" title="${esc(p.command || "")}">${esc(p.command || "")}</td></tr>`;
+            return `<tr><td class="num">${esc(pid)}</td><td class="num">${esc(rss)}</td><td class="num">${esc(mem)}</td><td class="num">${esc(cpu)}</td><td class="cmd" title="${esc(cmd)}">${esc(cmd)}</td></tr>`;
           })
           .join("");
-        return `<table class="sys-proc-table"><thead>${head}</thead><tbody>${bodyRows}</tbody></table>`;
+        return `<table class="sys-proc-table sys-proc-table--5">${cols}<thead>${head}</thead><tbody>${bodyRows}</tbody></table>`;
       };
 
       body.innerHTML = `
@@ -6356,7 +7673,8 @@
               : ""
           }</div></div>
           <div data-hr-k="ram"><div class="k">RAM</div><div class="v">${esc(hr.mem_used_pct != null ? `${hr.mem_used_pct}%` : "?")}${memHint ? ` · ${esc(memHint)}` : ""}</div></div>
-          <div data-hr-k="gpu"><div class="k">GPU</div><div class="v">${esc(gpuLine)}</div></div>
+          <div data-hr-k="soc"><div class="k">SoC temp</div><div class="v">${esc(socLine)}</div></div>
+          <div data-hr-k="link"><div class="k">Eth link</div><div class="v">${esc(linkLine)}</div></div>
           <div data-hr-k="load"><div class="k">Load</div><div class="v">${esc(hr.load_avg || "?")}</div></div>
           <div data-hr-k="swap"><div class="k">Swap</div><div class="v">${esc(hr.swap_used_pct != null ? `${hr.swap_used_pct}%` : "?")}</div></div>
           <div data-hr-k="active"><div class="k">Active</div><div class="v">${esc(runningLine)}</div></div>
@@ -6401,19 +7719,26 @@
       const el = document.getElementById("hub-resources");
       if (!el) return;
       const hr = data.host_resources || {};
-      const gpu = hr.gpu || {};
+      const thermal = hr.thermal || {};
+      const netLink = hr.net_link || {};
       const memHint =
         hr.mem_used_mb != null && hr.mem_total_mb != null
           ? `${hr.mem_used_mb}/${hr.mem_total_mb} MiB`
           : hr.mem_avail_mb != null
             ? `avail ${hr.mem_avail_mb} MiB`
             : "";
-      const gpuUnavailable = !gpu.available;
-      const gpuHint = gpu.available
-        ? gpu.name || "GPU"
-        : gpu.name
-          ? `${gpu.name} · ${gpu.note || "no counter"}`
-          : gpu.note || "No GPU / unavailable";
+      const socC = thermal.primary?.celsius;
+      const socUnavailable = !(thermal.available && socC != null);
+      const socHint = thermal.available
+        ? `${thermal.primary.label || "cpu-thermal"} · ${thermal.primary.source || "thermal"}`
+        : thermal.note || "No thermal sensor";
+      const linkUnavailable = !netLink.available;
+      const linkHint = netLink.available
+        ? `${netLink.iface || "eth0"} · ${netLink.speed_mbps > 0 ? `${netLink.speed_mbps} Mb/s` : netLink.operstate || "up"}`
+        : netLink.note || "No link sensor";
+      const socBarPct = socC != null ? Math.min(100, Math.max(0, socC)) : null;
+      const linkBarPct =
+        netLink.speed_mbps > 0 ? Math.min(100, Math.round((netLink.speed_mbps / 1000) * 100)) : null;
 
       const coresHtml = cpuCoresBarsHtml(hr.cpu_cores, 70, 90);
       const hostMeta = hr.hostname
@@ -6447,7 +7772,28 @@
             "cpu"
           )}
           ${hubResBarHtml("RAM", hr.mem_used_pct, memHint, 75, 90, false, "", "ram")}
-          ${hubResBarHtml("GPU", gpu.used_pct, gpuHint, 70, 90, gpuUnavailable, "", "gpu")}
+          ${hubResBarHtml(
+            "SoC",
+            socBarPct,
+            socUnavailable ? socHint : socHint,
+            75,
+            85,
+            socUnavailable,
+            "",
+            "soc",
+            socC != null ? `${socC}°C` : null
+          )}
+          ${hubResBarHtml(
+            "Eth",
+            linkBarPct,
+            linkHint,
+            70,
+            90,
+            linkUnavailable,
+            "",
+            "link",
+            netLink.speed_mbps > 0 ? `${netLink.speed_mbps} Mb/s` : netLink.operstate === "up" ? "up" : null
+          )}
         </div>
         ${hostMeta}`;
 
@@ -6560,7 +7906,7 @@
       const inboxN = data.inbox_open_count || 0;
       const gwOk = data.gateway === "active";
       const gwHung = data.gateway === "hung";
-      const lanes = Object.values(data.lanes || {});
+      const lanes = Object.values(data.lanes || {}).filter((l) => l.name !== "agent-cycle-fast");
       const laneBad = lanes.some((l) => laneState(l) === "bad");
       const campaigns = Object.values(data.campaigns || {});
       const totalPending = campaigns.reduce((s, c) => s + (c.pending_count || 0), 0);
@@ -6594,9 +7940,9 @@
       document.getElementById("ops-title").textContent = title;
       document.getElementById("ops-sub").textContent = sub;
 
-      const fast = data.lanes?.["agent-cycle-fast"];
+      const sync = data.lanes?.["agent-cycle-sync"];
       const think = data.lanes?.["agent-cycle-think"];
-      const fastSt = fast ? laneState(fast) : "warn";
+      const syncSt = sync ? laneState(sync) : "warn";
       const thinkSt = think ? laneState(think) : "warn";
       const gwLabel = gwOk ? "UP" : gwHung ? "HUNG" : "DOWN";
       const gwHint = gwOk
@@ -6608,7 +7954,7 @@
       document.getElementById("kpi-primary").innerHTML = [
         { label: "Gateway", value: gwLabel, hint: gwHint, cls: gwOk ? "ok" : "bad", drill: null },
         { label: "Inbox", value: inboxN ? String(inboxN) : "0", hint: inboxN ? "needs response" : "clear", cls: inboxN ? "warn" : "ok", drill: "inbox" },
-        { label: "Fast lane", value: fast?.schedule?.replace(" (crontab)", "") || "~30s", hint: fast?.last_run ? `last ${fmtEtTime(fast.last_run)}` : "no recent run", cls: fastSt, drill: null },
+        { label: "Sync", value: sync?.schedule || "1m · det.", hint: sync?.last_run ? `last ${fmtEtTime(sync.last_run)}` : "no recent run", cls: syncSt, drill: null },
         { label: "Think lane", value: think?.schedule || "1m", hint: think?.last_run ? `last ${fmtEtTime(think.last_run)}` : "no recent run", cls: thinkSt, drill: null },
       ].map((k) => `<div class="kpi${k.drill ? " drill" : ""}" ${k.drill ? `data-tab="${k.drill}"` : ""}>
         <div class="label">${esc(k.label)}</div>
@@ -6706,6 +8052,8 @@
       if (gotoNews) gotoNews.onclick = () => goTab("news");
       const gotoDocs = document.getElementById("goto-docs");
       if (gotoDocs) gotoDocs.onclick = () => goTab("reports");
+      renderSiloGlance(data);
+      refreshSystemHostGlance();
     }
 
     let systemsData = null;
@@ -6715,7 +8063,8 @@
     function renderHostPanel(data) {
       const host = data.host || {};
       const telem = (data.resource || {}).telemetry || {};
-      const gpu = host.gpu || {};
+      const thermal = host.thermal || {};
+      const netLink = host.net_link || {};
       const memHint =
         host.mem_used_mb != null && host.mem_total_mb != null
           ? `${host.mem_used_mb}/${host.mem_total_mb} MiB · avail ${host.mem_avail_mb ?? "?"} MiB`
@@ -6727,24 +8076,24 @@
       const cpuCls = hostPctClass(host.cpu_pct, 70, 90);
       const memCls = hostPctClass(host.mem_used_pct, 75, 90);
       const swapCls = hostPctClass(host.swap_used_pct, 50, 85);
-      const gpuVal = gpu.available
-        ? gpu.used_pct != null
-          ? `${gpu.used_pct}%`
-          : "?"
-        : "N/A";
-      const gpuCls = gpu.available ? hostPctClass(gpu.used_pct, 70, 90) : "";
-      const gpuHint = gpu.available
-        ? gpu.name || ""
-        : gpu.name
-          ? `${gpu.name} · ${gpu.note || "no counter"}`
-          : gpu.note || "unavailable";
-
+      const socC = thermal.primary?.celsius;
+      const socVal = thermal.available && socC != null ? `${socC}°C` : "N/A";
+      const socCls =
+        thermal.available && socC != null ? hostPctClass(socC, 75, 85) : "warn";
+      const socHint = thermal.available
+        ? `${thermal.primary.label || "SoC"} · ${thermal.primary.source || "thermal"}`
+        : thermal.note || "unavailable";
+      const linkVal =
+        netLink.available && netLink.speed_mbps > 0
+          ? `${netLink.speed_mbps} Mb/s`
+          : netLink.operstate === "up"
+            ? "up"
+            : "N/A";
+      const linkCls = netLink.available && netLink.speed_mbps > 0 ? "ok" : netLink.operstate === "up" ? "" : "warn";
+      const linkHint = netLink.available
+        ? `${netLink.iface || "net"} · ${netLink.source || "sysfs"}`
+        : netLink.note || "unavailable";
       const coresHtml = cpuCoresBarsHtml(host.cpu_cores, 70, 90);
-      const power = host.power || {};
-      const powerVal = power.available && power.watts != null ? `${power.watts} W` : "N/A";
-      const powerHint = power.available
-        ? power.source || "host sensor"
-        : power.note || "unavailable";
       const cpuCell = `
         <div class="kpi">
           <div class="label">CPU</div>
@@ -6760,10 +8109,10 @@
       document.getElementById("sys-host").innerHTML =
         cpuCell +
         [
-          ["Power", powerVal, power.available ? "" : "warn", powerHint],
+          ["SoC temp", socVal, socCls, socHint],
           ["Hostname", host.hostname || "?", "", host.platform || "os.hostname()"],
           ["RAM used", host.mem_used_pct != null ? `${host.mem_used_pct}%` : "?", memCls, memHint],
-          ["GPU", gpuVal, gpuCls, gpuHint],
+          ["Eth link", linkVal, linkCls, linkHint],
           ["Swap", host.swap_used_pct != null ? `${host.swap_used_pct}%` : "?", swapCls, swapHint],
           ["Load", host.load_avg || "?", "", "1 / 5 / 15"],
           ["Last pod", data.resource?.chosen || telem.chosen || "—", "", "scheduler (not hostname)"],
@@ -6811,23 +8160,21 @@
         const head = cpuCol
           ? "<tr><th>PID</th><th>CPU%</th><th>RSS</th><th>CMD</th></tr>"
           : "<tr><th>PID</th><th>RSS</th><th>CPU%</th><th>CMD</th></tr>";
+        const cols =
+          '<colgroup><col class="col-pid"/><col class="col-num"/><col class="col-num"/><col class="col-cmd"/></colgroup>';
         const body = rows
           .map((p) => {
+            const pid = p.pid != null ? String(p.pid) : "";
+            const cpu = p.cpu_pct != null && Number.isFinite(Number(p.cpu_pct)) ? `${p.cpu_pct}%` : "?";
+            const rss = p.rss_mb != null && Number.isFinite(Number(p.rss_mb)) ? `${p.rss_mb}M` : "?";
+            const cmd = p.command || "";
             if (cpuCol) {
-              return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(
-                String(p.cpu_pct)
-              )}</td><td class="num">${esc(String(p.rss_mb))}M</td><td class="cmd" title="${esc(
-                p.command || ""
-              )}">${esc(p.command || "")}</td></tr>`;
+              return `<tr><td class="num">${esc(pid)}</td><td class="num">${esc(cpu)}</td><td class="num">${esc(rss)}</td><td class="cmd" title="${esc(cmd)}">${esc(cmd)}</td></tr>`;
             }
-            return `<tr><td class="num">${esc(String(p.pid))}</td><td class="num">${esc(
-              String(p.rss_mb)
-            )}M</td><td class="num">${esc(String(p.cpu_pct))}</td><td class="cmd" title="${esc(
-              p.command || ""
-            )}">${esc(p.command || "")}</td></tr>`;
+            return `<tr><td class="num">${esc(pid)}</td><td class="num">${esc(rss)}</td><td class="num">${esc(cpu)}</td><td class="cmd" title="${esc(cmd)}">${esc(cmd)}</td></tr>`;
           })
           .join("");
-        return `<table class="sys-proc-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+        return `<table class="sys-proc-table sys-proc-table--4">${cols}<thead>${head}</thead><tbody>${body}</tbody></table>`;
       };
       document.getElementById("sys-procs").innerHTML = `
         <div class="sys-procs"><h3>Top CPU</h3>${renderProcTable(top.by_cpu, true)}</div>
@@ -6862,7 +8209,7 @@
         local_ok_public_down:
           "Local probe is healthy. Public 502/unreachable is the Cloudflare edge or tunnel connector — not this origin process.",
         inactive_ok_hermes_owns_ticks:
-          "Timer inactive is OK when Hermes owns fast/think ticks (hex-ID jobs). Not a crash.",
+          "Timer inactive is OK when Hermes owns think ticks (hex-ID jobs). Sync runs deterministically at think start. Not a crash.",
         timer_inactive: "Timer unit is inactive — start only if you still use the systemd rotator.",
         unit_inactive: "Unit is not active.",
       };
@@ -7228,9 +8575,23 @@
       }
     }
 
+    let lastTempViewerCreated = null;
+
+    function clearTempViewerCreated() {
+      lastTempViewerCreated = null;
+      const el = document.getElementById("temp-auth-created");
+      if (!el) return;
+      el.innerHTML = "";
+      el.classList.add("hidden");
+    }
+
     function renderTempViewerCreated(data) {
       const el = document.getElementById("temp-auth-created");
       if (!el || !data) return;
+      lastTempViewerCreated = {
+        id: data.id || null,
+        user: data.user || null,
+      };
       const redeemUrl = buildTempRedeemUrl(data.redeem_token);
       const dashUrl = (() => {
         try {
@@ -7334,6 +8695,8 @@
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        // Secrets must leave the screen once the account is dead (list refresh alone left the card).
+        clearTempViewerCreated();
         if (status) status.textContent = "Revoked";
         await loadTempViewerAccounts();
       } catch (e) {
@@ -7604,13 +8967,35 @@
           `<p class="meta">Tracked total (priced parts): <strong>${money(sum)}</strong> · price monitor every ${esc(intv)} days · last checked: ${esc(last)}</p>`;
         const chatBtn = document.getElementById("garage-chat-btn");
         if (chatBtn) chatBtn.onclick = () => openChatWithContext({ project_id: "mazda3-sports-build" }, "Mazda3 build");
+        const tasksEl = document.getElementById("garage-mazda-tasks");
+        if (tasksEl) {
+          const mazdaTasks = (agentData?.user_tasks || []).filter(
+            (t) => t.project_id === "mazda3-sports-build" && t.status !== "cancelled"
+          );
+          const openM = mazdaTasks.filter((t) => t.status !== "done");
+          tasksEl.innerHTML = openM.length
+            ? `Open mazda3 tasks: ${openM.map((t) => esc(t.title || t.id)).slice(0, 5).join(" · ")}${
+                openM.length > 5 ? ` · +${openM.length - 5} more` : ""
+              } — <button type="button" class="btn" id="garage-goto-tasks" style="margin-left:0.35rem">Tasks →</button>`
+            : `No open mazda3 user-tasks. <button type="button" class="btn" id="garage-goto-tasks">Open Tasks →</button>`;
+          document.getElementById("garage-goto-tasks")?.addEventListener("click", () => {
+            goTab("tasks");
+            const filt = document.getElementById("user-task-filter-project");
+            if (filt) {
+              filt.value = "mazda3-sports-build";
+              filt.dispatchEvent(new Event("change"));
+            }
+          });
+        }
         const rows = parts.map((p) => {
           const hist = (p.price_history || []);
           const lastChange = hist.length ? hist[hist.length - 1] : null;
+          const st = String(p.status || "").toLowerCase();
+          const struck = st === "bought" || st === "skip" || st === "done" || st === "cancelled";
           const link = p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
           const sub = lastChange ? `<div class="meta">since ${esc(lastChange.date)}${lastChange.note ? " · " + esc(lastChange.note) : ""}</div>` : "";
-          return `<tr>
-            <td><strong>${link}</strong>${sub}<div class="meta">${esc(p.fitment || "")}</div></td>
+          return `<tr${struck ? ' class="garage-struck"' : ""}>
+            <td><strong class="garage-part-title">${link}</strong>${sub}<div class="meta">${esc(p.fitment || "")}</div></td>
             <td>${esc(p.vendor || "—")}</td>
             <td>${esc(tiers[p.tier] || p.tier || "")}</td>
             <td style="text-align:right;white-space:nowrap">${money(p.current_price)}</td>
@@ -7618,7 +9003,18 @@
           </tr>`;
         }).join("");
         body.innerHTML =
-          `<style>#garage td,#garage th{padding:0.4rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.07);vertical-align:top}</style>
+          `<style>
+             #garage td,#garage th{padding:0.4rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.07);vertical-align:top}
+             /* UA default link is ~#0000EE navy — invisible on dark Hub bg */
+             #garage a{color:#7ec8ff;text-decoration:none}
+             #garage a:visited{color:#9ad0ff}
+             #garage a:hover{color:#c5e7ff;text-decoration:underline}
+             #garage .garage-part-title{color:#7ec8ff;font-weight:600}
+             #garage tr.garage-struck .garage-part-title,
+             #garage tr.garage-struck .garage-part-title a,
+             #garage tr.garage-struck .garage-part-title a:visited{color:#a8c4d8;text-decoration:line-through}
+             #garage tr.garage-struck .garage-part-title a:hover{color:#c5d8e8}
+           </style>
            <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
              <thead><tr style="text-align:left;border-bottom:1px solid var(--border,#333)">
                <th>Part</th><th>Vendor</th><th>Tier</th><th style="text-align:right">Price</th><th>Status</th>
@@ -7644,9 +9040,15 @@
 
     function renderReports(data) {
       const root = document.getElementById("report-list");
-      const reports = data?.all_reports || [];
+      const q = (document.getElementById("docs-search")?.value || "").trim().toLowerCase();
+      let reports = data?.all_reports || [];
+      if (q) {
+        reports = reports.filter((r) =>
+          `${r.label || ""} ${r.name || ""} ${r.campaign || ""}`.toLowerCase().includes(q)
+        );
+      }
       if (!reports.length) {
-        root.innerHTML = '<p class="empty">No reports</p>';
+        root.innerHTML = q ? `<p class="empty">No docs match “${esc(q)}”</p>` : '<p class="empty">No reports</p>';
         return;
       }
       root.innerHTML = reports.map((r) => `
@@ -7658,7 +9060,7 @@
         b.onclick = () => openReport(b.dataset.c, b.dataset.f, b.dataset.l);
         if (selectedReport && selectedReport.file === b.dataset.f) b.classList.add("active");
       });
-      if (!selectedReport && reports[0]) {
+      if (!selectedReport && !q && reports[0]) {
         // Restore last-open report from sessionStorage, fall back to first report
         let restored = null;
         try {
@@ -7815,10 +9217,14 @@
           ? `<label class="inbox-choice"><input type="${inputType}" name="inbox-${esc(q.id)}" value="__other__"${otherChecked ? " checked" : ""}><span>Other (specify)</span></label>
              <input type="text" class="inbox-answer inbox-other-input${otherChecked ? " visible" : ""}" placeholder="Your answer…" value="${esc(otherDraft)}">`
           : "";
-        return `<div class="inbox-choices">${opts}${otherBlock}</div>`;
+        const multiHint = type === "multi"
+          ? `<p class="inbox-hint" style="margin:0.15rem 0 0">Select all that apply, then Submit.</p>`
+          : `<p class="inbox-hint" style="margin:0.15rem 0 0">Click an option to answer (or pick Other + Submit).</p>`;
+        return `<div class="inbox-choices">${opts}${otherBlock}</div>${multiHint}`;
       }
-      const ph = esc(q.placeholder || "Answer…");
-      return `<textarea class="inbox-answer" rows="2" placeholder="${ph}">${esc(draft || "")}</textarea>`;
+      const ph = esc(q.placeholder || "Type your answer…");
+      return `<label class="inbox-answer-label" for="inbox-ta-${esc(q.id)}">Your answer</label>
+        <textarea id="inbox-ta-${esc(q.id)}" class="inbox-answer" rows="4" placeholder="${ph}">${esc(draft || "")}</textarea>`;
     }
 
     function renderInboxOptionHelp(q) {
@@ -7834,7 +9240,7 @@
     function renderInboxContext(q) {
       const text = String(q.context || "").trim();
       if (!text) {
-        return `<div class="inbox-context inbox-context--missing"><span class="inbox-context-label">Context</span><p>Missing — agent should add 2–4 sentences: what this is in-fiction, which report file applies, and how your answer changes play.</p></div>`;
+        return `<div class="inbox-context inbox-context--missing" role="status"><span class="inbox-context-label">⚠ Context missing</span><p>No context provided — agent should add 2–4 sentences: what this is in-fiction, which report/file applies, and how your answer changes play. You can still answer; expect a follow-up if unclear.</p></div>`;
       }
       return `<div class="inbox-context"><span class="inbox-context-label">Context</span><p>${esc(text)}</p></div>`;
     }
@@ -7842,15 +9248,19 @@
     function renderInboxItem(q, draft) {
       const camp = q.campaign ? `<span class="inbox-tag">${esc(q.campaign)}</span>` : "";
       const when = esc(fmtEt(q.at || q.created_at || ""));
-      return `<div class="inbox-item" data-id="${esc(q.id)}" data-type="${esc(q.type || "text")}">
+      const type = q.type || "text";
+      const submitHint = (type === "choice" || type === "yesno")
+        ? "Option click submits · Shift+Enter for free-text newline"
+        : "Enter to submit · Shift+Enter newline";
+      return `<div class="inbox-item" data-id="${esc(q.id)}" data-type="${esc(type)}">
         <div class="from">${camp}${esc(q.from || "agent")} · ${when}</div>
         <div class="q">${esc(q.question)}</div>
         ${renderInboxContext(q)}
         ${renderInboxOptionHelp(q)}
         ${renderInboxInput(q, draft)}
         <div class="inbox-actions">
-          <button type="button" class="btn primary inbox-reply">Submit</button>
-          <span class="inbox-hint">Enter to submit · Shift+Enter newline</span>
+          <button type="button" class="btn primary inbox-reply">Submit answer</button>
+          <span class="inbox-hint">${submitHint}</span>
         </div>
         <div class="inbox-err hidden"></div>
       </div>`;
@@ -7858,26 +9268,11 @@
 
     function bindInboxItem(itemEl) {
       const id = itemEl.dataset.id;
-      itemEl.querySelectorAll(".inbox-answer, .inbox-other-input").forEach((el) => {
-        el.addEventListener("input", () => setInboxDraft(id, collectInboxAnswer(itemEl)));
-      });
-      itemEl.querySelectorAll('.inbox-choices input').forEach((el) => {
-        el.addEventListener("change", () => {
-          syncInboxOtherField(itemEl);
-          setInboxDraft(id, collectInboxAnswer(itemEl));
-        });
-      });
-      syncInboxOtherField(itemEl);
-      itemEl.querySelectorAll(".inbox-yesno .btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          itemEl.querySelectorAll(".inbox-yesno .btn").forEach((b) => b.classList.remove("picked"));
-          btn.classList.add("picked");
-          setInboxDraft(id, btn.dataset.val);
-        });
-      });
-      const submit = async () => {
+      const type = itemEl.dataset.type || "text";
+      async function submit() {
         const errEl = itemEl.querySelector(".inbox-err");
         const btn = itemEl.querySelector(".inbox-reply");
+        if (!btn || btn.disabled) return;
         const answer = collectInboxAnswer(itemEl);
         if (!answer) {
           errEl.textContent = "Pick or type an answer first.";
@@ -7917,23 +9312,45 @@
           errEl.classList.remove("hidden");
           btn.disabled = false;
         }
-      };
+      }
+      itemEl.querySelectorAll(".inbox-answer, .inbox-other-input").forEach((el) => {
+        el.addEventListener("input", () => setInboxDraft(id, collectInboxAnswer(itemEl)));
+      });
+      itemEl.querySelectorAll('.inbox-choices input').forEach((el) => {
+        el.addEventListener("change", () => {
+          syncInboxOtherField(itemEl);
+          setInboxDraft(id, collectInboxAnswer(itemEl));
+          // One-click: choice radios (not Other, not multi) submit immediately
+          if (type === "choice" && el.type === "radio" && el.value !== "__other__" && el.checked) {
+            submit();
+          }
+        });
+      });
+      syncInboxOtherField(itemEl);
+      itemEl.querySelectorAll(".inbox-yesno .btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          itemEl.querySelectorAll(".inbox-yesno .btn").forEach((b) => b.classList.remove("picked"));
+          btn.classList.add("picked");
+          setInboxDraft(id, btn.dataset.val);
+          submit();
+        });
+      });
       itemEl.querySelector(".inbox-reply").onclick = submit;
       itemEl.addEventListener("keydown", (ev) => {
         if (ev.key !== "Enter" || ev.shiftKey) return;
         const tag = ev.target.tagName;
-        const type = ev.target.type;
-        if (tag === "TEXTAREA" && type !== "button") {
+        const itype = ev.target.type;
+        if (tag === "TEXTAREA" && itype !== "button") {
           ev.preventDefault();
           submit();
           return;
         }
-        if (type === "text" && ev.target.classList.contains("inbox-other-input")) {
+        if (itype === "text" && ev.target.classList.contains("inbox-other-input")) {
           ev.preventDefault();
           submit();
           return;
         }
-        if (type === "radio" || type === "checkbox") {
+        if (itype === "radio" || itype === "checkbox") {
           ev.preventDefault();
           submit();
         }
@@ -7955,7 +9372,7 @@
 
       document.getElementById("inbox-open").querySelectorAll(".inbox-item").forEach(bindInboxItem);
 
-      document.getElementById("inbox-answered").innerHTML = (data.answered || []).slice(0, 12).map((q) => `
+      document.getElementById("inbox-answered").innerHTML = (data.answered || []).slice(0, 20).map((q) => `
         <div class="inbox-item"><div class="q">${esc(q.question)}</div><div class="from">→ ${esc(q.answer)}</div></div>`
       ).join("") || '<p class="empty">None yet</p>';
     }
@@ -8062,7 +9479,7 @@
       if (sessionRole === "viewer") return;
       try {
         const ot = document.getElementById("ops-title");
-        if (ot) ot.textContent = "Loading Hub…";
+        if (ot) ot.textContent = "Loading System…";
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 20000);
         const res = await fetch(`${base}/api/agent`, {
@@ -8086,7 +9503,9 @@
         renderRunningNow(agentData, "chrome");
 
         const lanes = document.getElementById("lane-row");
-        lanes.innerHTML = Object.values(agentData.lanes || {}).map((l) => {
+        lanes.innerHTML = Object.values(agentData.lanes || {})
+          .filter((l) => l.name !== "agent-cycle-fast")
+          .map((l) => {
           const st = (l.status || "pending").startsWith("ok") ? "ok" : (l.status === "pending" ? "pending" : "bad");
           const t = l.last_run ? fmtEtTime(l.last_run) : "—";
           return `<span class="lane-chip ${st}">${esc(l.name.replace("agent-cycle-",""))} · ${esc(l.schedule||"?")} · ${t} · ${esc(l.status)}</span>`;
@@ -8095,7 +9514,17 @@
         renderCampaigns(agentData);
         if (activeTab === "reports") {
           if (sessionRole === "viewer") loadPublicReports();
-          else renderReports(agentData);
+          else if (typeof docsWikiEnsureLoaded === "function") docsWikiEnsureLoaded();
+          else if (typeof loadDocsWiki === "function") loadDocsWiki();
+          else {
+            const tree = document.getElementById("docs-tree");
+            if (tree && /Loading/i.test(tree.textContent || "")) {
+              tree.innerHTML =
+                `<p class="empty docs-status-error">Docs wiki client failed to load (<code>docs-wiki.js</code>).` +
+                ` <button type="button" class="btn" id="docs-tree-retry-hub">Retry</button></p>`;
+              document.getElementById("docs-tree-retry-hub")?.addEventListener("click", () => location.reload());
+            }
+          }
         }
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
         // Always refresh model picker after Hub load — default tab is Hub, so Chat
@@ -8110,6 +9539,7 @@
         }
         if (activeTab === "systems") loadSystems();
         renderMeta(agentData);
+        renderMetaHarness();
       } catch (e) {
         const msg = e.name === "AbortError" ? "Hub load timed out (20s) — tap ↻; if persists, CF Access re-login" : e.message;
         document.getElementById("ops-title").textContent = "Load error";
@@ -8126,6 +9556,30 @@
         const res = document.getElementById("hub-resources");
         if (res) res.innerHTML = "";
       }
+    }
+
+    /** Docs wiki deep link: ?tab=docs|reports|wiki (panel id remains reports). */
+    function applyDocsDeepLink() {
+      if (sessionRole === "viewer") return false;
+      const qs = new URLSearchParams(location.search || "");
+      let tab = normalizeTabId((qs.get("tab") || "").trim());
+      const hash = (location.hash || "").replace(/^#/, "");
+      if (hash === "docs" || hash === "reports" || hash === "wiki") tab = "reports";
+      if (tab !== "reports") return false;
+      const scope = (qs.get("scope") || qs.get("campaign") || "").trim();
+      goTab("reports");
+      if (scope) {
+        try { sessionStorage.setItem("linuxbox-docs-scope", scope); } catch { /* ignore */ }
+        const camp = document.getElementById("docs-campaign");
+        if (camp) {
+          camp.dataset.ready = "";
+          // value applied after tree fills options
+          camp.dataset.pendingScope = scope;
+        }
+      }
+      if (typeof docsWikiEnsureLoaded === "function") docsWikiEnsureLoaded();
+      else if (typeof loadDocsWiki === "function") loadDocsWiki();
+      return true;
     }
 
     /** tableslop Cast → Chars handoff: ?tab=characters&char=<id>&campaign=<id> or #characters/<id> */
@@ -8176,7 +9630,7 @@
         load();
         loadInbox();
         syncHubResourcesPolling();
-        applyCharsDeepLink();
+        if (!applyCharsDeepLink()) applyDocsDeepLink();
       }
     }
 
@@ -8963,6 +10417,12 @@
       document.getElementById("backlog-text").value = "";
       load();
     };
+
+    document.getElementById("system-host-goto-host")?.addEventListener("click", () => goTab("systems"));
+    document.getElementById("docs-search")?.addEventListener("input", () => {
+      // Admin Docs uses docs-wiki.js tree filter; viewer still uses flat public list.
+      if (sessionRole === "viewer") loadPublicReports();
+    });
 
     // Keyboard nav for Docs/reports tab — j/k moves selection, Enter opens report
     let reportNavIndex = -1;

@@ -1,0 +1,16 @@
+[Unit]
+Description=Cloudflare tunnel — tableslop RP frontend (WOD_HTR / map.tableslop.org)
+Documentation=file:///home/abhinav/agent-dump/docs/cloudflare-tunnels-linuxbox.md
+After=network-online.target linuxbox-tableslop.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+TimeoutStartSec=30
+EnvironmentFile=/home/abhinav/.cloudflare/tableslop-tunnel.env
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel run --token ${TUNNEL_TOKEN}
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

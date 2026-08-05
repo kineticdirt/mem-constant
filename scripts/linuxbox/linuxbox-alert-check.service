@@ -1,0 +1,11 @@
+[Unit]
+Description=Linuxbox alert threshold check
+
+[Service]
+Type=oneshot
+User=abhinav
+Environment=AGENT_DUMP=/home/abhinav/agent-dump
+ExecStart=/bin/bash /home/abhinav/agent-dump/scripts/linuxbox/linuxbox-alert-check.sh
+
+[Install]
+WantedBy=multi-user.target

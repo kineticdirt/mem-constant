@@ -1,0 +1,93 @@
+LAPTOP ↔ LINUXBOX WORKSPACE
+============================
+For abhi-m15-laptop — connect to the always-on linuxbox (potato) as your
+canonical runtime. Read this after tailnet is up (E:\scripts\Test-RemoteTailnet.ps1).
+
+Do NOT chain commands with && — run each step separately.
+
+--------------------------------------------------------------
+1. GIT SYNC (same repo as desktop)
+--------------------------------------------------------------
+Clone path:
+  C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump
+
+If missing:
+  git clone https://github.com/kineticdirt/mem-constant.git agent-dump
+
+If present:
+  cd C:\Users\abhinav\Desktop\MAIN_PROGRAMMING_FILES\agent-dump
+  git pull origin master
+
+Verify:
+  git rev-parse --short HEAD
+  git status
+
+--------------------------------------------------------------
+2. SSH TO LINUXBOX (laptop initiates)
+--------------------------------------------------------------
+SSH from desktop to laptop is blocked (port 22 closed). Laptop must connect OUT.
+
+One-time key (from USB):
+  copy E:\secrets\id_rsa_potato %USERPROFILE%\.ssh\
+  (Git Bash: chmod 600 ~/.ssh/id_rsa_potato)
+
+Test:
+  ssh -i %USERPROFILE%\.ssh\id_rsa_potato -o IdentitiesOnly=yes abhinav@100.122.108.94 hostname
+
+Expected: raspbian-bullseye-aml-s905x-cc
+
+Optional ~/.ssh/config snippet (also in E:\scripts\ssh-config-snippet.txt):
+  Host potato linuxbox
+      HostName 100.122.108.94
+      User abhinav
+      IdentityFile ~/.ssh/id_rsa_potato
+      IdentitiesOnly yes
+
+Then:  ssh potato
+
+--------------------------------------------------------------
+3. CURSOR REMOTE SSH (edit on linuxbox)
+--------------------------------------------------------------
+In Cursor on laptop:
+  1. Install "Remote - SSH" extension (if not present)
+  2. Remote Explorer → SSH Targets → Add
+  3. Host: potato  (or abhinav@100.122.108.94 with id_rsa_potato)
+  4. Open folder: /home/abhinav/agent-dump
+
+WSL on laptop is optional — native Windows Cursor + Remote SSH is enough.
+
+Dashboard (after auth): https://abhinavall.net/Linuxbox/
+Public intel:           https://abhinavall.net/Intel/
+
+--------------------------------------------------------------
+4. LEDGER HANDSHAKE ([LAPTOP] line)
+--------------------------------------------------------------
+Before meaningful work, pull then edit:
+  AI_GROUPCHAT.md  (repo root)
+
+Find the top [PC] OPEN CHANNEL line under Recent activity.
+Append ONE line immediately under it:
+
+  - **2026-07-09 (UTC)** — [LAPTOP] C:/Users/abhinav/Desktop/MAIN_PROGRAMMING_FILES/agent-dump · <short HEAD> · heard, <one sentence>.
+
+Commit on laptop; push or merge to origin when ready.
+
+This is the live conversation until the Hub Machines panel shows your reply.
+
+--------------------------------------------------------------
+5. VERIFY FROM LAPTOP
+--------------------------------------------------------------
+  & "$env:ProgramFiles\Tailscale\tailscale.exe" status
+  ssh potato "git -C ~/agent-dump rev-parse --short HEAD"
+  ssh potato "test -f ~/agent-dump/agents/state/human-inbox.json && echo inbox_ok"
+
+Report all three outputs to the user.
+
+--------------------------------------------------------------
+SEE ALSO
+--------------------------------------------------------------
+  E:\FOR-CURSOR-ON-LAPTOP.txt     — full USB agent checklist
+  docs/LAPTOP_CURSOR_HANDSHAKE.md — git + ledger protocol
+  agents/machine-registry.json    — tailnet IPs (dashboard Machines panel)
+
+Prepared 2026-07-09 on desktop-igqesd4

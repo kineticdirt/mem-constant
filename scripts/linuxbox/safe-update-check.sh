@@ -152,9 +152,9 @@ if osv_eco:
 else:
     notes.append(f"OSV: no ecosystem mapping for {eco!r} (advisory check skipped — treat as caution)")
 
-# --- local dependency audit ---
+# --- local dependency audit (timeout=30s; slow SBCs must not block the gate) ---
 if eco == "pip" and shutil.which("pip-audit"):
-    rc, out, err = sh("pip-audit -f json 2>/dev/null", timeout=180)
+    rc, out, err = sh("pip-audit -f json 2>/dev/null", timeout=30)
     if rc == 0:
         try:
             au = json.loads(out or "{}")
@@ -167,20 +167,27 @@ if eco == "pip" and shutil.which("pip-audit"):
                 signals.append(("pip-audit", "clean"))
         except Exception:  # noqa: BLE001
             notes.append("pip-audit output not parseable")
+    elif rc == 124:
+        notes.append("pip-audit timed out (30s) — skipped; OSV/registry check still valid")
     else:
-        notes.append(f"pip-audit run failed: {err[:160]}")
+        notes.append(f"pip-audit run failed (rc={rc}): {err[:160]}")
 elif eco == "npm" and t.get("path") and shutil.which("npm"):
-    rc, out, err = sh(f"cd '{t['path']}' && npm audit --json 2>/dev/null", timeout=180)
-    try:
-        au = json.loads(out or "{}")
-        total = (au.get("metadata", {}).get("vulnerabilities", {}) or {}).get("total", 0)
-        if total:
-            hold_reasons.append(f"npm audit: {total} vulnerability(ies)")
-            signals.append(("npm audit", f"{total} total"))
-        else:
-            signals.append(("npm audit", "clean"))
-    except Exception:  # noqa: BLE001
-        notes.append("npm audit output not parseable (may be no package.json)")
+    rc, out, err = sh(f"cd '{t['path']}' && npm audit --json 2>/dev/null", timeout=30)
+    if rc == 0:
+        try:
+            au = json.loads(out or "{}")
+            total = (au.get("metadata", {}).get("vulnerabilities", {}) or {}).get("total", 0)
+            if total:
+                hold_reasons.append(f"npm audit: {total} vulnerability(ies)")
+                signals.append(("npm audit", f"{total} total"))
+            else:
+                signals.append(("npm audit", "clean"))
+        except Exception:  # noqa: BLE001
+            notes.append("npm audit output not parseable (may be no package.json)")
+    elif rc == 124:
+        notes.append("npm audit timed out (30s) — skipped; OSV/registry check still valid")
+    else:
+        notes.append(f"npm audit run failed (rc={rc}): {err[:160]}")
 
 verdict = "HOLD" if hold_reasons else "SAFE"
 now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")

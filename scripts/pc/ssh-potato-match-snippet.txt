@@ -1,0 +1,28 @@
+# Paste into ~/.ssh/config (Git Bash / OpenSSH). Order matters: Match BEFORE Host potato.
+# Prefer LAN when helper exits 0; otherwise Host potato HostName (Tailscale) wins.
+# Keep Host potato-lan as an explicit force-LAN alias (no Match).
+#
+# Adjust REPO to your clone. On Windows OpenSSH (not Git Bash ssh), use a full
+# path to bash.exe, e.g.:
+#   Match host potato exec "\"C:/Program Files/Git/bin/bash.exe\" \"C:/Users/YOU/.../scripts/pc/ssh-potato-prefer-lan.sh\""
+#
+# Optional override: POTATO_LAN_IP=192.168.4.23 in the environment, or update Host potato-lan.
+
+Match host potato exec "bash /c/Users/abhinav/Desktop/MAIN_PROGRAMMING_FILES/agent-dump/scripts/pc/ssh-potato-prefer-lan.sh"
+    HostName 192.168.4.23
+    HostKeyAlias potato
+
+Host potato
+    HostName 100.122.108.94
+    User abhinav
+    IdentityFile ~/.ssh/id_rsa_potato
+    IdentitiesOnly yes
+    ServerAliveInterval 60
+
+Host potato-lan
+    HostName 192.168.4.23
+    User abhinav
+    IdentityFile ~/.ssh/id_rsa_potato
+    IdentitiesOnly yes
+    HostKeyAlias potato
+    ServerAliveInterval 60

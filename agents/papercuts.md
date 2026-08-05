@@ -64,3 +64,21 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Complaint:** GM-drawn borders lived only in the potato working tree while git HEAD held v2 ellipse stubs — every bundle apply / hard reset replayed stubs over GM polys (repeated wipes Aug 1–3, RCA `reports/tableslop-regions-ui-wipe-rca-2026-08-02.md`).
 - **Proposed fix:** Treat `regions-ui.json` as potato-owned runtime: skip-worktree + `.gitignore` + autorestore hook + deploy gates.
 - **Status:** fixed 2026-08-04 — skip-worktree on potato+PC, `tableslop-gm-borders-autorestore.sh` after bundle, guard PASS v19/371 (holder `tableslop-regions-ui-protect`).
+
+## pc-2026-08-05-swap-gate-not-in-tick
+- **Date:** 2026-08-05
+- **Lane:** think / ops
+- **Area:** `scripts/linuxbox/resource_governor.py` + `agent-pod-scheduler.sh` (NOT `agent-cycle-think-tick.sh`)
+- **Severity:** annoying
+- **Complaint:** Runbooks and task prompts describe the think swap defer gate as living in `agent-cycle-think-tick.sh` ("defers ticks when swap usage >= 38%"). It does not — the tick has no memory/swap gate at all (its only early exits are flock, has-work IDLE, and the THINK_INTERVAL_SEC throttle). The real gate is `resource_governor.admit()` with `swap_defer_ops_pct: 38` from `agents/resource-governor.json`, reached via `agent-pod-scheduler.timer`. Relatedly, `think-continuity-seed.py` never seeded `supply-chain-check-run` user-tasks — those were created by the LLM in-tick (all done 2026-08-05); agents kept grepping the seed script for logic that was never there.
+- **Proposed fix:** Name `resource_governor.py` + `agent-pod-scheduler.sh` as the gate home in docs/prompts; supply-chain freshness now owned by `supply-chain-daily.sh` cron (04:20), not in-tick tasks.
+- **Status:** fixed 2026-08-05 — gate made zram-aware (disk-only via /proc/swaps parse) in governor; offload hook in scheduler; holder `mem-fix-swap-flush`.
+
+## pc-2026-08-05-zram-tools-install-race
+- **Date:** 2026-08-05
+- **Lane:** ops
+- **Area:** potato apt — `zram-tools` 0.3.3.1 (Debian 11 bullseye)
+- **Severity:** annoying
+- **Complaint:** `apt-get install zram-tools` postinst auto-starts `zramswap.service` with built-in DEFAULTS (256MiB) before `/etc/default/zramswap` can be written — box ran a 256MiB zram until `systemctl restart zramswap` picked up the real config (1G lz4 prio 100). Also `dpkg` was found interrupted on potato (needed `sudo dpkg --configure -a` before any apt install).
+- **Proposed fix:** After installing zram-tools, always write config THEN `systemctl restart zramswap` (not just enable --now); check dpkg health first on this box.
+- **Status:** fixed 2026-08-05 — restart post-config; live state verified (zramctl 1G lz4 [SWAP], /proc/swaps prio 100 vs disk 10).

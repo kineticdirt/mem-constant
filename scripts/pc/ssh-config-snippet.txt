@@ -1,0 +1,22 @@
+# Optional: you already have Host potato (Tailscale) in ~/.ssh/config.
+# If not, append this block as Host potato or linuxbox.
+# At home on the same Wi‑Fi, prefer Host potato-lan (see prefer-lan-when-home.sh).
+
+Host potato
+    HostName 100.122.108.94
+    User abhinav
+    IdentityFile ~/.ssh/id_rsa_potato
+    IdentitiesOnly yes
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# Same LAN as potato (home Wi‑Fi). Re-check HostName after DHCP:
+#   bash scripts/pc/smoke-lan-vs-tailscale.sh --tip
+Host potato-lan
+    HostName 192.168.4.23
+    User abhinav
+    IdentityFile ~/.ssh/id_rsa_potato
+    IdentitiesOnly yes
+    HostKeyAlias potato
+    ServerAliveInterval 60
+    ServerAliveCountMax 3

@@ -1,0 +1,290 @@
+{
+
+  "_doc": "Curated Chat model picker rows. Costs and tok/s are ESTIMATES (relative units, not live scrape). status defaults; live UI may mark degraded from today's chat-model-usage fails. Free ids probe-verified 2026-07-25 via .staging/model-probe/probe_free_models.py — re-probe before adding, free tiers churn. Think rotate SoT: agents/model-budget/think-free-swap.json.",
+
+  "_do_not_readd": {
+
+    "tencent/hy3:free": "OpenRouter sunset 2026-07-21",
+
+    "qwen/qwen3-next-80b-a3b-instruct:free": "delisted 2026-07-24 — only the PAID variant remains",
+
+    "zenmux:moonshotai/kimi-k3-free": "404 invalid_model, never existed; real moonshotai/kimi-k3 is PAID $3/M in, $15/M out",
+
+    "stepfun/step-3.7-flash": "demoted 2026-07-24 — burned ~$14/day thrashing the think lane"
+
+  },
+
+  "version": 4,
+
+  "estimated": true,
+
+  "relative_cost_unit": "approx vs DeepSeek flash = 1.0 (in/out separately); free = 0",
+
+  "models": [
+
+    {
+
+      "id": "poolside/laguna-xs-2.1:free",
+
+      "label": "Laguna XS 2.1 free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 45,
+
+      "status": "online",
+
+      "note": "Default free-first head"
+
+    },
+
+    {
+
+      "id": "inclusionai/ling-3.0-flash:free",
+
+      "label": "Ling 3.0 Flash free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 50,
+
+      "status": "online",
+
+      "note": "Fast free failover (262k ctx)"
+
+    },
+
+    {
+
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+
+      "label": "Nemotron 3 Super 120B free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 35,
+
+      "status": "online",
+
+      "note": "Free failover (262k ctx)"
+
+    },
+
+    {
+
+      "id": "cohere/north-mini-code:free",
+
+      "label": "North Mini Code free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 40,
+
+      "status": "online",
+
+      "note": "Free code-specialised (256k ctx)"
+
+    },
+
+    {
+
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+
+      "label": "Nemotron 3 Ultra 550B free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 25,
+
+      "status": "online",
+
+      "note": "Strongest free option (1M ctx) — slower"
+
+    },
+
+    {
+
+      "id": "poolside/laguna-s-2.1:free",
+
+      "label": "Laguna S 2.1 free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 40,
+
+      "status": "online",
+
+      "note": "Larger Laguna free sibling"
+
+    },
+
+    {
+
+      "id": "google/gemma-4-31b-it:free",
+
+      "label": "Gemma 4 31B IT free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 35,
+
+      "status": "online",
+
+      "note": "OpenRouter free catalog"
+
+    },
+
+    {
+
+      "id": "openai/gpt-oss-20b:free",
+
+      "label": "GPT-OSS 20B free",
+
+      "tier": "free",
+
+      "relative_cost_in": 0,
+
+      "relative_cost_out": 0,
+
+      "tokens_per_sec_est": 40,
+
+      "status": "online",
+
+      "note": "OpenRouter free catalog"
+
+    },
+
+    {
+
+      "id": "deepseek/deepseek-v4-flash",
+
+      "label": "DeepSeek v4 Flash",
+
+      "tier": "paid",
+
+      "relative_cost_in": 1.0,
+
+      "relative_cost_out": 1.0,
+
+      "tokens_per_sec_est": 70,
+
+      "status": "online",
+
+      "note": "Minor/brief paid head (=1.0)"
+
+    },
+
+    {
+
+      "id": "nousresearch/hermes-4-70b",
+
+      "label": "Hermes 4 70B",
+
+      "tier": "paid",
+
+      "relative_cost_in": 2.5,
+
+      "relative_cost_out": 3.0,
+
+      "tokens_per_sec_est": 45,
+
+      "status": "online",
+
+      "note": "Think / campaign quality"
+
+    },
+
+    {
+
+      "id": "z-ai/glm-5.2",
+
+      "label": "GLM 5.2",
+
+      "tier": "paid",
+
+      "relative_cost_in": 1.8,
+
+      "relative_cost_out": 2.2,
+
+      "tokens_per_sec_est": 55,
+
+      "status": "online",
+
+      "note": "Paid backup for DeepSeek only (not a head)"
+
+    },
+
+    {
+
+      "id": "cognitivecomputations/dolphin-mistral-24b-venice-edition",
+
+      "label": "Venice Dolphin 24B",
+
+      "tier": "paid",
+
+      "relative_cost_in": 1.2,
+
+      "relative_cost_out": 1.4,
+
+      "tokens_per_sec_est": 50,
+
+      "status": "online",
+
+      "note": "Last-resort paid"
+
+    },
+
+    {
+
+      "id": "cursor:auto",
+
+      "label": "Cursor SDK Auto (skills)",
+
+      "tier": "paid",
+
+      "provider": "cursor",
+
+      "relative_cost_in": 3.0,
+
+      "relative_cost_out": 3.0,
+
+      "tokens_per_sec_est": 20,
+
+      "status": "online",
+
+      "note": "Potato only — Cursor Auto (SDK default); no paid model pins; requires CURSOR_API_KEY; NOT think cron; PC IDE untouched"
+
+    }
+
+  ]
+
+}
+

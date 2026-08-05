@@ -1,6 +1,6 @@
 {
-  "_doc": "Shared model/token budget policy for dashboard Chat, Hermes profiles, and future agent swarms. Free-first; paid only when free rate-limits, refuses, or fails. Do NOT re-add tencent/hy3:free (OpenRouter sunset 2026-07-21).",
-  "version": 3,
+  "_doc": "Shared model/token budget policy for dashboard Chat, Hermes profiles, and future agent swarms. Free-first. Hermes/think paid only under C8: (1) full free pool exhausted OR (2) verified free failure (explicit success metric + N harness verify-fails). Do NOT re-add tencent/hy3:free (OpenRouter sunset 2026-07-21). Pixi ALLOW_PAID_FALLBACK is a separate key.",
+  "version": 4,
   "policy": "free_first",
   "providers": {
     "_doc": "Selectable inference providers. Default (unprefixed model id) = openrouter. Route via ZenMux with a `zenmux:<slug>` model-id prefix (dashboard maps it to `hermes --provider zenmux -m <slug>`; Hermes reads providers.zenmux from each profile config.yaml). Adding zenmux does not change default chains.",
@@ -16,17 +16,35 @@
       "daily_usd_target": 5,
       "daily_usd_env": "ZENMUX_DAILY_USD",
       "limit_reset": "daily",
-      "note": "OpenAI-compatible; OpenRouter-style slugs (openai/gpt-5, qwen/qwen3-max). Set ZENMUX_API_KEY in ~/.hermes/.env to enable. Use with the zenmux: prefix, e.g. zenmux:moonshotai/kimi-k3-free. ZenMux free variants use a -free slug suffix (NOT OpenRouter's :free). daily_usd_target is a SOFT policy cap ($5/day) — change here or override with ZENMUX_DAILY_USD in ~/.hermes/.env; it is not a hard provider-side cap (set that in the ZenMux console if you want an enforced ceiling).",
+      "note": "OpenAI-compatible; OpenRouter-style slugs. Set ZENMUX_API_KEY in ~/.hermes/.env to enable. Use with the zenmux: prefix, e.g. zenmux:z-ai/glm-4.7-flash-free. ZenMux free variants use a -free slug suffix (NOT OpenRouter's :free). CANNOT be a Hermes profile PRIMARY — Hermes resolves it as provider 'custom' and drops ZENMUX_API_KEY -> 403; dashboard/manual selection only. daily_usd_target is a SOFT policy cap ($5/day) — override with ZENMUX_DAILY_USD in ~/.hermes/.env; not a hard provider-side cap (set that in the ZenMux console).",
       "known_models": {
-        "_source": "Captured from ZenMux picker screenshot 2026-07-18 (partial list — not exhaustive; ZenMux catalog is larger, verify live via discover_models).",
+        "_source": "Verified live against ZenMux /v1/models 2026-07-24 (145 models). Supersedes the 2026-07-18 picker screenshot, which recorded a slug that does not exist.",
+        "_invalid": {
+          "moonshotai/kimi-k3-free": "404 invalid_model — never existed. The real moonshotai/kimi-k3 is PAID at $3/M prompt, $15/M completion (most expensive model in this stack) — do not front chains with it.",
+          "stepfun/step-3.7-flash": "demoted 2026-07-24 — burned ~$14/day thrashing the think lane."
+        },
+        "free_verified": [
+          "z-ai/glm-4.7-flash-free",
+          "z-ai/glm-4.6v-flash-free"
+        ],
         "models": [
           "inclusionai/ling-2.6-1t",
-          "moonshotai/kimi-k3-free",
-          "stepfun/step-3.7-flash",
+          "moonshotai/kimi-k3",
           "z-ai/glm-4.6v-flash-free",
           "z-ai/glm-4.7-flash-free"
         ]
       }
+    },
+    "cursor": {
+      "model_prefix": "cursor:",
+      "key_env": "CURSOR_API_KEY",
+      "env_file": "~/.cursor-agent.env",
+      "cli_bin": "~/.local/bin/agent",
+      "wrapper": "scripts/linuxbox/cursor-agent-run.sh",
+      "daily_usd_target": 10,
+      "daily_usd_env": "CURSOR_DAILY_USD",
+      "limit_reset": "daily",
+      "note": "Paid Cursor CLI lane on potato — Hub Chat explicit pick cursor:auto only. NOT on think/fast crons. Loads .cursor/skills + rules. Auth: CURSOR_API_KEY in ~/.cursor-agent.env or agent login. Invoke: agent -p --force --disable-auto-update."
     }
   },
   "pools": {
@@ -52,22 +70,29 @@
   },
   "routing": {
     "prefer_free": true,
-    "paid_when": ["http_429", "rate_limit", "moderation_refusal", "model_unavailable", "daily_limit_on_free", "empty_intent"],
+    "paid_when": ["free_pool_exhausted", "verified_free_failure"],
+    "paid_when_note": "Hermes think C8: free_pool_exhausted = THINK_PAID_ON_FREE_EXHAUSTED after full swap 429+reprobe; verified_free_failure = THINK_PAID_ON_VERIFIED_FREE_FAIL after THINK_PAID_FREE_FAIL_N concrete verify fails. Hub Chat may still fall through on 429/refusal via its own free-first chain — not the same gate.",
+    "_free_models_note": "Wide free pool (think-free-swap.json). Never re-add hy3 / kimi-k3-free phantom / qwen next :free. Re-probe: .staging/model-probe/probe_free_models.py.",
     "free_models": [
       "poolside/laguna-xs-2.1:free",
-      "qwen/qwen3-next-80b-a3b-instruct:free"
+      "inclusionai/ling-3.0-flash:free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "cohere/north-mini-code:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "poolside/laguna-s-2.1:free",
+      "google/gemma-4-31b-it:free",
+      "openai/gpt-oss-20b:free"
     ],
     "paid_minor": "deepseek/deepseek-v4-flash",
-    "paid_mid": "stepfun/step-3.7-flash",
+    "paid_mid": "z-ai/glm-5.2",
     "paid_models_quality": [
       "nousresearch/hermes-4-70b",
       "z-ai/glm-5.2"
     ],
     "paid_models_ops": [
       "deepseek/deepseek-v4-flash",
-      "stepfun/step-3.7-flash",
-      "nousresearch/hermes-4-70b",
       "z-ai/glm-5.2",
+      "nousresearch/hermes-4-70b",
       "cognitivecomputations/dolphin-mistral-24b-venice-edition"
     ]
   },
@@ -75,6 +100,18 @@
     "tencent/hy3:free": {
       "sunset": "2026-07-21",
       "note": "Removed from primary chains — do not re-add."
+    },
+    "stepfun/step-3.7-flash": {
+      "sunset": "2026-07-24",
+      "note": "Demoted — burned ~$14–16/day thrashing the every-minute think lane. Hard-blocked in linuxbox-status-server.js CHAT_SUNSET_MODELS. Do not re-add to any chain."
+    },
+    "qwen/qwen3-next-80b-a3b-instruct:free": {
+      "sunset": "2026-07-24",
+      "note": "Delisted from OpenRouter (paid variant only). Was silently burning free→paid fallthrough on Chat."
+    },
+    "zenmux:moonshotai/kimi-k3-free": {
+      "sunset": "2026-07-24",
+      "note": "404 invalid_model — never existed. Real moonshotai/kimi-k3 is PAID $3/$15 per M."
     }
   },
   "soft_caps": {

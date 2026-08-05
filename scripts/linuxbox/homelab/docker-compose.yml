@@ -1,0 +1,38 @@
+# Lightweight stack for raspbian-bullseye (aarch64), ~2GB RAM.
+# Data: Docker volumes on internal disk (not the vfat USB).
+# Pi-hole: install later when static IP is ready.
+#
+# Start: sudo docker-compose -f /home/abhinav/homelab/docker-compose.yml up -d
+#
+# Host ports avoid conflict with existing Node on 3000/3001 — use 13000/13001.
+# Uptime Kuma — http://<linuxbox-tailscale-ip>:13001  (create admin on first visit)
+# Gitea         — http://<linuxbox-tailscale-ip>:13000  (initial setup wizard)
+#
+version: "3.3"
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - uptime-kuma-data:/app/data
+    ports:
+      - "13001:3001"
+
+  gitea:
+    image: gitea/gitea:1.21
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    volumes:
+      - gitea-data:/data
+    ports:
+      - "13000:3000"
+      - "12222:22"
+
+volumes:
+  uptime-kuma-data:
+  gitea-data:

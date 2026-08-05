@@ -23,6 +23,8 @@ AGENT_PATHS=(
   agents/CURRENT_TASK.md
   agents/deepsec-config.json
   agents/inbox-seeds.json
+  agents/INBOX_PROSE.md
+  agents/THINK_SECURITY_CHECKS.md
   agents/USER_TASKS_TASK.md
   agents/swarm-experts.json
   agents/hermes-model-registry.json
@@ -67,11 +69,31 @@ LINUXBOX_SCRIPT_PATHS=(
   agents/protected-runtime-paths.json
   scripts/linuxbox/swarm-dispatch.sh
   scripts/linuxbox/install-swarm-dispatch-timer.sh
+  scripts/linuxbox/agent-cycle-sync.sh
+  scripts/linuxbox/think-setup-context.py
+  scripts/linuxbox/install-agent-cycle-think-only.sh
   scripts/linuxbox/agent-cycle-fast-tick.sh
   scripts/linuxbox/agent-cycle-think-tick.sh
+  agents/think-agent-setup.md
   scripts/linuxbox/agent-cycle-has-work.py
+  scripts/linuxbox/think-shell-access-form.py
+  scripts/linuxbox/think-incident-form.py
+  scripts/linuxbox/cursor-agent-run.sh
+  scripts/linuxbox/human-inbox-normalize.py
+  scripts/linuxbox/consume-inbox-answers.py
   scripts/linuxbox/kill-stale-chromium.sh
   scripts/linuxbox/tableslop-server.js
+  scripts/linuxbox/campaigns-availability-server.js
+  scripts/linuxbox/campaigns-availability-selfcheck.js
+  scripts/linuxbox/campaign-discord-probe.py
+  scripts/linuxbox/install-campaigns-avail-linuxbox.sh
+  scripts/linuxbox/linuxbox-campaigns-avail.service
+  campaigns/eurosluts/tracker.json
+  campaigns/eurosluts/discord.json
+  campaigns/nyc-mafia-dnd/tracker.json
+  campaigns/nyc-mafia-dnd/discord.json
+  campaigns/tropic-gooner/tracker.json
+  campaigns/tropic-gooner/discord.json
   scripts/linuxbox/agent-pod-scheduler.sh
   scripts/linuxbox/deepsec-scan.sh
   scripts/linuxbox/archive_meta.py
@@ -83,6 +105,7 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/install-agent-intent-gate.sh
   scripts/linuxbox/hermes-model-failover.sh
   scripts/linuxbox/install-hermes-profiles.sh
+  scripts/linuxbox/pc-bonsai-failover.sh
   scripts/linuxbox/hermes-gateway-watchdog.sh
   scripts/linuxbox/install-hermes-gateway-watchdog.sh
   scripts/linuxbox/nousagent-health.sh
@@ -96,6 +119,7 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/meta-harness-rollup.service
   scripts/linuxbox/meta-harness-rollup.timer
   scripts/linuxbox/install-meta-harness-rollup.sh
+  scripts/meta-harness/record_tick.py
   scripts/meta-harness/score_tick.py
   scripts/meta-harness/query_runs.py
   scripts/meta-harness/propose_harness.py
@@ -107,7 +131,10 @@ LINUXBOX_SCRIPT_PATHS=(
 
 DASHBOARD_PATHS=(
   scripts/linuxbox/linuxbox-status-server.js
+  scripts/linuxbox/linuxbox-docs-wiki.js
   scripts/linuxbox/linuxbox-status/index.html
+  scripts/linuxbox/linuxbox-status/docs-wiki.js
+  scripts/linuxbox/linuxbox-status/icons/pixi.svg
   scripts/linuxbox/linuxbox-machines.js
   scripts/linuxbox/linuxbox-systems.js
   scripts/linuxbox/chat-offload-handoff.js
@@ -119,10 +146,29 @@ DASHBOARD_PATHS=(
   scripts/linuxbox/restore-chars-side-npcs.js
   scripts/linuxbox/test-multitask-lock.js
   scripts/linuxbox/test-chars-registry-persist.js
+  scripts/pixi/sheet-to-dossier.py
+  campaigns/_templates/character-sheet.md
+  campaigns/_templates/character-sheet.example.md
+  campaigns/tropic-gooner/characters/_pilot-mira-vale-example.md
+  campaigns/nyc-mafia-dnd/characters/INDEX.md
+  docs/pixi/docs-engine-bridge.md
+  docs/plans/character-sheet-baseline-2026-07-27.md
   agents/machine-registry.json
+  agents/linuxbox-systems.json
   agents/state/multitask-locks/.gitkeep
   docs/multitask-shared-state-lock.md
   docs/chars-registry-versioning.md
+  docs/agents/linuxbox-systems-panel.md
+  docs/infranet/INFRANET-COMBINED-BRIEF.md
+  docs/infranet/INFRANET-BUSINESS-BRIEF.md
+  docs/infranet/INFRANET-DESIGN-PROPOSAL.md
+  docs/infranet/wiki/INDEX.md
+  docs/infranet/wiki/00-HOW-IT-WORKS.md
+  docs/infranet/wiki/01-PROBLEMS-TO-SOLVE.md
+  docs/infranet/wiki/02-OPEN-SOURCE-LANDSCAPE.md
+  docs/infranet/wiki/03-TRY-IT-EXAMPLES.md
+  projects/infranet/ARCHITECTURE.md
+  projects/infranet/poc/README.md
 )
 
 normalize_sh() {

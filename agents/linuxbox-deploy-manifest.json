@@ -1,11 +1,16 @@
 {
-  "_doc": "When PC work on a bundle is DONE, run: bash scripts/pc/push-linuxbox.sh --finished. PC is not the deployment target — linuxbox is.",
-  "policy": "Finish local task → push matching bundle(s) → verify → [PC] Result in AI_GROUPCHAT.md. Gitignored binaries use scp bundles, not git pull alone.",
+  "_doc": "When PC work on a bundle is DONE, run: bash scripts/pc/push-linuxbox.sh --finished. PC is not the deployment target \u2014 linuxbox is.",
+  "policy": "Finish local task \u2192 push matching bundle(s) \u2192 verify \u2192 [PC] Result in AI_GROUPCHAT.md. Gitignored binaries use scp bundles, not git pull alone.",
   "bundles": [
     {
       "id": "agent-config",
       "label": "Agent lanes, archive meta, linuxbox scripts",
-      "push": { "script": "scripts/pc/push-linuxbox.sh", "args": ["--all"] },
+      "push": {
+        "script": "scripts/pc/push-linuxbox.sh",
+        "args": [
+          "--all"
+        ]
+      },
       "paths_hint": [
         "agents/archive-meta.json",
         "scripts/linuxbox/lib/archive-paths.sh",
@@ -15,11 +20,31 @@
     {
       "id": "dashboard",
       "label": "linuxbox-status admin dashboard (:8790)",
-      "push": { "script": "scripts/pc/push-linuxbox.sh", "args": ["--dashboard"] },
+      "push": {
+        "script": "scripts/pc/push-linuxbox.sh",
+        "args": [
+          "--dashboard"
+        ]
+      },
       "paths_hint": [
         "scripts/linuxbox/linuxbox-status-server.js",
+        "scripts/linuxbox/linuxbox-docs-wiki.js",
         "scripts/linuxbox/linuxbox-status/index.html",
-        "scripts/linuxbox/chat-offload-handoff.js"
+        "scripts/linuxbox/linuxbox-status/docs-wiki.js",
+        "scripts/linuxbox/chat-offload-handoff.js",
+        "scripts/linuxbox/chars-registry-persist.js",
+        "scripts/linuxbox/chars-registry-merge.js",
+        "scripts/linuxbox/multitask-lock.js",
+        "scripts/linuxbox/multitask-lock.sh",
+        "scripts/linuxbox/restore-chars-side-npcs.js",
+        "scripts/pixi/sheet-to-dossier.py",
+        "campaigns/_templates/character-sheet.md",
+        "docs/pixi/docs-engine-bridge.md",
+        "docs/multitask-shared-state-lock.md",
+        "docs/infranet/wiki/",
+        "docs/infranet/INFRANET-COMBINED-BRIEF.md",
+        "projects/infranet/ARCHITECTURE.md",
+        "projects/infranet/poc/README.md"
       ],
       "restart": "linuxbox-status",
       "verify_url": "http://127.0.0.1:8790/"
@@ -27,13 +52,19 @@
     {
       "id": "tableslop-map",
       "label": "Isla Primavera map + viewer (map.tableslop.org)",
-      "push": { "script": "scripts/linuxbox/push-tableslop-map.sh", "args": [] },
+      "push": {
+        "script": "scripts/linuxbox/push-tableslop-map.sh",
+        "args": []
+      },
       "paths_hint": [
         "campaigns/tropic-gooner/map/master-enhanced.png",
-        "scripts/linuxbox/tableslop-server.js"
+        "scripts/linuxbox/tableslop-server.js",
+        "campaigns/tropic-gooner/map/REGIONS-UI-LOCK.md",
+        "agents/protected-runtime-paths.json"
       ],
       "restart": "linuxbox-tableslop",
-      "verify_url": "http://127.0.0.1:8765/"
+      "verify_url": "http://127.0.0.1:8765/",
+      "note": "regions-ui.json is potato-owned (protected runtime); push-tableslop-map excludes it unless PUSH_REGIONS_UI=1 after non-empty potato\u2192PC pull."
     }
   ]
 }
