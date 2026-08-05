@@ -35,7 +35,8 @@ fi
 OLD="$(git rev-parse HEAD)"
 git fetch "${BUNDLE}" "linuxbox/${BRANCH}:${REF}" 2>/dev/null || \
   git fetch "${BUNDLE}" "${BRANCH}:${REF}" 2>/dev/null || \
-  git fetch "${BUNDLE}" "refs/heads/${BRANCH}:${REF}"
+  git fetch "${BUNDLE}" "refs/heads/${BRANCH}:${REF}" 2>/dev/null || \
+  git fetch "${BUNDLE}" "+refs/heads/master:${REF}" 2>/dev/null || true
 
 NEW="$(git rev-parse "origin/${BRANCH}")"
 if [[ "${OLD}" == "${NEW}" ]]; then
