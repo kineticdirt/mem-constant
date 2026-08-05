@@ -23,14 +23,18 @@ Rewind is a **Cursor skill**, not a public URL. Infranet code and docs live unde
 
 1. **Sync** — `git pull` in the repo root (if clean).
 2. **Ledger** — Read **Recent activity** in `AI_GROUPCHAT.md` (last ~15 lines). Note latest `[PC]` / `[LAPTOP]` / `[LINUX]` intent and results.
-3. **Workspace prefs** — Skim `AGENTS.md` **Learned User Preferences** and **Learned Workspace Facts** when the task touches infra, remote access, or agent lanes.
-4. **Project charter** (when Infranet or `project_id` given):
+3. **mem-constant** — If `mem-constant.yaml` / `.mem-constant/` exist:
+   - Read **`.mem-constant/last-session.md`** when non-empty (`mem-constant carryover show`).
+   - Read **`.mem-constant/ops-discipline.md`** when present (why→prevention close-out).
+   - Spec: `docs/memory/ops-discipline.md` (this package repo) or `docs/mem-constant/ops-discipline.md` after init elsewhere.
+4. **Workspace prefs** — Skim `AGENTS.md` **Learned User Preferences** and **Learned Workspace Facts** when the task touches infra, remote access, or agent lanes.
+5. **Project charter** (when Infranet or `project_id` given):
    - `projects/infranet/README.md` and `projects/infranet/AGENT-CHARTER.md`
    - `agents/user-tasks.json` — filter `projects[]` / `tasks[]` for the project
-5. **Memory** (optional, high-signal only):
+6. **Memory** (optional, high-signal only):
    - **claude-mem** — working referents for *this* thread
    - **MemPalace** — canonical facts if disambiguation needed (MemPalace wins on conflict after sync)
-6. **Output** — One brief for the user:
+7. **Output** — One brief for the user:
    - **Intent** — what we are doing now (from ledger + user message)
    - **Locked** — decisions already made; do not re-litigate
    - **Open** — tasks, blockers, awaiting human

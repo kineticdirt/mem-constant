@@ -7,7 +7,7 @@ This file is the **how-to-act**; those are the **what-is-true**.
 
 ## Resource governance (guiding principle)
 
-Optimize **resources**, not clock time: (1) **search tokens** — local/repo first, cache, browser last; (2) **memory** — MemPalace truth, claude-mem cache, ledger + `rewind` skill; (3) **free vs paid models** — free on fast lane only, paid on think when needed, respect OpenRouter cap; (4) **correctness** — verify every step, supply-chain gate, never cut safety. See PC workspace `.cursor/rules/resource-governance.mdc`.
+Optimize **resources**, not clock time: (1) **search tokens** — local/repo first, cache, browser last; (2) **memory** — MemPalace truth, claude-mem cache, ledger + `rewind` skill; (3) **free vs paid models** — free-first on think; paid only per **C8** (free pool exhausted **or** verified free failure); respect OpenRouter cap; (4) **correctness** — verify every step, supply-chain gate, never cut safety. See PC workspace `.cursor/rules/resource-governance.mdc` + `agents/THINK_SECURITY_CHECKS.md` C8.
 
 **Ponytail** (minimal correct code): `hermes plugins install DietrichGebert/ponytail --enable` when available; ladder = YAGNI → reuse → stdlib → native → deps → one line → minimum.
 
@@ -19,43 +19,69 @@ Optimize **resources**, not clock time: (1) **search tokens** — local/repo fir
    verify it, log it, stop. Do not batch.
 3. **Secrets never leave the box and never get printed/committed.** Keys live in
    `~/.hermes/.env`, `~/.linuxbox-dashboard/.env`, `~/.cloudflare/*.env` (all `chmod 600`).
-4. **When unsure, ask the human** — append one question to `agents/human-inbox.json` and skip
-   the item rather than guess. Answers arrive via the `/Linuxbox` Inbox tab.
+4. **When unsure, ask the human** — append one question to `agents/state/human-inbox.json` and skip
+   the item rather than guess. Answers arrive via the `/Linuxbox` Inbox tab. **Inbox discipline
+   (required):** before posting, read `open[]`, `answered[]`, and `agents/inbox-seeds.json` ids;
+   if an equivalent question is already open or answered, **do not re-ask** — skip the blocked item,
+   pick the next actionable task, or reply **IDLE**. Max **one** new inbox item per cycle; every item
+   needs rich `context` (2–4 sentences). **Prose:** follow `agents/INBOX_PROSE.md` (human cadence —
+   no “It’s not X or Y, it’s Z” / fast-paced boilerplate / buzzword option pairs). Lane specs
+   (`agents/USER_TASKS_TASK.md`, campaign `*_TASK.md`) add topic rules — follow them.
 5. **Respect the box.** ~2 GB RAM: no heavy local Chromium on cron (prefer Firecrawl cloud);
    keep prompts lean; do not spawn long-lived heavy processes.
 
 ## Lane rotation (per `agents/CURRENT_TASK.md`)
 
+Four continuous content lanes — **campaign · project · research · education**
+(`docs/agents/continuous-lanes.md`). Code SoT: `agent-cycle-think-tick.sh`.
+
 Each `agent-cycle-think` tick, in order, do the first lane with unchecked `[ ]` work:
 
 1. `git pull` in `~/agent-dump` **only if** clean (no merge conflicts). Else skip.
-2. **Dashboard meta lane (priority)** — `agents/LINUXBOX_DASHBOARD_BACKLOG.md` Open items →
-   spec `agents/LINUXBOX_DASHBOARD_TASK.md`. Verify `:8790`, restart `linuxbox-status` if
-   server JS changed.
-3. **Supply-chain / update lane** — see "Update gate" below.
-4. **Daily maintenance lane** — `agents/DAILY_MAINTENANCE_TASK.md` when `agents/maintenance-progress.md` has `[ ]` (Intel feed health, self-heal via GitHub + config patches).
-5. **User tasks lane** — `agents/USER_TASKS_TASK.md` when `agents/user-tasks.json` has `status: "open"` (ad-hoc human tasks; optional story/campaign context).
-6. **Code-discovery lane** — `agents/CODE_DISCOVERY_TASK.md` (digest to `reports/code-discovery/`).
-7. **Campaign lanes (alternate)** — SpaceQuest / NYC Mafia × D&D worldbuilding.
-8. **mem-constant dev lane** — `agents/MEMCONSTANT_DEV_TASK.md` (when present).
-9. **NousAgent lane** — `agents/NOUSAGENT_ITERATION_TASK.md`.
+   Prefer PC git-bundle sync — do not inbox-block on private-repo pull.
+2. **Urgent `[ops]` / Fix-this** user-tasks; then dashboard/meta when due
+   (`LINUXBOX_DASHBOARD_BACKLOG.md`, supply-chain update gate, maintenance).
+3. **Same tier RR — campaign ≡ project** — product boards (`tableslop` / pixi /
+   portfolio) + campaign progress (nyc / tropic). State:
+   `agents/state/think-continuous-rr.json`.
+4. Other user-tasks; code-discovery; nousagent; mem-constant when present.
+5. **Education (human SI)** — `agents/SELF_IMPROVEMENT_TASK.md` when
+   `agents/self-improvement-progress.md` has `[ ]` (free-first; **before research**).
+   Drill → `reports/self-improvement/` and/or `reports/education/` and/or one Hub
+   Inbox `si-*`/`edu-*` (no spam). Includes **EM styles → teaching**.
+6. **Research (studies / benchmarks)** — `agents/RESEARCH_STUDIES_TASK.md` when
+   `agents/research-studies-progress.md` has `[ ]` (**after education, before IDLE**;
+   free-only — default `nvidia/nemotron-3-super-120b-a12b:free`, options in
+   `agents/research-studies-models.json`). Reports → `reports/research/`. Not
+   education; not X bookmarks. Do not wipe sibling board.
 
 If nothing is unchecked anywhere → reply `IDLE` only.
 
-`agent-cycle-fast` (high-frequency) only does: git pull, inbox ack, status, `IDLE`. No LLM-heavy work.
+**Sync (deterministic, no LLM):** `agent-cycle-sync.sh` runs at the start of every think crontab minute (inbox normalize, git bundle, consume-inbox-answers, swarm-dispatch). Former **fast** lane removed 2026-08-01.
+
+`agent-cycle-think` (crontab **1m**, LLM interval-gated ~8m via `THINK_INTERVAL_SEC=480`) does lane work + setup-file injection (`think-setup-context.py` → `CLAUDE.md` + lane SoT). No Cursor on cron.
+
+**Parallel (Cursor Auto ∥ Hermes OR+ZenMux):** Lane A = potato `cursor:auto` / `cursor-agent-run.sh` (Hub or SSH/nohup). Lane B = Hermes think/chat free-first OpenRouter+ZenMux. Think never waits on Cursor; Hub Chat uses separate workers so Agent-coding Cursor does not block Hermes Hub chat. Status: `bash scripts/linuxbox/cursor-lane-status.sh`.
 
 ## Model routing (profiles)
 
 Set by `scripts/linuxbox/install-hermes-profiles.sh`. Cost-aware on a small OpenRouter budget:
 
-| Profile | Use | Model (current, 2026-06-27) |
+| Profile | Use | Model (current) |
 |---------|-----|------------------|
-| `fast`  | high-frequency ticks, git pull, IDLE | `qwen/qwen3-next-80b-a3b-instruct:free` — **free**; never burn paid credit on 30s ticks |
-| `think` | campaign work, digests, chat | `nousresearch/hermes-4-70b` (newest Nous; cheaper than 405b) |
-| `meta`  | dashboard self-improvement | `nousresearch/hermes-4-70b` |
+| `fast`  | *(removed 2026-08-01)* | — |
+| `think` | campaign / ops / boards | **FREE-FIRST** via `think-free-swap.json` rotate. Paid DeepSeek **only** under C8 (below). |
+| `meta` / `code` | dashboard / coding | `cohere/north-mini-code:free` → `nvidia/nemotron-3-ultra-550b-a55b:free` → DeepSeek → **GLM 5.2 (DeepSeek's backup only)** |
+| `chat` | dashboard Chat | Laguna free → Nemotron super free → DeepSeek → GLM 5.2 |
 
-Fallback for think/meta: `deepseek/deepseek-v4-flash` (cheap MoE) → Qwen free.
-OpenRouter budget is small (**$5 cap**). **Do not** point the `fast` lane at a paid model without
+**Think paid policy (C8 — `agents/THINK_SECURITY_CHECKS.md`):** paid only in two cases —
+(1) **free pool exhausted** (full swap 429 after mid-day re-probe; `THINK_PAID_ON_FREE_EXHAUSTED=1`, alias `THINK_ALLOW_PAID_LAST_RESORT`);
+(2) **verified free failure** — explicit success metric + ≥`THINK_PAID_FREE_FAIL_N` (default 2) free runs that failed a concrete harness verify, then one paid try (`THINK_PAID_ON_VERIFIED_FREE_FAIL=1`). Never pay because the model claimed failure. Research-studies lane stays free-only. **Paid order:** DeepSeek first, GLM 5.2 only as DeepSeek’s backup.
+
+`think` fires every minute but the LLM runs at most every ~8m (`THINK_INTERVAL_SEC=480`). Step burned ~$14/day when paid was primary — do not put paid on the default head.
+
+**Never re-add these (probe-verified dead — each silently burns a retry hop):** `qwen/qwen3-next-80b-a3b-instruct:free` (delisted, paid variant only), `moonshotai/kimi-k3-free` (404, never existed — real `kimi-k3` is $3/$15 per M), `stepfun/step-3.7-flash` (demoted), `tencent/hy3:free` (sunset). **ZenMux cannot be a profile primary** — Hermes resolves it as provider `custom`, drops `ZENMUX_API_KEY`, 403s; keep it for dashboard/manual `zenmux:<slug>` only. Re-probe ids before editing chains: `python3 .staging/model-probe/probe_free_models.py`.
+OpenRouter budget is small (**$5–$10/day** policy target). **Do not** point the `fast` lane at a paid model without
 human sign-off — the fast tick runs every ~30s–1m and will drain credit.
 The literal Nous MoE (Mixtral 8x7B) is delisted from OpenRouter; `hermes-4-*` are dense.
 Change models via `scripts/linuxbox/install-hermes-profiles.sh` then re-run it on the box.
@@ -96,3 +122,5 @@ curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8790/   # expect 200 (on
 
 Append a one-line `[LINUX]`/`[PC]` entry to `AI_GROUPCHAT.md` Recent activity for meaningful work
 (intent before, result after). Keep it short. Update the relevant progress file's checkbox.
+Friction (smells, repeated 429s, unclear env, regressions) → log a papercut to `agents/papercuts.md`
+(`docs/agents/papercuts.md`); resolve autonomously when safe; Result lines may link `pc-*` ids.
