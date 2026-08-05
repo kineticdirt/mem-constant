@@ -20,6 +20,15 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 
 ---
 
+## pc-2026-08-05-pod-scheduler-missing-profile
+- **Date:** 2026-08-05
+- **Lane:** ops
+- **Area:** `scripts/linuxbox/agent-pod-scheduler.sh` + `agents/agent-pods.manifest.json`
+- **Severity:** annoying
+- **Complaint:** Manifest lists pods (`tropic-gooner`, `spacequest`, `nyc-mafia-dnd`) whose Hermes profiles were never installed on the box — every due pick died exit 1 ("Profile does not exist"), a fail loop in run-index every ~16 min with zero work done.
+- **Proposed fix:** Skip pods whose profile dir is absent (`~/.hermes/profiles/<name>`); record the skip, don't fail.
+- **Status:** fixed 2026-08-05 — profile-existence guard in scheduler (updates last_run, run-index SKIP line, exit 0). Profiles stay uninstalled; GM decides whether `tropic-gooner` should get one (`hermes profile create`) or leave the skip.
+
 ## pc-2026-08-04-think-exit124-supply-chain-timeout
 - **Date:** 2026-08-04
 - **Lane:** think
@@ -27,6 +36,7 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Severity:** annoying
 - **Complaint:** Think tick dies with exit 124 when the supply-chain check hits its 180s timeout, and lane-enforce still marks the board item done — the tick burns its LLM window and the board claims progress although nothing actually ran.
 - **Proposed fix:** Run the supply-chain check async/off-tick (or raise its timeout); never let lane-enforce mark done on a 124.
+- **Status:** fixed 2026-08-05 — three parts landed: (1) `THINK_TIMEOUT_OPS` 300→600 (28 ops turns + ~60s Playwright smoke on a paid model never fit 300s; observed 4× paid 124s in ~1h); (2) enforce-status/enforce-lane now take `--exit-code` and refuse to flip boards on a 124 unless the log shows smoke-PASS + mark-done evidence (gate tested with synthetic logs); (3) still-open proposal: move the supply-chain check fully off-tick (async daily cron writing reports/supply-chain/) so the LLM never invokes it in-tick — needs GM sign-off on lane change.
 - **Status:** fixed 2026-08-05 — three parts landed: (1) `THINK_TIMEOUT_OPS` 300→600 (28 ops turns + ~60s Playwright smoke on a paid model never fit 300s; observed 4× paid 124s in ~1h); (2) enforce-status/enforce-lane now take `--exit-code` and refuse to flip boards on a 124 unless the log shows smoke-PASS + mark-done evidence (gate tested with synthetic logs); (3) still-open proposal: move the supply-chain check fully off-tick (async daily cron writing reports/supply-chain/) so the LLM never invokes it in-tick — needs GM sign-off on lane change.
 
 ## pc-2026-08-01-zenmux-profile-primary-403
