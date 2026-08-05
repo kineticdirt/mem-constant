@@ -20,6 +20,15 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 
 ---
 
+## pc-2026-08-05-think-tick-stale-bin-shadow
+- **Date:** 2026-08-05
+- **Lane:** think
+- **Area:** `~/bin/agent-cycle-think-tick.sh` (installed copy) vs `scripts/linuxbox/agent-cycle-think-tick.sh` (repo)
+- **Severity:** blocking
+- **Complaint:** The repo tick re-execs `~/bin/agent-cycle-think-tick.sh` when executable (`SELF` prefers it), and nothing re-ran `install-agent-cycle-think-only.sh` after Aug 1 — the live tick ran the stale copy with `THINK_TIMEOUT_OPS=300`, silently defeating the repo-side 600s fix (and any other repo edit since Aug 1).
+- **Proposed fix:** Refresh the installed copy after every repo change (`cp -f` + chmod, per installer lines 41-43); ideally fold into the deploy path.
+- **Status:** fixed 2026-08-05 — `cp -f` repo→`~/bin` for tick (600 verified live) and `agent-cycle-sync.sh` (17-line Jul-31 shadow missing GM-borders autorestore + error-collect + free-models-health; sync was dormant-stale, repo path preferred). **Prevention proposal (GM):** add the `cp -f ~/bin` refresh to `push-linuxbox.sh --finished` or the sync tick so shadows can never drift again.
+
 ## pc-2026-08-05-pod-scheduler-missing-profile
 - **Date:** 2026-08-05
 - **Lane:** ops
