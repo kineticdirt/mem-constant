@@ -138,15 +138,28 @@ echo "git-pull-deploy: ${OLD:0:8} → ${NEW:0:8}"
 
 restart_dashboard=0
 restart_tableslop=0
+restart_campaigns=0
+restart_origin=0
 
+# Dashboard match includes the status server's require()d modules — node caches them,
+# so a module-only change without restart runs stale code (see apply-git-bundle.sh).
 while IFS= read -r path; do
   [[ -z "${path}" ]] && continue
   case "${path}" in
-    scripts/linuxbox/linuxbox-status-server.js|scripts/linuxbox/linuxbox-status/*)
+    scripts/linuxbox/linuxbox-status-server.js|scripts/linuxbox/linuxbox-status/*|\
+    scripts/linuxbox/linuxbox-docs-wiki.js|scripts/linuxbox/linuxbox-systems.js|\
+    scripts/linuxbox/linuxbox-machines.js|scripts/linuxbox/chat-offload-handoff.js|\
+    scripts/linuxbox/chars-registry-persist.js|scripts/linuxbox/chars-registry-merge.js)
       restart_dashboard=1
       ;;
     scripts/linuxbox/tableslop-server.js|scripts/linuxbox/install-tableslop-linuxbox.sh)
       restart_tableslop=1
+      ;;
+    scripts/linuxbox/campaigns-availability-server.js)
+      restart_campaigns=1
+      ;;
+    scripts/linuxbox/tunnel-origin-proxy.js)
+      restart_origin=1
       ;;
   esac
 done < <(git diff --name-only "${OLD}" "${NEW}")
@@ -165,6 +178,22 @@ if [[ "${restart_tableslop}" -eq 1 ]]; then
   sleep 2
   systemctl is-active linuxbox-tableslop || true
   curl -s -o /dev/null -w "tableslop:%{http_code}\n" http://127.0.0.1:8765/ || true
+fi
+
+if [[ "${restart_campaigns}" -eq 1 ]] && systemctl cat linuxbox-campaigns-avail >/dev/null 2>&1; then
+  echo "git-pull-deploy: restart linuxbox-campaigns-avail"
+  sudo systemctl restart linuxbox-campaigns-avail
+  sleep 2
+  systemctl is-active linuxbox-campaigns-avail || true
+  curl -s -o /dev/null -w "campaigns-avail:%{http_code}\n" http://127.0.0.1:8768/ || true
+fi
+
+if [[ "${restart_origin}" -eq 1 ]] && systemctl cat abhinavall-origin-8780 >/dev/null 2>&1; then
+  echo "git-pull-deploy: restart abhinavall-origin-8780"
+  sudo systemctl restart abhinavall-origin-8780
+  sleep 2
+  systemctl is-active abhinavall-origin-8780 || true
+  curl -s -o /dev/null -w "origin-8780:%{http_code}\n" http://127.0.0.1:8780/ || true
 fi
 
 # Fail-loud verification gate — only when HEAD actually moved.

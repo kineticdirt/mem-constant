@@ -119,13 +119,28 @@ fi
 # Evidence 2026-07-12: hermes-gateway-watchdog Permission denied every 2m until chmod +x.
 chmod +x "${REPO}/scripts/linuxbox/"*.sh 2>/dev/null || true
 chmod +x "${REPO}/scripts/linuxbox/lib/"*.sh 2>/dev/null || true
+# CRLF guard (bundle path): no root .gitattributes, so a Windows CRLF commit of a .sh
+# lands verbatim via bundle → shebang /bin/bash^M → ExecStart 203 / cron bad-interpreter.
+# SCP path is covered by scripts/pc/fix-sh-crlf-remote.sh; same strip here for bundles.
+find "${REPO}/scripts/linuxbox" -name '*.sh' -type f -exec sed -i 's/\r$//' {} + 2>/dev/null || true
 
 restart_dashboard=0
 restart_tableslop=0
+restart_campaigns=0
+restart_origin=0
+# Dashboard match includes the status server's require()d modules (linuxbox-systems,
+# linuxbox-machines, chat-offload-handoff, linuxbox-docs-wiki at startup; chars-registry-*
+# lazily) — node caches them, so a module-only change without restart runs STALE code
+# until some unrelated restart/reboot.
 while IFS= read -r path; do
   case "${path}" in
-    scripts/linuxbox/linuxbox-status-server.js|scripts/linuxbox/linuxbox-status/*) restart_dashboard=1 ;;
+    scripts/linuxbox/linuxbox-status-server.js|scripts/linuxbox/linuxbox-status/*|\
+    scripts/linuxbox/linuxbox-docs-wiki.js|scripts/linuxbox/linuxbox-systems.js|\
+    scripts/linuxbox/linuxbox-machines.js|scripts/linuxbox/chat-offload-handoff.js|\
+    scripts/linuxbox/chars-registry-persist.js|scripts/linuxbox/chars-registry-merge.js) restart_dashboard=1 ;;
     scripts/linuxbox/tableslop-server.js) restart_tableslop=1 ;;
+    scripts/linuxbox/campaigns-availability-server.js) restart_campaigns=1 ;;
+    scripts/linuxbox/tunnel-origin-proxy.js) restart_origin=1 ;;
   esac
 done < <(git diff --name-only "${OLD}" "${NEW}" 2>/dev/null || true)
 
@@ -136,6 +151,15 @@ fi
 if [[ "${restart_tableslop}" -eq 1 ]]; then
   sudo systemctl restart linuxbox-tableslop
   curl -s -o /dev/null -w "tableslop:%{http_code}\n" http://127.0.0.1:8765/ || true
+fi
+# Guard newer units with `systemctl cat` so a box without them doesn't abort the apply.
+if [[ "${restart_campaigns}" -eq 1 ]] && systemctl cat linuxbox-campaigns-avail >/dev/null 2>&1; then
+  sudo systemctl restart linuxbox-campaigns-avail
+  curl -s -o /dev/null -w "campaigns-avail:%{http_code}\n" http://127.0.0.1:8768/ || true
+fi
+if [[ "${restart_origin}" -eq 1 ]] && systemctl cat abhinavall-origin-8780 >/dev/null 2>&1; then
+  sudo systemctl restart abhinavall-origin-8780
+  curl -s -o /dev/null -w "origin-8780:%{http_code}\n" http://127.0.0.1:8780/ || true
 fi
 
 mkdir -p "${REPO}/agents/state"

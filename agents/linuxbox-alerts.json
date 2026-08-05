@@ -1,0 +1,69 @@
+{
+  "_doc": "Alert thresholds for linuxbox-alert-check.sh. Secrets in ~/.linuxbox-dashboard/alerts.env",
+  "enabled": true,
+  "cooldown_minutes": 30,
+  "checks": [
+    {
+      "id": "swap_high",
+      "metric": "swap_used_pct",
+      "gte": 85,
+      "severity": "warn",
+      "message": "Swap usage high on linuxbox"
+    },
+    {
+      "id": "mem_low",
+      "metric": "mem_avail_mb",
+      "lte": 200,
+      "severity": "warn",
+      "message": "Memory available low on linuxbox"
+    },
+    {
+      "id": "tunnel_abhinavall_down",
+      "metric": "system_health",
+      "system_id": "tunnel-abhinavall",
+      "eq": "down",
+      "severity": "critical",
+      "message": "abhinavall.net tunnel or origin unhealthy"
+    },
+    {
+      "id": "tunnel_tableslop_down",
+      "metric": "system_health",
+      "system_id": "tunnel-tableslop",
+      "eq": "down",
+      "severity": "critical",
+      "message": "map.tableslop.org tunnel or origin unhealthy"
+    },
+    {
+      "id": "tunnel_tableslop_edge",
+      "metric": "system_health",
+      "system_id": "tunnel-tableslop",
+      "eq": "warn",
+      "severity": "warn",
+      "message": "map.tableslop.org unreachable from internet (local origin may still be up)"
+    },
+    {
+      "id": "tunnel_abhinavall_edge",
+      "metric": "system_health",
+      "system_id": "tunnel-abhinavall",
+      "eq": "warn",
+      "severity": "warn",
+      "message": "abhinavall.net unreachable from internet (local origin may still be up)"
+    },
+    {
+      "id": "hub_down",
+      "metric": "system_health",
+      "system_id": "dashboard",
+      "eq": "down",
+      "severity": "critical",
+      "message": "Hub dashboard (:8790) down or wedged — tunnel checks stay green because :8780 proxies / to portfolio :3000"
+    },
+    {
+      "id": "hub_hung",
+      "metric": "system_health",
+      "system_id": "dashboard",
+      "eq": "warn",
+      "severity": "warn",
+      "message": "Hub dashboard (:8790) unit active but health probe failing (hung listener)"
+    }
+  ]
+}

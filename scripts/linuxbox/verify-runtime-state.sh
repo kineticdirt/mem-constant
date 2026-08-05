@@ -103,6 +103,27 @@ else
   echo "verify: linuxbox-status service not present here — skipping live checks"
 fi
 
+# 3b. Other node services must at least ANSWER (000 = dead/wedged/refused). Their
+# post-deploy restarts in apply-git-bundle/git-pull-and-deploy curl with `|| true`,
+# so without this a failed boot (syntax error, missing module) still PASSes the gate.
+# Any non-000 code counts as alive: no evidence each service 200s on `/`.
+while IFS='|' read -r unit port; do
+  [[ -z "${unit}" ]] && continue
+  if systemctl list-unit-files "${unit}.service" >/dev/null 2>&1 \
+    && systemctl is-enabled "${unit}" >/dev/null 2>&1; then
+    CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://127.0.0.1:${port}/" || echo 000)"
+    if [[ "${CODE}" == "000" ]]; then
+      FAILS+=("${unit} enabled but :${port}/ unreachable (000)")
+    else
+      echo "verify: ${unit} :${port} answers (${CODE})"
+    fi
+  fi
+done <<'SVCS'
+linuxbox-tableslop|8765
+linuxbox-campaigns-avail|8768
+abhinavall-origin-8780|8780
+SVCS
+
 # 5. GM-drawn tableslop borders (potato-owned regions-ui.json)
 RUI_FILE="${REPO}/campaigns/tropic-gooner/map/regions-ui.json"
 if [[ -f "${RUI_FILE}" ]]; then

@@ -29,7 +29,9 @@ if [[ "$enabled" != "yes" ]]; then
   exit 0
 fi
 
-snapshot=$(curl -sf -u "${DASHBOARD_ADMIN_USER:-admin}:${DASHBOARD_TOKEN}" "http://127.0.0.1:8790/api/systems" 2>/dev/null || true)
+# --max-time: a wedged Hub socket (orphan LISTEN / CLOSE_WAIT flood) accepts but
+# never answers — without a bound this curl hangs and blinds the alert lane itself.
+snapshot=$(curl -sf --max-time 10 -u "${DASHBOARD_ADMIN_USER:-admin}:${DASHBOARD_TOKEN}" "http://127.0.0.1:8790/api/systems" 2>/dev/null || true)
 if [[ -z "$snapshot" ]]; then
   snapshot=$(NODE_PATH="$REPO/scripts/linuxbox" node -e "
 const { collectSystemsState } = require('./linuxbox-systems');

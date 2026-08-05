@@ -74,6 +74,10 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/install-agent-cycle-think-only.sh
   scripts/linuxbox/agent-cycle-fast-tick.sh
   scripts/linuxbox/agent-cycle-think-tick.sh
+  scripts/linuxbox/refresh-bin-shadows.sh
+  scripts/linuxbox/lib/think-log-classify.sh
+  scripts/linuxbox/think-continuity-seed.py
+  scripts/linuxbox/resource_governor.py
   agents/think-agent-setup.md
   scripts/linuxbox/agent-cycle-has-work.py
   scripts/linuxbox/think-shell-access-form.py
@@ -108,6 +112,8 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/pc-bonsai-failover.sh
   scripts/linuxbox/hermes-gateway-watchdog.sh
   scripts/linuxbox/install-hermes-gateway-watchdog.sh
+  scripts/linuxbox/linuxbox-status-watchdog.sh
+  scripts/linuxbox/install-linuxbox-status-watchdog.sh
   scripts/linuxbox/nousagent-health.sh
   scripts/linuxbox/patch-hermes-approvals-git-safe.py
   scripts/linuxbox/model-budget.py
@@ -140,6 +146,7 @@ DASHBOARD_PATHS=(
   scripts/linuxbox/chat-offload-handoff.js
   scripts/linuxbox/chars-registry-merge.js
   scripts/linuxbox/chars-registry-persist.js
+  scripts/linuxbox/chars-registry-read-cache.js
   scripts/linuxbox/multitask-lock.js
   scripts/linuxbox/multitask-lock-cli.js
   scripts/linuxbox/multitask-lock.sh
