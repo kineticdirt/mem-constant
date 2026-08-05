@@ -60,9 +60,12 @@ Untracked on the `main` track (gitignored, `git rm --cached`):
 (plus blanket `agents/state/*` ignore). HEAD can no longer carry a stale v3 registry —
 `git reset --hard` simply does not touch untracked files.
 
-Map JSONs (`map.json`, `coords.json`, `regions-ui.json`) stay **tracked** (the PC map
-pipeline authors them) but are manifest-protected as `runtime-file`: box edit-mode
-saves survive resets; PC updates them via the explicit `push-tableslop-map.sh` scp.
+Map JSONs (`map.json`, `coords.json`) stay **tracked** but are manifest-protected as
+`runtime-file`: box edit-mode saves survive resets; PC may update them via explicit
+`push-tableslop-map.sh` scp. **`regions-ui.json` + `regions-ui.draft.json`** are also
+manifest-protected: **potato owns live GM borders** after Draw→Save — default map push
+**excludes** `regions-ui.json` (opt-in `PUSH_REGIONS_UI=1` only after potato→PC pull with
+non-empty geometry). See `campaigns/tropic-gooner/map/REGIONS-UI-LOCK.md`.
 
 ## Backups (truth stays recoverable without git)
 
@@ -89,18 +92,25 @@ on every write, and revisions land under `agents/state/chars-registry-revisions/
    `>= min_visible` characters.
 
 On failure it appends `agents/state/dashboard-deploy-alerts.jsonl`, opens a
-human-inbox question (stable id `runtime-verify-fail-<YYYYMMDD>`, never re-asks an
-answered one), and exits 1 — the calling script surfaces the failure (`VERIFY FAILED`)
-instead of proceeding silently. Box-side alerts go to the alerts file + inbox (not the
-tracked `AI_GROUPCHAT.md`, which auto-lane resets would themselves revert); PC-side
-push failures should get a `[PC]` ledger line by whoever ran the push.
+human-inbox question (stable id `runtime-verify-fail-<YYYYMMDD>` + `fail_sig`), and
+exits 1 — the calling script surfaces the failure (`VERIFY FAILED`) instead of
+proceeding silently. Dedupes: same day-id never re-opens; identical `fail_sig`
+does not stack while still open; answered **NO**/known-noise for that signature
+does not re-fire. On **PASS**, any still-open `runtime-verify-fail-*` items are
+auto-closed (stale/fixed) so Hub Inbox does not keep dated incidents forever.
+Box-side alerts go to the alerts file + inbox (not the tracked `AI_GROUPCHAT.md`,
+which auto-lane resets would themselves revert); PC-side push failures should get
+a `[PC]` ledger line by whoever ran the push.
 
 ## Known remaining risks
 
-- `push-tableslop-map.sh` intentionally overwrites map JSONs (explicit deploy) — box
-  edit-mode saves made between your last pull-from-box and that deploy are lost.
-  Pull map JSONs from potato before running it.
+- `push-tableslop-map.sh` overwrites `map.json`/`coords.json` (explicit deploy) — pull
+  those from potato before running if box edit-mode saved since last sync. It does
+  **not** ship `regions-ui.json` by default (potato GM borders); never raw-scp an empty
+  PC shell over potato.
 - The registry `.bak-*` files beside `characters-registry.json` grow unbounded
   (~46 as of 2026-07-15); harmless but worth a retention pass someday.
 - `agents/user-tasks.json` is now potato-owned. PC-side edits to it do NOT deploy;
   create tasks via the dashboard (or scp explicitly after a union-merge by id).
+- Hermes may overwrite `human-inbox.json` as a bare array — fast/think ticks and
+  `scripts/linuxbox/human-inbox-normalize.py` repair to `{open,answered}` before reads.

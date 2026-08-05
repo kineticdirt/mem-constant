@@ -4,6 +4,20 @@ This document extends the autonomous-memory model with an **optional graph** and
 
 The design stays **vendor-neutral**: no required graph database, no replacement for MemPalace or your vector index.
 
+## Scope: this is the Curatorial graph (L5)
+
+This document describes the **curatorial graph** — derived from **promoted MemPalace records** (L4) using the engineering ontology defined here. It is **not** the same as a structural code graph (e.g. [Graphify](../INTEGRATION-GRAPHIFY.md)), which is the **structural graph (L1)** in the layering model: regenerable from raw code, with its own implicit ontology of calls/imports/modules.
+
+| Property | Structural graph (L1, e.g. Graphify) | Curatorial graph (L5, this doc) |
+|----------|---------------------------------------|----------------------------------|
+| Source | Parsed code/repo structure | Promoted L4 records |
+| Ontology | Implicit (calls, imports, modules) | Explicit `ontology_profile` |
+| Authority | Low (derived index) | High (governed by routing thresholds + supersession) |
+
+**Bridge:** L4 records may cite L1 node refs as **evidence anchors** (one-way, read-only). See [INTEGRATION-GRAPHIFY.md](../INTEGRATION-GRAPHIFY.md) § Evidence-anchor pattern.
+
+When this document says "the graph," it means the **curatorial graph (L5)** unless explicitly noted.
+
 ---
 
 ## Stack position: graph on top of vectors
@@ -127,6 +141,7 @@ Reuse **confidence** and **contradiction** checks before promoting edges to the 
 ## See also
 
 - [../BUILD-PHILOSOPHY.md](../BUILD-PHILOSOPHY.md) — how this repo is built and how specs relate to code
+- [../INTEGRATION-GRAPHIFY.md](../INTEGRATION-GRAPHIFY.md) — Structural graph (L1) layering and evidence-anchor pattern
 - [autonomous-memory-architecture.md](autonomous-memory-architecture.md) — core components
 - [routing-policy.md](routing-policy.md) — promotion thresholds
 - [memory-schema-and-scoring.md](memory-schema-and-scoring.md) — record fields

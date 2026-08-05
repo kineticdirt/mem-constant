@@ -16,6 +16,7 @@ These Markdown files are the **canonical v1 design** for a two-layer memory stac
 | [operations-runbook.md](operations-runbook.md) | Triggers, modes, operator controls |
 | [daily-standup-spec.md](daily-standup-spec.md) | Digest format and schedule |
 | [global-handoff-template.md](global-handoff-template.md) | Copy-paste handoff for chat rollover |
+| [ops-discipline.md](ops-discipline.md) | After something is wrong: understand why, then leave a prevention |
 | [validation-plan.md](validation-plan.md) | How to validate an implementation |
 | [graph-ontology-and-customization.md](graph-ontology-and-customization.md) | Graph vs vectors, ontology (two senses), customization hooks |
 

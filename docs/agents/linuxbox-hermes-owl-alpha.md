@@ -32,28 +32,49 @@ source ~/.bashrc
 hermes --version
 ```
 
-## Model: Owl Alpha
+## Multi-profile routing (fast / think / meta)
 
-Edit `~/.hermes/config.yaml` on linuxbox:
+One gateway; **profiles** switch models per job (not parallel loaded weights). Install on linuxbox:
 
-```yaml
-model:
-  default: "openrouter/owl-alpha"
-  provider: "openrouter"
-  base_url: "https://openrouter.ai/api/v1"
+```bash
+bash ~/agent-dump/scripts/linuxbox/install-hermes-profiles.sh
 ```
 
-Set the key in `~/.hermes/.env`:
+| Profile | Primary | Fallback chain | Use |
+|---------|---------|----------------|-----|
+| **fast** | `poolside/laguna-xs-2.1:free` | Qwen free → DeepSeek V4 Flash | 1m ticks, IDLE, git pull, queue ops |
+| **think** | `nousresearch/hermes-4-70b` | Step 3.7 Flash → DeepSeek → GLM-5.2 (paid only) | Campaigns, situation digest, deep chat |
+| **meta** | `z-ai/glm-5.2` | Step → DeepSeek → Hermes 70B | `LINUXBOX_DASHBOARD_BACKLOG.md` UI work |
+| **code** | `z-ai/glm-5.2` | Step → DeepSeek → Hermes 70B | Server/JS, Playwright smoke |
+| **default** | think (gateway) | — | Gateway default until crons specify `--profile` |
+
+**Chat free-first:** Laguna → Qwen free; then DeepSeek (brief/minor) or Step mid (workshop) before Hermes/GLM. Do **not** re-add `tencent/hy3:free` (OpenRouter sunset **2026-07-21**).
+
+Free tiers share OpenRouter capacity — expect **429** at peak (at $0 — separate from ops USD cap); fallbacks chain automatically. Do not run two 1m crons on the same workdir without a kanban mutex.
+
+Cron example (when split):
+
+```bash
+hermes cron create "every 1m" "…IDLE/health only…" --profile fast --name agent-cycle-fast …
+hermes cron create "every 5m" "…one campaign step…" --profile think --name agent-cycle-think …
+```
+
+Wrapper CLIs: `fast chat`, `think chat` (under `~/.local/bin/`).
+
+## Model: Owl Alpha (think / default)
+
+Set the key in `~/.hermes/.env` (cloned to each profile):
 
 ```bash
 OPENROUTER_API_KEY=sk-or-v1-...
 chmod 600 ~/.hermes/.env
 ```
 
-Smoke test:
+Smoke tests:
 
 ```bash
 hermes chat -q "Reply with exactly: owl-alpha-ok"
+fast chat -q "Reply with exactly: fast-qwen-ok"
 ```
 
 ## Gateway (survives SSH logout)

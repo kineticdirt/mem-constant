@@ -5,6 +5,8 @@
 ## mem-constant continuity and routing
 
 - Read `.mem-constant/last-session.md` before your first substantial action when it exists.
+- Ops discipline: after something is wrong → understand why (evidence) → leave a prevention
+  (`.mem-constant/ops-discipline.md` / `docs/mem-constant/ops-discipline.md`).
 - Treat MemPalace as the durable archive authority; the working cache is short-horizon context only.
 - Reconcile memory at `new_chat`, `new_agent`, and `end_milestone` boundaries (see `mem-constant.yaml`).
 - Promote durable decisions/facts; prune low-signal or stale context per the project policy.

@@ -41,6 +41,7 @@ User-scoped Hermes gateways use `systemctl --user` (no sudo).
 ## Registry
 
 Edit `agents/linuxbox-systems.json` to add endpoints; match `icon` to a file in `linuxbox-status/icons/`.  
+Each system has a short stable **`ref`** (e.g. `hub`, `tableslop`, `hermes`, `pixi`) shown on the card badge — use that when talking about a service; `id` stays the API/control key.  
 Plain-language blurbs live in `SERVICE_META` inside `scripts/linuxbox/linuxbox-systems.js` (keyed by system `id`).
 
 ## API

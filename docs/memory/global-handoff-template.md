@@ -26,6 +26,14 @@ When the user types "handoff", generate a session summary using the format below
 
 - How communication has been handled (for example: direct and technical, casual and punchy, formal and structured).
 
+### 5. Failures and preventions (ops discipline)
+
+- What went wrong this session (if anything), and **why** (mechanism + evidence path)?
+- What **prevention** was left so it cannot silently recur (guard, smoke, invariant, lock, watermark, doc)?
+- Omit this section if no failure was diagnosed or fixed.
+
+See [ops-discipline.md](ops-discipline.md).
+
 ## Hard Rules
 
 - Use bullet points only inside each section.
@@ -33,3 +41,4 @@ When the user types "handoff", generate a session summary using the format below
 - No hallucinations or inferred details.
 - No filler, preamble, or sign-off.
 - Present output as one clean block for copy/paste.
+- Do not close a failure without both **why** and **prevention** when section 5 applies.

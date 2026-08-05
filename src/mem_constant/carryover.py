@@ -13,6 +13,8 @@ CARRYOVER_README = """# mem-constant session carryover
 
 This directory holds **`.mem-constant/last-session.md`**, a short-lived note so a **new** Cursor chat can pick up where the last one stopped.
 
+Also keep **`ops-discipline.md`** as an optional project pointer (why → prevention on failures). Spec: `docs/mem-constant/ops-discipline.md` after init.
+
 ## Bootstrap (existing repo)
 
 If you already have `mem-constant.yaml` but no `.mem-constant/` folder:

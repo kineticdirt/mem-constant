@@ -116,6 +116,35 @@ bash ~/agent-dump/scripts/linuxbox/install-linuxbox-pixi-rp.sh
 | **Config smoke** | `GET /api/config` | `rp_openrouter_only:true`, `default_model` is OpenRouter (not `.gguf`) |
 | **Hub → Machines** | `/Linuxbox/` | `local_pixi` = potato `:8767`; `pc_pixi` = optional desktop stack |
 
+## HTTPS for Pixi (Tailscale Serve — tailnet-only, not public)
+
+Plain `http://potato:8767/` trips mobile browser mixed-content / Secure-Context warnings (PWA install, some
+JS APIs). Fix = **`tailscale serve`**, which terminates real Tailscale-issued TLS (Let's Encrypt-backed
+`*.ts.net` cert, trusted by every OS with no manual cert install) in front of the local `:8767` app. This is
+**tailnet-private** — distinct from **Funnel**, which would expose it to the public internet; we do not use
+Funnel here.
+
+```bash
+bash scripts/linuxbox/enable-pixi-tailnet-https.sh   # idempotent, on potato
+```
+
+**Status (2026-07-17): blocked on two one-time tailnet-admin clicks** (this tailnet has neither feature
+enabled yet — confirmed via SSH, not assumed):
+
+1. **Enable Serve for this node** — open (as the tailnet admin) and approve:
+   `https://login.tailscale.com/f/serve?node=nWnqYHjsCB11CNTRL`
+2. **Enable HTTPS Certificates (tailnet-wide)** — [DNS admin page](https://login.tailscale.com/admin/dns) →
+   toggle **"HTTPS Certificates"** on.
+
+After both, re-run the script above; final URL will be `https://raspbian-bullseye-aml-s905x-cc.tail666f7c.ts.net/`
+(port 443, no `:8767` needed — same box, same app, only the transport changes). No `app.js` / client changes
+needed: the UI only ever calls relative `/api/...` paths, so the existing Send pipeline is unaffected.
+
+**Caveat:** `tailscale serve --bg` has been observed to hang indefinitely (not fail fast) when Serve isn't
+yet enabled for the node (v1.98.4) — the script wraps every call in `timeout` so a blocked run can't pile up
+processes on the 2 GB box. If you ever see stray `tailscale serve --bg` processes in `ps aux`, `kill -9` them
+by PID (not `pkill -f "tailscale serve"` — that pattern also matches the SSH command line invoking it).
+
 ## Use from linuxbox (potato) — optional PC desktop stack
 
 | Surface | URL (from potato browser) | What runs where |
@@ -138,6 +167,7 @@ Expect **200** on both curls when the PC stack is up. Hard-refresh Pixi UI after
 
 ## Related paths
 
-- ObsidianWriterStack: `scripts/start_local_full_stack.py`, `deckard-local.env`
+- **Continuity SoT (Send inject / observed_world / sheets):** [`docs/pixi/CONTINUITY.md`](pixi/CONTINUITY.md) — age lock + established-facts inject live (`age-identity-v1`)
+- ObsidianWriterStack: `scripts/start_local_full_stack.py`, `deckard-local.env`; deeper runtime map `ObsidianWriterStack/docs/pixi/RUNTIME_CODEBASE.md`
 - agent-dump ledger: `AI_GROUPCHAT.md` `[PC]` lines
 - Prior Pixi tailnet kit: `scripts/pixi-tailnet-interconnect/` (Moonlight / `:8767` on laptop)

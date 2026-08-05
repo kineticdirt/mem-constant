@@ -16,9 +16,11 @@ Two layers protect the dashboard:
 
 2. **App-level roles (Bitwarden-friendly)** — HTTP Basic auth on the dashboard itself:
 
-   - **admin** / `DASHBOARD_TOKEN` → full control (Hub, Inbox, Chat, Tasks, Meta, campaigns)
+   - **admin** (and any extra `role:admin` accounts, e.g. **HeadUser**) → full control (Hub, Inbox, Chat, Tasks, Meta, campaigns)
 
-   - **viewer** / `DASHBOARD_VIEWER_TOKEN` → News, stocks/intel, public docs only
+   - **viewer** / **guest** (any `role:viewer` account) → News, stocks/intel, public docs only
+
+   Primary pair: `DASHBOARD_ADMIN_USER`/`DASHBOARD_TOKEN` + `DASHBOARD_VIEWER_USER`/`DASHBOARD_VIEWER_TOKEN`. Extra named users: `DASHBOARD_EXTRA_ACCOUNTS` JSON in the same `.env`. **Real passwords: potato `~/.linuxbox-dashboard/.env` only** (never commit).
 
 
 
@@ -38,7 +40,7 @@ Two layers protect the dashboard:
 
 | `tunnel-origin-proxy.js` | **`/Intel*`** → **8790** `/viewer` (public); **`/Linuxbox*`** → **8790** (admin) |
 
-| `~/.linuxbox-dashboard/.env` | `DASHBOARD_TOKEN`, `DASHBOARD_VIEWER_TOKEN`, usernames (chmod **600**) |
+| `~/.linuxbox-dashboard/.env` | tokens + usernames + optional `DASHBOARD_EXTRA_ACCOUNTS` (chmod **600**) |
 
 
 
@@ -54,9 +56,9 @@ Public URL: **https://abhinavall.net/Linuxbox/**
 
 2. Browser prompts for **HTTP Basic** auth (Bitwarden can autofill):
 
-   - **Admin:** username `admin`, password = `DASHBOARD_TOKEN`
+   - **Admin:** username `admin` (or `HeadUser`) — password from box `.env`
 
-   - **Viewer:** username `viewer`, password = `DASHBOARD_VIEWER_TOKEN`
+   - **Viewer:** username `viewer` or `guest` — password from box `.env`
 
 
 
@@ -64,17 +66,7 @@ Public URL: **https://abhinavall.net/Linuxbox/**
 
 
 
-Create two entries for the same URL `https://abhinavall.net/Linuxbox/`:
-
-
-
-| Name | Username | Password |
-
-|------|----------|----------|
-
-| Linuxbox admin | `admin` | value of `DASHBOARD_TOKEN` on the box |
-
-| Linuxbox viewer | `viewer` | value of `DASHBOARD_VIEWER_TOKEN` on the box |
+Create one entry per account for `https://abhinavall.net/Linuxbox/` (usernames typically `admin`, `HeadUser`, `guest`, `viewer`). Passwords = values on potato `~/.linuxbox-dashboard/.env` — do not copy them into this doc.
 
 
 
@@ -102,13 +94,39 @@ nano ~/.linuxbox-dashboard/.env   # chmod 600
 
 # DASHBOARD_VIEWER_USER=viewer
 
+# optional extras — see linuxbox-dashboard.env.example (HeadUser/guest etc.)
+
+# DASHBOARD_EXTRA_ACCOUNTS=[...]
+
 sudo systemctl restart linuxbox-status
 
 ```
 
 
 
-Generate tokens: `openssl rand -hex 24`
+Generate tokens: `openssl rand -hex 24` (real values only on box `.env`; never commit).
+
+
+
+## Temporarily bypass Cloudflare SSO (toggle — keep code)
+
+When Google/OTP login is broken or you need HTTP Basic only:
+
+```bash
+# On linuxbox (uses ~/.cloudflare/access-setup.env API token)
+bash ~/agent-dump/scripts/linuxbox/cloudflare-access-toggle.sh off
+
+# Restore SSO later
+bash ~/agent-dump/scripts/linuxbox/cloudflare-access-toggle.sh on
+```
+
+Or set in `~/.cloudflare/access-setup.env`:
+
+```bash
+CLOUDFLARE_ACCESS_SSO_ENABLED=off   # on|off — default on
+```
+
+**How it works:** `off` adds a temporary **bypass** policy (`agent-temp-sso-bypass`, precedence 0) via API; `on` removes it. IdP + allow policies from `cloudflare-access-enable-google.sh` stay intact. App-level HTTP Basic (`DASHBOARD_TOKEN`) is unchanged unless you also set `DASHBOARD_OPEN=read|all` in `~/.linuxbox-dashboard/.env`.
 
 
 

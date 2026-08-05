@@ -134,6 +134,19 @@ Manual WoL test on linuxbox: `scripts/linuxbox/wake-desktop.sh 58:10:31:EA:9A:2D
 
 Moonlight does not auto-switch profiles by network. Common pattern: **two Moonlight “PC” entries** for the same machine — one with **LAN IP** (high quality), one with **100.x** (e.g. 1080p / lower bitrate).
 
+### Prefer LAN at home (same Wi‑Fi)
+
+Policy: [lan-vs-tailscale-decision.md](lan-vs-tailscale-decision.md) — Tailscale always on for away; use **LAN** for SSH / Moonlight / dashboard when you’re on home Wi‑Fi (exit node **off** on clients).
+
+**Usable option (PC Git Bash):**
+
+```bash
+bash scripts/pc/prefer-lan-when-home.sh
+# or: bash scripts/pc/smoke-lan-vs-tailscale.sh --tip
+```
+
+That A/B-pings LAN vs `100.x`, times `ssh … true`, prints the winner, and emits a `Host potato-lan` snippet if the LAN IP drifted. At home: `ssh potato-lan`. Away: `ssh potato`.
+
 ---
 
 ## Files (E:\ mirror vs repo)

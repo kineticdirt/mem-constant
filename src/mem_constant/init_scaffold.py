@@ -75,6 +75,14 @@ recontextualization:
   # time cadence hint even when goals are stable
   cadence: weekly
 
+# After something is wrong: understand why, then leave a prevention (docs/mem-constant/ops-discipline.md)
+ops_discipline:
+  enabled: true
+  # require why + prevention before closing a failure/regression
+  require_prevention_on_close: true
+  # project pointer agents should read at session start when present
+  project_pointer: .mem-constant/ops-discipline.md
+
 # Default retrieval pattern when both vectors and a graph exist (hint for your app; see docs/CONFIGURATION.md)
 # query_pipeline: vector_then_graph   # vector_then_graph | graph_then_vector | parallel
 

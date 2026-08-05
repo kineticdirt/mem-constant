@@ -78,6 +78,16 @@ When you add a **derived graph layer** (typed edges, provenance paths) alongside
 
 Child of `knowledge_graph` in the scaffolded template. Tunes which memories become edges (for example minimum confidence and allowed `memory_type` values). Full design discussion: [memory/graph-ontology-and-customization.md](memory/graph-ontology-and-customization.md).
 
+### `ops_discipline`
+
+Policy for closing failures and regressions (see [memory/ops-discipline.md](memory/ops-discipline.md)):
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| **`enabled`** | `true` | Agents should follow why→prevention close-out. |
+| **`require_prevention_on_close`** | `true` | A fix without a durable prevention is unfinished. |
+| **`project_pointer`** | `.mem-constant/ops-discipline.md` | Short project-local note agents read at session start when present. |
+
 ### `query_pipeline` (optional)
 
 Declares the **default** retrieval pattern when both vectors and a knowledge graph exist. This is a **hint** for your application; the CLI does not execute retrieval.

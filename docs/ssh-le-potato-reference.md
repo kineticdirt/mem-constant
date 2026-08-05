@@ -8,7 +8,7 @@ This note captures the working **Tailscale + SSH** setup for **`raspbian-bullsey
 |--------|--------|
 | Tailscale IP | `100.122.108.94` |
 | MagicDNS | `raspbian-bullseye-aml-s905x-cc` (full name may include `.tail…ts.net` in DNS) |
-| LAN (same board as `linuxbox` in SSH config) | `192.168.1.191` |
+| LAN (same board as `linuxbox` in SSH config) | `192.168.4.23` |
 | User | `abhinav` |
 | Private key | **`%USERPROFILE%\.ssh\id_rsa_potato`** (canonical copy; repo `id_rsa_potato` is optional backup — **gitignored**) |
 
@@ -40,7 +40,7 @@ ssh -i $env:USERPROFILE\.ssh\id_rsa_potato -o IdentitiesOnly=yes abhinav@100.122
 **Same LAN as the Pi** (plain OpenSSH + key; no Tailscale SSH check on this path):
 
 ```bash
-ssh -i ~/.ssh/id_rsa_potato -o IdentitiesOnly=yes abhinav@192.168.1.191
+ssh -i ~/.ssh/id_rsa_potato -o IdentitiesOnly=yes abhinav@192.168.4.23
 ```
 
 If that times out, the PC is not on the Pi’s LAN or the Pi’s LAN IP changed — use the **100.x** path above.
@@ -82,8 +82,8 @@ ssh -i ~/.ssh/id_rsa_potato -o IdentitiesOnly=yes abhinav@100.122.108.94
 | Host alias | Target |
 |------------|--------|
 | `potato` | `100.122.108.94` + `id_rsa_potato` |
-| `potato-lan` | `192.168.1.191` + `id_rsa_potato` |
-| `linuxbox` | `192.168.1.191` + default `id_ed25519` |
+| `potato-lan` | `192.168.4.23` + `id_rsa_potato` |
+| `linuxbox` | `192.168.4.23` + default `id_ed25519` |
 
 ```bash
 ssh potato
@@ -106,7 +106,7 @@ ssh potato-lan
    On **linuxbox** (console or existing shell): **`sudo tailscale set --ssh=false`**  
    Tailscale stops intercepting **:22** on the **100.x** address; **`sshd`** + **`authorized_keys`** behave like classic SSH, so **`ssh -i ~/.ssh/id_rsa_potato abhinav@100.122.108.94`** can authenticate with your key and **automation / `BatchMode`** can work **if** ACLs still allow tailnet TCP to the device on port 22. **Tradeoff:** you lose Tailscale SSH’s ACL‑only auth model for that host; keep **`sshd`** and keys tight.
 
-**LAN:** SSH to **`192.168.1.191`** does **not** go through Tailscale SSH (different path); use **`potato-lan`** when the PC is on the same LAN and you want plain OpenSSH + key only.
+**LAN:** SSH to **`192.168.4.23`** does **not** go through Tailscale SSH (different path); use **`potato-lan`** when the PC is on the same LAN and you want plain OpenSSH + key only.
 
 **Helper (this repo, Git Bash on Windows):** `scripts/tailscale-ssh-open-check-url.sh` — starts `ssh`, watches stderr for the `login.tailscale.com/a/…` URL, runs **`cmd start`** on it **without** killing `ssh` first, then waits for the session (approve in browser while it runs). Example: `bash scripts/tailscale-ssh-open-check-url.sh "hostname"`
 
@@ -142,6 +142,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/approve_tailscale_li
 - Optional LAN bypass while on exit: `tailscale set --exit-node-allow-lan-access=true` (see Tailscale docs for tradeoffs).
 
 Leave the **desktop build PC** without an exit node selected if it should stay a normal tailnet member only.
+
+### Phone on a different Wi‑Fi (or cellular)
+
+This is the usual exit-node use case: the phone joins **any** network (coffee-shop Wi‑Fi, mobile data, etc.), keeps **Tailscale connected**, and sends **public internet** traffic out through **linuxbox’s home uplink**.
+
+**Prerequisite (one-time, tailnet admin):** routes **`0.0.0.0/0`** / **`::/0`** must be **approved** on **`raspbian-bullseye-aml-s905x-cc`** in [Machines](https://login.tailscale.com/admin/machines). Until then, the phone app will **not** list linuxbox under **Use exit node** (same as `tailscale exit-node list` → empty on PC).
+
+**On iPhone (`iphone-13-pro-max` in tailnet):**
+
+1. Open the **Tailscale** app → ensure you are **Connected** (VPN/key icon on).
+2. **⋯** (menu) → **Use exit node** → **`raspbian-bullseye-aml-s905x-cc`** (or the friendly name shown).
+3. Leave **Allow local network access** off unless you need to reach printers/devices on the **current** Wi‑Fi while tunneled (see [Tailscale exit node docs](https://tailscale.com/kb/1103/exit-nodes/)).
+4. **Verify:** on the phone browser open [https://ifconfig.me](https://ifconfig.me) — the IPv4 should match **linuxbox’s home public IP** (checked **2026-05-27**: **`71.235.126.53`**). If it still shows the café/carrier IP, exit node is not active or routes are not approved.
+
+**On Android:** same flow in the Tailscale app (**Use exit node**).
+
+**Troubleshooting:**
+
+| Symptom | Likely cause |
+|--------|----------------|
+| No **Use exit node** entry for linuxbox | Admin has not **approved** `0.0.0.0/0` / `::/0` on the Pi — do § **Tailnet admin** above or run `scripts/approve_tailscale_linuxbox_exit_routes.ps1` with `TAILSCALE_API_KEY`. |
+| Exit node listed but internet broken | Pi offline or home router blocking forwarded traffic; on Pi: `ip_forward=1`, `tailscale debug prefs` shows **`AdvertiseRoutes`**, `sudo tailscale set --advertise-exit-node` again. |
+| Tailscale works but IP unchanged | Exit node not selected on the phone, or iOS VPN profile disabled — reconnect Tailscale and re-select exit node. |
+
+**Wi‑Fi note:** you do **not** configure the phone’s Wi‑Fi gateway. Tailscale creates a tunnel; when exit node is on, **default route** for internet goes to linuxbox over WireGuard, regardless of which Wi‑Fi SSID the phone joined.
 
 **Employer / coffee-shop policy:** routing all traffic through your home is powerful; only use where policy allows.
 

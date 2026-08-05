@@ -12,6 +12,8 @@ This project was scaffolded with **`mem-constant init`**. Canonical specs live u
 
 Before your **first substantive reply** in a **new** chat, **read** **`.mem-constant/last-session.md`** at the project root (next to **`mem-constant.yaml`**) if that file **exists** and is **non-empty**. Treat it as continuity from the prior session: goals, decisions, and pending work. **Do not skip it** because the user did not repeat it in their latest message.
 
+Also read **`.mem-constant/ops-discipline.md`** when present (project pointer), and **`docs/mem-constant/ops-discipline.md`** (or **`docs/memory/ops-discipline.md`** in the mem-constant source repo): after something is wrong → (1) understand **why** with evidence → (2) leave a **prevention** before closing.
+
 If the user asks for a **`handoff`** for the next session, follow **`docs/mem-constant/global-handoff-template.md`**, then remind them they can save it with **`mem-constant carryover write`** (stdin or a file path).
 
 ## Authority
@@ -21,8 +23,8 @@ If the user asks for a **`handoff`** for the next session, follow **`docs/mem-co
 
 ## Sync
 
-Reconcile at **new chat**, **new agent**, and **end of milestone**: promote what stays true into the archive; trim the cache.
+Reconcile at **new chat**, **new agent**, and **end of milestone**: promote what stays true into the archive; trim the cache. Promote failure **why + prevention** lessons (ops discipline) into the archive when they stay true across sessions.
 
 ## Handoff
 
-When context rolls over, use the **global handoff** format in `docs/mem-constant/global-handoff-template.md` (user says `handoff` or equivalent).
+When context rolls over, use the **global handoff** format in `docs/mem-constant/global-handoff-template.md` (user says `handoff` or equivalent). Include section **Failures and preventions** when a regression was fixed.

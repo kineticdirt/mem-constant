@@ -4,6 +4,8 @@
 Use this project memory policy:
 
 - Read `.mem-constant/last-session.md` at session start when it exists.
+- Ops discipline: after something is wrong → understand why → leave a prevention
+  (see `.mem-constant/ops-discipline.md` / `docs/mem-constant/ops-discipline.md`).
 - Use MemPalace for durable archive facts and decisions.
 - Use working cache only for short-horizon continuity.
 - Follow `mem-constant.yaml` for pruning and recontextualization.

@@ -2,7 +2,13 @@
 
 **Scope:** Pixi RP chat-ui (`ObsidianWriterStack/PixiApp/chat-ui/`).  
 **Code owners:** sibling fix agents (merge/inject). This doc is the operator map.  
-**Status (2026-07-17):** Outfit + cast-status inject live (`outfit-state-v1`, `cast-status-v1`). **Age / identity lock + established-facts Send inject live** (`age-identity-v1`). **Continuity hygiene pass live** (`continuity-hygiene-v1` → verified `hygiene-verify-v1`): load/Send bootstraps ages/outfits/places from sheets + appearance_notes, prunes zero-stub **and unmet** Relations edges, seeds PC→present first_contact, syncs `cast_activation`/`known_to_pc` + package `people_md`/`people_aka`, trims bloated sheets. Verify pass also: aka scrub (no “Age” / phrase tails), outfit matcher no longer treats “in a messy bun” as clothing, observed people-row wins over stale scenario.entities for unmet checks.
+**Status (2026-07-18):** Outfit + cast-status inject live (`outfit-state-v1`, `cast-status-v1`). **Age / identity lock + established-facts Send inject live** (`age-identity-v1`). **Continuity hygiene pass live** (`continuity-hygiene-v1` → verified `hygiene-verify-v1`): load/Send bootstraps ages/outfits/places from sheets + appearance_notes, prunes zero-stub **and unmet** Relations edges, seeds PC→present first_contact, syncs `cast_activation`/`known_to_pc` + package `people_md`/`people_aka`, trims bloated sheets. Verify pass also: aka scrub (no “Age” / phrase tails), outfit matcher no longer treats “in a messy bun” as clothing, observed people-row wins over stale scenario.entities for unmet checks. **Permanence fill** (`20260718-permanence-aka-objects-v2`): Emily→`npc:lin-mei` aka-before-name resolve + Cast stub filter; salvage fills objects/outfit/events from prose; **Send also salvages when WD has people but empty objects** (live 78bb2b84 had 0 objects across 93 applied deltas); scene_props empty copy invites `new_objects` indexing; **PUT preserve** keeps indexed objects + outfit/aka against stale client saves.
+
+**Permanence system:** [`WORLD_PERMANENCE.md`](./WORLD_PERMANENCE.md) — aka collapse, salvage objects/events, hygiene orchestrator, PUT preserve. Facade: `static/world_permanence.mjs`.
+
+**Sheet vs chat contract:** Character sheets / Cast / Wiki = **diegetic character knowledge** from play. Ops, pipeline, WORLD_DELTA counters, `pending_turn`, and raw telemetry stay with **chat** (Monitor / Debug / Pipeline + `rpg.telemetry` / message fields) — not on the sheet. Plan: [`CHARACTER-SHEETS-PLAN.md`](./CHARACTER-SHEETS-PLAN.md).
+
+**Between posts (2026-07-18):** After each Send, background jobs include **`cast_sheet_enrich`** (was omitted → sheets stayed thin). Default **`CHAT_UI_CAST_ENRICH_PER_RUN=4`** drains several present-cast NPCs per tick; successful enrich enqueues **`character_record`** so Wiki markdown rebuilds. Wiki also renders Identity / Outfit / Relationships / Inventory / Personality from `observed_world` (not semantic-search-only). **PUT preserve:** denser idle-enrich `character_dossier` / `body_profile` survive thin client saves (`_preserve_dense_cast_on_put`). Revision: `20260718-between-post-expand-v1`.
 
 Companion runtime maps live in the Pixi tree:  
 `ObsidianWriterStack/docs/pixi/RUNTIME_CODEBASE.md`, `RELATIONSHIP_CONTINUITY.md`, `RESPONSE_GUARDRAILS.md`.  
@@ -63,7 +69,7 @@ Server gate: `server.py` `_INJECT_LAYER_ENV_KEYS` / `CHAT_UI_INJECT_*` (missing 
 | Layer id | Builder | Role |
 |----------|---------|------|
 | *(core)* | system textarea + simulation charter + player inject | Scenario card |
-| `apartment_spatial` / `field_travel_spatial` | scenario `inject/` | Spatial |
+| Place spatial / layout (`apartment_spatial` / `field_travel_spatial` — legacy ids; not apartment-only) | scenario `inject/` | Place layout + subdivision |
 | `scene_presence` | scene roster | Who may act on-screen |
 | `scene_props` | observed objects in scene | Props |
 | `nsfw_game_scope` | static | Scope |
@@ -132,6 +138,9 @@ Client merge: `mergeObservedWorldIntoRpg` (browser). Server parity: `observed_wo
 | Intermittent **Failed to fetch** / network API | `linuxbox-pixi-rp` restart mid-hop (deploys), Tailscale blip; historically also `fetch keepalive` ~64KiB Chrome cap | Client `api()` retries transient network 3× (`fetch-retry-v1`); **never** use keepalive on `/api/chat`; avoid restart during active Send when possible |
 | Hygiene wipe / empty reply | Reasoning tokens / strip | `response_hygiene.py`, revision `hygiene-reasoning-off-*` |
 | Duplicate people/places | Alias / slug minting | hygiene plan + `world_delta_*_merges` telemetry |
+| **Aka fork (Emily + Lin Mei cards)** | `resolveCanonicalPersonId` matched primary name before aka; salvage refreshed `npc:emily`; merge redirected writes but left stub; Cast listed all people | **Fixed** (`permanence-aka-objects-v1`): aka-before-name resolve; salvage resolves to canonical; `collapseAliasPeopleStubs` + Cast filter; Python `_plan_aka_merges` |
+| **Empty scene_props / 0 objects** | Free models omit `new_objects`; salvage only filled people; inject said “prose alone does not create” | **Fixed**: salvage mints conservative props + `kind:event` from header; hygiene `seedEventObjectsFromMemo`; outfit bootstrap also reads `body_profile.overview` |
+| **event_memo ignored mechanically** | Memo demoted to “background index”; never wrote `kind:event` into `observed_world` | Seed event objects from `recent_beats` headers / crisis keywords on hygiene |
 
 ---
 

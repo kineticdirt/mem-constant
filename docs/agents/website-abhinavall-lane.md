@@ -51,7 +51,7 @@ Example: “Draft a short blog post outline about X” or “Verify project link
 ## Rules for agents
 
 - **Read-only** on production unless `inbox/next-task.md` explicitly requests drafts (stored under USB `reports/` or `cache/`, not pushed live automatically).
-- Run **`abhinavall_cleanup.sh`** after every write.
+- Run **`abhinavall-cleanup.sh`** after every write.
 - Do not fill internal Pi disk with logs — prefer USB.
 
 Config: [`agents/WEBSITE_ABHINAVALL.md`](../../agents/WEBSITE_ABHINAVALL.md)
