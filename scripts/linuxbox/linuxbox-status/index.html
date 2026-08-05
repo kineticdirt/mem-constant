@@ -3111,6 +3111,8 @@
       reader: "minmax(180px, 22%)",
     };
     let agentData = null, activeTab = "hub", chatWaiting = false, selectedReport = null, selectedNews = null, newsData = null, intelMode = "briefs", sessionRole = "admin";
+    // hoisted here: refreshSystemHostGlance() reads this during init (TDZ crash regressed the hub glance 2026-08-05)
+    let lastAgentData = null;
     let selectedStory = null, storyCatalog = null, selectedProjectId = "";
     let charsRegistry = null, selectedCharId = "", charsCampaignFilter = localStorage.getItem("chars-campaign") || "tropic-gooner";
     let charsPasteUploadFn = null; // set while character detail is open (admin upload)
@@ -7063,7 +7065,10 @@
 
     async function refreshSystemHostGlance() {
       const el = document.getElementById("system-host-glance-kpis");
-      if (!el || sessionRole === "viewer") return;
+      // ponytail: no client role bail — /api/host-resources is admin-gated server-side;
+      // a viewer fetch 401s and the catch keeps the placeholder. The early return only
+      // broke loopback/unauthenticated sessions (regressed 2026-08-05 smoke).
+      if (!el) return;
       try {
         const res = await fetch(`${base}/api/host-resources`, {
           cache: "no-store",
@@ -7372,7 +7377,6 @@
     const HUB_AGENT_MS = 20000;
     const HUB_THINK_LIVE_MS = 2500;
     let thinkLivePollTimer = null;
-    let lastAgentData = null;
     let thinkLiveInFlight = false;
 
     async function pollThinkLive() {
