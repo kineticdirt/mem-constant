@@ -15,17 +15,28 @@ import sys
 from pathlib import Path
 
 # Lane progress / board paths from agents/CURRENT_TASK.md rotation.
+# Detection order for the WORK reason string only — picker RR (think-tick)
+# treats product boards + campaign progress as the SAME tier after [ops].
+# Product/campaign listed early so reason prefers them over meta when no
+# open user-tasks (avoids false IDLE and dashboard-forever starvation).
 THINK_MARKERS = [
+    "agents/tableslop-progress.md",
+    "agents/PIXI_RP_PROGRESS.md",
+    "agents/portfolio-progress.md",
+    "campaigns/nyc-mafia-dnd/reports/progress.md",
+    "campaigns/tropic-gooner/reports/progress.md",
+    "campaigns/tropic-gooner/reports/progress-hunter.md",
     "agents/LINUXBOX_DASHBOARD_BACKLOG.md",
     "agents/maintenance-progress.md",
     "agents/system-integrity-progress.md",
     "agents/PONYTAIL_CLEANUP_BOARD.md",
     "agents/security-code-audit-progress.md",
-    "campaigns/spacequest/reports/progress.md",
-    "campaigns/nyc-mafia-dnd/reports/progress.md",
-    "campaigns/tropic-gooner/reports/progress.md",
-    "campaigns/tropic-gooner/reports/progress-hunter.md",
+    "campaigns/spacequest/reports/progress.md",  # archived — usually empty
     "agents/nousagent-progress.md",
+    # Education (human SI) then Research (studies) — quiet continuous lanes
+    # after ops + project/campaign (four-lane model: campaign·project·research·education).
+    "agents/self-improvement-progress.md",
+    "agents/research-studies-progress.md",
 ]
 
 OPEN_BOX = re.compile(r"^\s*[-*]\s*\[\s\]", re.M)
@@ -52,7 +63,10 @@ def has_open_user_tasks(repo: Path) -> bool:
     tasks = data.get("tasks") if isinstance(data, dict) else data
     if not isinstance(tasks, list):
         return False
-    return any(isinstance(t, dict) and t.get("status") == "open" for t in tasks)
+    return any(
+        isinstance(t, dict) and str(t.get("status") or "").lower() in ("open", "pending")
+        for t in tasks
+    )
 
 
 def deepsec_enabled(repo: Path) -> bool:

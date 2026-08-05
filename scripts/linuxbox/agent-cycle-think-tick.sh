@@ -975,7 +975,7 @@ def lane_label(rel):
 
 try:
   d = json.loads((repo / "agents/user-tasks.json").read_text(encoding="utf-8"))
-  tasks = [t for t in (d.get("tasks") or []) if isinstance(t, dict) and t.get("status") == "open"]
+  tasks = [t for t in (d.get("tasks") or []) if isinstance(t, dict) and str(t.get("status") or "").lower() in ("open", "pending")]
   def score(t):
     soon = 0 if "Urgency: soon" in str(t.get("body") or "") else 1
     return (soon, str(t.get("created_at") or ""))
