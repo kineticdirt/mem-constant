@@ -1,0 +1,127 @@
+{
+  "date": "2026-08-05",
+  "seed_scheme": "xmur3(date|station.id) -> mulberry32",
+  "station_count": 6,
+  "stations": {
+    "kprd": [
+      {
+        "id": "kprd-2026-08-05-1",
+        "type": "weather",
+        "time": "05:50",
+        "text": "Afternoon showers possible after three. The hotel strip has already moved the pool furniture twice and will deny both times."
+      },
+      {
+        "id": "kprd-2026-08-05-2",
+        "type": "news",
+        "time": "08:30",
+        "text": "County commission posted its summary overnight. Public comment closed before the doors opened, per custom. The Lunch Regulars sent no representative, or sent one."
+      },
+      {
+        "id": "kprd-2026-08-05-3",
+        "type": "weather",
+        "time": "12:10",
+        "text": "Humidity holding at eighty-something percent, same as yesterday, same as the brochure doesn't say. Surf flags green until the east side decides otherwise."
+      }
+    ],
+    "kljr": [
+      {
+        "id": "kljr-2026-08-05-1",
+        "type": "port",
+        "time": "06:20",
+        "text": "The Carnaval committee's storage ledger lists one more float than the parade route held. The committee has been notified. The committee was already counting."
+      },
+      {
+        "id": "kljr-2026-08-05-2",
+        "type": "news",
+        "time": "21:05",
+        "text": "A Night Ledger spokesperson described the week as \"quiet and productive.\" No agenda was published. No questions were taken. The coffee was reportedly fine."
+      }
+    ],
+    "kqay": [
+      {
+        "id": "kqay-2026-08-05-2",
+        "type": "blotter",
+        "time": "01:20",
+        "text": "00:40, Ledger Row: a man was detained matching the description of someone The Ash List had already described as \"handled.\" He was released into the ambiguity."
+      },
+      {
+        "id": "kqay-2026-08-05-4",
+        "type": "blotter",
+        "time": "03:10",
+        "text": "01:15, Main Street market: a grill stall reported a theft of mangoes. The suspect was described as \"everybody, over a period of years.\""
+      },
+      {
+        "id": "kqay-2026-08-05-3",
+        "type": "news",
+        "time": "06:05",
+        "text": "A Rough Ride spokesperson described the week as \"quiet and productive.\" No agenda was published. No questions were taken. The coffee was reportedly fine."
+      },
+      {
+        "id": "kqay-2026-08-05-1",
+        "type": "news",
+        "time": "08:30",
+        "text": "The Visibility Board's filming schedule moves to the east side this week. Residents are advised which evenings to be photogenic."
+      }
+    ],
+    "khum": [
+      {
+        "id": "khum-2026-08-05-1",
+        "type": "talk",
+        "time": "02:30",
+        "text": "Still on the line tonight: what the gray vans carry, and why they carry it before anyone calls. A caller with a professional voice has read a correction to last Tuesday's caller list, which the show does not keep. The delay was seven seconds."
+      },
+      {
+        "id": "khum-2026-08-05-2",
+        "type": "talk",
+        "time": "03:45",
+        "text": "Sign-off note for the tape: tonight's callers established nothing, twice, conclusively. Tomorrow's topic is the same topic. It is always the same topic. Good night from the Hum."
+      },
+      {
+        "id": "khum-2026-08-05-3",
+        "type": "talk",
+        "time": "22:00",
+        "text": "Topic of the night, announced at ten: Object 14: hoax, hobby, or the one true thing. Calls open now. Marlow will say \"could be\" approximately forty times. Count along."
+      },
+      {
+        "id": "khum-2026-08-05-4",
+        "type": "talk",
+        "time": "23:05",
+        "text": "Still on the line tonight: the stretch of FM below 89, and what the static does at three in the morning. A caller with a professional voice has read a correction to an item the show has no record of airing. The delay was seven seconds."
+      }
+    ],
+    "ksda": [
+      {
+        "id": "ksda-2026-08-05-3",
+        "type": "weather",
+        "time": "05:50",
+        "text": "Official weather from the mountain: 86 degrees on the coasts, cooler in the passes, fog above the second switchback until nine. This was measured, not heard about."
+      },
+      {
+        "id": "ksda-2026-08-05-1",
+        "type": "weather",
+        "time": "12:10",
+        "text": "The federal station reports 87 degrees and holding. East-side listeners are reminded that official instruments read what they read."
+      },
+      {
+        "id": "ksda-2026-08-05-2",
+        "type": "news",
+        "time": "21:05",
+        "text": "Sierra Dorado reminds permit holders that renewal season ends Friday. The reminder was read twice: once for the record, once for the people who heard it the first time."
+      }
+    ],
+    "krby": [
+      {
+        "id": "krby-2026-08-05-2",
+        "type": "news",
+        "time": "08:30",
+        "text": "The church-hall calendar: Thursday is the bake table, Saturday is the rummage room, and Father Ipo has borrowed back his ladder. Bring exact change."
+      },
+      {
+        "id": "krby-2026-08-05-1",
+        "type": "weather",
+        "time": "16:45",
+        "text": "Sea conditions: swell 3 feet from the southeast, tide going out at 8:50 this evening. Small craft are advised to stay friends with the harbor."
+      }
+    ]
+  }
+}
