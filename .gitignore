@@ -45,6 +45,12 @@ agents/state/multitask-locks/*
 campaigns/*/characters/portraits/**
 !campaigns/*/characters/portraits/README.md
 backups/state/
+# Isla Primavera sim runtime (isla-sim.js) — code is tracked, world state is not
+# (on potato prefer ISLA_SIM_STATE under agents/state/ per runtime-state-protection).
+scripts/linuxbox/tableslop-static/sim/sim-state.json
+scripts/linuxbox/tableslop-static/sim/sim-static.json
+scripts/linuxbox/tableslop-static/sim/sim-broadcast.json
+scripts/linuxbox/tableslop-static/sim/sim-gm-overrides.json
 # mem-constant session carryover (may contain chat excerpts)
 .mem-constant/last-session.md
 .mem-constant/.hook-buffer.jsonl
