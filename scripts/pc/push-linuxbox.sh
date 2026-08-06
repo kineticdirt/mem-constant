@@ -93,8 +93,7 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/vendor/sql-js/sql-wasm.js
   scripts/linuxbox/vendor/sql-js/sql-wasm.wasm
   scripts/linuxbox/vendor/sql-js/LICENSE
-  scripts/linuxbox/tableslop-3d
-  scripts/linuxbox/vendor/three
+  scripts/linuxbox/tableslop-static/3d
   scripts/linuxbox/campaigns-availability-server.js
   scripts/linuxbox/campaigns-availability-selfcheck.js
   scripts/linuxbox/campaign-discord-probe.py

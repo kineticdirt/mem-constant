@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Isla Primavera 3D — tableslop</title>
+<link rel="icon" href="data:,"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --void:#0d0221; --panel:#16082a; --line:#ff71ce; --text:#e8f4ff; --muted:#9d8fc9;
+    --pink:#ff71ce; --cyan:#01cdfe; --purple:#b967ff; --sun:#fffb96; --magenta:#ff006e;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; overflow:hidden; background:var(--void); color:var(--text);
+    font-family:'Share Tech Mono', monospace; }
+  .hud { position:fixed; top:0; left:0; right:0; z-index:10; display:flex; align-items:center; gap:10px;
+    padding:8px 14px; background:linear-gradient(180deg, rgba(13,2,33,.92), rgba(13,2,33,.55) 80%, transparent);
+    border-bottom:1px solid transparent;
+    border-image:linear-gradient(90deg, var(--pink), var(--cyan), var(--purple)) 1; }
+  .hud-brand { font:700 1.05rem Orbitron, monospace; letter-spacing:.08em;
+    background:linear-gradient(90deg, var(--pink), var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hud-setting { font:1.1rem VT323, monospace; color:var(--sun); }
+  .hud-res { color:var(--cyan); background:rgba(1,205,254,.08); border:1px solid var(--cyan);
+    padding:3px 10px; font:inherit; font-size:.8rem; cursor:pointer; border-radius:2px; text-decoration:none; }
+  .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
+  .hud-spacer { margin-left:auto; }
+  #scene { position:fixed; inset:0; }
+  #scene canvas { display:block; }
+  .panel { position:fixed; left:14px; bottom:14px; z-index:10; min-width:190px; max-width:min(320px, 80vw);
+    background:rgba(22,8,42,.88); border:1px solid var(--cyan); border-radius:4px; padding:10px 12px;
+    box-shadow:0 0 18px rgba(1,205,254,.18); backdrop-filter:blur(3px); }
+  .panel[hidden] { display:none; }
+  .panel-name { font:1.25rem VT323, monospace; color:var(--sun); display:flex; align-items:center; gap:8px; }
+  .panel-swatch { width:14px; height:14px; border-radius:2px; border:1px solid rgba(255,255,255,.4); flex:0 0 auto; }
+  .panel-meta { color:var(--muted); font-size:.75rem; margin-top:4px; line-height:1.5; }
+  .hint { position:fixed; right:14px; bottom:14px; z-index:10; color:var(--muted); font-size:.72rem;
+    background:rgba(22,8,42,.6); border:1px solid rgba(157,143,201,.35); border-radius:4px; padding:6px 10px; }
+  .overlay { position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+    background:rgba(13,2,33,.72); transition:opacity .35s; }
+  .overlay[hidden] { display:none; }
+  .overlay.fade { opacity:0; pointer-events:none; }
+  .overlay-card { text-align:center; padding:22px 30px; border:1px solid var(--cyan); border-radius:4px;
+    background:rgba(22,8,42,.9); max-width:min(420px, 86vw); }
+  .overlay-title { font:1.4rem VT323, monospace; color:var(--sun); }
+  .overlay-msg { color:var(--muted); font-size:.8rem; margin-top:8px; line-height:1.5; }
+  .overlay-msg a { color:var(--cyan); }
+  @media (max-width:720px) {
+    .hud { gap:7px; padding:7px 10px; }
+    .hud-brand { font-size:.85rem; }
+    .hud-setting { font-size:.95rem; }
+    .hint { display:none; }
+    .panel { left:10px; right:10px; bottom:10px; max-width:none; }
+  }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/3d/vendor/three/three.module.min.js" } }
+</script>
+</head>
+<body>
+<header class="hud">
+  <div class="hud-brand">tableslop</div>
+  <span class="hud-setting">Isla Primavera · 3D</span>
+  <span class="hud-spacer"></span>
+  <a class="hud-res" href="/" title="Back to the 2D overworld map">2D map</a>
+</header>
+<div id="scene" aria-label="3D island view"></div>
+<div class="panel" id="panel" hidden>
+  <div class="panel-name"><span class="panel-swatch" id="panelSwatch"></span><span id="panelName"></span></div>
+  <div class="panel-meta" id="panelMeta"></div>
+</div>
+<div class="hint">drag to orbit · scroll to zoom · right-drag to pan · click a district</div>
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-title" id="overlayTitle">loading island…</div>
+    <div class="overlay-msg" id="overlayMsg">Fetching /api/map and raising the districts.</div>
+  </div>
+</div>
+<script type="module" src="/3d/app.js"></script>
+</body>
+</html>
