@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primavera Bell</title>
+<link rel="stylesheet" href="phone.css">
+</head>
+<body>
+  <div class="phone" id="phone">
+    <div class="phone-speaker" aria-hidden="true"></div>
+    <div class="screen" id="screen">
+      <header class="statusbar">
+        <span class="sb-carrier">PRIMAVERA BELL</span>
+        <span class="sb-signal" aria-hidden="true"><i></i><i></i><i></i><i class="off"></i></span>
+        <span class="sb-clock" id="sb-clock">--:--</span>
+        <button class="sb-sound" id="sb-sound" type="button" aria-label="toggle sound">SND OFF</button>
+      </header>
+
+      <main class="views" id="views">
+        <section class="view" id="view-contacts" data-view="contacts" aria-label="contacts"></section>
+        <section class="view" id="view-recents" data-view="recents" aria-label="recents"></section>
+        <section class="view" id="view-keypad" data-view="keypad" aria-label="keypad"></section>
+        <section class="view" id="view-thread" data-view="thread" aria-label="thread"></section>
+        <section class="view" id="view-call" data-view="call" aria-label="call"></section>
+      </main>
+
+      <nav class="softkeys" aria-label="navigation">
+        <button type="button" data-nav="contacts" class="active">CONTACTS</button>
+        <button type="button" data-nav="keypad">KEYPAD</button>
+        <button type="button" data-nav="recents">RECENTS <span class="badge" id="recents-badge" hidden></span></button>
+      </nav>
+    </div>
+    <div class="phone-chin">PB-2026 &middot; ISLA PRIMAVERA</div>
+  </div>
+  <script type="module" src="phone.js"></script>
+</body>
+</html>
