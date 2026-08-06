@@ -44,9 +44,6 @@ const MAP_JSON = path.join(CAMPAIGN_DIR, "map", "map.json");
 const REGIONS_UI_JSON = path.join(CAMPAIGN_DIR, "map", "regions-ui.json");
 const COORDS_JSON = path.join(CAMPAIGN_DIR, "map", "coords.json");
 const LAYERS_JSON = path.join(CAMPAIGN_DIR, "map", "layers.json");
-/** 3D view statics — rendering is 100% client-side (three.js); server only streams files. */
-const THREE_D_DIR = path.join(__dirname, "tableslop-3d");
-const VENDOR_THREE_DIR = path.join(__dirname, "vendor", "three");
 const REGIONS_BOARD = path.join(REPO, "projects", "tableslop", "regions.json");
 /** Same SoT as dashboard Chars — read-through only (writes stay on :8790). */
 const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
@@ -252,8 +249,8 @@ function viewerHtml() {
     padding:4px 12px; cursor:pointer;
     box-shadow:0 0 8px var(--glow-cyan);
   }
+  a.hud-res { text-decoration:none; display:inline-flex; align-items:center; }
   .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
-  .hud a.hud-res { text-decoration:none; display:inline-flex; align-items:center; }
   .hud-edit.is-on { border-color:var(--sun); color:var(--sun); box-shadow:0 0 12px rgba(255,251,150,.45); }
   .hud-save { border-color:var(--cyan); color:var(--cyan); }
   .hud-save.is-dirty { border-color:var(--sun); color:var(--sun); animation:lane-breathe 1.2s ease-in-out infinite; }
@@ -823,8 +820,12 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="drawToggle">Draw borders</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
-  <a class="hud-res" id="view3dLink" href="/3d" title="Stylized 3D island view (three.js)">3D</a>
   <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
+  <a class="hud-res" href="/3d" title="Stylized 3D island view">3D</a>
+  <a class="hud-res" href="/radio/" title="Island radio">Radio</a>
+  <a class="hud-res" href="/phone/" title="Island phone">Phone</a>
+  <a class="hud-res" href="/hunter/" title="Hunter board">Hunter</a>
+  <a class="hud-res" href="/sim/" title="Market and gunplay sim">Sim</a>
   <div class="hud-auth" id="authSlot"></div>
 </header>
 <div class="draw-bar" id="drawBar" hidden>
@@ -3696,6 +3697,90 @@ const CITIES_DIR = path.join(CAMPAIGN_DIR, "map", "cities");
 const CITY_ID_RE = /^r\d{2}-[a-z0-9-]+$/;
 const cityCache = new Map(); // id -> { mtimeMs, data }
 
+/** Standalone silo UIs under tableslop-static/ — public view, no auth gate. */
+const STATIC_ROOT = path.join(__dirname, "tableslop-static");
+const STATIC_MOUNTS = {
+  "3d": { dir: path.join(STATIC_ROOT, "3d"), cacheSec: 300 },
+  radio: { dir: path.join(STATIC_ROOT, "radio"), cacheSec: 300 },
+  phone: { dir: path.join(STATIC_ROOT, "phone"), cacheSec: 300 },
+  hunter: { dir: path.join(STATIC_ROOT, "hunter"), cacheSec: 300 },
+  sim: { dir: path.join(STATIC_ROOT, "sim"), cacheSec: 60, jsonCacheSec: 30 },
+};
+const STATIC_MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".md": "text/markdown; charset=utf-8",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".wasm": "application/wasm",
+};
+
+function serveStaticFile(res, abs, cacheSec) {
+  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
+    res.writeHead(404);
+    res.end("Not found");
+    return;
+  }
+  const ext = path.extname(abs).toLowerCase();
+  res.writeHead(200, {
+    "Content-Type": STATIC_MIME[ext] || "application/octet-stream",
+    "Cache-Control": `public, max-age=${cacheSec}`,
+  });
+  const stream = fs.createReadStream(abs);
+  stream.on("error", () => {
+    try {
+      res.destroy();
+    } catch (_) {
+      /* ignore */
+    }
+  });
+  stream.pipe(res);
+}
+
+/** Serve /{name}/… from STATIC_MOUNTS. Returns true if handled. */
+function tryServeStaticMount(url, res) {
+  for (const [name, cfg] of Object.entries(STATIC_MOUNTS)) {
+    const prefix = `/${name}`;
+    if (url === prefix || url === `${prefix}/` || url === `${prefix}/index.html`) {
+      serveStaticFile(res, path.join(cfg.dir, "index.html"), cfg.cacheSec);
+      return true;
+    }
+    if (!url.startsWith(`${prefix}/`)) continue;
+    let rel = "";
+    try {
+      rel = decodeURIComponent(url.slice(prefix.length + 1));
+    } catch {
+      rel = "";
+    }
+    if (!rel || rel.includes("..") || path.isAbsolute(rel)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return true;
+    }
+    const abs = path.join(cfg.dir, rel);
+    const root = cfg.dir.endsWith(path.sep) ? cfg.dir : cfg.dir + path.sep;
+    if (abs !== cfg.dir && !abs.startsWith(root)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return true;
+    }
+    const ext = path.extname(abs).toLowerCase();
+    const cache =
+      ext === ".json" && cfg.jsonCacheSec != null ? cfg.jsonCacheSec : cfg.cacheSec;
+    serveStaticFile(res, abs, cache);
+    return true;
+  }
+  return false;
+}
+
 function loadCityData(regionId) {
   if (!CITY_ID_RE.test(regionId || "")) return null;
   const abs = path.join(CITIES_DIR, `${regionId}.json`);
@@ -4299,28 +4384,6 @@ function sendJson(res, data, status = 200, cacheSec = 0) {
   if (cacheSec > 0) headers["Cache-Control"] = `public, max-age=${cacheSec}`;
   res.writeHead(status, headers);
   res.end(body);
-}
-
-const STATIC_FILE_TYPES = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".mjs": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".md": "text/markdown; charset=utf-8",
-};
-/** Stream one file from a fixed static dir (traversal-guarded by caller). Follows /map-image pattern. */
-function serveStaticFile(res, abs, cacheSec) {
-  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
-    res.writeHead(404);
-    res.end("Not found");
-    return;
-  }
-  res.writeHead(200, {
-    "Content-Type": STATIC_FILE_TYPES[path.extname(abs).toLowerCase()] || "application/octet-stream",
-    "Cache-Control": `public, max-age=${cacheSec}`,
-  });
-  fs.createReadStream(abs).pipe(res);
 }
 
 function normalizeCampaignRelPath(imagePath) {
@@ -5082,42 +5145,6 @@ async function handleRequest(req, res) {
     res.end(viewerHtml());
     return;
   }
-  // 3D island view (k3-3d-island-view) — public like the 2D map; rendering is client-side.
-  if (url === "/3d" || url === "/3d/" || url === "/3d/index.html") {
-    serveStaticFile(res, path.join(THREE_D_DIR, "index.html"), 300);
-    return;
-  }
-  if (url.startsWith("/3d/")) {
-    let rel = "";
-    try {
-      rel = decodeURIComponent(url.slice("/3d/".length));
-    } catch {
-      rel = "";
-    }
-    if (!rel || rel.includes("..") || path.isAbsolute(rel)) {
-      res.writeHead(404);
-      res.end("Not found");
-      return;
-    }
-    serveStaticFile(res, path.join(THREE_D_DIR, rel), 300);
-    return;
-  }
-  // Vendored three.js (pinned, MIT — scripts/linuxbox/vendor/three/README.md). Public static lib.
-  if (url.startsWith("/vendor/three/")) {
-    let rel = "";
-    try {
-      rel = decodeURIComponent(url.slice("/vendor/three/".length));
-    } catch {
-      rel = "";
-    }
-    if (!rel || rel.includes("..") || path.isAbsolute(rel)) {
-      res.writeHead(404);
-      res.end("Not found");
-      return;
-    }
-    serveStaticFile(res, path.join(VENDOR_THREE_DIR, rel), 604800);
-    return;
-  }
   if (url === "/api/map") {
     const data = loadMapJson();
     // Markers with a generated city map get a link (checked per request — new
@@ -5131,7 +5158,8 @@ async function handleRequest(req, res) {
     return;
   }
   // City detail maps (generated proposals; GM edits win) — public read like the island map.
-  const cityApiMatch = url.match(/^\/api\/city\/([a-z0-9-]+)$/);
+  // /api/cities/<id> is the 3D client's preferred plural form; /api/city/<id> kept for city HTML.
+  const cityApiMatch = url.match(/^\/api\/(?:city|cities)\/([a-z0-9-]+)$/);
   if (cityApiMatch) {
     const city = loadCityData(cityApiMatch[1]);
     if (!city) {
@@ -5141,6 +5169,16 @@ async function handleRequest(req, res) {
     sendJson(res, city, 200, 300);
     return;
   }
+  // Phone UI imports the engine as /tableslop/phone-responder.js (browser URL, not disk path).
+  if (url === "/tableslop/phone-responder.js") {
+    serveStaticFile(
+      res,
+      path.join(REPO, "scripts", "tableslop", "phone-responder.js"),
+      300
+    );
+    return;
+  }
+  if (tryServeStaticMount(url, res)) return;
   const cityMatch = url.match(/^\/city\/([a-z0-9-]+)$/);
   if (cityMatch) {
     const city = loadCityData(cityMatch[1]);
