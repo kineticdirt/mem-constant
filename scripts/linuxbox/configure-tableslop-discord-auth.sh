@@ -16,6 +16,7 @@ ENV_FILE="${ENV_DIR}/.env"
 REQUIRE="${TABLESLOP_REQUIRE_DISCORD_AUTH:-1}"
 REDIRECT="${DISCORD_OAUTH_REDIRECT_URI:-https://map.tableslop.org/auth/discord/callback}"
 GUILD="${DISCORD_GUILD_ID:-1012888284222988409}"
+OWNER_ID="${TABLESLOP_OWNER_DISCORD_ID:-}"
 
 client_id="${DISCORD_OAUTH_CLIENT_ID:-}"
 client_secret="${DISCORD_OAUTH_CLIENT_SECRET:-}"
@@ -29,9 +30,11 @@ if [[ "${REQUIRE}" == "1" ]]; then
     echo "  ${REDIRECT}" >&2
     exit 1
   fi
+  if [[ -z "${OWNER_ID}" ]]; then
+    echo "WARN: TABLESLOP_OWNER_DISCORD_ID unset — no owner will be bootstrapped (nobody can manage roles)." >&2
+  fi
   if [[ -z "${bot_token}" ]]; then
-    echo "Set DISCORD_BOT_TOKEN for guild membership check." >&2
-    exit 1
+    echo "WARN: DISCORD_BOT_TOKEN unset — guild-membership gate disabled (anyone with Discord can log in as 'user')." >&2
   fi
 fi
 
@@ -45,6 +48,7 @@ chmod 700 "${ENV_DIR}"
 cat > "${ENV_FILE}" <<EOF
 TABLESLOP_REQUIRE_DISCORD_AUTH=${REQUIRE}
 TABLESLOP_SESSION_SECRET=${session_secret}
+TABLESLOP_OWNER_DISCORD_ID=${OWNER_ID}
 DISCORD_OAUTH_CLIENT_ID=${client_id}
 DISCORD_OAUTH_CLIENT_SECRET=${client_secret}
 DISCORD_OAUTH_REDIRECT_URI=${REDIRECT}

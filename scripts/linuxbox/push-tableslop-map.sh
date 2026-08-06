@@ -18,7 +18,12 @@ TARBALL="/tmp/tableslop-map-deploy.tgz"
 # with non-empty geometry (see campaigns/tropic-gooner/map/REGIONS-UI-LOCK.md).
 PATHS=(
   "scripts/linuxbox/tableslop-server.js"
+  "scripts/linuxbox/tableslop-auth.js"
+  "scripts/linuxbox/vendor/sql-js"
+  "scripts/linuxbox/tableslop-3d"
+  "scripts/linuxbox/vendor/three"
   "${MAP}/map.json"
+  "${MAP}/cities"
   "${MAP}/coords.json"
   "${MAP}/layers.json"
   "${MAP}/pyramid.json"

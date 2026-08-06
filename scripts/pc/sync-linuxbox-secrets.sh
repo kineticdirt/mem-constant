@@ -39,6 +39,8 @@ oauth_id="${DISCORD_OAUTH_CLIENT_ID:-}"
 oauth_secret="${DISCORD_OAUTH_CLIENT_SECRET:-}"
 oauth_redirect="${DISCORD_OAUTH_REDIRECT_URI:-https://map.tableslop.org/auth/discord/callback}"
 tableslop_auth="${TABLESLOP_REQUIRE_DISCORD_AUTH:-1}"
+tableslop_owner="${TABLESLOP_OWNER_DISCORD_ID:-}"
+tableslop_secret="${TABLESLOP_SESSION_SECRET:-}"
 zenmux_key="${ZENMUX_API_KEY:-}"
 
 ssh "${SSH_OPTS[@]}" "${HOST}" bash -s <<EOF
@@ -51,6 +53,8 @@ oauth_id=$(printf '%q' "${oauth_id}")
 oauth_secret=$(printf '%q' "${oauth_secret}")
 oauth_redirect=$(printf '%q' "${oauth_redirect}")
 tableslop_auth=$(printf '%q' "${tableslop_auth}")
+tableslop_owner=$(printf '%q' "${tableslop_owner}")
+tableslop_secret=$(printf '%q' "${tableslop_secret}")
 zenmux_key=$(printf '%q' "${zenmux_key}")
 
 merge_kv() {
@@ -87,6 +91,8 @@ export DISCORD_OAUTH_REDIRECT_URI="\$oauth_redirect"
 export DISCORD_GUILD_ID="\$guild"
 export DISCORD_BOT_TOKEN="\$tok"
 export TABLESLOP_REQUIRE_DISCORD_AUTH="\$tableslop_auth"
+export TABLESLOP_OWNER_DISCORD_ID="\$tableslop_owner"
+export TABLESLOP_SESSION_SECRET="\$tableslop_secret"
 if [[ -n "\$oauth_id" && -n "\$oauth_secret" ]]; then
   bash ~/agent-dump/scripts/linuxbox/configure-tableslop-discord-auth.sh
 else

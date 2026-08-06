@@ -9,26 +9,44 @@ const crypto = require("crypto");
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
+const { TableslopAuth, EDIT_ROLES } = require("./tableslop-auth.js");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
 const PORT = parseInt(process.env.TABLESLOP_PORT || "8765", 10);
 const CAMPAIGN = process.env.TABLESLOP_CAMPAIGN || "tropic-gooner";
 const REQUIRE_AUTH = process.env.TABLESLOP_REQUIRE_DISCORD_AUTH === "1";
-const SESSION_SECRET = process.env.TABLESLOP_SESSION_SECRET || "";
+const DEV_AUTH = process.env.TABLESLOP_DEV_AUTH === "1";
+// Dev stub needs a stable secret so sessions survive a restart; never used in prod
+// (gating requires the real TABLESLOP_SESSION_SECRET — see OAUTH_CONFIGURED).
+const SESSION_SECRET =
+  process.env.TABLESLOP_SESSION_SECRET || (DEV_AUTH ? "tableslop-dev-only-insecure-secret" : "");
 const OAUTH_CLIENT_ID = process.env.DISCORD_OAUTH_CLIENT_ID || "";
 const OAUTH_CLIENT_SECRET = process.env.DISCORD_OAUTH_CLIENT_SECRET || "";
 const OAUTH_REDIRECT = process.env.DISCORD_OAUTH_REDIRECT_URI || "";
 const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || "";
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
+const OWNER_DISCORD_ID = process.env.TABLESLOP_OWNER_DISCORD_ID || "";
 const SESSION_COOKIE = "tableslop_session";
 const SESSION_DAYS = 7;
+/** Complete config = gating may engage. Half-configured deploys run open so the GM can never be locked out. */
+const OAUTH_CONFIGURED = Boolean(
+  OAUTH_CLIENT_ID && OAUTH_CLIENT_SECRET && OAUTH_REDIRECT && process.env.TABLESLOP_SESSION_SECRET
+);
+/** View is always public; gating only locks mutating endpoints behind login+role. */
+const AUTH_GATING = REQUIRE_AUTH && (OAUTH_CONFIGURED || DEV_AUTH);
+const AUTH_DB_PATH =
+  process.env.TABLESLOP_AUTH_DB || path.join(REPO, "agents", "state", "tableslop-auth.db");
+let authStore = null;
 
 const CAMPAIGN_DIR = path.join(REPO, "campaigns", CAMPAIGN);
 const MAP_JSON = path.join(CAMPAIGN_DIR, "map", "map.json");
 const REGIONS_UI_JSON = path.join(CAMPAIGN_DIR, "map", "regions-ui.json");
 const COORDS_JSON = path.join(CAMPAIGN_DIR, "map", "coords.json");
 const LAYERS_JSON = path.join(CAMPAIGN_DIR, "map", "layers.json");
+/** 3D view statics — rendering is 100% client-side (three.js); server only streams files. */
+const THREE_D_DIR = path.join(__dirname, "tableslop-3d");
+const VENDOR_THREE_DIR = path.join(__dirname, "vendor", "three");
 const REGIONS_BOARD = path.join(REPO, "projects", "tableslop", "regions.json");
 /** Same SoT as dashboard Chars — read-through only (writes stay on :8790). */
 const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
@@ -141,48 +159,37 @@ function verifySession(token) {
   }
 }
 
-function setSessionCookie(res, user) {
-  const exp = Date.now() + SESSION_DAYS * 86400000;
-  const token = signSession({ id: user.id, username: user.username, exp });
-  res.setHeader(
-    "Set-Cookie",
-    `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DAYS * 86400}`
-  );
+/** Secure only when the public origin is https (prod via cloudflared); plain http on LAN/dev. */
+function cookieSecureFlag() {
+  return OAUTH_REDIRECT.startsWith("https://") ? "; Secure" : "";
 }
 
-function clearSessionCookie(res) {
-  res.setHeader("Set-Cookie", `${SESSION_COOKIE}=; Path=/; HttpOnly; Max-Age=0`);
+/** Cookie holds an opaque signed session id; user data/tokens live server-side in the DB. */
+function sessionCookieValue(sid, expMs) {
+  const token = signSession({ sid, exp: expMs });
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DAYS * 86400}${cookieSecureFlag()}`;
+}
+
+function clearSessionCookieValue() {
+  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Max-Age=0`;
 }
 
 function sessionFromReq(req) {
-  if (!REQUIRE_AUTH) return { id: "public", username: "guest" };
+  if (!authStore) return { id: "public", username: "guest" };
   const cookies = parseCookies(req.headers.cookie);
-  return verifySession(cookies[SESSION_COOKIE]);
+  const data = verifySession(cookies[SESSION_COOKIE]);
+  if (!data || !data.sid) return null;
+  return authStore.getSessionUser(data.sid);
 }
 
-async function discordTokenExchange(code) {
-  const body = new URLSearchParams({
-    client_id: OAUTH_CLIENT_ID,
-    client_secret: OAUTH_CLIENT_SECRET,
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: OAUTH_REDIRECT,
-  });
-  const r = await fetch("https://discord.com/api/oauth2/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!r.ok) throw new Error(`token exchange ${r.status}`);
-  return r.json();
-}
-
-async function discordUser(accessToken) {
-  const r = await fetch("https://discord.com/api/users/@me", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!r.ok) throw new Error(`user fetch ${r.status}`);
-  return r.json();
+/** null = allowed; otherwise { code, error } to send. Edit = owner/admin only when gating is on. */
+function editGate(session) {
+  if (!AUTH_GATING) return null;
+  if (!session) return { code: 401, error: "login required to edit" };
+  if (!EDIT_ROLES.has(session.role)) {
+    return { code: 403, error: `role '${session.role}' cannot edit — ask the GM for admin` };
+  }
+  return null;
 }
 
 async function isGuildMember(userId) {
@@ -193,17 +200,7 @@ async function isGuildMember(userId) {
   return r.status === 200;
 }
 
-const LOGIN_HTML = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>tableslop — login</title>
-<style>body{margin:0;font:16px/1.5 system-ui,sans-serif;background:#0a0a0c;color:#e8e6e3;display:flex;min-height:100vh;align-items:center;justify-content:center}
-.box{max-width:360px;padding:32px;border:1px solid #333;border-radius:8px;text-align:center}
-a.btn{display:inline-block;margin-top:16px;padding:12px 20px;background:#5865F2;color:#fff;text-decoration:none;border-radius:6px;font-weight:600}
-p{color:#888;font-size:.9rem}</style></head>
-<body><div class="box"><h1>tableslop map</h1><p>Login with Discord to view the campaign map.<br>We only check that you are in the server — no password stored.</p>
-<a class="btn" href="/auth/discord">Login with Discord</a></div></body></html>`;
-
-function viewerHtml(_userLabel) {
+function viewerHtml() {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -256,12 +253,29 @@ function viewerHtml(_userLabel) {
     box-shadow:0 0 8px var(--glow-cyan);
   }
   .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
+  .hud a.hud-res { text-decoration:none; display:inline-flex; align-items:center; }
   .hud-edit.is-on { border-color:var(--sun); color:var(--sun); box-shadow:0 0 12px rgba(255,251,150,.45); }
   .hud-save { border-color:var(--cyan); color:var(--cyan); }
   .hud-save.is-dirty { border-color:var(--sun); color:var(--sun); animation:lane-breathe 1.2s ease-in-out infinite; }
   .hud-auth { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:.85rem; }
   .hud-auth a { color:var(--cyan); text-decoration:none; }
   .hud-auth a:hover { text-shadow:0 0 8px var(--glow-cyan); }
+  .hud-avatar { width:22px; height:22px; border-radius:50%; border:1px solid var(--purple); vertical-align:middle; }
+  .hud-role { font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; padding:1px 7px; border-radius:8px; border:1px solid var(--muted); color:var(--muted); }
+  .hud-role--owner { border-color:var(--sun); color:var(--sun); }
+  .hud-role--admin { border-color:var(--cyan); color:var(--cyan); }
+  .hud-login { font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; padding:5px 10px; border:1px solid var(--cyan); border-radius:4px; background:rgba(1,205,254,.08); }
+  .hud-login-hint { color:var(--muted); font-size:.68rem; letter-spacing:.04em; }
+  .hud-users-btn { font:inherit; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sun); background:none; border:1px solid var(--sun); border-radius:4px; padding:3px 8px; cursor:pointer; }
+  .auth-users { position:fixed; top:52px; right:12px; z-index:60; width:320px; max-height:70vh; overflow:auto; background:var(--panel); border:1px solid var(--purple); border-radius:8px; padding:12px; box-shadow:0 8px 32px rgba(0,0,0,.6); }
+  .auth-users h3 { margin:0 0 8px; font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
+  .auth-users .au-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid rgba(185,103,255,.18); font-size:.78rem; }
+  .auth-users .au-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .auth-users .au-role-badge { font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .auth-users select { font:inherit; font-size:.72rem; background:var(--void); color:var(--text); border:1px solid var(--muted); border-radius:4px; padding:2px 4px; }
+  .auth-users button { font:inherit; font-size:.68rem; color:var(--cyan); background:none; border:1px solid var(--cyan); border-radius:4px; padding:2px 8px; cursor:pointer; }
+  .auth-users .au-status { font-size:.68rem; color:var(--muted); min-height:1em; margin-top:6px; }
+  body.day .auth-users { background:rgba(253,243,250,.97); }
   .pilot-panel {
     padding:12px 14px 10px; border-bottom:1px solid rgba(255,113,206,.25);
     position:relative; z-index:1;
@@ -277,6 +291,14 @@ function viewerHtml(_userLabel) {
   }
   .pilot-note:focus { outline:none; border-color:var(--pink); box-shadow:0 0 12px var(--glow-pink); }
   .pilot-note-label { display:block; margin-top:10px; font-size:.65rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); }
+  .city-map-link {
+    display:block; margin-top:10px; padding:7px 10px; text-align:center;
+    font:700 .7rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--cyan); text-decoration:none; border:1px solid var(--cyan);
+    box-shadow:0 0 8px var(--glow-cyan);
+  }
+  .city-map-link:hover { color:var(--pink); border-color:var(--pink); box-shadow:0 0 12px var(--glow-pink); }
+  .city-map-link[hidden] { display:none; }
   .game-shell {
     flex:1; min-height:0; overflow:hidden;
     display:grid; grid-template-columns:1fr min(300px,32vw);
@@ -801,6 +823,7 @@ function viewerHtml(_userLabel) {
   <button type="button" class="hud-res" id="drawToggle">Draw borders</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
+  <a class="hud-res" id="view3dLink" href="/3d" title="Stylized 3D island view (three.js)">3D</a>
   <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
   <div class="hud-auth" id="authSlot"></div>
 </header>
@@ -856,6 +879,7 @@ function viewerHtml(_userLabel) {
       <div class="pilot-stats" id="pilotStats"></div>
       <label class="pilot-note-label" for="regionNote" id="noteLabel" hidden>Region note</label>
       <textarea class="pilot-note" id="regionNote" hidden placeholder="Session notes for this region…"></textarea>
+      <a class="city-map-link" id="cityMapLink" href="#" hidden>City map →</a>
     </div>
     <div class="map-side" id="mapSide">
       <h2>◇ Legend</h2>
@@ -2443,7 +2467,9 @@ function initEditMode(profile) {
   const saveBtn = document.getElementById('saveCoordsBtn');
   const vp = document.getElementById('viewport');
   if (!btn) return;
-  editMode = profile.editMode === true;
+  // Auth gating: never restore a persisted editMode for viewers — server rejects saves anyway.
+  const gatedOut = meCache && meCache.auth_gating && !(meCache.logged_in && (meCache.role === 'owner' || meCache.role === 'admin'));
+  editMode = gatedOut ? false : profile.editMode === true;
   btn.textContent = editMode ? 'Edit ON' : 'Edit';
   btn.classList.toggle('is-on', editMode);
   if (saveBtn) {
@@ -2980,16 +3006,91 @@ function updateAuthUi(me) {
   const slot = document.getElementById('authSlot');
   if (!slot) return;
   slot.innerHTML = '';
+  // Server always enforces; the client just mirrors by hiding edit entry points.
+  const canEdit = !me.auth_gating || (me.logged_in && (me.role === 'owner' || me.role === 'admin'));
+  const editBtn = document.getElementById('editToggle');
+  const drawBtn = document.getElementById('drawToggle');
+  if (editBtn) editBtn.hidden = !canEdit;
+  if (drawBtn) drawBtn.hidden = !canEdit;
   if (me.logged_in && me.username) {
-    slot.innerHTML = '<span class="hud-user">@' + me.username + '</span>' +
-      ' <a class="hud-logout" href="/auth/logout">logout</a>';
+    let html = '';
+    if (me.avatar) html += '<img class="hud-avatar" alt="" src="' + escapeHtml(me.avatar) + '"/>';
+    html += '<span class="hud-user">@' + escapeHtml(me.username) + '</span>';
+    if (me.role) html += '<span class="hud-role hud-role--' + escapeHtml(me.role) + '">' + escapeHtml(me.role) + '</span>';
+    if (me.role === 'owner') html += '<button type="button" class="hud-users-btn" id="usersPanelBtn">Users</button>';
+    html += '<a class="hud-logout" href="/auth/logout">logout</a>';
+    slot.innerHTML = html;
+    if (me.role === 'owner') initUsersPanel();
     const name = document.getElementById('pilotName');
     if (name) name.textContent = me.username;
     const meta = document.getElementById('pilotMeta');
     if (meta) meta.textContent = me.cloud_save ? 'Synced to tableslop' : 'Linked Discord · saves still local until cloud sync';
+    if (me.auth_gating && !canEdit) {
+      slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">view only</span>');
+    }
   } else if (me.discord_configured) {
-    slot.innerHTML = '<a href="/auth/discord">Link Discord</a>';
+    slot.innerHTML = '<a class="hud-login" href="/auth/discord">Login with Discord</a>';
+    if (me.auth_gating) slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">login required to edit</span>');
+  } else if (me.dev_auth) {
+    slot.innerHTML = '<span class="hud-login-hint">dev</span> <a href="/auth/dev-login?as=owner">owner</a> <a href="/auth/dev-login?as=admin">admin</a> <a href="/auth/dev-login?as=user">user</a>';
   }
+}
+
+/** Owner-only role panel: list users, set admin/user. Owner role itself is env-only. */
+function initUsersPanel() {
+  const btn = document.getElementById('usersPanelBtn');
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  let panel = null;
+  btn.onclick = async () => {
+    if (panel) { panel.remove(); panel = null; return; }
+    panel = document.createElement('div');
+    panel.className = 'auth-users';
+    panel.innerHTML = '<h3>Users</h3><div class="au-rows">loading…</div><div class="au-status"></div>';
+    document.body.appendChild(panel);
+    const rowsEl = panel.querySelector('.au-rows');
+    const statusEl = panel.querySelector('.au-status');
+    let data;
+    try {
+      const r = await fetch('/api/auth/users');
+      data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.status);
+    } catch (e) {
+      rowsEl.textContent = 'failed: ' + e.message;
+      return;
+    }
+    rowsEl.innerHTML = '';
+    for (const u of data.users || []) {
+      const row = document.createElement('div');
+      row.className = 'au-row';
+      if (u.role === 'owner') {
+        row.innerHTML = '<span class="au-name">@' + escapeHtml(u.username) + '</span><span class="au-role-badge">owner (env)</span>';
+      } else {
+        row.innerHTML = '<span class="au-name">@' + escapeHtml(u.username) + '</span>' +
+          '<select><option value="user"' + (u.role === 'user' ? ' selected' : '') + '>user</option>' +
+          '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>admin</option></select>' +
+          '<button type="button">Save</button>';
+        row.querySelector('button').onclick = async (ev) => {
+          const b = ev.currentTarget;
+          b.disabled = true;
+          try {
+            const r = await fetch('/api/auth/users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: u.discord_id, role: row.querySelector('select').value }),
+            });
+            const out = await r.json();
+            if (!r.ok) throw new Error(out.error || r.status);
+            statusEl.textContent = '@' + u.username + ' → ' + row.querySelector('select').value;
+          } catch (e) {
+            statusEl.textContent = 'failed: ' + e.message;
+          }
+          b.disabled = false;
+        };
+      }
+      rowsEl.appendChild(row);
+    }
+  };
 }
 
 function syncNoteField(id) {
@@ -3012,6 +3113,15 @@ function syncNoteField(id) {
   noteEl.oninput = () => {
     saveProfile({ notes: { [id]: noteEl.value } });
   };
+  const cityLink = document.getElementById('cityMapLink');
+  if (cityLink) {
+    const cm = m && m.city_map;
+    cityLink.hidden = !cm;
+    if (cm) {
+      cityLink.href = cm;
+      cityLink.textContent = 'City map · ' + name + ' →';
+    }
+  }
 }
 
 /**
@@ -3565,16 +3675,388 @@ function placePins(stage, markers) {
         selectMarker(m.id, { focus: false });
       });
     } else {
+      const tip = m.city_map ? label + ' · city map (click, then link in panel)' : label;
       pin.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
       pin.addEventListener('click', function() { selectMarker(m.id, { focus: true }); });
-      pin.addEventListener('mouseenter', e => showTooltip(label, e.clientX, e.clientY));
-      pin.addEventListener('mousemove', e => showTooltip(label, e.clientX, e.clientY));
+      pin.addEventListener('mouseenter', e => showTooltip(tip, e.clientX, e.clientY));
+      pin.addEventListener('mousemove', e => showTooltip(tip, e.clientX, e.clientY));
       pin.addEventListener('mouseleave', hideTooltip);
     }
     stage.appendChild(pin);
   });
 }
 load();
+</script>
+</body>
+</html>`;
+}
+
+/** Generated city maps (proposal-grade; GM edits win) — campaigns/<c>/map/cities/<region-id>.json */
+const CITIES_DIR = path.join(CAMPAIGN_DIR, "map", "cities");
+const CITY_ID_RE = /^r\d{2}-[a-z0-9-]+$/;
+const cityCache = new Map(); // id -> { mtimeMs, data }
+
+function loadCityData(regionId) {
+  if (!CITY_ID_RE.test(regionId || "")) return null;
+  const abs = path.join(CITIES_DIR, `${regionId}.json`);
+  if (!fs.existsSync(abs)) return null;
+  try {
+    const mtimeMs = fs.statSync(abs).mtimeMs;
+    const hit = cityCache.get(regionId);
+    if (hit && hit.mtimeMs === mtimeMs) return hit.data;
+    const data = JSON.parse(fs.readFileSync(abs, "utf8"));
+    cityCache.set(regionId, { mtimeMs, data });
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function escHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** City detail page — same hand-rolled DOM+SVG stack as the island viewer, fit-to-view. */
+function cityHtml(city) {
+  const dataJson = JSON.stringify(city).replace(/</g, "\\u003c");
+  const title = `${city.name || city.region_id} — city map`;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>tableslop — ${escHtml(city.name || city.region_id)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --void:#0d0221; --panel:#16082a; --text:#e8f4ff; --muted:#9d8fc9;
+    --pink:#ff71ce; --cyan:#01cdfe; --sun:#fffb96;
+    --glow-pink:rgba(255,113,206,.55); --glow-cyan:rgba(1,205,254,.45);
+  }
+  * { box-sizing:border-box; }
+  html, body { height:100%; margin:0; overflow:hidden; }
+  body {
+    display:flex; flex-direction:column; height:100vh; height:100dvh;
+    font:15px/1.4 "Share Tech Mono",monospace; background:#0a0a0e; color:var(--text);
+  }
+  .hud {
+    flex:0 0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:10px 16px; border-bottom:2px solid transparent;
+    border-image:linear-gradient(90deg, var(--pink), var(--cyan)) 1;
+    background:linear-gradient(180deg, rgba(22,8,42,.98), rgba(13,2,33,.98));
+  }
+  .hud-brand {
+    font:700 1rem Orbitron,sans-serif; letter-spacing:.18em; text-transform:uppercase;
+    background:linear-gradient(90deg, var(--pink), var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hud-setting { font:1.1rem VT323,monospace; color:var(--sun); letter-spacing:.06em; }
+  .hud-link {
+    font:700 .7rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--cyan); text-decoration:none; border:1px solid var(--cyan); padding:4px 12px;
+  }
+  .hud-link:hover { color:var(--pink); border-color:var(--pink); }
+  .hud-note { margin-left:auto; color:var(--muted); font-size:.72rem; letter-spacing:.06em; }
+  .city-shell {
+    flex:1; min-height:0; display:grid; grid-template-columns:1fr min(300px,32vw);
+  }
+  @media (max-width:800px) { .city-shell { grid-template-columns:1fr; grid-template-rows:1fr auto; } }
+  .city-stage { position:relative; min-height:0; background:#0a0a0e; padding:10px; }
+  .city-svg { width:100%; height:100%; display:block; }
+  .city-parent { fill:none; stroke:rgba(232,220,192,.45); }
+  .city-district { cursor:pointer; transition:fill-opacity .15s, filter .15s, opacity .15s; }
+  .city-district:hover { filter:drop-shadow(0 0 3px rgba(1,205,254,.55)); }
+  .city-district.is-dim { opacity:.3; }
+  .city-street { fill:none; pointer-events:none; }
+  .city-lm { cursor:pointer; }
+  .city-lm.is-dim { opacity:.3; }
+  .city-side {
+    min-height:0; overflow-y:auto; padding:12px 14px;
+    border-left:1px solid rgba(255,113,206,.25);
+    background:linear-gradient(180deg, rgba(22,8,42,.97), rgba(13,2,33,.99));
+  }
+  .city-side h2 {
+    margin:10px 0 8px; font:700 .8rem Orbitron,sans-serif; letter-spacing:.14em;
+    color:var(--pink); text-transform:uppercase;
+  }
+  .city-blurb { color:var(--muted); font-size:.8rem; line-height:1.4; }
+  .city-list { display:flex; flex-direction:column; gap:4px; }
+  .city-row {
+    font:inherit; font-size:.82rem; text-align:left; cursor:pointer;
+    background:rgba(1,205,254,.06); color:var(--text);
+    border:1px solid rgba(1,205,254,.25); padding:6px 9px;
+  }
+  .city-row:hover, .city-row.is-active { border-color:var(--sun); color:var(--sun); }
+  .city-row--static { cursor:default; opacity:.85; }
+  .city-row--static:hover { border-color:rgba(1,205,254,.25); color:var(--text); }
+  .city-row .kind-tag { color:var(--muted); font-size:.7rem; margin-left:6px; }
+  .city-detail {
+    margin-top:12px; padding:10px 12px; font-size:.8rem;
+    border:1px solid rgba(255,251,150,.35); background:rgba(13,2,33,.8);
+  }
+  .city-detail h3 { margin:0 0 6px; font:1rem VT323,monospace; color:var(--sun); }
+  .city-detail p { margin:4px 0; color:var(--muted); }
+  .city-detail ul { margin:6px 0 0; padding-left:16px; }
+  .city-detail li { margin:2px 0; }
+  .city-detail button { background:none; border:none; padding:0; font:inherit; color:var(--cyan); cursor:pointer; }
+  .city-detail button:hover { color:var(--pink); }
+  .city-meta { margin-top:14px; color:var(--muted); font-size:.65rem; letter-spacing:.04em; }
+  .map-tooltip {
+    position:fixed; z-index:30; pointer-events:none; max-width:260px;
+    background:rgba(13,2,33,.94); border:1px solid var(--cyan);
+    color:var(--text); font-size:.75rem; padding:6px 10px;
+    box-shadow:0 0 14px var(--glow-cyan);
+  }
+</style>
+</head>
+<body>
+<header class="hud">
+  <div class="hud-brand">tableslop</div>
+  <span class="hud-setting">${escHtml(title)}</span>
+  <a class="hud-link" href="/">&#8592; Island map</a>
+  <span class="hud-note">generated proposal — GM edits win</span>
+</header>
+<div class="city-shell">
+  <section class="city-stage" id="stage"></section>
+  <aside class="city-side">
+    <div class="city-blurb">${escHtml(city.blurb || "")}</div>
+    <h2>Districts</h2>
+    <div class="city-list" id="districtList"></div>
+    <h2>Landmarks</h2>
+    <div class="city-list" id="landmarkList"></div>
+    <h2>Streets</h2>
+    <div class="city-list" id="streetList"></div>
+    <div class="city-detail" id="detail" hidden></div>
+    <div class="city-meta" id="cityMeta"></div>
+  </aside>
+</div>
+<div class="map-tooltip" id="tooltip" hidden></div>
+<script>const CITY = ${dataJson};</script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var KIND_COLORS = {
+    bar: '#e07a8c', dock: '#5eb0d9', hotel: '#e8c547', church: '#c9b8e8',
+    market: '#7bc45e', civic: '#9aa3b8', hideout: '#b8734a'
+  };
+  var tooltip = document.getElementById('tooltip');
+  var stage = document.getElementById('stage');
+  var detail = document.getElementById('detail');
+  var vb = String(CITY.viewBox || '0 0 100 100').split(/\\s+/).map(Number);
+  var U = (vb[2] || 15) / 15; // px-consistent sizing across cities
+  var activeId = null;
+
+  var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', CITY.viewBox);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  svg.setAttribute('class', 'city-svg');
+
+  function showTooltip(text, x, y) {
+    tooltip.textContent = text;
+    tooltip.hidden = false;
+    tooltip.style.left = (x + 12) + 'px';
+    tooltip.style.top = (y + 12) + 'px';
+  }
+  function hideTooltip() { tooltip.hidden = true; }
+  function hover(el, text) {
+    el.addEventListener('mouseenter', function (e) { showTooltip(text, e.clientX, e.clientY); });
+    el.addEventListener('mousemove', function (e) { showTooltip(text, e.clientX, e.clientY); });
+    el.addEventListener('mouseleave', hideTooltip);
+  }
+  function midPoint(pointsStr) {
+    var pts = String(pointsStr).trim().split(/\\s+/).map(function (p) {
+      var xy = p.split(',').map(Number);
+      return { x: xy[0], y: xy[1] };
+    });
+    return pts[Math.floor(pts.length / 2)] || { x: 0, y: 0 };
+  }
+  function makeText(x, y, str, size, cls) {
+    var t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x);
+    t.setAttribute('y', y);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', size);
+    t.setAttribute('class', cls);
+    t.setAttribute('pointer-events', 'none');
+    t.textContent = str;
+    return t;
+  }
+  function syncActive() {
+    svg.querySelectorAll('.city-district, .city-lm').forEach(function (el) {
+      el.classList.toggle('is-dim', !!(activeId && el.dataset.id !== activeId && el.dataset.kind !== 'street'));
+    });
+    document.querySelectorAll('.city-row').forEach(function (el) {
+      el.classList.toggle('is-active', el.dataset.id === activeId);
+    });
+  }
+  function districtById(id) {
+    return (CITY.districts || []).find(function (d) { return d.id === id; });
+  }
+  function districtName(id) {
+    var d = districtById(id);
+    return d ? d.name : id;
+  }
+  function showDistrict(d) {
+    activeId = d.id;
+    var lms = (CITY.landmarks || []).filter(function (l) { return l.district === d.id; });
+    var html = '<h3></h3><p></p><p style="color:var(--cyan)">' + lms.length + ' landmark' + (lms.length === 1 ? '' : 's') + '</p>';
+    detail.innerHTML = html;
+    detail.querySelector('h3').textContent = d.name;
+    detail.querySelector('p').textContent = d.note || '';
+    if (lms.length) {
+      var ul = document.createElement('ul');
+      lms.forEach(function (l) {
+        var li = document.createElement('li');
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = l.name + ' (' + l.kind + ')';
+        b.addEventListener('click', function () { showLandmark(l); });
+        li.appendChild(b);
+        ul.appendChild(li);
+      });
+      detail.appendChild(ul);
+    }
+    detail.hidden = false;
+    syncActive();
+  }
+  function showLandmark(l) {
+    activeId = l.id;
+    detail.innerHTML = '<h3></h3><p class="lm-kind"></p><p class="lm-desc"></p>';
+    detail.querySelector('h3').textContent = l.name;
+    detail.querySelector('.lm-kind').textContent = l.kind + ' · ' + districtName(l.district);
+    detail.querySelector('.lm-desc').textContent = l.desc || '';
+    detail.hidden = false;
+    syncActive();
+  }
+
+  if (CITY.parent_region && CITY.parent_region.points) {
+    var parent = document.createElementNS(NS, 'polygon');
+    parent.setAttribute('points', CITY.parent_region.points);
+    parent.setAttribute('class', 'city-parent');
+    parent.setAttribute('stroke-width', 0.07 * U);
+    parent.setAttribute('stroke-dasharray', (0.22 * U) + ' ' + (0.14 * U));
+    svg.appendChild(parent);
+  }
+
+  (CITY.districts || []).forEach(function (d) {
+    var poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('points', d.points);
+    poly.setAttribute('class', 'city-district');
+    poly.dataset.id = d.id;
+    poly.style.fill = d.fill || '#5a7a8a';
+    poly.style.fillOpacity = '0.16';
+    poly.style.stroke = d.stroke || '#3e5560';
+    poly.style.strokeWidth = String(0.05 * U);
+    poly.addEventListener('mouseenter', function () { poly.style.fillOpacity = '0.3'; });
+    poly.addEventListener('mouseleave', function () { poly.style.fillOpacity = '0.16'; });
+    poly.addEventListener('click', function () { showDistrict(d); });
+    hover(poly, d.name);
+    svg.appendChild(poly);
+  });
+
+  var STREET_STYLE = {
+    main: { stroke: '#e8dcc0', w: 0.075, o: '0.8' },
+    side: { stroke: '#9d8fc9', w: 0.05, o: '0.65' },
+    alley: { stroke: '#9d8fc9', w: 0.035, o: '0.5' }
+  };
+  (CITY.streets || []).forEach(function (s) {
+    var st = STREET_STYLE[s.kind] || STREET_STYLE.side;
+    var line = document.createElementNS(NS, 'polyline');
+    line.setAttribute('points', s.points);
+    line.setAttribute('class', 'city-street');
+    line.style.stroke = st.stroke;
+    line.style.strokeWidth = String(st.w * U);
+    line.style.opacity = st.o;
+    if (s.kind === 'alley') line.style.strokeDasharray = (0.14 * U) + ' ' + (0.1 * U);
+    svg.appendChild(line);
+    if (s.kind === 'main') {
+      var mid = midPoint(s.points);
+      var lbl = makeText(mid.x, mid.y - 0.14 * U, s.name, 0.4 * U, 'city-slabel');
+      lbl.setAttribute('fill', '#9d8fc9');
+      lbl.setAttribute('opacity', '0.85');
+      svg.appendChild(lbl);
+    }
+  });
+
+  (CITY.landmarks || []).forEach(function (l) {
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'city-lm');
+    g.setAttribute('transform', 'translate(' + l.x + ',' + l.y + ')');
+    g.dataset.id = l.id;
+    var c = document.createElementNS(NS, 'circle');
+    c.setAttribute('r', 0.3 * U);
+    c.setAttribute('fill', KIND_COLORS[l.kind] || '#9aa3b8');
+    c.setAttribute('stroke', '#1a1208');
+    c.setAttribute('stroke-width', 0.05 * U);
+    g.appendChild(c);
+    var t = makeText(0, 0.15 * U, (l.kind || '?')[0].toUpperCase(), 0.4 * U, 'city-lm-letter');
+    t.setAttribute('fill', '#1a1208');
+    t.setAttribute('font-weight', '700');
+    g.appendChild(t);
+    g.addEventListener('click', function () { showLandmark(l); });
+    hover(g, l.name + ' · ' + l.kind + ' · ' + districtName(l.district));
+    svg.appendChild(g);
+  });
+
+  (CITY.districts || []).forEach(function (d) {
+    if (d.label_x == null || d.label_y == null) return;
+    var lbl = makeText(d.label_x, d.label_y, d.name, 0.5 * U, 'city-dlabel');
+    lbl.setAttribute('fill', '#e8dcc0');
+    lbl.setAttribute('stroke', '#0a0a0e');
+    lbl.setAttribute('stroke-width', 0.09 * U);
+    lbl.setAttribute('paint-order', 'stroke');
+    lbl.setAttribute('opacity', '0.9');
+    svg.appendChild(lbl);
+  });
+
+  stage.appendChild(svg);
+
+  var dList = document.getElementById('districtList');
+  (CITY.districts || []).forEach(function (d) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'city-row';
+    b.dataset.id = d.id;
+    b.textContent = d.name;
+    b.addEventListener('click', function () { showDistrict(d); });
+    dList.appendChild(b);
+  });
+  var lList = document.getElementById('landmarkList');
+  (CITY.landmarks || []).forEach(function (l) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'city-row';
+    b.dataset.id = l.id;
+    b.textContent = l.name;
+    var tag = document.createElement('span');
+    tag.className = 'kind-tag';
+    tag.textContent = l.kind;
+    b.appendChild(tag);
+    b.addEventListener('click', function () { showLandmark(l); });
+    lList.appendChild(b);
+  });
+
+  var sList = document.getElementById('streetList');
+  (CITY.streets || []).forEach(function (s) {
+    var row = document.createElement('div');
+    row.className = 'city-row city-row--static';
+    row.textContent = s.name;
+    var tag = document.createElement('span');
+    tag.className = 'kind-tag';
+    tag.textContent = s.kind;
+    row.appendChild(tag);
+    sList.appendChild(row);
+  });
+
+  var gen = CITY.generated || {};
+  document.getElementById('cityMeta').textContent =
+    'map/cities/' + CITY.region_id + '.json · seed ' + gen.seed + ' · ' + gen.at;
+})();
 </script>
 </body>
 </html>`;
@@ -3819,6 +4301,28 @@ function sendJson(res, data, status = 200, cacheSec = 0) {
   res.end(body);
 }
 
+const STATIC_FILE_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".md": "text/markdown; charset=utf-8",
+};
+/** Stream one file from a fixed static dir (traversal-guarded by caller). Follows /map-image pattern. */
+function serveStaticFile(res, abs, cacheSec) {
+  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
+    res.writeHead(404);
+    res.end("Not found");
+    return;
+  }
+  res.writeHead(200, {
+    "Content-Type": STATIC_FILE_TYPES[path.extname(abs).toLowerCase()] || "application/octet-stream",
+    "Cache-Control": `public, max-age=${cacheSec}`,
+  });
+  fs.createReadStream(abs).pipe(res);
+}
+
 function normalizeCampaignRelPath(imagePath) {
   if (!imagePath || typeof imagePath !== "string") return "";
   const normalized = imagePath.replace(/\\/g, "/").replace(/^\/+/, "");
@@ -4051,12 +4555,18 @@ function readCastSheetMarkdown(id) {
 function mePayload(req) {
   const session = sessionFromReq(req);
   const loggedIn = Boolean(session && session.id && session.id !== "public");
+  const role = loggedIn ? session.role || "user" : null;
   return {
     logged_in: loggedIn,
     id: loggedIn ? session.id : null,
     username: loggedIn ? session.username : null,
+    role,
+    avatar: loggedIn ? session.avatar || "" : null,
+    can_edit: !AUTH_GATING || Boolean(role && EDIT_ROLES.has(role)),
+    auth_gating: AUTH_GATING,
+    dev_auth: DEV_AUTH,
     discord_auth_required: REQUIRE_AUTH,
-    discord_configured: Boolean(OAUTH_CLIENT_ID && OAUTH_REDIRECT),
+    discord_configured: OAUTH_CONFIGURED,
     profile_storage: "client-v1",
     cloud_save: false,
   };
@@ -4387,6 +4897,8 @@ async function handleRequest(req, res) {
       ok: true,
       campaign: CAMPAIGN,
       discord_auth: REQUIRE_AUTH,
+      auth_gating: AUTH_GATING,
+      auth_db: Boolean(authStore),
       profile_storage: "client-v1",
       cast: true,
       registry: fs.existsSync(REGISTRY_JSON),
@@ -4394,21 +4906,30 @@ async function handleRequest(req, res) {
     return;
   }
 
+  const session = sessionFromReq(req);
+
   if (url === "/api/me") {
+    // Lazy refresh-token rotation: only calls Discord when the stored access token expired.
+    if (session && session.id !== "public" && authStore && OAUTH_CONFIGURED) {
+      await authStore.ensureFreshTokens(session.id, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET);
+    }
     sendJson(res, mePayload(req), 200, 0);
     return;
   }
 
   if (url === "/auth/discord") {
-    if (!OAUTH_CLIENT_ID || !OAUTH_REDIRECT) {
-      res.writeHead(503);
-      res.end("Discord OAuth not configured");
+    if (!OAUTH_CONFIGURED) {
+      res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end(
+        "Discord OAuth not configured" +
+          (DEV_AUTH ? " — dev stub: /auth/dev-login?as=owner|admin|user" : "")
+      );
       return;
     }
     const state = crypto.randomBytes(16).toString("hex");
     res.setHeader(
       "Set-Cookie",
-      `oauth_state=${state}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600`
+      `oauth_state=${state}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600${cookieSecureFlag()}`
     );
     const authUrl = new URL("https://discord.com/api/oauth2/authorize");
     authUrl.searchParams.set("client_id", OAUTH_CLIENT_ID);
@@ -4422,8 +4943,14 @@ async function handleRequest(req, res) {
   }
 
   if (url === "/auth/discord/callback") {
+    if (!OAUTH_CONFIGURED || !authStore) {
+      res.writeHead(503);
+      res.end("Discord OAuth not configured");
+      return;
+    }
     const cookies = parseCookies(req.headers.cookie);
-    if (q.searchParams.get("state") !== cookies.oauth_state) {
+    const state = q.searchParams.get("state") || "";
+    if (!state || !cookies.oauth_state || state !== cookies.oauth_state) {
       res.writeHead(403);
       res.end("Invalid OAuth state");
       return;
@@ -4435,15 +4962,34 @@ async function handleRequest(req, res) {
       return;
     }
     try {
-      const tok = await discordTokenExchange(code);
-      const user = await discordUser(tok.access_token);
-      const ok = await isGuildMember(user.id);
-      if (!ok) {
-        res.writeHead(403);
-        res.end("You must be a member of the campaign Discord server.");
-        return;
+      const tok = await authStore.exchangeCode({
+        code,
+        clientId: OAUTH_CLIENT_ID,
+        clientSecret: OAUTH_CLIENT_SECRET,
+        redirectUri: OAUTH_REDIRECT,
+      });
+      const user = await authStore.fetchDiscordUser(tok.access_token);
+      // Guild gate applies only when bot+guild are configured — a half-configured
+      // deploy must not lock everyone out.
+      if (DISCORD_GUILD_ID && DISCORD_BOT_TOKEN) {
+        const ok = await isGuildMember(user.id);
+        if (!ok) {
+          res.writeHead(403);
+          res.end("You must be a member of the campaign Discord server.");
+          return;
+        }
       }
-      setSessionCookie(res, { id: user.id, username: user.global_name || user.username });
+      const row = authStore.upsertUser({
+        discordId: user.id,
+        username: user.global_name || user.username,
+        avatarHash: user.avatar,
+      });
+      authStore.saveTokens(row.discord_id, tok);
+      const sess = authStore.createSession(row.discord_id, SESSION_DAYS);
+      res.setHeader("Set-Cookie", [
+        sessionCookieValue(sess.id, sess.expiresAt),
+        "oauth_state=; Path=/; HttpOnly; Max-Age=0",
+      ]);
       res.writeHead(302, { Location: "/" });
       res.end();
     } catch (e) {
@@ -4453,38 +4999,164 @@ async function handleRequest(req, res) {
     return;
   }
 
-  if (url === "/auth/logout") {
-    clearSessionCookie(res);
+  // Localhost-only dev stub (TABLESLOP_DEV_AUTH=1): mint a session without Discord.
+  if (url === "/auth/dev-login") {
+    if (!DEV_AUTH || !authStore) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    const ip = req.socket.remoteAddress || "";
+    if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") {
+      res.writeHead(403);
+      res.end("dev-login is localhost only");
+      return;
+    }
+    const as = q.searchParams.get("as") || "user";
+    if (as !== "owner" && as !== "admin" && as !== "user") {
+      res.writeHead(400);
+      res.end("as must be owner|admin|user");
+      return;
+    }
+    const row = authStore.upsertUser({
+      discordId: `dev-${as}`,
+      username: `dev-${as}`,
+      avatarHash: null,
+      forceRole: as, // dev stub only — the real OAuth path never force-sets roles
+    });
+    authStore.saveTokens(row.discord_id, {
+      access_token: `dev-access-${crypto.randomBytes(8).toString("hex")}`,
+      refresh_token: `dev-refresh-${crypto.randomBytes(8).toString("hex")}`,
+      expires_in: 604800,
+    });
+    const sess = authStore.createSession(row.discord_id, SESSION_DAYS);
+    res.setHeader("Set-Cookie", sessionCookieValue(sess.id, sess.expiresAt));
     res.writeHead(302, { Location: "/" });
     res.end();
     return;
   }
 
-  const session = sessionFromReq(req);
+  if (url === "/auth/logout") {
+    if (session && session.sid && authStore) authStore.deleteSession(session.sid);
+    res.setHeader("Set-Cookie", clearSessionCookieValue());
+    res.writeHead(302, { Location: "/" });
+    res.end();
+    return;
+  }
 
-  if (url === "/" || url === "/index.html") {
-    if (REQUIRE_AUTH && !session) {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(LOGIN_HTML);
+  // Owner-only user/role management.
+  if (url === "/api/auth/users") {
+    if (!authStore) {
+      sendJson(res, { error: "auth disabled" }, 404);
       return;
     }
-    const label =
-      REQUIRE_AUTH && session && session.username ? `@${session.username}` : "";
+    if (!session || session.role !== "owner") {
+      sendJson(res, { error: "owner only" }, session ? 403 : 401);
+      return;
+    }
+    if (req.method === "GET") {
+      sendJson(res, { users: authStore.listUsers() }, 200, 0);
+      return;
+    }
+    if (req.method === "POST") {
+      try {
+        const body = JSON.parse((await readBody(req)) || "{}");
+        const id = String(body.id || "");
+        const role = String(body.role || "");
+        if (!/^[A-Za-z0-9_-]{3,64}$/.test(id)) throw new Error("invalid user id");
+        authStore.setUserRole(id, role);
+        sendJson(res, { ok: true, users: authStore.listUsers() });
+      } catch (err) {
+        sendJson(res, { error: err.message || "role update failed" }, 400);
+      }
+      return;
+    }
+    res.writeHead(405);
+    res.end("Method not allowed");
+    return;
+  }
+
+  if (url === "/" || url === "/index.html") {
+    // Public view — login only gates editing, never viewing.
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(viewerHtml(label));
+    res.end(viewerHtml());
+    return;
+  }
+  // 3D island view (k3-3d-island-view) — public like the 2D map; rendering is client-side.
+  if (url === "/3d" || url === "/3d/" || url === "/3d/index.html") {
+    serveStaticFile(res, path.join(THREE_D_DIR, "index.html"), 300);
+    return;
+  }
+  if (url.startsWith("/3d/")) {
+    let rel = "";
+    try {
+      rel = decodeURIComponent(url.slice("/3d/".length));
+    } catch {
+      rel = "";
+    }
+    if (!rel || rel.includes("..") || path.isAbsolute(rel)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    serveStaticFile(res, path.join(THREE_D_DIR, rel), 300);
+    return;
+  }
+  // Vendored three.js (pinned, MIT — scripts/linuxbox/vendor/three/README.md). Public static lib.
+  if (url.startsWith("/vendor/three/")) {
+    let rel = "";
+    try {
+      rel = decodeURIComponent(url.slice("/vendor/three/".length));
+    } catch {
+      rel = "";
+    }
+    if (!rel || rel.includes("..") || path.isAbsolute(rel)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    serveStaticFile(res, path.join(VENDOR_THREE_DIR, rel), 604800);
     return;
   }
   if (url === "/api/map") {
-    if (REQUIRE_AUTH && !session) {
-      sendJson(res, { error: "login required" }, 401);
+    const data = loadMapJson();
+    // Markers with a generated city map get a link (checked per request — new
+    // city files appear without waiting out the map.json mtime cache).
+    for (const m of data.markers || []) {
+      if (m && CITY_ID_RE.test(m.id || "") && fs.existsSync(path.join(CITIES_DIR, `${m.id}.json`))) {
+        m.city_map = `/city/${m.id}`;
+      }
+    }
+    sendJson(res, data, 200, 300);
+    return;
+  }
+  // City detail maps (generated proposals; GM edits win) — public read like the island map.
+  const cityApiMatch = url.match(/^\/api\/city\/([a-z0-9-]+)$/);
+  if (cityApiMatch) {
+    const city = loadCityData(cityApiMatch[1]);
+    if (!city) {
+      sendJson(res, { error: "not_found" }, 404);
       return;
     }
-    sendJson(res, loadMapJson(), 200, 300);
+    sendJson(res, city, 200, 300);
+    return;
+  }
+  const cityMatch = url.match(/^\/city\/([a-z0-9-]+)$/);
+  if (cityMatch) {
+    const city = loadCityData(cityMatch[1]);
+    if (!city) {
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("No city map for this region yet");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(cityHtml(city));
     return;
   }
   if (url === "/api/map/coords" && req.method === "POST") {
-    if (REQUIRE_AUTH && !session) {
-      sendJson(res, { error: "login required" }, 401);
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
       return;
     }
     try {
@@ -4497,8 +5169,9 @@ async function handleRequest(req, res) {
     return;
   }
   if (url === "/api/map/regions-ui" && req.method === "POST") {
-    if (REQUIRE_AUTH && !session) {
-      sendJson(res, { error: "login required" }, 401);
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
       return;
     }
     try {
@@ -4526,10 +5199,6 @@ async function handleRequest(req, res) {
     return;
   }
   if (url === "/api/regions") {
-    if (REQUIRE_AUTH && !session) {
-      sendJson(res, { error: "login required" }, 401);
-      return;
-    }
     const board = loadRegionsBoard();
     if (!board) {
       sendJson(res, { error: "regions board missing" }, 404);
@@ -4541,19 +5210,11 @@ async function handleRequest(req, res) {
     return;
   }
   if (url === "/api/characters") {
-    if (REQUIRE_AUTH && !session) {
-      sendJson(res, { error: "login required" }, 401);
-      return;
-    }
     const includeHidden = q.searchParams.get("include_hidden") === "1";
     sendJson(res, loadCastRegistry({ includeHidden }), 200, 0);
     return;
   }
   if (url === "/api/characters/sheet") {
-    if (REQUIRE_AUTH && !session) {
-      sendJson(res, { error: "login required" }, 401);
-      return;
-    }
     const id = q.searchParams.get("id") || "";
     const sheet = readCastSheetMarkdown(id);
     if (!sheet) {
@@ -4564,11 +5225,6 @@ async function handleRequest(req, res) {
     return;
   }
   if (url === "/api/characters/image") {
-    if (REQUIRE_AUTH && !session) {
-      res.writeHead(401);
-      res.end("Unauthorized");
-      return;
-    }
     const id = q.searchParams.get("id") || "";
     const char = findCastCharacter(id);
     if (!char) {
@@ -4606,11 +5262,6 @@ async function handleRequest(req, res) {
     return;
   }
   if (url === "/map-image") {
-    if (REQUIRE_AUTH && !session) {
-      res.writeHead(401);
-      res.end("Unauthorized");
-      return;
-    }
     const data = loadMapJson();
     const imgRes = q.searchParams.get("res");
     const rel =
@@ -4640,11 +5291,6 @@ async function handleRequest(req, res) {
 
   const tileMatch = url.match(/^\/map-tiles\/(\d+)\/(\d+)\/(\d+)\.webp$/);
   if (tileMatch) {
-    if (REQUIRE_AUTH && !session) {
-      res.writeHead(401);
-      res.end("Unauthorized");
-      return;
-    }
     const [, z, y, x] = tileMatch;
     const abs = path.join(CAMPAIGN_DIR, "map", "tiles", z, y, `${x}.webp`);
     if (!fs.existsSync(abs)) {
@@ -4675,4 +5321,29 @@ function bindListen() {
   }
 }
 
-bindListen();
+async function main() {
+  if (REQUIRE_AUTH && !OAUTH_CONFIGURED && !DEV_AUTH) {
+    console.warn(
+      "tableslop: TABLESLOP_REQUIRE_DISCORD_AUTH=1 but OAuth env incomplete " +
+        "(need DISCORD_OAUTH_CLIENT_ID/SECRET, DISCORD_OAUTH_REDIRECT_URI, TABLESLOP_SESSION_SECRET) " +
+        "— running OPEN so nobody is locked out"
+    );
+  }
+  if (DEV_AUTH) {
+    console.warn("tableslop: TABLESLOP_DEV_AUTH=1 — /auth/dev-login stub enabled (localhost only)");
+  }
+  if (AUTH_GATING || DEV_AUTH) {
+    authStore = await new TableslopAuth(AUTH_DB_PATH, OWNER_DISCORD_ID).init();
+    authStore.pruneExpiredSessions();
+    console.log(
+      `tableslop: auth db ${AUTH_DB_PATH}  gating=${AUTH_GATING ? "on" : "off"}` +
+        (OWNER_DISCORD_ID ? "  owner=env" : "  owner=(unset — no TABLESLOP_OWNER_DISCORD_ID)")
+    );
+  }
+  bindListen();
+}
+
+main().catch((err) => {
+  console.error("tableslop: fatal boot error", err);
+  process.exit(1);
+});

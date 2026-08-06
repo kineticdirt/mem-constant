@@ -59,13 +59,24 @@
       },
       "paths_hint": [
         "campaigns/tropic-gooner/map/master-enhanced.png",
+        "campaigns/tropic-gooner/map/cities/",
         "scripts/linuxbox/tableslop-server.js",
+        "scripts/linuxbox/tableslop-auth.js",
+        "scripts/linuxbox/vendor/sql-js/sql-wasm.js",
+        "scripts/linuxbox/vendor/sql-js/sql-wasm.wasm",
+        "scripts/linuxbox/vendor/sql-js/LICENSE",
+        "scripts/linuxbox/tableslop-3d/index.html",
+        "scripts/linuxbox/tableslop-3d/app.js",
+        "scripts/linuxbox/vendor/three/README.md",
+        "scripts/linuxbox/vendor/three/three.module.min.js",
+        "scripts/linuxbox/vendor/three/three.core.min.js",
+        "scripts/linuxbox/vendor/three/OrbitControls.js",
         "campaigns/tropic-gooner/map/REGIONS-UI-LOCK.md",
         "agents/protected-runtime-paths.json"
       ],
       "restart": "linuxbox-tableslop",
       "verify_url": "http://127.0.0.1:8765/",
-      "note": "regions-ui.json is potato-owned (protected runtime); push-tableslop-map excludes it unless PUSH_REGIONS_UI=1 after non-empty potato\u2192PC pull."
+      "note": "regions-ui.json is potato-owned (protected runtime); push-tableslop-map excludes it unless PUSH_REGIONS_UI=1 after non-empty potato\u2192PC pull. Auth DB (agents/state/tableslop-auth.db) is gitignored runtime — never deployed; the sql.js vendor files MUST ship with the server or it MODULE_NOT_FOUNDs at boot."
     }
   ]
 }

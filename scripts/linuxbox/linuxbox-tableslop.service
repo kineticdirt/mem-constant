@@ -12,8 +12,9 @@ Environment=TABLESLOP_HOST=127.0.0.1
 Environment=TABLESLOP_PORT=8765
 Environment=TABLESLOP_CAMPAIGN=tropic-gooner
 ExecStart=/usr/bin/node /home/abhinav/agent-dump/scripts/linuxbox/tableslop-server.js
-Restart=on-failure
+Restart=always
 RestartSec=3
+StartLimitIntervalSec=0
 
 [Install]
 WantedBy=multi-user.target

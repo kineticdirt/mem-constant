@@ -1,0 +1,261 @@
+{
+  "_doc": "GENERATED proposal-grade city map — GM edits win. Districts/streets/landmarks are a seeded starting layout the GM can edit by hand; re-running gen-city-maps.mjs overwrites unless generated.gm_touched is set true. Coords share the island image-percent space (0..100, y down).",
+  "version": 1,
+  "region_id": "r03-crimson-quay",
+  "name": "Jackedsonville",
+  "blurb": "The island's big harbor city — ferry quay, foundries, and a market that never fully closes.",
+  "viewBox": "22.93 51.94 12.09 16.39",
+  "parent_region": {
+    "id": "r03-crimson-quay",
+    "name": "Jackedsonville",
+    "shape": "polygon",
+    "points": "24.64,56.71 24.23,55.84 23.89,55.24 23.67,54.34 23.98,53.71 24.53,53.11 25.1,52.77 25.73,52.81 26,52.68 27.08,53.7 27.66,54.18 28.62,54.58 29.82,54.65 30.44,54.68 30.74,55.58 30.77,55.8 30.98,55.96 31.42,56 31.51,55.94 31.56,56.09 31.65,56.43 32.05,56.37 32.38,56.56 32.62,56.72 32.67,56.94 32.97,57.31 33.16,57.84 33.09,58.34 33.39,59.88 33.84,60.76 34.27,61.39 33.43,62.26 32.82,62.89 32.76,62.39 32.26,62.39 32.19,62.76 32.28,63.64 32.19,63.86 31.35,64.35 31.38,64.99 31.27,65.49 31.01,65.16 30.44,65.35 30.15,65.48 30.48,65.76 30.66,65.93 30.32,66.15 29.58,66.48 29.1,66.37 28.77,66.64 28.59,66.45 28.59,66.96 28.44,67.54 28.35,67.58 28.13,67.42 27.93,66.99 27.98,66.6 28.13,66.33 28.17,66.04 28.05,65.89 27.92,65.7 27.83,65.33 27.66,65.04 27.53,64.79 27.46,64.04 27.23,63.79 27.16,63.38 27.53,63.01 27.54,62.58 27.37,62.48 27.41,62.26 27.53,61.92 27.81,61.73 27.75,61 28.16,60.38 28.02,60.03 27.69,59.9 27.43,59.62 27.59,59.44 27.54,59.09 27.46,58.73 27.23,58.53 27.13,58.4 27.05,58.15 26.77,58.04 26.54,58 26.41,57.85 26.32,57.68 26.08,57.37 25.9,57.13 25.67,56.84 25.36,56.66 25.06,56.78 24.68,56.8",
+    "fill": "#2a8f7a",
+    "stroke": "#1d6556",
+    "_doc": "Read-only reference copy of the GM-drawn region polygon from regions-ui.json. Edit the original, never this copy."
+  },
+  "center": {
+    "x": 29.23,
+    "y": 59.35
+  },
+  "districts": [
+    {
+      "id": "r03-crimson-quay-d-the-quay",
+      "name": "The Quay",
+      "shape": "polygon",
+      "points": "29.23,59.35 32.9,57.22 32.97,57.31 33.16,57.84 33.09,58.34 33.39,59.88 33.84,60.76 34.27,61.39 33.7,61.98",
+      "fill": "#7a8a5a",
+      "stroke": "#55603e",
+      "note": "Ferry front and ferry-town money; the city's handshake with the bay.",
+      "label_x": 31.88,
+      "label_y": 59.36
+    },
+    {
+      "id": "r03-crimson-quay-d-centro",
+      "name": "Centro",
+      "shape": "polygon",
+      "points": "29.23,59.35 29.47,54.63 29.82,54.65 30.44,54.68 30.74,55.58 30.77,55.8 30.98,55.96 31.42,56 31.51,55.94 31.56,56.09 31.65,56.43 32.05,56.37 32.38,56.56 32.62,56.72 32.67,56.94 32.9,57.22",
+      "fill": "#5a7a8a",
+      "stroke": "#3e5560",
+      "note": "Downtown blocks around the clocktower; clerks, fixers, reporters.",
+      "label_x": 30.61,
+      "label_y": 57.11
+    },
+    {
+      "id": "r03-crimson-quay-d-foundry-row",
+      "name": "Foundry Row",
+      "shape": "polygon",
+      "points": "29.23,59.35 33.7,61.98 33.43,62.26 32.82,62.89 32.76,62.39 32.26,62.39 32.19,62.76 32.28,63.64 32.19,63.86 31.35,64.35 31.38,64.99 31.27,65.49 31.01,65.16 30.44,65.35 30.15,65.48 30.48,65.76 30.66,65.93 30.32,66.15 29.58,66.48 29.56,66.48",
+      "fill": "#8a7a5a",
+      "stroke": "#60553e",
+      "note": "Industrial waterfront — smoke, union hall, deep-water piers.",
+      "label_x": 30.79,
+      "label_y": 62.02
+    },
+    {
+      "id": "r03-crimson-quay-d-loma-vista",
+      "name": "Loma Vista",
+      "shape": "polygon",
+      "points": "29.23,59.35 29.56,66.48 29.1,66.37 28.77,66.64 28.59,66.45 28.59,66.96 28.44,67.54 28.35,67.58 28.13,67.42 27.93,66.99 27.98,66.6 28.13,66.33 28.17,66.04 28.05,65.89 27.92,65.7 27.83,65.33 27.66,65.04 27.53,64.79 27.46,64.04 27.23,63.79 27.16,63.38 27.53,63.01 27.54,62.58 27.37,62.48 27.41,62.26 27.53,61.92 27.81,61.73 27.75,61 28.16,60.38 28.03,60.06",
+      "fill": "#6a8a6a",
+      "stroke": "#4a604a",
+      "note": "Residential hill above the port; bougainvillea and quiet money.",
+      "label_x": 28.42,
+      "label_y": 63.67
+    },
+    {
+      "id": "r03-crimson-quay-d-mercado-central",
+      "name": "Mercado Central",
+      "shape": "polygon",
+      "points": "24.63,56.68 24.23,55.84 23.89,55.24 23.67,54.34 23.98,53.71 24.53,53.11 25.1,52.77 25.73,52.81 26,52.68 27.08,53.7 27.66,54.18 28.62,54.58 29.47,54.63 29.23,59.35 26.29,57.65 26.08,57.37 25.9,57.13 25.67,56.84 25.36,56.66 25.06,56.78 24.82,56.79",
+      "fill": "#8a6a6a",
+      "stroke": "#604a4a",
+      "note": "Arcade of stalls spilling into side streets; best mangoes on the island.",
+      "label_x": 27.59,
+      "label_y": 56.18
+    },
+    {
+      "id": "r03-crimson-quay-d-barrio-alto",
+      "name": "Barrio Alto",
+      "shape": "polygon",
+      "points": "24.64,56.71 24.63,56.68 29.23,59.35 28.03,60.06 28.02,60.03 27.69,59.9 27.43,59.62 27.59,59.44 27.54,59.09 27.46,58.73 27.23,58.53 27.13,58.4 27.05,58.15 26.77,58.04 26.54,58 26.41,57.85 26.32,57.68 26.29,57.65 24.82,56.79 24.68,56.8",
+      "fill": "#7a6a8a",
+      "stroke": "#554e60",
+      "note": "Upper-west blocks of rooftop radios and domino leagues.",
+      "label_x": 28.08,
+      "label_y": 59.3
+    }
+  ],
+  "streets": [
+    {
+      "id": "r03-crimson-quay-s-quayside-loop",
+      "name": "Quayside Loop",
+      "kind": "main",
+      "points": "32.07,59.35 32.22,59.87 32.63,60.58 32.38,61.17 31.94,61.62 31.31,61.83 31.12,62.61 30.71,63.41 29.98,63.59 29.23,64.28 28.42,63.95 28,62.73 27.95,61.56 28.2,60.57 28.45,60 28.39,59.83 28.16,59.74 27.99,59.56 28.07,59.35 28.04,59.14 27.95,58.88 27.18,58.16 25.41,56.14 25.75,55.19 26.58,54.76 27.82,55.47 28.63,55.94 29.23,56.04 29.81,56.07 30.24,56.57 30.59,56.99 30.95,57.3 31.5,57.44 31.8,57.86 31.97,58.35 31.98,58.86 32.07,59.35"
+    },
+    {
+      "id": "r03-crimson-quay-s-crimson-boulevard",
+      "name": "Crimson Boulevard",
+      "kind": "main",
+      "points": "29.23,59.35 30.69,59.36 31.56,59.36"
+    },
+    {
+      "id": "r03-crimson-quay-s-avenida-jackedson",
+      "name": "Avenida Jackedson",
+      "kind": "main",
+      "points": "29.23,59.35 29.99,58.11 30.44,57.38"
+    },
+    {
+      "id": "r03-crimson-quay-s-foundry-road",
+      "name": "Foundry Road",
+      "kind": "main",
+      "points": "29.23,59.35 30.09,60.82 30.61,61.7"
+    },
+    {
+      "id": "r03-crimson-quay-s-subida-de-la-loma",
+      "name": "Subida de la Loma",
+      "kind": "side",
+      "points": "29.23,59.35 28.78,61.72 28.52,63.15"
+    },
+    {
+      "id": "r03-crimson-quay-s-calle-del-mercado",
+      "name": "Calle del Mercado",
+      "kind": "side",
+      "points": "29.23,59.35 28.33,57.61 27.78,56.56"
+    },
+    {
+      "id": "r03-crimson-quay-s-calle-de-las-flores",
+      "name": "Calle de las Flores",
+      "kind": "side",
+      "points": "29.23,59.35 28.6,59.32 28.22,59.3"
+    },
+    {
+      "id": "r03-crimson-quay-s-callejon-sin-nombre",
+      "name": "Callejón Sin Nombre",
+      "kind": "alley",
+      "points": "28.74,61.94 30.06,58"
+    },
+    {
+      "id": "r03-crimson-quay-s-paso-del-carbon",
+      "name": "Paso del Carbón",
+      "kind": "alley",
+      "points": "30.82,59.36 30.17,60.95"
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "r03-crimson-quay-l-crimson-quay-ferry-terminal",
+      "name": "Crimson Quay Ferry Terminal",
+      "kind": "dock",
+      "district": "r03-crimson-quay-d-the-quay",
+      "x": 31.29,
+      "y": 59.39,
+      "desc": "Hourly ferries across the middle bay; the old name survives here."
+    },
+    {
+      "id": "r03-crimson-quay-l-the-rusty-pelican",
+      "name": "The Rusty Pelican",
+      "kind": "bar",
+      "district": "r03-crimson-quay-d-the-quay",
+      "x": 31.88,
+      "y": 59.36,
+      "desc": "Longshoremen and off-shift ferry crews."
+    },
+    {
+      "id": "r03-crimson-quay-l-hotel-miramar",
+      "name": "Hotel Miramar",
+      "kind": "hotel",
+      "district": "r03-crimson-quay-d-the-quay",
+      "x": 31.88,
+      "y": 59.36,
+      "desc": "Bay-view balconies and lobby ceiling fans since forever."
+    },
+    {
+      "id": "r03-crimson-quay-l-foundry-union-hall",
+      "name": "Foundry Union Hall",
+      "kind": "civic",
+      "district": "r03-crimson-quay-d-foundry-row",
+      "x": 30.29,
+      "y": 60.91,
+      "desc": "Strike banners folded behind the meeting-room bar."
+    },
+    {
+      "id": "r03-crimson-quay-l-el-sotano",
+      "name": "El Sótano",
+      "kind": "hideout",
+      "district": "r03-crimson-quay-d-foundry-row",
+      "x": 30.43,
+      "y": 61.68,
+      "desc": "Basement card room under a shuttered chandlery."
+    },
+    {
+      "id": "r03-crimson-quay-l-muelle-grande",
+      "name": "Muelle Grande",
+      "kind": "dock",
+      "district": "r03-crimson-quay-d-foundry-row",
+      "x": 30.79,
+      "y": 62.02,
+      "desc": "Deep-water pier for the coastal freighters."
+    },
+    {
+      "id": "r03-crimson-quay-l-torre-del-reloj",
+      "name": "Torre del Reloj",
+      "kind": "civic",
+      "district": "r03-crimson-quay-d-centro",
+      "x": 30.4,
+      "y": 57.89,
+      "desc": "Clocktower; city-hall clerks smoke on the steps."
+    },
+    {
+      "id": "r03-crimson-quay-l-catedral-de-la-bahia",
+      "name": "Catedral de la Bahía",
+      "kind": "church",
+      "district": "r03-crimson-quay-d-centro",
+      "x": 30.61,
+      "y": 57.11,
+      "desc": "Twin towers, cool stone, noon mass in Spanish."
+    },
+    {
+      "id": "r03-crimson-quay-l-el-grifo-rojo",
+      "name": "El Grifo Rojo",
+      "kind": "bar",
+      "district": "r03-crimson-quay-d-centro",
+      "x": 30.61,
+      "y": 57.11,
+      "desc": "Reporters, fixers, and off-duty magistrates."
+    },
+    {
+      "id": "r03-crimson-quay-l-mercado-central-arcade",
+      "name": "Mercado Central Arcade",
+      "kind": "market",
+      "district": "r03-crimson-quay-d-mercado-central",
+      "x": 28.14,
+      "y": 56.93,
+      "desc": "Stalls under iron and glass; haggle or pay double."
+    },
+    {
+      "id": "r03-crimson-quay-l-estacion-de-la-loma",
+      "name": "Estación de la Loma",
+      "kind": "civic",
+      "district": "r03-crimson-quay-d-loma-vista",
+      "x": 28.78,
+      "y": 62.19,
+      "desc": "Hilltop stop on the coastal line; bougainvillea platform."
+    },
+    {
+      "id": "r03-crimson-quay-l-bar-las-antenas",
+      "name": "Bar Las Antenas",
+      "kind": "bar",
+      "district": "r03-crimson-quay-d-barrio-alto",
+      "x": 28.29,
+      "y": 59.16,
+      "desc": "Rooftop radio heads and the domino league finals."
+    }
+  ],
+  "generated": {
+    "by": "k3-city-map-gen",
+    "at": "2026-08-05",
+    "seed": 750358643,
+    "gm_touched": false
+  }
+}

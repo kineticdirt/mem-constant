@@ -1,0 +1,226 @@
+{
+  "_doc": "GENERATED proposal-grade city map — GM edits win. Districts/streets/landmarks are a seeded starting layout the GM can edit by hand; re-running gen-city-maps.mjs overwrites unless generated.gm_touched is set true. Coords share the island image-percent space (0..100, y down).",
+  "version": 1,
+  "region_id": "r02-porto-lujuria",
+  "name": "Porto Lujara",
+  "blurb": "Working port at the south tip of the middle bay — nets, manifests, hills.",
+  "viewBox": "32.5 58.98 11.2 12.22",
+  "parent_region": {
+    "id": "r02-porto-lujuria",
+    "name": "Porto Lujara",
+    "shape": "polygon",
+    "points": "37.04,59.54 38.89,59.54 41.11,60.37 42.59,61.67 43.15,62.69 42.78,62.69 42.69,63.43 41.85,63.24 41.2,65.19 40.56,65.37 40.56,66.02 39.91,66.3 40.09,67.04 40.93,67.41 40.56,67.5 40.37,68.98 38.98,68.33 37.87,68.98 37.5,68.89 37.04,69.91 37.31,70.19 36.57,70.65 35.93,69.63 35.19,69.91 34.54,69.44 34.63,68.43 33.98,67.5 34.44,67.04 34.44,65.93 34.91,65.37 34.91,63.89 34.81,63.52 33.7,63.52 33.06,62.13 34.72,60.46 36.94,59.63",
+    "fill": "rgba(180,180,180,0.18)",
+    "stroke": "#c0c0c0",
+    "_doc": "Read-only reference copy of the GM-drawn region polygon from regions-ui.json. Edit the original, never this copy."
+  },
+  "center": {
+    "x": 37.76,
+    "y": 64.27
+  },
+  "districts": [
+    {
+      "id": "r02-porto-lujuria-d-muelle-viejo",
+      "name": "Muelle Viejo",
+      "shape": "polygon",
+      "points": "37.04,59.54 38.89,59.54 40.56,60.17 37.76,64.27 34.93,60.38 36.94,59.63",
+      "fill": "#7a8a5a",
+      "stroke": "#55603e",
+      "note": "Old docks and the harbormaster's ledgers; everything lands here first.",
+      "label_x": 37.75,
+      "label_y": 61.31
+    },
+    {
+      "id": "r02-porto-lujuria-d-la-lonja",
+      "name": "La Lonja",
+      "shape": "polygon",
+      "points": "37.76,64.27 34.91,65.09 34.91,63.89 34.81,63.52 33.7,63.52 33.06,62.13 34.72,60.46 34.93,60.38",
+      "fill": "#5a7a8a",
+      "stroke": "#3e5560",
+      "note": "Fish auction at dawn; the smell reaches the hills by noon.",
+      "label_x": 34.71,
+      "label_y": 62.26
+    },
+    {
+      "id": "r02-porto-lujuria-d-warehouse-row",
+      "name": "Warehouse Row",
+      "shape": "polygon",
+      "points": "37.76,64.27 40.56,60.17 41.11,60.37 42.59,61.67 43.15,62.69 42.78,62.69 42.69,63.43 41.85,63.24 41.2,65.19 40.85,65.29",
+      "fill": "#8a7a5a",
+      "stroke": "#60553e",
+      "note": "Bonded stores and missing-manifest cages.",
+      "label_x": 40.19,
+      "label_y": 63.49
+    },
+    {
+      "id": "r02-porto-lujuria-d-casco-antiguo",
+      "name": "Casco Antiguo",
+      "shape": "polygon",
+      "points": "37.76,64.27 37.57,68.91 37.5,68.89 37.04,69.91 37.31,70.19 36.57,70.65 35.93,69.63 35.19,69.91 34.54,69.44 34.63,68.43 33.98,67.5 34.44,67.04 34.44,65.93 34.91,65.37 34.91,65.09",
+      "fill": "#6a8a6a",
+      "stroke": "#4a604a",
+      "note": "Colonial grid of posadas and chapels above the wharves.",
+      "label_x": 36.06,
+      "label_y": 66.5
+    },
+    {
+      "id": "r02-porto-lujuria-d-las-lomas",
+      "name": "Las Lomas",
+      "shape": "polygon",
+      "points": "37.76,64.27 40.85,65.29 40.56,65.37 40.56,66.02 39.91,66.3 40.09,67.04 40.93,67.41 40.56,67.5 40.37,68.98 38.98,68.33 37.87,68.98 37.57,68.91",
+      "fill": "#8a6a6a",
+      "stroke": "#604a4a",
+      "note": "Hill streets of captains' houses looking down at the bay.",
+      "label_x": 38.83,
+      "label_y": 67.1
+    }
+  ],
+  "streets": [
+    {
+      "id": "r02-porto-lujuria-s-ronda-del-puerto",
+      "name": "Ronda del Puerto",
+      "kind": "main",
+      "points": "40.38,64.27 40.24,64.71 39.81,65.02 39.72,65.4 39.39,65.64 39.71,66.59 39.6,67.46 38.83,67.21 38.3,67.3 37.76,67.55 36.98,68.7 36.38,68.06 35.62,67.97 35.46,67.02 35.36,66.28 35.44,65.61 35.77,65 35.77,64.62 35.77,64.27 35.74,63.91 34.64,63.13 34.72,62.52 35.16,62.08 35.57,61.66 36.12,61.42 36.65,61.22 37.19,61.02 37.76,60.96 38.35,60.96 38.92,61.1 39.47,61.3 40.07,61.52 40.55,61.93 41.05,62.37 41.41,62.94 40.55,63.78 40.38,64.27"
+    },
+    {
+      "id": "r02-porto-lujuria-s-calle-del-puerto",
+      "name": "Calle del Puerto",
+      "kind": "main",
+      "points": "37.76,64.27 37.75,62.64 37.75,61.67"
+    },
+    {
+      "id": "r02-porto-lujuria-s-calle-de-las-redes",
+      "name": "Calle de las Redes",
+      "kind": "main",
+      "points": "37.76,64.27 36.08,63.17 35.07,62.51"
+    },
+    {
+      "id": "r02-porto-lujuria-s-avenida-del-almacen",
+      "name": "Avenida del Almacén",
+      "kind": "main",
+      "points": "37.76,64.27 39.1,63.84 39.9,63.59"
+    },
+    {
+      "id": "r02-porto-lujuria-s-calle-real-de-lujara",
+      "name": "Calle Real de Lujara",
+      "kind": "side",
+      "points": "37.76,64.27 36.83,65.5 36.26,66.24"
+    },
+    {
+      "id": "r02-porto-lujuria-s-cuesta-de-la-virgen",
+      "name": "Cuesta de la Virgen",
+      "kind": "side",
+      "points": "37.76,64.27 38.35,65.82 38.7,66.76"
+    },
+    {
+      "id": "r02-porto-lujuria-s-callejon-de-los-siete-mares",
+      "name": "Callejón de los Siete Mares",
+      "kind": "alley",
+      "points": "38.4,65.97 37.75,62.5"
+    },
+    {
+      "id": "r02-porto-lujuria-s-bajada-del-pescador",
+      "name": "Bajada del Pescador",
+      "kind": "alley",
+      "points": "35.93,63.07 36.74,65.61"
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "r02-porto-lujuria-l-capitania-del-puerto",
+      "name": "Capitanía del Puerto",
+      "kind": "civic",
+      "district": "r02-porto-lujuria-d-muelle-viejo",
+      "x": 37.56,
+      "y": 62.29,
+      "desc": "Harbormaster's office — mooring fees and quiet bribes."
+    },
+    {
+      "id": "r02-porto-lujuria-l-muelle-de-carga",
+      "name": "Muelle de Carga",
+      "kind": "dock",
+      "district": "r02-porto-lujuria-d-muelle-viejo",
+      "x": 37.75,
+      "y": 61.82,
+      "desc": "Rust cranes unloading copra, rum, and unlisted crates."
+    },
+    {
+      "id": "r02-porto-lujuria-l-la-lonja-fishmarket",
+      "name": "La Lonja Fishmarket",
+      "kind": "market",
+      "district": "r02-porto-lujuria-d-la-lonja",
+      "x": 35.5,
+      "y": 63.14,
+      "desc": "Dawn auction; buy the catch or broker someone else's."
+    },
+    {
+      "id": "r02-porto-lujuria-l-bar-el-ancla-rota",
+      "name": "Bar El Ancla Rota",
+      "kind": "bar",
+      "district": "r02-porto-lujuria-d-la-lonja",
+      "x": 35.82,
+      "y": 62.69,
+      "desc": "Net-menders' bar; dice on the zinc counter."
+    },
+    {
+      "id": "r02-porto-lujuria-l-almacen-siete-mares",
+      "name": "Almacén Siete Mares",
+      "kind": "hideout",
+      "district": "r02-porto-lujuria-d-warehouse-row",
+      "x": 39.28,
+      "y": 63.69,
+      "desc": "Bonded warehouse with a cage the auditors never open."
+    },
+    {
+      "id": "r02-porto-lujuria-l-deposito-del-norte",
+      "name": "Depósito del Norte",
+      "kind": "civic",
+      "district": "r02-porto-lujuria-d-warehouse-row",
+      "x": 39.94,
+      "y": 63.52,
+      "desc": "Customs stores, perpetually audited, never closed."
+    },
+    {
+      "id": "r02-porto-lujuria-l-iglesia-de-la-virgen-del-muelle",
+      "name": "Iglesia de la Virgen del Muelle",
+      "kind": "church",
+      "district": "r02-porto-lujuria-d-casco-antiguo",
+      "x": 36.74,
+      "y": 65.8,
+      "desc": "Sailors light candles here before the crossing."
+    },
+    {
+      "id": "r02-porto-lujuria-l-posada-del-pescador",
+      "name": "Posada del Pescador",
+      "kind": "hotel",
+      "district": "r02-porto-lujuria-d-casco-antiguo",
+      "x": 36.32,
+      "y": 66.14,
+      "desc": "Twelve rooms, one parrot, no questions."
+    },
+    {
+      "id": "r02-porto-lujuria-l-mirador-de-las-lomas",
+      "name": "Mirador de las Lomas",
+      "kind": "civic",
+      "district": "r02-porto-lujuria-d-las-lomas",
+      "x": 38.23,
+      "y": 65.75,
+      "desc": "Hilltop lookout over the whole middle bay."
+    },
+    {
+      "id": "r02-porto-lujuria-l-casa-de-cartas",
+      "name": "Casa de Cartas",
+      "kind": "hideout",
+      "district": "r02-porto-lujuria-d-las-lomas",
+      "x": 38.65,
+      "y": 66.19,
+      "desc": "Quinta with a cellar game the police pretend not to know."
+    }
+  ],
+  "generated": {
+    "by": "k3-city-map-gen",
+    "at": "2026-08-05",
+    "seed": 3259753161,
+    "gm_touched": false
+  }
+}

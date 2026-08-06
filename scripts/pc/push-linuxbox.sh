@@ -88,6 +88,13 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/consume-inbox-answers.py
   scripts/linuxbox/kill-stale-chromium.sh
   scripts/linuxbox/tableslop-server.js
+  scripts/linuxbox/tableslop-auth.js
+  scripts/linuxbox/test-tableslop-auth.js
+  scripts/linuxbox/vendor/sql-js/sql-wasm.js
+  scripts/linuxbox/vendor/sql-js/sql-wasm.wasm
+  scripts/linuxbox/vendor/sql-js/LICENSE
+  scripts/linuxbox/tableslop-3d
+  scripts/linuxbox/vendor/three
   scripts/linuxbox/campaigns-availability-server.js
   scripts/linuxbox/campaigns-availability-selfcheck.js
   scripts/linuxbox/campaign-discord-probe.py
@@ -99,6 +106,7 @@ LINUXBOX_SCRIPT_PATHS=(
   campaigns/nyc-mafia-dnd/discord.json
   campaigns/tropic-gooner/tracker.json
   campaigns/tropic-gooner/discord.json
+  campaigns/tropic-gooner/map/cities
   scripts/linuxbox/agent-pod-scheduler.sh
   scripts/linuxbox/deepsec-scan.sh
   scripts/linuxbox/archive_meta.py
