@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db-20260805-lane-parity-r1">
+  <meta name="dash-build" content="db_20260805-hub-status-colors-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -46,6 +46,8 @@
       background-size: 48px 48px;
       color: var(--text);
     }
+    a { color: var(--accent); }
+    a:hover { color: var(--text); }
     /* Desktop: named areas so a visible mobile-page-select sibling cannot steal col1 */
     .app {
       display: grid;
@@ -1393,6 +1395,15 @@
     }
     .active-work-card.running-now .aw-label { color: var(--warn); }
     .running-now-idle { color: var(--muted); font-size: 0.78rem; }
+    .active-work-legend {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      font-size: 0.6rem; color: var(--muted); margin-left: auto;
+    }
+    .aw-legend { display: flex; align-items: center; gap: 0.2rem; }
+    .aw-legend-dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      flex-shrink: 0;
+    }
     .topbar .running-now-chrome {
       font-family: "IBM Plex Mono", monospace; font-size: 0.68rem;
       color: var(--muted); max-width: min(42vw, 420px); overflow: hidden;
@@ -1678,9 +1689,11 @@
     .user-task-card .user-task-status {
       color: var(--accent); border: 1px solid var(--line); padding: 0.05rem 0.3rem;
     }
-    .user-task-card .user-task-status.open { color: var(--aw-in-progress); border-color: color-mix(in srgb, var(--aw-in-progress) 40%, var(--line)); }
-    .user-task-card .user-task-status.done { color: var(--ok); }
-    .user-task-card .user-task-status.blocked { color: var(--bad); }
+    .user-task-card .user-task-status.open,
+    .user-task-card .user-task-status.in_progress { color: var(--aw-in-progress); border-color: color-mix(in srgb, var(--aw-in-progress) 40%, var(--line)); }
+    .user-task-card .user-task-status.done { color: var(--aw-task-complete); border-color: color-mix(in srgb, var(--aw-task-complete) 40%, var(--line)); }
+    .user-task-card .user-task-status.succeeded { color: var(--aw-succeeded); border-color: color-mix(in srgb, var(--aw-succeeded) 40%, var(--line)); }
+    .user-task-card .user-task-status.blocked { color: var(--aw-failed); border-color: color-mix(in srgb, var(--aw-failed) 40%, var(--line)); }
     .user-task-card .user-task-notes {
       font-size: 0.72rem; color: var(--muted); line-height: 1.4; margin: 0.25rem 0 0.35rem;
       display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
@@ -3017,6 +3030,12 @@
               <section class="active-work" id="active-work" aria-label="Active work">
                 <div class="active-work-head">
                   <h2>Active now</h2>
+                  <div class="active-work-legend" aria-label="Status color legend">
+                    <span class="aw-legend"><span class="aw-legend-dot" style="background:var(--aw-failed)"></span>failed</span>
+                    <span class="aw-legend"><span class="aw-legend-dot" style="background:var(--aw-in-progress)"></span>in progress</span>
+                    <span class="aw-legend"><span class="aw-legend-dot" style="background:var(--aw-succeeded)"></span>ok</span>
+                    <span class="aw-legend"><span class="aw-legend-dot" style="background:var(--aw-task-complete)"></span>done</span>
+                  </div>
                   <div class="active-work-links" id="active-work-links"></div>
                   <span class="meta" id="active-work-meta"></span>
                 </div>

@@ -35,7 +35,7 @@ Active SoT for the **1950s–60s culture × late-1800s spell-tech** canon. Super
 | **`2026-08-01-faction-relations.md`** | Syndicate friction and boundaries. |
 | **`2026-08-01-npc-roster.md`** | Fixers, contacts, street NPCs. |
 | **`2026-08-01-npc-roster-expansion.md`** | Additional operators and union reps. |
-| **`2026-08-01-rumors-table.md`** | Playable rumor hooks. |
+| **`2026-08-01-rumors-table.md`** | Playable rumor hooks (C-2 between-job hooks also in `worldbuilding/strokes/c2-rumors-table.md`). |
 | **`2026-08-01-police-ocu.md`** | OCU / magical crime taskforce. |
 | **`2026-08-01-player-handout.md`** | Player-facing primer (draft). |
 

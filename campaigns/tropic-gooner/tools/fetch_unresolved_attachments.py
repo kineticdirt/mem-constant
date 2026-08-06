@@ -5,8 +5,8 @@ Re-download missing sheet attachments from Discord channel history.
 Looks up basenames in recent history of channels inferred from discord-export
 folder names (…-<channel_id>/). Batches downloads to protect ~2GB RAM.
 
-Requires DISCORD_TOKEN / DISCORD_BOT_TOKEN in campaigns/tropic-gooner/.env
-or ~/.hermes/.env. Message Content Intent must be enabled.
+Uses shared _discord_token() from discord_token.py (checks DISCORD_BOT_TOKEN,
+DISCORD_TOKEN, BOT_TOKEN across campaign .env, hunter profile, and ~/.hermes/.env).
 
 Prints one JSON summary line on stdout (no secrets).
 """
@@ -15,7 +15,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -25,18 +24,16 @@ EXPORT = ROOT / "discord-export"
 PORTRAITS = ROOT / "characters" / "portraits"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
+sys.path.insert(0, str(ROOT / "scripts" / "linuxbox"))
+from discord_token import _discord_token
+
 
 def load_token() -> str | None:
-    home = Path.home()
-    for p in (ROOT / ".env", home / ".hermes" / ".env"):
-        if not p.is_file():
-            continue
-        for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
-            if line.startswith(("DISCORD_TOKEN=", "DISCORD_BOT_TOKEN=", "BOT_TOKEN=")):
-                v = line.split("=", 1)[1].strip().strip("\"'")
-                if v:
-                    return v
-    return None
+    """Delegate to shared _discord_token(); return None on SystemExit."""
+    try:
+        return _discord_token()
+    except SystemExit:
+        return None
 
 
 def channel_ids_from_export() -> list[int]:

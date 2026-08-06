@@ -33,11 +33,17 @@ All F-1…F-3 closed.
 
 - [x] **G-0** GM era lock — calendar/culture + tech skin + void (`LOCKS.md` 2026-08-01 night)
 - [x] **G-1** Dialectic — **borough vs ward grain** → `strokes/borough-grain-draft.md` (expanded 2026-08-02)
-- [ ] **G-2** Dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md`
-- [ ] **G-3** Dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md`
-- [ ] **G-4** Detail — **priority borough flesh** (city-economics, nightlife-culture, borough-city-build)
-- [ ] **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land
+- [x] **G-2** Dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md`
+- [x] **G-3** Dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md`
+- [x] **G-4** Detail — **priority borough flesh** (city-economics, nightlife-culture, borough-city-build)
+- [x] **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land → `drip/2026-08-05-post-borough-stub-drip.md`
 
 ---
 
 *Note: All core reports (`era-and-tone`, `magic-in-the-city`, `five-families`, `opening-job`, `pc-roles`, `locations`, `law-and-magic`, `session-01-outline`, `the-below`) have been fully rewritten and locked under uneven-stack NYC (mid-century culture + late-1800s spell-tech; B14 — no exact year).*
+
+## Done
+- 2026-08-06: **G-2** Dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md` — evidence on disk (think-reconcile)
+- 2026-08-05: **G-3** Dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md` — already canon (promoted 2026-08-01 think, status: canon)
+- 2026-08-05: **G-4** Detail — **priority borough flesh** → `worldbuilding/details/city-economics.md`, `worldbuilding/details/nightlife-culture.md`, `worldbuilding/strokes/borough-city-build.md` — all three canonical detail layers present (think-reconcile)
+- 2026-08-05: **G-5** Drip-steer — post-borough-stub options → `worldbuilding/drip/2026-08-05-post-borough-stub-drip.md` — draft-dependant steer file created (awaiting GM pick A/B/C on contested zones / borough flesh)

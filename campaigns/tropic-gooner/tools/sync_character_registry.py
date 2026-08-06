@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -144,7 +145,10 @@ def build_registry(rows: list[dict], existing: dict) -> dict:
         display = canon["char_name"] or canon["slug"].replace("-", " ").title()
         prev = old_by_id.get(char_id) or old_by_id.get(canon["slug"]) or {}
 
+        # Start from prev so GM/runtime fields (hidden, canonical_id, portraits,
+        # relationships, etc.) survive a regen; scanned fields override below.
         entry = {
+            **prev,
             "id": char_id,
             "display_name": prev.get("display_name") or display,
             "story_path": canon["path"],
@@ -157,12 +161,22 @@ def build_registry(rows: list[dict], existing: dict) -> dict:
             "aliases": sorted(set(aliases + prev.get("aliases", []))),
             "duplicate_paths": sorted(set(dup_paths + prev.get("duplicate_paths", []))),
         }
-        if entry["aliases"] or entry["duplicate_paths"]:
+        if (entry["aliases"] or entry["duplicate_paths"]) and "Auto-linked duplicates" not in entry["notes"]:
             entry["notes"] = (entry["notes"] + " Auto-linked duplicates — canonical file is story_path.").strip()
         characters.append(entry)
 
+    # Union: keep existing rows the scan cannot reproduce (GM-added, portal rows,
+    # non-discord story sheets). Without this every --write silently deletes them
+    # (the 2026-08-06 v32→v2 wipe class — celine/alisa-stein/jinpei-mclaren et al).
+    scanned_ids = {c["id"] for c in characters}
+    for prev_row in existing.get("characters", []):
+        if prev_row.get("id") and prev_row["id"] not in scanned_ids:
+            characters.append(prev_row)
+
+    # Monotonic version: never reset below the on-disk version.
+    prev_version = int(existing.get("version") or 1)
     return {
-        "version": 2,
+        "version": max(2, prev_version + 1),
         "campaign_id": "tropic-gooner",
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "goal_doc": GOAL,
@@ -173,6 +187,8 @@ def build_registry(rows: list[dict], existing: dict) -> dict:
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--write", action="store_true", help="Write characters-registry.json")
+    p.add_argument("--allow-shrink", action="store_true",
+                   help="Permit a write that removes rows (default: refuse)")
     args = p.parse_args()
 
     existing = {}
@@ -190,6 +206,15 @@ def main() -> None:
             print(f"    alias duplicate: {d}")
 
     if args.write:
+        old_count = len(existing.get("characters", []))
+        new_count = len(reg["characters"])
+        old_ids = {c.get("id") for c in existing.get("characters", [])}
+        new_ids = {c.get("id") for c in reg["characters"]}
+        if new_count < old_count and not args.allow_shrink:
+            print(f"REFUSING write: row count would drop {old_count} → {new_count} "
+                  f"(lost: {sorted(old_ids - new_ids)[:8]}). Pass --allow-shrink to override.",
+                  file=sys.stderr)
+            raise SystemExit(2)
         REGISTRY.write_text(json.dumps(reg, indent=2) + "\n", encoding="utf-8")
         print(f"Wrote {REGISTRY.relative_to(ROOT.parent)}")
     else:

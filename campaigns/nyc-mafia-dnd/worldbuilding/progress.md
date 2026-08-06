@@ -30,15 +30,20 @@ All F-1…F-3 closed. Hermes think no longer skips NYC for Phase F.
 - [x] **F-3** Cursor Auto — drip **C** family-pressure vignettes ×3 → `vignettes/family-pressure/`
   - **Done (2026-08-01):** `01-chen-okafor-numbers-refusal.md`, `02-moretti-funeral-second-question.md`, `03-kowalski-river-disposal-ethics.md`; all `draft-dependent: true`; not Session 1 raid.
 
-## Phase G — Boroughs & city flesh (**era unlocked 2026-08-02**)
+## Phase G — Boroughs & city flesh (Active)
 
-> **Era/tech unlocked:** Calendar **1950s–1960s**, spell-tech tree locked, automata = threat, void 1931/OTR/BCC. Continue G-2…G-5 on ward-cluster flesh. Do **not** extend 1931 borough drip. GM questions file may still need header retarget: `drip/2026-08-01-boroughs-gm-questions.md`.
+> **Era/Tech Locked:** Calendar **1950s–1960s**, spell-tech tree locked, automata = threat, void 1931/OTR/BCC. All core play reports reskinned under `reports/2026-08-01-*.md`.
 
-- [x] **G-0** GM era lock — calendar/culture + tech skin + void (`LOCKS.md` 2026-08-01 night); automata origin still **draft**
-- [x] **G-1** dialectic — **borough vs ward grain** → `strokes/borough-grain-draft.md` (canon; expanded 2026-08-02)
+- [x] **G-0** GM era lock — calendar/culture + tech skin + void (`LOCKS.md` 2026-08-01 night)
+- [x] **G-1** Dialectic — **borough vs ward grain** → `strokes/borough-grain-draft.md` (expanded 2026-08-02)
 - [ ] **G-2** dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md` (Q3 contested zones still open)
+
+## Phase C — Playable tools (Active)
+
+- [x] **C-2** Rumors table — between-job hooks (12 hooks) → `strokes/c2-rumors-table.md`
+  - 2026-08-05: Created `strokes/borough-contested-zones-draft.md` — draft-dependent stub enumerating candidate contested zones from borough-family-turf-draft.md §Deferred; awaiting GM Q3 pick to promote to canon.
 - [ ] **G-3** dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md` (reskinned 2026-08-02; confirm promote)
-- [ ] **G-4** detail — **priority borough flesh** per Q12 order (keyed spots only; no full location bible yet)
-- [ ] **G-5** drip-steer — post-borough-stub steer options after G-1…G-3 land
+- [x] **G-4** Detail — **priority borough flesh** (city-economics, nightlife-culture, borough-city-build) → `strokes/borough-flesh-draft.md` (draft-dependent; covers Q4/Q5/Q10/Q11/Q12 open forks)
+- [ ] **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land
 
 **Also 2026-08-02:** `strokes/era-law-pack.md` marked **void-for-play** (1931 archive). Phase C reports reskinned under `reports/2026-08-01-*.md`.

@@ -31,13 +31,12 @@ if [[ ! -f "${ENV_FILE}" ]]; then
 fi
 
 if ! grep -qE '^DISCORD_BOT_TOKEN=' "${ENV_FILE}" 2>/dev/null; then
-  if grep -qE '^DISCORD_TOKEN=' "${CAMPAIGN_ENV}" 2>/dev/null; then
-    tok=$(grep '^DISCORD_TOKEN=' "${CAMPAIGN_ENV}" | cut -d= -f2-)
-    echo "DISCORD_BOT_TOKEN=${tok}" >> "${ENV_FILE}"
-  else
+  tok=$(python3 "${REPO}/scripts/linuxbox/discord_token.py" 2>/dev/null) || tok=""
+  if [[ -z "${tok}" ]]; then
     echo "Set DISCORD_BOT_TOKEN in ${ENV_FILE} (Discord Developer Portal → Bot → Token)." >&2
     exit 1
   fi
+  echo "DISCORD_BOT_TOKEN=${tok}" >> "${ENV_FILE}"
 fi
 
 if ! grep -qE '^DISCORD_ALLOWED_USERS=' "${ENV_FILE}" 2>/dev/null; then
@@ -102,8 +101,8 @@ HERMES_BIN="${HOME}/.local/bin/hermes"
 if "${HERMES_BIN}" profile show hunter-reckoning >/dev/null 2>&1; then
   prof_env="${HERMES_ROOT}/profiles/hunter-reckoning/.env"
   grep -q '^DISCORD_BOT_TOKEN=' "${prof_env}" 2>/dev/null || {
-    tok=$(grep '^DISCORD_BOT_TOKEN=' "${ENV_FILE}" | cut -d= -f2-)
-    echo "DISCORD_BOT_TOKEN=${tok}" >> "${prof_env}"
+    tok=$(python3 "${REPO}/scripts/linuxbox/discord_token.py" 2>/dev/null) || tok=""
+    [[ -n "${tok}" ]] && echo "DISCORD_BOT_TOKEN=${tok}" >> "${prof_env}"
   }
   grep -q '^DISCORD_ALLOWED_USERS=' "${prof_env}" 2>/dev/null || {
     users=$(grep '^DISCORD_ALLOWED_USERS=' "${ENV_FILE}" | cut -d= -f2-)

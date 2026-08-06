@@ -15,4 +15,7 @@ Spec: `agents/HUNTER_RECKONING_TASK.md` · RP budget **$5/day** · profile **`hu
 
 ## Phase 3 — Map
 
-- [ ] Hunter scene markers in `map/map.json` (after base image)
+- [x] Hunter scene markers in `map/map.json` (after base image)
+
+## Done
+- 2026-08-06: Hunter scene markers in `map/map.json` (after base image) — evidence on disk (think-reconcile)

@@ -2,8 +2,8 @@
 """Probe Discord visibility + last-activity for campaign trackers.
 
 Writes agents/state/campaign-discord-status.json (no tokens, no message bodies).
-Uses DISCORD_BOT_TOKEN (preferred) from hunter profile, tropic .env, or ~/.hermes/.env;
-DISCORD_TOKEN is a compat alias only.
+Uses shared _discord_token() from discord_token.py (checks DISCORD_BOT_TOKEN,
+DISCORD_TOKEN, BOT_TOKEN across campaign .env, hunter profile, and ~/.hermes/.env).
 
 Specs: campaigns/*/discord.json, else tracker.json discord{} for TRACKED ids.
 
@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,33 +22,16 @@ ROOT = Path(__file__).resolve().parents[2]
 STATUS_PATH = ROOT / "agents" / "state" / "campaign-discord-status.json"
 TRACKED_IDS = ("eurosluts", "nyc-mafia-dnd", "tropic-gooner")
 
+sys.path.insert(0, str(ROOT / "scripts" / "linuxbox"))
+from discord_token import _discord_token
+
 
 def load_token() -> str | None:
-    # Prefer DISCORD_BOT_TOKEN; DISCORD_TOKEN is compat alias only.
-    candidates = [
-        Path.home() / ".hermes" / "profiles" / "hunter-reckoning" / ".env",
-        ROOT / "campaigns" / "tropic-gooner" / ".env",
-        Path.home() / ".hermes" / ".env",
-    ]
-    for envp in candidates:
-        if not envp.is_file():
-            continue
-        found_alias = None
-        for line in envp.read_text(encoding="utf-8", errors="replace").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            k, _, v = line.partition("=")
-            vv = v.strip().strip('"').strip("'")
-            if not vv:
-                continue
-            if k == "DISCORD_BOT_TOKEN":
-                return vv
-            if k in ("DISCORD_TOKEN", "BOT_TOKEN") and found_alias is None:
-                found_alias = vv
-        if found_alias:
-            return found_alias
-    return os.environ.get("DISCORD_BOT_TOKEN") or os.environ.get("DISCORD_TOKEN")
+    """Delegate to shared _discord_token(); return None on SystemExit."""
+    try:
+        return _discord_token()
+    except SystemExit:
+        return None
 
 
 def load_specs() -> list[dict]:

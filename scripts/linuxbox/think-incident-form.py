@@ -335,6 +335,9 @@ def cmd_rollup(args: argparse.Namespace) -> int:
         if key in prior_items and isinstance(prior_items[key], dict):
             if prior_items[key].get("user_task_id"):
                 item["user_task_id"] = prior_items[key]["user_task_id"]
+        # Skip resolved recurrences — already-fixed work should not re-trigger cleanup tasks
+        if item.get("resolved"):
+            continue
         item["severity"] = severity_for(item)
         item["flagged_review"] = int(item["count"]) >= 2
         if (
