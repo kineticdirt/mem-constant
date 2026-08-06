@@ -77,6 +77,7 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/refresh-bin-shadows.sh
   scripts/linuxbox/lib/think-log-classify.sh
   scripts/linuxbox/think-continuity-seed.py
+  scripts/linuxbox/goal-inject.py
   scripts/linuxbox/resource_governor.py
   agents/think-agent-setup.md
   scripts/linuxbox/agent-cycle-has-work.py

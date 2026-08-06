@@ -56,6 +56,19 @@ PROMPT="${PROMPT}
 
 (Optional, end of run) If you hit friction worth remembering — unclear env, repeated failures, misleading UX, regressions — append one entry to agents/papercuts.md per docs/agents/papercuts.md. Never let papercut logging block or replace the task."
 
+# Human goals from Hub Tasks → Active now — same injection the think lane gets,
+# so this run can check its actions against what is expected. Pause NOT honored
+# here: an explicit Cursor run is itself a human launch.
+GOAL_CTRL="${REPO}/agents/state/agent-goal-control.json"
+if [[ -f "${GOAL_CTRL}" ]]; then
+  GOAL_INJECT="$(python3 "${REPO}/scripts/linuxbox/goal-inject.py" "${GOAL_CTRL}" 2>/dev/null || true)"
+  if [[ -n "${GOAL_INJECT}" ]]; then
+    PROMPT="${GOAL_INJECT}
+
+${PROMPT}"
+  fi
+fi
+
 VARIANT="${CURSOR_VARIANT:-auto}"
 # Potato policy: Cursor Auto only — never pin paid SDK models from the wrapper.
 if [[ "${VARIANT}" != "auto" && "${VARIANT}" != "default" ]]; then

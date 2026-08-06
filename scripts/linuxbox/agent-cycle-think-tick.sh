@@ -1202,26 +1202,7 @@ fi
 # Human goal redirect from Hub Tasks → Active now (pause handled earlier)
 GOAL_CTRL="${REPO}/agents/state/agent-goal-control.json"
 if [[ -f "${GOAL_CTRL}" ]]; then
-  GOAL_INJECT="$(python3 - "${GOAL_CTRL}" <<'PY'
-import json, sys
-from pathlib import Path
-p = Path(sys.argv[1])
-try:
-    d = json.loads(p.read_text(encoding="utf-8"))
-except Exception:
-    raise SystemExit(0)
-if d.get("pause"):
-    raise SystemExit(0)
-redir = (d.get("redirect_goal") or "").strip()
-note = (d.get("human_note") or "").strip()
-if redir or note:
-    print("HUMAN GOAL OVERRIDE (from Hub Tasks Active now — obey this over the lane item if they conflict):")
-    if redir:
-        print(f"  Redirect: {redir[:500]}")
-    if note and note != redir:
-        print(f"  Note: {note[:500]}")
-PY
-)"
+  GOAL_INJECT="$(python3 "${REPO}/scripts/linuxbox/goal-inject.py" --respect-pause "${GOAL_CTRL}" 2>/dev/null || true)"
   if [[ -n "${GOAL_INJECT}" ]]; then
     PROMPT="${GOAL_INJECT}
 
