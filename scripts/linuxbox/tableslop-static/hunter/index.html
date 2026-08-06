@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Hunter Board — Isla Primavera — tableslop</title>
+<link rel="icon" href="data:,"/>
+<style>
+  :root{
+    --void:#0d0221; --panel:#16082a; --line:#ff71ce; --text:#e8f4ff; --muted:#9d8fc9;
+    --pink:#ff71ce; --cyan:#01cdfe; --purple:#b967ff; --sun:#fffb96; --magenta:#ff006e;
+    --paper:#efe6c8; --paper-ink:#2a1e12; --cork:#3a2418; --string:#ff2d78;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; min-height:100%; background:var(--void); color:var(--text);
+    font-family:'Share Tech Mono', 'VT323', monospace; }
+  body::after { /* faint CRT scanlines, localized chrome */
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:60; opacity:.05;
+    background:repeating-linear-gradient(0deg, transparent 0 2px, #000 2px 3px); }
+  .hud { position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:10px;
+    padding:8px 14px; background:linear-gradient(180deg, rgba(13,2,33,.95), rgba(13,2,33,.75) 85%, transparent);
+    border-bottom:1px solid transparent;
+    border-image:linear-gradient(90deg, var(--pink), var(--cyan), var(--purple)) 1; }
+  .hud-brand { font:700 1.05rem Orbitron, 'Share Tech Mono', monospace; letter-spacing:.08em;
+    background:linear-gradient(90deg, var(--pink), var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hud-setting { font:1.15rem VT323, 'Share Tech Mono', monospace; color:var(--sun); }
+  .hud-board { font:700 .8rem Orbitron, 'Share Tech Mono', monospace; letter-spacing:.18em;
+    color:var(--cyan); border:1px solid var(--cyan); border-radius:2px; padding:2px 8px;
+    background:rgba(1,205,254,.08); }
+  .hud-spacer { margin-left:auto; }
+  .hud-note { color:var(--muted); font-size:.72rem; }
+  .hud-btn { color:var(--cyan); background:rgba(1,205,254,.08); border:1px solid var(--cyan);
+    padding:3px 10px; font:inherit; font-size:.78rem; cursor:pointer; border-radius:2px; }
+  .hud-btn:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
+
+  #board { display:grid; grid-template-columns:290px minmax(0,1fr) 330px; gap:12px;
+    padding:12px 14px 26px; align-items:start; }
+  .colhead { font:700 .78rem Orbitron, 'Share Tech Mono', monospace; letter-spacing:.16em;
+    color:var(--muted); text-transform:uppercase; margin:2px 0 8px; }
+
+  /* ---- case list ---- */
+  #caseList { display:flex; flex-direction:column; gap:8px; max-height:calc(100vh - 120px);
+    overflow:auto; padding-right:4px; }
+  .case-card { text-align:left; background:rgba(22,8,42,.88); border:1px solid rgba(157,143,201,.4);
+    border-left:3px solid var(--muted); border-radius:4px; padding:8px 10px; cursor:pointer;
+    color:var(--text); font:inherit; }
+  .case-card:hover { border-color:var(--cyan); }
+  .case-card.is-active { border-color:var(--pink); border-left-color:var(--pink);
+    box-shadow:0 0 14px rgba(255,113,206,.22); }
+  .case-card .cc-name { font:1.02rem VT323, 'Share Tech Mono', monospace; color:var(--sun); }
+  .case-card .cc-sub { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
+  .kind-chip { font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; padding:1px 6px;
+    border:1px solid currentColor; border-radius:2px; }
+  .danger-pips { color:var(--sun); font-size:.72rem; letter-spacing:.1em; }
+  .danger-pips .off { color:rgba(157,143,201,.45); }
+  .cc-veil { margin-left:auto; font-size:.66rem; color:var(--muted); }
+  .cc-veil b { color:var(--cyan); font-weight:400; }
+
+  /* ---- corkboard ---- */
+  #corkWrap { background:
+      radial-gradient(circle at 18% 22%, rgba(255,113,206,.10), transparent 42%),
+      radial-gradient(circle at 82% 70%, rgba(1,205,254,.08), transparent 46%),
+      repeating-linear-gradient(35deg, rgba(255,251,150,.028) 0 2px, transparent 2px 7px),
+      repeating-linear-gradient(-55deg, rgba(255,113,206,.028) 0 2px, transparent 2px 9px),
+      linear-gradient(180deg, #241031, #1a0a28);
+    border:1px solid rgba(185,103,255,.45); border-radius:6px; padding:12px;
+    box-shadow:inset 0 0 40px rgba(0,0,0,.55); min-height:70vh; }
+  #caseHead { background:rgba(22,8,42,.8); border:1px solid var(--line); border-radius:4px;
+    padding:10px 12px; }
+  #caseHead .ch-name { font:1.5rem VT323, 'Share Tech Mono', monospace; color:var(--sun); }
+  #caseHead .ch-sub { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:5px; }
+  #caseHead .ch-turf { color:var(--muted); font-size:.78rem; }
+  #caseHead .ch-cover { margin-top:8px; font-size:.82rem; color:var(--text); line-height:1.5; }
+  #caseHead .ch-cover b { color:var(--cyan); font-weight:400; }
+
+  #veilRow { display:flex; align-items:center; gap:10px; margin:10px 2px 0; }
+  #veilMeter { position:relative; flex:1; height:14px; background:rgba(13,2,33,.9);
+    border:1px solid rgba(157,143,201,.5); border-radius:3px; overflow:hidden; }
+  #veilFill { height:100%; width:0%; transition:width .25s ease;
+    background:linear-gradient(90deg, var(--purple), var(--pink), var(--magenta)); }
+  .veil-tick { position:absolute; top:-2px; bottom:-2px; width:1px; background:rgba(232,244,255,.5); }
+  #veilLabel { font-size:.74rem; color:var(--muted); white-space:nowrap; }
+  #veilLabel b { color:var(--sun); font-weight:400; }
+
+  #actionBar { display:flex; gap:8px; flex-wrap:wrap; margin:10px 2px 12px; }
+  .act-btn { color:var(--text); background:rgba(185,103,255,.10); border:1px solid var(--purple);
+    padding:5px 12px; font:inherit; font-size:.8rem; cursor:pointer; border-radius:3px;
+    letter-spacing:.04em; text-transform:uppercase; }
+  .act-btn:hover { border-color:var(--cyan); color:var(--cyan); background:rgba(1,205,254,.10); }
+  .act-btn:disabled { opacity:.35; cursor:default; }
+  .act-btn:disabled:hover { border-color:var(--purple); color:var(--text); background:rgba(185,103,255,.10); }
+
+  #corkBoard { position:relative; }
+  #stringLayer { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+  #stringLayer line { stroke:var(--string); stroke-width:1.6; opacity:.75;
+    filter:drop-shadow(0 0 3px rgba(255,45,120,.5)); }
+  .pin-card { position:relative; z-index:2; background:linear-gradient(180deg, var(--paper), #e4d7b4);
+    color:var(--paper-ink); border-radius:2px; padding:14px 12px 10px; margin-top:16px;
+    box-shadow:0 3px 8px rgba(0,0,0,.5); transform:rotate(-.4deg); }
+  .pin-card:nth-child(odd) { transform:rotate(.5deg); }
+  .pin-card::before { content:""; position:absolute; top:4px; left:50%; width:10px; height:10px;
+    margin-left:-5px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #ff8fb7, var(--magenta) 60%, #7a0035);
+    box-shadow:0 1px 3px rgba(0,0,0,.6); }
+  .pin-card .pc-tag { font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:#8a6d3b; }
+  .pin-card .pc-body { margin-top:4px; font-size:.86rem; line-height:1.5; }
+  .pin-card .pc-list { margin:4px 0 0; padding-left:16px; font-size:.84rem; line-height:1.55; }
+
+  .redact { background:#12060f; color:transparent; border-radius:2px; padding:0 4px;
+    user-select:none; box-shadow:inset 0 0 0 1px rgba(255,113,206,.25); }
+  .redact-label { color:var(--muted); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; }
+
+  #tellGrid { position:relative; z-index:2; display:grid; grid-template-columns:repeat(auto-fill, minmax(215px, 1fr));
+    gap:12px; margin-top:2px; }
+  .tell-note { position:relative; background:linear-gradient(180deg, #f4ecd6, #e9dcba); color:var(--paper-ink);
+    border-radius:2px; padding:13px 10px 8px; box-shadow:0 2px 6px rgba(0,0,0,.45);
+    transform:rotate(.6deg); min-height:74px; }
+  .tell-note:nth-child(2n) { transform:rotate(-.7deg); }
+  .tell-note:nth-child(3n) { transform:rotate(.3deg); }
+  .tell-note::before { content:""; position:absolute; top:3px; left:50%; width:8px; height:8px;
+    margin-left:-4px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #8fd8ff, var(--cyan) 60%, #015a70);
+    box-shadow:0 1px 2px rgba(0,0,0,.55); }
+  .tell-note.sealed { background:linear-gradient(180deg, #241731, #1c1028); color:var(--muted);
+    box-shadow:inset 0 0 0 1px rgba(157,143,201,.3); }
+  .tell-note.sealed::before { background:radial-gradient(circle at 35% 35%, #b9a8d8, var(--muted) 60%, #3d2f55); }
+  .tell-note .tn-by { font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:#8a6d3b; }
+  .tell-note.sealed .tn-by { color:var(--muted); }
+  .tell-note .tn-desc { margin-top:3px; font-size:.8rem; line-height:1.45; }
+  .tell-note .tn-delta { position:absolute; right:6px; bottom:4px; font-size:.66rem; color:#8a6d3b; }
+
+  /* ---- prep panel ---- */
+  #prepPanel { background:rgba(22,8,42,.88); border:1px solid rgba(185,103,255,.5); border-radius:6px;
+    padding:12px; position:sticky; top:58px; }
+  #prepLock { text-align:center; padding:26px 10px; color:var(--muted); }
+  #prepLock .pl-big { font:1.3rem VT323, 'Share Tech Mono', monospace; color:var(--purple); }
+  #prepLock .pl-sub { font-size:.76rem; margin-top:6px; line-height:1.5; }
+  .prep-h { font:700 .74rem Orbitron, 'Share Tech Mono', monospace; letter-spacing:.16em;
+    color:var(--muted); text-transform:uppercase; margin:12px 0 6px; }
+  .prep-h:first-child { margin-top:0; }
+  #kitList { display:flex; flex-direction:column; gap:5px; }
+  .kit-row { display:grid; grid-template-columns:1fr auto; gap:2px 8px; padding:6px 8px;
+    background:rgba(13,2,33,.6); border:1px solid rgba(157,143,201,.3); border-radius:3px; font-size:.76rem; }
+  .kit-row .kr-name { color:var(--text); }
+  .kit-row .kr-price { color:var(--sun); text-align:right; }
+  .kit-row .kr-src { color:var(--muted); font-size:.68rem; }
+  .kit-row .kr-leg { font-size:.68rem; text-align:right; }
+  .kit-row .kr-leg.flag { color:var(--magenta); }
+  #kitTotal { display:flex; justify-content:space-between; margin-top:6px; padding:6px 8px;
+    border-top:1px solid var(--line); font-size:.82rem; color:var(--sun); }
+  #planLine { font-size:.8rem; line-height:1.55; color:var(--text); background:rgba(1,205,254,.06);
+    border-left:3px solid var(--cyan); padding:8px 10px; border-radius:0 3px 3px 0; }
+  #swingTable { width:100%; border-collapse:collapse; font-size:.74rem; }
+  #swingTable th, #swingTable td { border:1px solid rgba(157,143,201,.3); padding:4px 6px; text-align:right; }
+  #swingTable th { color:var(--muted); font-weight:400; text-transform:uppercase; font-size:.64rem;
+    letter-spacing:.08em; }
+  #swingTable td:first-child, #swingTable th:first-child { text-align:left; }
+  .res-btns { display:flex; gap:8px; margin-top:8px; }
+  .res-btn { flex:1; padding:7px 0; font:inherit; font-size:.8rem; cursor:pointer; border-radius:3px;
+    letter-spacing:.06em; text-transform:uppercase; }
+  #resolvePrep { color:#062a06; background:linear-gradient(90deg, #7be3a8, #3ec9ad); border:1px solid #3ec9ad; }
+  #resolveRush { color:#2a0606; background:linear-gradient(90deg, #ff9a6e, var(--magenta)); border:1px solid var(--magenta); }
+  #resolveOut { margin-top:10px; font-size:.8rem; line-height:1.5; display:none; }
+  #resolveOut .ro-mode { color:var(--muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.12em; }
+  #resolveOut .ro-outcome { font:1.15rem VT323, 'Share Tech Mono', monospace; margin-top:2px; }
+  #resolveOut .ro-outcome.clean_win { color:#7be3a8; }
+  #resolveOut .ro-outcome.win_with_cost { color:var(--sun); }
+  #resolveOut .ro-outcome.disaster { color:var(--magenta); }
+  #heatList { margin:6px 0 0; padding-left:16px; font-size:.72rem; color:var(--muted); line-height:1.6; }
+  #heatList b { color:var(--pink); font-weight:400; }
+
+  #emptyState { color:var(--muted); text-align:center; padding:60px 20px; font-size:.9rem; line-height:1.7; }
+  #emptyState .es-big { font:1.6rem VT323, 'Share Tech Mono', monospace; color:var(--purple); }
+
+  @media (max-width:1080px) {
+    #board { grid-template-columns:1fr; }
+    #caseList { flex-direction:row; overflow-x:auto; max-height:none; padding-bottom:6px; }
+    .case-card { min-width:230px; flex:0 0 auto; }
+    #prepPanel { position:static; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #veilFill { transition:none; }
+  }
+</style>
+</head>
+<body>
+<header class="hud">
+  <span class="hud-brand">tableslop</span>
+  <span class="hud-setting">Isla Primavera</span>
+  <span class="hud-board">HUNTER BOARD</span>
+  <span class="hud-spacer"></span>
+  <span class="hud-note" id="hudNote">veil is an economy, not a spell</span>
+  <button class="hud-btn" id="resetBoard" type="button">reset board</button>
+</header>
+
+<main id="board">
+  <aside>
+    <div class="colhead">Case files</div>
+    <div id="caseList" role="listbox" aria-label="Case files"></div>
+  </aside>
+
+  <section id="corkWrap" aria-label="Case corkboard">
+    <div id="emptyState">
+      <div class="es-big">nothing pinned yet</div>
+      Pick a case file on the left. Everything on this board is redacted<br/>
+      until someone looks hard for it — that is the whole job.
+    </div>
+    <div id="caseView" hidden>
+      <div id="caseHead">
+        <div class="ch-name" id="chName"></div>
+        <div class="ch-sub">
+          <span class="kind-chip" id="chKind"></span>
+          <span class="danger-pips" id="chDanger"></span>
+          <span class="ch-turf" id="chTurf"></span>
+        </div>
+        <div class="ch-cover"><b>Cover story:</b> <span id="chCover"></span></div>
+      </div>
+      <div id="veilRow">
+        <div id="veilMeter" aria-label="Veil progress">
+          <div id="veilFill"></div>
+        </div>
+        <span id="veilLabel"></span>
+      </div>
+      <div id="actionBar" role="group" aria-label="Investigation actions"></div>
+      <div id="corkBoard">
+        <svg id="stringLayer" aria-hidden="true"></svg>
+        <div class="pin-card" id="truthCard">
+          <div class="pc-tag">Case truth — unlocks at veil tier 2</div>
+          <div class="pc-body" id="truthBody"></div>
+        </div>
+        <div id="tellGrid" aria-label="Evidence notes"></div>
+        <div class="pin-card" id="weakCard">
+          <div class="pc-tag">Weaknesses — unlock at veil tier 3</div>
+          <ul class="pc-list" id="weakList"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside id="prepPanel" aria-label="Preparation panel"></aside>
+</main>
+
+<script src="./hunter-data.js"></script>
+<script src="./hunter.js"></script>
+</body>
+</html>
