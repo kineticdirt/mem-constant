@@ -34,7 +34,7 @@ const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db-20260804-hub-obs-lanes-r1";
+const DASH_BUILD = "db-20260805-lane-parity-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -2331,6 +2331,11 @@ function readCursorLaneStatus() {
     log_mtime: null,
     last_exit: null,
     age_sec: null,
+    today_runs: null,
+    today_ok: null,
+    last_outcome: null,
+    schedule: null,
+    model_hint: null,
   };
   if (!fs.existsSync(CURSOR_LANE_STATUS_SCRIPT)) return idle;
   try {
@@ -2605,6 +2610,35 @@ function readThinkFocusRun() {
   }
 }
 
+/** Today's think-tick counts from run-index — feeds the think lane card's Today row. */
+function readThinkTodayStats() {
+  const out = { runs: 0, ok: 0, fail: 0, idle: 0 };
+  const runIndex = path.join(REPO, "agents", "state", "run-index.jsonl");
+  if (!fs.existsSync(runIndex)) return out;
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const lines = fs.readFileSync(runIndex, "utf8").trim().split("\n");
+    for (const line of lines) {
+      if (!line.includes(day)) continue;
+      try {
+        const j = JSON.parse(line);
+        const name = j.name || j.pod || j.lane || "";
+        if (name !== "think") continue;
+        if (!String(j.ts || "").startsWith(day)) continue;
+        out.runs += 1;
+        if (/\bIDLE\b/i.test(String(j.summary || ""))) out.idle += 1;
+        if (j.exit === 0 || j.outcome === "ok") out.ok += 1;
+        if (j.outcome === "fail" || (j.exit != null && j.exit !== 0)) out.fail += 1;
+      } catch {
+        /* skip bad line */
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return out;
+}
+
 function buildRunningNow() {
   const chat = listChatJobsInFlight();
   const pod = readCurrentPodRun();
@@ -2655,6 +2689,7 @@ function buildRunningNow() {
     think_lane: {
       provider: "OpenRouter",
       model_hint: readThinkModelHint(),
+      today: readThinkTodayStats(),
     },
     cursor_lane: cursorLane,
     live_log: liveLog,

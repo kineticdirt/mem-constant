@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db-20260804-hub-obs-lanes-r1">
+  <meta name="dash-build" content="db-20260805-lane-parity-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -6477,6 +6477,27 @@
       const modelHtml = t.modelRaw
         ? `${esc(t.provider)} · <span class="hub-lane-what">${esc(String(t.modelRaw).split("/").pop())}</span>`
         : `<span class="meta">free-first rotate</span>`;
+      // Parity rows with the Cursor card: Today (from run-index via think-live) + Next (8m gate estimate)
+      const today = (data?.running_now?.think_lane || data?.think_lane || {}).today || null;
+      let todayHtml = `<span class="meta">—</span>`;
+      if (today && today.runs != null) {
+        const bits = [`${today.runs} run${today.runs === 1 ? "" : "s"}`];
+        if (today.ok) bits.push(`${today.ok} ok`);
+        if (today.fail) bits.push(`${today.fail} fail`);
+        if (today.idle) bits.push(`${today.idle} idle`);
+        todayHtml = esc(bits.join(" · "));
+      }
+      const thinkLast = data?.lanes?.["agent-cycle-think"]?.last_run || t.when || null;
+      let nextHtml = `<span class="meta">—</span>`;
+      if (t.status === "active") {
+        nextHtml = `<span class="meta">now (running)</span>`;
+      } else if (thinkLast) {
+        const nextMs = new Date(thinkLast).getTime() + 480 * 1000;
+        nextHtml =
+          nextMs <= Date.now()
+            ? `<span class="meta">due now (~8m gate)</span>`
+            : `<span class="meta" title="~8m interval gate">~${esc(fmtEtTime(new Date(nextMs).toISOString()))}</span>`;
+      }
       return `<div class="hub-lane-card hub-lane-think" id="hub-lane-think">
         <div class="hub-lane-head">Hermes · OpenRouter think</div>
         <div class="hub-lane-body">
@@ -6485,43 +6506,64 @@
           ${hubLaneKv("What", `<span class="hub-lane-what">${esc(t.what)}</span>`)}
           ${hubLaneKv("Outcome", outcomeHtml)}
           ${hubLaneKv("Model", modelHtml)}
+          ${hubLaneKv("Today", todayHtml)}
+          ${hubLaneKv("Next", nextHtml)}
         </div>
       </div>`;
     }
 
     function hubCursorLaneHtml(cursor) {
+      // Mirrors hubThinkLaneHtml rows (Status/When/What/Outcome/Model/Today) so both
+      // lanes read the same; data comes from cursor-lane-status.sh --json.
       const c = cursor || {};
       const running = !!c.running;
-      const tone = running ? "in_progress" : "muted";
-      const statusChip = awChip(running ? "active" : "idle", tone);
+      const statusChip = awChip(running ? "active" : "idle", running ? "in_progress" : "muted");
       const jobRaw = c.job_label ? String(c.job_label).trim() : "";
       const jobHtml = jobRaw
         ? esc(jobRaw.slice(0, 80))
         : `<span class="meta">—</span>`;
-      const pid = c.pid || (Array.isArray(c.processes) && c.processes[0] ? c.processes[0].pid : null);
-      const pidHtml = pid ? esc(String(pid)) : `<span class="meta">—</span>`;
-      const exitHtml =
-        c.last_exit != null && c.last_exit !== ""
-          ? esc(String(c.last_exit))
-          : `<span class="meta">—</span>`;
-      const logPath = c.log_path ? String(c.log_path) : "";
-      const logHtml = logPath
-        ? `<span class="hub-lane-log" title="${esc(logPath)}">${esc(truncateLogPath(logPath))}</span>`
-        : `<span class="meta">—</span>`;
       const whenBits = [];
       if (running && c.age_sec != null) whenBits.push(fmtElapsed(Number(c.age_sec) * 1000));
-      if (!running && c.log_mtime) whenBits.push(fmtEtTime(c.log_mtime));
+      // log mtime can be days old (manual lane) — fmtEt with date, not bare clock time
+      if (!running && c.log_mtime) whenBits.push(fmtEt(c.log_mtime));
       const whenHtml =
         whenBits.length ? esc(whenBits.join(" · ")) : `<span class="meta">—</span>`;
+      const oc = String(c.last_outcome || "").trim();
+      let outcomeHtml;
+      if (running) {
+        outcomeHtml = awChip("running", "in_progress");
+      } else if (oc === "ok") {
+        outcomeHtml = awChip("ok", "succeeded");
+      } else if (/^fail/.test(oc)) {
+        outcomeHtml = `<span title="${esc(c.log_path ? truncateLogPath(String(c.log_path)) : "")}">${awChip(esc(oc), "failed")}</span>`;
+      } else if (oc && oc !== "never") {
+        outcomeHtml = `<span class="meta">${esc(oc)}</span>`;
+      } else {
+        outcomeHtml = `<span class="meta">—</span>`;
+      }
+      const modelHtml = `<span class="meta">${esc(c.model_hint || "cursor:auto (SDK)")}</span>`;
+      let todayHtml;
+      if (c.today_runs != null && Number(c.today_runs) > 0) {
+        const n = Number(c.today_runs);
+        todayHtml = esc(`${n} run${n === 1 ? "" : "s"} · ${c.today_ok != null ? c.today_ok : "?"} ok`);
+      } else if (c.log_mtime) {
+        todayHtml = `<span class="meta">0 today · last ${esc(fmtEt(c.log_mtime))}</span>`;
+      } else {
+        todayHtml = `<span class="meta">no runs yet</span>`;
+      }
+      const schedHtml = c.schedule
+        ? `<span class="meta" title="${esc(String(c.schedule))}">manual</span>`
+        : `<span class="meta">—</span>`;
       return `<div class="hub-lane-card hub-lane-cursor" id="hub-lane-cursor">
         <div class="hub-lane-head">Cursor Auto</div>
         <div class="hub-lane-body">
           ${hubLaneKv("Status", statusChip)}
           ${hubLaneKv("When", whenHtml)}
-          ${hubLaneKv("Job", `<span class="hub-lane-what">${jobHtml}</span>`)}
-          ${hubLaneKv("PID", pidHtml)}
-          ${hubLaneKv("Last exit", exitHtml)}
-          ${hubLaneKv("Log", logHtml)}
+          ${hubLaneKv("What", `<span class="hub-lane-what">${jobHtml}</span>`)}
+          ${hubLaneKv("Outcome", outcomeHtml)}
+          ${hubLaneKv("Model", modelHtml)}
+          ${hubLaneKv("Today", todayHtml)}
+          ${hubLaneKv("Next", schedHtml)}
         </div>
       </div>`;
     }
