@@ -3146,6 +3146,11 @@
           </div>
           <div class="meta-panel-grid" id="meta-cards"></div>
           <div class="meta-backlog-head">
+            <h2>Papercuts</h2>
+            <span class="meta" id="meta-papercuts-count"></span>
+          </div>
+          <div id="meta-papercuts" class="meta-panel-grid"><p class="empty">Loading…</p></div>
+          <div class="meta-backlog-head">
             <h2>Meta-Harness scores</h2>
             <span class="meta" id="meta-harness-updated"></span>
           </div>
@@ -3685,7 +3690,7 @@
         load();
         refreshSystemHostGlance();
       }
-      if (activeTab === "backlog") { renderMeta(agentData); renderMetaHarness(); }
+      if (activeTab === "backlog") { renderMeta(agentData); renderMetaHarness(); renderMetaPapercuts(); }
       syncHubResourcesPolling();
     }
 
@@ -7440,6 +7445,38 @@
       }
     }
 
+    async function renderMetaPapercuts() {
+      const el = document.getElementById("meta-papercuts");
+      const countEl = document.getElementById("meta-papercuts-count");
+      if (!el) return;
+      if (sessionRole === "viewer") {
+        el.innerHTML = "";
+        return;
+      }
+      try {
+        const res = await fetch(`${base}/api/papercuts?status=open`, { cache: "no-store", credentials: "same-origin" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const entries = Array.isArray(data?.entries) ? data.entries : [];
+        if (countEl) countEl.textContent = `${entries.length} open`;
+        if (!entries.length) {
+          el.innerHTML = '<p class="empty">No open papercuts</p>';
+          return;
+        }
+        el.innerHTML = entries
+          .slice(0, 12)
+          .map(
+            (e) => `<div class="meta-card">
+            <div class="aw-label">${esc(e.id || "pc")}</div>
+            <div class="meta-paths">${esc((e.preview || "").replace(/^##\s+/, "").slice(0, 220))}</div>
+          </div>`
+          )
+          .join("");
+      } catch (e) {
+        el.innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+      }
+    }
+
     function renderMeta(data) {
       const m = data?.meta_lane || {};
       const blurbEl = document.getElementById("meta-blurb");
@@ -9706,6 +9743,7 @@
         if (activeTab === "systems") loadSystems();
         renderMeta(agentData);
         renderMetaHarness();
+        renderMetaPapercuts();
       } catch (e) {
         const msg = e.name === "AbortError" ? "Hub load timed out (20s) — tap ↻; if persists, CF Access re-login" : e.message;
         document.getElementById("ops-title").textContent = "Load error";

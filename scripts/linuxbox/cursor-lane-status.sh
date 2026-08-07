@@ -157,7 +157,7 @@ PY
     "today_runs": int(sys.argv[9]),
     "today_ok": int(sys.argv[10]),
     "last_outcome": sys.argv[11],
-    "schedule": "manual — Hub Agent-coding / SSH cursor-agent-run.sh (not on cron)",
+    "schedule": "crontab */5 + CURSOR_INTERVAL_SEC gate (Hermes-style Agent 2; parallel to think)",
     "model_hint": "cursor:auto (SDK)",
   }))' "${running}" "${pid}" "${procs}" "${job}" "${log_path}" "${log_mtime}" "${last_exit}" "${age_sec}" "${today_runs}" "${today_ok}" "${last_outcome}"
 }

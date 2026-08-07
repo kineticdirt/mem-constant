@@ -1,14 +1,14 @@
 # Hermes parallel lanes (topology) — 2026-08-01
 
 **Holder:** `pc-shutdown-after-lanes`  
-**GM clarification:** parallel throughput = **two engines**, not two OpenRouter Hermes think flocks, and **not** a second Discord bot gateway.
-
-## Mandatory lane map
+**GM clarification:** parallel throughput = **two Hermes-style agents**, different engines — not two OpenRouter Hermes think flocks, and **not** a second Discord bot gateway.
 
 | Lane | Name | Engine | How it runs |
 |------|------|--------|-------------|
 | **Agent 1** | Hermes think | **OpenRouter + ZenMux** (existing free-first / **C8** paid gate) | Crontab `agent-cycle-think-1m` → `agent-cycle-think-tick.sh` (sync every minute; LLM ~8m via `THINK_INTERVAL_SEC=480`). Single flock: `/tmp/agent-cycle-think.lock`. |
-| **Agent 2** | Cursor Auto | **Cursor Auto SDK** on potato (`cursor:auto`, `CURSOR_SDK_AUTO_ONLY=1`) | Explicit Hub Agent-coding **or** SSH/nohup `scripts/linuxbox/cursor-agent-run.sh`. **Not** on the 1m think cron. Status: `bash scripts/linuxbox/cursor-lane-status.sh`. Logs: `/mnt/archive/logs/cursor-agent/`. |
+| **Agent 2** | Cursor Auto | **Cursor Auto SDK** on potato (`cursor:auto`, `CURSOR_SDK_AUTO_ONLY=1`) | Crontab `agent-cycle-cursor-5m` → `agent-cycle-cursor-tick.sh` (interval gate default **15m** via `CURSOR_INTERVAL_SEC`). Picks Cursor-lane user-tasks + work packets. Flock: `/tmp/agent-cycle-cursor.lock`. Also Hub Agent-coding / SSH `cursor-agent-run.sh`. Status: `bash scripts/linuxbox/cursor-lane-status.sh`. Logs: `/mnt/archive/logs/cursor-agent/`. |
+
+Agent 2 is a **Hermes-shaped agent loop** (pick task → work packet → verify → stop) running on the Cursor Auto engine — not a second Hermes OpenRouter profile.
 
 ### What Agent 2 is *not*
 

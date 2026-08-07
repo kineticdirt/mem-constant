@@ -286,9 +286,10 @@
 
 [PC] Result: Hub Chars **GM · Discord accounts** panel (`#chars-discord-panel`) + `POST /api/characters-registry/link-discord` (registry + `player-character-links.json`). Linked **Hiatus Cuz Life** `457403984936960010` → **toga** (username typo Cause→Cuz; registry v37; links row written). Tableslop Users **Add account** + `create:true` owner API; seeded auth user role=user in `tableslop-auth.db`. Authorship: `human-authored.py` + `agents/human-authored-defaults.json` injected into think packets; protected path for state marks. Think: verify-culture line in packet block (28 still ceiling; packets shrink work). Deployed potato (status+tableslop restart). GM: hard-refresh Hub Chars; confirm Toga is the right cast row.
 
-## 2026-08-06 23:41 ET — [PC] Intent: clear timeout incident-cleanup pile (thrash loop)
+## 2026-08-06 23:44 ET — [PC] Intent: triage open user-tasks + Cursor as parallel Hermes-style Agent 2
 
-[PC] Intent: soft-close open `inc-clean-*` / `[ops] Think incident cleanup: timeout_124` on potato; stop think-incident-form from re-minting/reopening timeout thrash as Hub Tasks.
+[PC] Intent: go through remaining open Hub tasks (soft-close wishlist / close already-shipped); wire `agent-cycle-cursor-tick.sh` crontab parallel to Hermes think; clear "Work on non cursor" goal steer; papercuts Meta panel + /api/health.
 
-[PC] Result: soft-closed **24** incident-cleanup tasks + **23** work packets on potato (`open_inc_clean_left=0`, open queue **47** leftover wishlist/other). **Prevention:** `think-incident-form.py` no longer auto-promotes `timeout_124`/`terminal_prep` into Hub Tasks (still logged in recurrence JSON); closed cleanup tasks are not reopened. SCP’d to potato; self-check OK.
+[PC] Result: open queue **47→11** (12 already-shipped done, 23 wishlist deferred, papercuts panel done). **Agent 2** crontab `*/5` → `agent-cycle-cursor-tick.sh` (15m gate, work packets, parallel flock) beside Hermes think 1m. Thermal cron 5m. Goal note cleared. Meta `/api/papercuts` + `/api/health`. **Blocked:** potato `~/.cursor-agent.env` has no `CURSOR_API_KEY` — inbox `cursor-api-key-paste-20260806`. Remaining 11 Cursor-lane product tasks wait on key.
+
 

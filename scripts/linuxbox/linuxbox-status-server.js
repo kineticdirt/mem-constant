@@ -8188,6 +8188,59 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // Thin alias — monitoring-service-health-endpoint user-task. Prefer /api/status for full.
+    if (req.method === "GET" && (pathname === "/api/health" || pathname === "/health")) {
+      const health = await collectHealth();
+      const ok = !health.health_error && String(health.gateway || "").toLowerCase() !== "down";
+      sendJson(
+        res,
+        ok ? 200 : 503,
+        {
+          ok,
+          service: "linuxbox-status",
+          updated_at: new Date().toISOString(),
+          gateway: health.gateway || null,
+          mem_avail_mb: health.mem_avail_mb ? Number(health.mem_avail_mb) : null,
+          load_1: health.load_1 || health.loadavg_1 || null,
+        },
+        publicMode
+      );
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/api/papercuts") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      const status = String(url.searchParams.get("status") || "open").slice(0, 24);
+      const script = path.join(__dirname, "papercuts-list.sh");
+      let text = "";
+      try {
+        text = execFileSync("bash", [script, status], {
+          cwd: REPO,
+          encoding: "utf8",
+          timeout: 8000,
+          maxBuffer: 512 * 1024,
+        });
+      } catch (e) {
+        sendJson(res, 500, { error: "papercuts_list_failed", detail: String(e.message || e).slice(0, 200) }, publicMode);
+        return;
+      }
+      const entries = String(text || "")
+        .split(/\n(?=## pc-)/)
+        .map((b) => b.trim())
+        .filter(Boolean)
+        .map((block) => {
+          const id = (block.match(/^##\s+(pc-[^\s]+)/) || [])[1] || "";
+          const st = (block.match(/\*\*Status:\*\*\s*(\S+)/i) || [])[1] || "";
+          const first = block.split("\n").slice(0, 6).join("\n");
+          return { id, status: st, preview: first.slice(0, 400) };
+        });
+      sendJson(res, 200, { ok: true, status, count: entries.length, entries }, publicMode);
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/agent") {
       const lite = auth?.role === "viewer" || shouldUseLiteAgentCollect();
       sendJson(res, 200, await collectAgentStateCached({ lite }), publicMode);

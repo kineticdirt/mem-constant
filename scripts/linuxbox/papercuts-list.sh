@@ -17,7 +17,7 @@ awk -v status="${STATUS}" '
   /^## pc-/ { flush(); buf = $0 ORS; building = 1; hit = 0; next }
   building {
     buf = buf $0 ORS
-    if ($0 ~ /\*\*Status:\*\*/ && (status == "all" || index($0, status))) hit = 1
+    if ($0 ~ /\*\*Status:\*\*/ && (status == "all" || $0 ~ ("\\*\\*Status:\\*\\*[[:space:]]*" status))) hit = 1
   }
   END { flush() }
 ' "${FILE}"
