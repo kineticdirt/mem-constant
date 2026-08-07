@@ -25,6 +25,12 @@
       "note": "dashboard-created tasks live on potato"
     },
     {
+      "glob": "agents/state/work-packets.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "Think work packets — tick-sized units; potato SoT (docs/plans/think-work-packets-2026-08-06.md)"
+    },
+    {
       "glob": "agents/intel-trackers.json",
       "type": "runtime-file",
       "backup": true,

@@ -1087,15 +1087,86 @@ fi
 THINK_TIMEOUT_SEC="${THINK_TIMEOUT_SEC:-${THINK_TIMEOUT_DEFAULT}}"
 THINK_MAX_TURNS="${THINK_MAX_TURNS:-${THINK_MAX_TURNS_DEFAULT}}"
 
+# Work packets: tick-sized units so free models do not burn the 28-turn fuse on epics.
+# docs/plans/think-work-packets-2026-08-06.md
+WORK_PACKET_PY="${REPO}/scripts/linuxbox/think-work-packet.py"
+PACKET_ID=""
+PACKET_GOAL=""
+PACKET_VERIFY=""
+PACKET_BLOCK=""
+if [[ -n "${TASK_ID}" && "${TASK_ID}" != lane:* && -z "${LANE_FILE}" && -f "${WORK_PACKET_PY}" ]]; then
+  TASK_BODY="$(
+    TASK_ID="${TASK_ID}" REPO="${REPO}" python3 - <<'PY'
+import json, os
+from pathlib import Path
+tid = os.environ["TASK_ID"]
+repo = Path(os.environ["REPO"])
+try:
+    d = json.loads((repo / "agents/user-tasks.json").read_text(encoding="utf-8"))
+except Exception:
+    raise SystemExit(0)
+tasks = list(d.get("tasks") or []) if isinstance(d, dict) else []
+for p in (d.get("projects") or []) if isinstance(d, dict) else []:
+    if isinstance(p, dict):
+        tasks.extend(p.get("tasks") or [])
+for t in tasks:
+    if isinstance(t, dict) and str(t.get("id") or "") == tid:
+        print(t.get("body") or "")
+        break
+PY
+  )"
+  python3 "${WORK_PACKET_PY}" ensure --repo "${REPO}" --task-id "${TASK_ID}" \
+    --blurb "${BLURB}" --body "${TASK_BODY}" >/tmp/think-packet-ensure.json 2>/dev/null || true
+  PACKET_JSON="$(python3 "${WORK_PACKET_PY}" active --repo "${REPO}" --task-id "${TASK_ID}" 2>/dev/null || true)"
+  if [[ -n "${PACKET_JSON}" ]]; then
+    eval "$(PACKET_JSON="${PACKET_JSON}" python3 - <<'PY'
+import json, os, shlex
+d = json.loads(os.environ["PACKET_JSON"])
+a = d.get("active") or {}
+if a:
+    print(f"PACKET_ID={shlex.quote(str(a.get('id') or ''))}")
+    print(f"PACKET_GOAL={shlex.quote(str(a.get('goal') or ''))}")
+    print(f"PACKET_VERIFY={shlex.quote(str(a.get('verify') or ''))}")
+    mt = a.get("max_turns")
+    if mt is not None:
+        print(f"PACKET_MAX_TURNS={int(mt)}")
+    print("PACKET_ALL_DONE=0")
+elif d.get("all_done"):
+    print("PACKET_ALL_DONE=1")
+else:
+    print("PACKET_ALL_DONE=0")
+PY
+)"
+    if [[ -n "${PACKET_ID}" ]]; then
+      if [[ -n "${PACKET_MAX_TURNS:-}" && "${PACKET_MAX_TURNS}" -gt 0 && "${PACKET_MAX_TURNS}" -lt "${THINK_MAX_TURNS}" ]]; then
+        THINK_MAX_TURNS="${PACKET_MAX_TURNS}"
+      fi
+      PACKET_BLOCK="WORK PACKET (do ONLY this unit — not the whole epic; hitting the turn ceiling is a miss):
+  id: ${PACKET_ID}
+  goal: ${PACKET_GOAL}
+  verify: ${PACKET_VERIFY}
+  max_turns: ${THINK_MAX_TURNS}
+When this packet's verify passes, run:
+  python3 scripts/linuxbox/think-work-packet.py complete --repo . --packet-id ${PACKET_ID}
+Only set user-task ${TASK_ID} status=done when the complete command reports task_complete=true (all packets done). If blocked: complete --blocked '<reason>' then set task blocked."
+      THINK_SUCCESS_METRIC="work-packet ${PACKET_ID} verify: ${PACKET_VERIFY}"
+      THINK_VERIFY_CMD="harness: packet ${PACKET_ID} status=done (think-work-packet.py) + concrete check"
+    fi
+  fi
+fi
+
 # C8 scenario 2: escalate to paid if prior free runs failed harness verify (≥N).
 # Research-studies stays free-only. Scenario 1 (exhausted) already sets THINK_PAID_LAST_RESORT.
-THINK_SUCCESS_METRIC=""
-THINK_VERIFY_CMD=""
+# (THINK_SUCCESS_METRIC / THINK_VERIFY_CMD may already be set from an active work packet.)
+if [[ -z "${THINK_SUCCESS_METRIC:-}" ]]; then
+  THINK_SUCCESS_METRIC=""
+  THINK_VERIFY_CMD=""
+fi
 THINK_ESCALATE_FAILS="0"
-if [[ -n "${LANE_FILE}" && -n "${LANE_ITEM}" ]]; then
+if [[ -z "${THINK_SUCCESS_METRIC}" && -n "${LANE_FILE}" && -n "${LANE_ITEM}" ]]; then
   THINK_SUCCESS_METRIC="Flip [ ]→[x] for the named item in ${LANE_FILE} + Done line"
   THINK_VERIFY_CMD="harness: lane checkbox closed (think-paid-escalate work-open)"
-elif [[ -n "${TASK_ID}" && "${TASK_ID}" != lane:* ]]; then
+elif [[ -z "${THINK_SUCCESS_METRIC}" && -n "${TASK_ID}" && "${TASK_ID}" != lane:* ]]; then
   THINK_SUCCESS_METRIC="agents/user-tasks.json id ${TASK_ID} status=done|blocked"
   THINK_VERIFY_CMD="harness: user-task status not open"
 fi
@@ -1179,7 +1250,8 @@ ${TURNS_LINE}
 End with exactly one marker line — pick one: DONE: <what shipped>   or   BLOCKED: <why + inbox id>   or   IDLE:."
 else
   PROMPT="Think lane. Do ONE concrete implement+verify step for task ${TASK_ID}: ${BLURB}.
-Prefer fixing the code/config over diagnosing. Then verify (curl 127.0.0.1:8790 for API; C6 Playwright smoke for UI). You MUST end by setting agents/user-tasks.json status for id ${TASK_ID} to done (finished+verified) or blocked (needs human/sudo/secrets) via a real JSON edit — never leave it open after saying blocked.
+${PACKET_BLOCK}
+Prefer fixing the code/config over diagnosing. Then verify (curl 127.0.0.1:8790 for API; C6 Playwright smoke for UI). You MUST end by setting agents/user-tasks.json status for id ${TASK_ID} to done (finished+verified) or blocked (needs human/sudo/secrets) via a real JSON edit — never leave it open after saying blocked — but only after the work packet is complete (or blocked) when a WORK PACKET block is present.
 ${METRIC_LINE}
 ${CHECKS_LINE}
 ${INBOX_PROSE_LINE}

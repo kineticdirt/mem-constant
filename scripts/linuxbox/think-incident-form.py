@@ -279,6 +279,30 @@ def _ensure_user_task(item: dict, key: str) -> str | None:
     tasks.append(task)
     data["tasks"] = tasks
     USER_TASKS.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    # Tick-sized unit so the next think run does not burn 28 turns on the epic title.
+    try:
+        import subprocess
+
+        subprocess.run(
+            [
+                sys.executable,
+                str(REPO / "scripts/linuxbox/think-work-packet.py"),
+                "ensure",
+                "--repo",
+                str(REPO),
+                "--task-id",
+                tid,
+                "--blurb",
+                task["title"],
+                "--body",
+                task["body"],
+            ],
+            check=False,
+            capture_output=True,
+            timeout=15,
+        )
+    except Exception:
+        pass
     return tid
 
 
