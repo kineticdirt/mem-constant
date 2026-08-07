@@ -206,7 +206,17 @@ def severity_for(item: dict) -> int:
 
 
 def _ensure_user_task(item: dict, key: str) -> str | None:
-    """Open one cleanup task per recurrence key; return task id."""
+    """Open one cleanup task per recurrence key; return task id.
+
+    timeout_124 / terminal_prep are process thrash (wall clock / turn fuse), not
+    product bugs. Promoting one Hub task per timed-out blurb creates a feedback
+    loop (fail → cleanup epic → fail again). Those categories stay in the
+    recurrence JSON only — no auto user-task mint / reopen.
+    """
+    cat = item.get("category") or "other"
+    if cat in ("timeout_124", "terminal_prep"):
+        return None
+
     existing_id = item.get("user_task_id")
     if not USER_TASKS.is_file():
         return existing_id
@@ -228,14 +238,7 @@ def _ensure_user_task(item: dict, key: str) -> str | None:
         if t.get("id") == tid:
             if str(t.get("status") or "").lower() in ("open", "blocked", "in_progress"):
                 return tid
-            # closed — reopen if still recurring
-            t["status"] = "open"
-            t["updated_at"] = _now()
-            t["notes"] = (
-                f"reopened by think-incident rollup count={item.get('count')} "
-                f"severity={item.get('severity')} key={key}"
-            )[:500]
-            USER_TASKS.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+            # closed — do not reopen (GM soft-close / thrash clear is sticky)
             return tid
         # same key already open under another id
         ctx = t.get("context") if isinstance(t.get("context"), dict) else {}
@@ -246,13 +249,12 @@ def _ensure_user_task(item: dict, key: str) -> str | None:
         ):
             return str(t.get("id"))
 
-    cat = item.get("category") or "other"
-    count = item.get("count") or 0
-    sev = item.get("severity") or 0
     blurb = (item.get("blurb_sample") or "")[:120]
     if blurb.lstrip().startswith("[ops] Think incident cleanup"):
         # Never mint a cleanup task about a cleanup task (recursive title junk).
         return None
+    count = item.get("count") or 0
+    sev = item.get("severity") or 0
     task = {
         "id": tid,
         "title": f"[ops] Think incident cleanup: {cat} ×{count} — {blurb}",
@@ -429,6 +431,14 @@ if __name__ == "__main__":
         assert classify(
             exit_code=124, task_id="t", blurb="x", log_tail="", notes="", force_category=None
         ) == "timeout_124"
+        # timeout_124 must not mint user-tasks (thrash loop prevention)
+        assert (
+            _ensure_user_task(
+                {"category": "timeout_124", "count": 99, "severity": 999, "blurb_sample": "x"},
+                "timeout_124|t|x",
+            )
+            is None
+        )
         assert classify(
             exit_code=1,
             task_id="lane:hunter",

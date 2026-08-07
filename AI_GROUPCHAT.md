@@ -285,3 +285,10 @@
 ## 2026-08-06 21:36 ET — [PC] Intent: (1) lower think friction + human-vs-AI authorship so Cursor work is not backtracked (2) GM character editor panel + Discord account Hiatus Cuz Life 457403984936960010
 
 [PC] Result: Hub Chars **GM · Discord accounts** panel (`#chars-discord-panel`) + `POST /api/characters-registry/link-discord` (registry + `player-character-links.json`). Linked **Hiatus Cuz Life** `457403984936960010` → **toga** (username typo Cause→Cuz; registry v37; links row written). Tableslop Users **Add account** + `create:true` owner API; seeded auth user role=user in `tableslop-auth.db`. Authorship: `human-authored.py` + `agents/human-authored-defaults.json` injected into think packets; protected path for state marks. Think: verify-culture line in packet block (28 still ceiling; packets shrink work). Deployed potato (status+tableslop restart). GM: hard-refresh Hub Chars; confirm Toga is the right cast row.
+
+## 2026-08-06 23:41 ET — [PC] Intent: clear timeout incident-cleanup pile (thrash loop)
+
+[PC] Intent: soft-close open `inc-clean-*` / `[ops] Think incident cleanup: timeout_124` on potato; stop think-incident-form from re-minting/reopening timeout thrash as Hub Tasks.
+
+[PC] Result: soft-closed **24** incident-cleanup tasks + **23** work packets on potato (`open_inc_clean_left=0`, open queue **47** leftover wishlist/other). **Prevention:** `think-incident-form.py` no longer auto-promotes `timeout_124`/`terminal_prep` into Hub Tasks (still logged in recurrence JSON); closed cleanup tasks are not reopened. SCP’d to potato; self-check OK.
+
