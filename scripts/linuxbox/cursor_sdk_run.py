@@ -12,8 +12,17 @@ from __future__ import annotations
 
 import argparse
 import os
+import pwd
 import sys
 from pathlib import Path
+
+
+def _real_home() -> Path:
+    """Passwd home — Hermes `-p think` overlays $HOME; API key lives under real home."""
+    try:
+        return Path(pwd.getpwuid(os.getuid()).pw_dir)
+    except Exception:
+        return Path.home()
 
 
 def _load_env_file(path: Path) -> None:
@@ -68,7 +77,7 @@ def main() -> int:
     args = parser.parse_args()
 
     env_file = Path(
-        os.environ.get("CURSOR_AGENT_ENV") or (Path.home() / ".cursor-agent.env")
+        os.environ.get("CURSOR_AGENT_ENV") or (_real_home() / ".cursor-agent.env")
     )
     _load_env_file(env_file)
 

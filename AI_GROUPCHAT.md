@@ -279,3 +279,5 @@
 [PC] Result: all 9 K3 lanes landed. Mounts wired in tableslop-server.js (940ae1c): /3d /radio /phone /hunter /sim + /api/cities + phone-responder alias + HUD links. Bundle applied HEAD=940ae1c; potato restart linuxbox-tableslop; local+public curls all 200; sim seeded (day 14) under agents/state/tableslop-sim/. Borders guard PASS v20. PC shutdown next per user ask.
 
 ## 2026-08-06 21:07 ET — [PC] Intent: diagnose border save refuse + Cursor Auto down / free-down paid-idle
+
+[PC] Result: border save — global vert-drop refuse was blocking GM simplify (Paradise 277→fewer); fixed per-id sibling guard (5c4bbec+). Cursor Auto — archive-paths clobbered REPO under Hermes HOME (fixed); ~/.cursor-agent.env has NO CURSOR_API_KEY (commented placeholder) — needs human paste from Cursor Dashboard. Think — not idle: thrashing free (Laguna 429, ling timeout/exit 124, iter budget 28); paid C8 needs ≥2 verify fails (currently 1). Hub note "Work on non cursor".
