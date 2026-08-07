@@ -2,7 +2,19 @@
 # Sourceable paths: bulk logs on archive HDD; small meta stays in repo for agents.
 # ponytail: one helper, reused by schedulers and push scripts.
 ARCHIVE_ROOT="${LINUXBOX_ARCHIVE:-/mnt/archive}"
-REPO="${AGENT_DUMP:-${HOME}/agent-dump}"
+# Hermes `-p think` sets HOME to ~/.hermes/profiles/think/home/ — never resolve
+# the repo (or agent binaries) through that overlay. Prefer an already-correct
+# REPO from the caller; otherwise pin to the real passwd home.
+_REAL_HOME="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f6)"
+_REAL_HOME="${_REAL_HOME:-/home/$(id -un)}"
+if [[ -z "${REPO:-}" || "${REPO}" == */.hermes/profiles/* ]]; then
+  _cand="${AGENT_DUMP:-${_REAL_HOME}/agent-dump}"
+  if [[ "${_cand}" == */.hermes/profiles/* ]]; then
+    _cand="${_REAL_HOME}/agent-dump"
+  fi
+  REPO="${_cand}"
+fi
+unset _cand _REAL_HOME
 
 archive_logs_ready() {
   [[ -d "${ARCHIVE_ROOT}/logs" ]] && [[ -w "${ARCHIVE_ROOT}/logs" ]]

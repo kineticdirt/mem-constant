@@ -277,3 +277,5 @@
 ## 2026-08-06 00:15 ET — tableslop silo swarm WRAP
 
 [PC] Result: all 9 K3 lanes landed. Mounts wired in tableslop-server.js (940ae1c): /3d /radio /phone /hunter /sim + /api/cities + phone-responder alias + HUD links. Bundle applied HEAD=940ae1c; potato restart linuxbox-tableslop; local+public curls all 200; sim seeded (day 14) under agents/state/tableslop-sim/. Borders guard PASS v20. PC shutdown next per user ask.
+
+## 2026-08-06 21:07 ET — [PC] Intent: diagnose border save refuse + Cursor Auto down / free-down paid-idle

@@ -13,16 +13,28 @@
 #      CURSOR_SDK_AUTO_ONLY=1 (forced) — never fall through to paid Cursor models
 set -euo pipefail
 
-REPO="${AGENT_DUMP:-${HOME}/agent-dump}"
+# Hermes `-p think` sets HOME to ~/.hermes/profiles/think/home/ — agent binary,
+# cursor-sdk venv, and .cursor-agent.env live under the real passwd home.
+REAL_HOME="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f6)"
+REAL_HOME="${REAL_HOME:-/home/$(id -un)}"
+
+REPO="${AGENT_DUMP:-${REAL_HOME}/agent-dump}"
+if [[ "${REPO}" == */.hermes/profiles/* ]]; then
+  REPO="${REAL_HOME}/agent-dump"
+fi
 # shellcheck source=lib/archive-paths.sh
 source "${REPO}/scripts/linuxbox/lib/archive-paths.sh"
+# archive-paths must not leave REPO on the Hermes overlay (regression guard).
+if [[ "${REPO}" == */.hermes/profiles/* ]]; then
+  REPO="${REAL_HOME}/agent-dump"
+fi
 
-ENV_FILE="${CURSOR_AGENT_ENV:-${HOME}/.cursor-agent.env}"
+ENV_FILE="${CURSOR_AGENT_ENV:-${REAL_HOME}/.cursor-agent.env}"
 SDK_PY="${REPO}/scripts/linuxbox/cursor_sdk_run.py"
 TIMEOUT_SEC="${CURSOR_AGENT_TIMEOUT_SEC:-300}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 RUN_ID="cursor-${STAMP}-$$"
-PYTHON_BIN="${CURSOR_SDK_PYTHON:-${HOME}/venvs/cursor-sdk/bin/python}"
+PYTHON_BIN="${CURSOR_SDK_PYTHON:-${REAL_HOME}/venvs/cursor-sdk/bin/python}"
 if [[ ! -x "${PYTHON_BIN}" ]]; then
   PYTHON_BIN="${CURSOR_SDK_PYTHON:-python3}"
 fi
@@ -98,8 +110,8 @@ run_sdk() {
 }
 
 run_cli_fallback() {
-  local AGENT_BIN="${CURSOR_AGENT_BIN:-${HOME}/.local/bin/agent}"
-  if ! command -v "${AGENT_BIN}" >/dev/null 2>&1; then
+  local AGENT_BIN="${CURSOR_AGENT_BIN:-${REAL_HOME}/.local/bin/agent}"
+  if [[ ! -x "${AGENT_BIN}" ]]; then
     echo "ERROR: cursor-sdk unavailable and Cursor CLI not found at ${AGENT_BIN}" >&2
     return 127
   fi

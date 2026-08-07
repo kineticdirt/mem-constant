@@ -4660,7 +4660,10 @@ function countGmPolyStats(ui) {
   return { polyCount, totalVerts };
 }
 
-/** Write regions-ui.json with autosave bak + refuse GM polygon wipe. */
+/** Write regions-ui.json with autosave bak + refuse GM polygon wipe.
+ *  Allows GM to simplify an existing border (fewer verts on the edited id).
+ *  Still refuses: wiping all polys, dropping a sibling poly, or shrinking a
+ *  sibling that was not part of this write. */
 function writeRegionsUiJson(ui, reason) {
   if (fs.existsSync(REGIONS_UI_JSON)) {
     const prev = JSON.parse(fs.readFileSync(REGIONS_UI_JSON, "utf8"));
@@ -4675,17 +4678,66 @@ function writeRegionsUiJson(ui, reason) {
           " GM polygon(s)"
       );
     }
-    if (prevStats.totalVerts > 0 && nextStats.totalVerts < prevStats.totalVerts) {
+    if (nextStats.polyCount < prevStats.polyCount) {
       throw new Error(
         "refusing regions-ui write (" +
           reason +
-          "): GM verts " +
-          prevStats.totalVerts +
+          "): polygon count " +
+          prevStats.polyCount +
           " → " +
-          nextStats.totalVerts
+          nextStats.polyCount +
+          " (sibling border would disappear)"
       );
     }
+    // Per-id sibling shrink guard: any previously-drawn poly that still exists
+    // must not lose verts unless this write is saveRegionAreas for that same id
+    // (handled below by only comparing ids that are present in both and not the
+    // sole changed area). For bulk writers (coords sync), refuse any per-id drop.
+    const prevById = new Map();
+    for (const a of prev.areas || []) {
+      if (!a || !a.id || a.shape === "ellipse") continue;
+      const n = parseAreaPointsServer(String(a.points || "")).length;
+      if (n >= 3) prevById.set(String(a.id), n);
+    }
+    const nextById = new Map();
+    for (const a of ui.areas || []) {
+      if (!a || !a.id || a.shape === "ellipse") continue;
+      const n = parseAreaPointsServer(String(a.points || "")).length;
+      if (n >= 3) nextById.set(String(a.id), n);
+    }
+    const editedId =
+      reason === "saveRegionAreas" && ui._last_saved_id
+        ? String(ui._last_saved_id)
+        : null;
+    for (const [id, prevN] of prevById) {
+      if (editedId && id === editedId) continue; // GM may simplify the active border
+      const nextN = nextById.get(id);
+      if (nextN == null) {
+        throw new Error(
+          "refusing regions-ui write (" +
+            reason +
+            "): would drop sibling border " +
+            id +
+            " (" +
+            prevN +
+            " pts)"
+        );
+      }
+      if (nextN < prevN) {
+        throw new Error(
+          "refusing regions-ui write (" +
+            reason +
+            "): sibling " +
+            id +
+            " verts " +
+            prevN +
+            " → " +
+            nextN
+        );
+      }
+    }
   }
+  if (ui && ui._last_saved_id) delete ui._last_saved_id;
   if (fs.existsSync(REGIONS_UI_JSON)) {
     try {
       const bak =
@@ -4767,6 +4819,7 @@ function saveRegionAreas(bodyStr) {
   ui._doc =
     "Selectable SVG areas — GM Draw borders owns live polygons. Draft auto geometry: regions-ui.draft.json";
   ui.draft_backup = "map/regions-ui.draft.json";
+  ui._last_saved_id = nextId; // writeRegionsUiJson may simplify this id's verts
   writeRegionsUiJson(ui, "saveRegionAreas");
   mapJsonCache = { mapMtimeMs: 0, regionsMtimeMs: 0, data: null };
   return { ok: true, id: next.id, version: ui.version, updated_at: ui.updated_at, points: ptCount };
