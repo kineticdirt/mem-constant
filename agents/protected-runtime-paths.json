@@ -31,6 +31,12 @@
       "note": "Think work packets — tick-sized units; potato SoT (docs/plans/think-work-packets-2026-08-06.md)"
     },
     {
+      "glob": "agents/state/human-authored-paths.json",
+      "type": "runtime-file",
+      "backup": true,
+      "note": "GM/Cursor-authored path marks — think must not silently reverse (human-authored.py)"
+    },
+    {
       "glob": "agents/intel-trackers.json",
       "type": "runtime-file",
       "backup": true,

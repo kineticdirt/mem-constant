@@ -1750,6 +1750,30 @@
     }
     .chars-toolbar { padding: 0.65rem 1rem 0; }
     .chars-gm-row { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.45rem 0 0.15rem; }
+    .chars-discord-panel {
+      margin: 0.55rem 0 0.75rem;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid rgba(120, 200, 255, 0.22);
+      background: rgba(20, 36, 52, 0.55);
+    }
+    .chars-discord-head { display: flex; flex-wrap: wrap; gap: 0.45rem 0.85rem; align-items: baseline; margin-bottom: 0.45rem; }
+    .chars-discord-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      gap: 0.45rem 0.65rem;
+      align-items: end;
+    }
+    .chars-discord-form .field { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.78rem; color: var(--muted, #9ab); }
+    .chars-discord-form input, .chars-discord-form select {
+      font: inherit; padding: 0.35rem 0.45rem;
+      background: #0b1218; color: #e8f0f8; border: 1px solid rgba(120,200,255,0.25);
+    }
+    .chars-discord-links { margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .chars-discord-chip {
+      font-size: 0.72rem; padding: 0.2rem 0.45rem;
+      border: 1px solid rgba(140, 220, 160, 0.35);
+      background: rgba(40, 80, 50, 0.35); color: #cfead8; cursor: pointer;
+    }
     .chars-gm-chip {
       border: 1px solid var(--accent);
       background: transparent;
@@ -2751,6 +2775,29 @@
               <span class="meta" style="margin-left:0.5rem" title="docs/chars-registry-versioning.md">vN on roster · conflict → auto-reload then retry</span>
             </div>
             <div id="chars-gm-row" class="chars-gm-row" hidden></div>
+            <div id="chars-discord-panel" class="chars-discord-panel admin-only" data-marker="chars-discord-gm">
+              <div class="chars-discord-head">
+                <strong>GM · Discord accounts</strong>
+                <span class="meta">Link a Discord snowflake to a cast row (updates registry + player-character-links.json)</span>
+              </div>
+              <div class="chars-discord-form">
+                <label class="field">Discord username
+                  <input type="text" id="chars-discord-username" placeholder="Hiatus Cuz Life" autocomplete="off" />
+                </label>
+                <label class="field">Discord user id
+                  <input type="text" id="chars-discord-userid" placeholder="17–20 digit snowflake" inputmode="numeric" autocomplete="off" />
+                </label>
+                <label class="field">Character
+                  <select id="chars-discord-char"><option value="">— pick —</option></select>
+                </label>
+                <label class="field">Note (optional)
+                  <input type="text" id="chars-discord-note" placeholder="player display" autocomplete="off" />
+                </label>
+                <button type="button" class="btn primary" id="chars-discord-link-btn" style="width:auto;align-self:end">Link account</button>
+              </div>
+              <p class="meta" id="chars-discord-status" style="min-height:1.2em"></p>
+              <div id="chars-discord-links" class="chars-discord-links"></div>
+            </div>
           </div>
           <div class="chars-layout">
             <div class="chars-roster">
@@ -5334,6 +5381,51 @@
           gmRow.hidden = true;
           gmRow.innerHTML = "";
         }
+      }
+      const discordSel = document.getElementById("chars-discord-char");
+      if (discordSel) {
+        const prev = discordSel.value;
+        discordSel.innerHTML =
+          `<option value="">— pick —</option>` +
+          chars
+            .map(
+              (c) =>
+                `<option value="${esc(c.id)}">${esc(c.display_name || c.id)}${
+                  c.discord_user_id ? " · linked" : ""
+                }</option>`
+            )
+            .join("");
+        if (prev && [...discordSel.options].some((o) => o.value === prev)) discordSel.value = prev;
+        else if (selectedCharId) discordSel.value = selectedCharId;
+      }
+      const linksEl = document.getElementById("chars-discord-links");
+      if (linksEl) {
+        const linked = chars.filter((c) => c.discord_user_id);
+        linksEl.innerHTML = linked.length
+          ? linked
+              .map(
+                (c) =>
+                  `<button type="button" class="chars-discord-chip" data-char-id="${esc(c.id)}" title="${esc(
+                    c.discord_user_id
+                  )}">${esc(c.discord_username || c.player_name || "discord")} → ${esc(
+                    c.display_name || c.id
+                  )}</button>`
+              )
+              .join("")
+          : `<span class="meta">No Discord links on this roster yet.</span>`;
+        linksEl.querySelectorAll("[data-char-id]").forEach((btn) => {
+          btn.onclick = () => {
+            selectedCharId = btn.dataset.charId;
+            const row = chars.find((c) => c.id === selectedCharId);
+            const u = document.getElementById("chars-discord-username");
+            const d = document.getElementById("chars-discord-userid");
+            const s = document.getElementById("chars-discord-char");
+            if (u && row) u.value = row.discord_username || "";
+            if (d && row) d.value = row.discord_user_id || "";
+            if (s) s.value = selectedCharId;
+            renderCharacterSheet(row || null);
+          };
+        });
       }
       if (!chars.length) {
         grid.innerHTML = '<p class="chars-empty">No registry for this campaign yet.</p>';
@@ -10124,6 +10216,62 @@
       if (e.target?.id === "hub-resources-modal") closeHubResourcesModal();
     });
     document.getElementById("chars-add-btn")?.addEventListener("click", () => openCharsAddModal());
+    document.getElementById("chars-discord-link-btn")?.addEventListener("click", async () => {
+      const status = document.getElementById("chars-discord-status");
+      const username = (document.getElementById("chars-discord-username")?.value || "").trim();
+      const discordId = (document.getElementById("chars-discord-userid")?.value || "").trim();
+      const characterId = (document.getElementById("chars-discord-char")?.value || "").trim();
+      const note = (document.getElementById("chars-discord-note")?.value || "").trim();
+      if (!characterId) {
+        if (status) status.textContent = "Pick a character.";
+        return;
+      }
+      if (!/^\d{17,20}$/.test(discordId)) {
+        if (status) status.textContent = "Discord user id must be a 17–20 digit snowflake.";
+        return;
+      }
+      if (status) status.textContent = "Linking…";
+      try {
+        const res = await fetch(`${base}/api/characters-registry/link-discord`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campaign: charsCampaignFilter,
+            character_id: characterId,
+            discord_user_id: discordId,
+            discord_username: username,
+            player_name: username,
+            note,
+            base_version: charsRegistry && charsRegistry.version,
+            include_hidden: charsShowHidden ? 1 : 0,
+          }),
+        });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (status) {
+            status.textContent =
+              j.message || j.error || `HTTP ${res.status}` + (j.detail ? ` — ${j.detail}` : "");
+          }
+          return;
+        }
+        if (status) {
+          status.textContent = `Linked ${username || discordId} → ${characterId} (registry v${
+            j.registry?.version ?? "?"
+          })`;
+        }
+        if (j.registry) {
+          charsRegistry = j.registry;
+          selectedCharId = characterId;
+          renderCharactersRoster();
+          const row = (charsRegistry.characters || []).find((c) => c.id === characterId);
+          renderCharacterSheet(row || null);
+        } else {
+          await loadCharacters();
+        }
+      } catch (e) {
+        if (status) status.textContent = e.message || String(e);
+      }
+    });
     document.getElementById("chars-add-modal-close")?.addEventListener("click", () => closeCharsAddModal());
     document.getElementById("chars-add-modal")?.addEventListener("click", (e) => {
       if (e.target?.id === "chars-add-modal") closeCharsAddModal();

@@ -272,6 +272,11 @@ function viewerHtml() {
   .auth-users select { font:inherit; font-size:.72rem; background:var(--void); color:var(--text); border:1px solid var(--muted); border-radius:4px; padding:2px 4px; }
   .auth-users button { font:inherit; font-size:.68rem; color:var(--cyan); background:none; border:1px solid var(--cyan); border-radius:4px; padding:2px 8px; cursor:pointer; }
   .auth-users .au-status { font-size:.68rem; color:var(--muted); min-height:1em; margin-top:6px; }
+  .auth-users .au-add { display:grid; gap:6px; margin-top:10px; padding-top:8px; border-top:1px solid rgba(185,103,255,.18); }
+  .auth-users .au-add input, .auth-users .au-add select {
+    font:inherit; font-size:.72rem; background:var(--void); color:var(--text);
+    border:1px solid var(--muted); border-radius:4px; padding:4px 6px; width:100%; box-sizing:border-box;
+  }
   body.day .auth-users { background:rgba(253,243,250,.97); }
   .pilot-panel {
     padding:12px 14px 10px; border-bottom:1px solid rgba(255,113,206,.25);
@@ -3047,10 +3052,42 @@ function initUsersPanel() {
     if (panel) { panel.remove(); panel = null; return; }
     panel = document.createElement('div');
     panel.className = 'auth-users';
-    panel.innerHTML = '<h3>Users</h3><div class="au-rows">loading…</div><div class="au-status"></div>';
+    panel.innerHTML = '<h3>Users</h3><div class="au-rows">loading…</div>' +
+      '<form class="au-add" id="auAddForm">' +
+      '<input name="username" placeholder="Discord username" required />' +
+      '<input name="id" placeholder="Discord user id" inputmode="numeric" required />' +
+      '<select name="role"><option value="user">user</option><option value="admin">admin</option></select>' +
+      '<button type="submit">Add account</button></form>' +
+      '<div class="au-status"></div>';
     document.body.appendChild(panel);
     const rowsEl = panel.querySelector('.au-rows');
     const statusEl = panel.querySelector('.au-status');
+    const addForm = panel.querySelector('#auAddForm');
+    addForm.onsubmit = async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(addForm);
+      statusEl.textContent = 'Adding…';
+      try {
+        const r = await fetch('/api/auth/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            create: true,
+            id: String(fd.get('id') || '').trim(),
+            username: String(fd.get('username') || '').trim(),
+            role: String(fd.get('role') || 'user'),
+          }),
+        });
+        const out = await r.json();
+        if (!r.ok) throw new Error(out.error || r.status);
+        statusEl.textContent = 'Added @' + fd.get('username');
+        panel.remove();
+        panel = null;
+        btn.click();
+      } catch (e) {
+        statusEl.textContent = 'failed: ' + e.message;
+      }
+    };
     let data;
     try {
       const r = await fetch('/api/auth/users');
@@ -5177,9 +5214,24 @@ async function handleRequest(req, res) {
     if (req.method === "POST") {
       try {
         const body = JSON.parse((await readBody(req)) || "{}");
-        const id = String(body.id || "");
-        const role = String(body.role || "");
-        if (!/^[A-Za-z0-9_-]{3,64}$/.test(id)) throw new Error("invalid user id");
+        const id = String(body.id || body.discord_id || "").trim();
+        const role = String(body.role || "user").trim();
+        const username = String(body.username || body.discord_username || "").trim();
+        // Discord snowflakes are 17–20 digits; keep legacy slug ids for tests.
+        if (!/^(\d{17,20}|[A-Za-z0-9_-]{3,64})$/.test(id)) throw new Error("invalid user id");
+        if (body.create || body.ensure) {
+          if (!username) throw new Error("username required when creating");
+          if (role === "owner") throw new Error("owner comes from TABLESLOP_OWNER_DISCORD_ID");
+          if (!["admin", "user"].includes(role)) throw new Error("role must be admin or user");
+          authStore.upsertUser({
+            discordId: id,
+            username,
+            avatarHash: null,
+            forceRole: role,
+          });
+          sendJson(res, { ok: true, created: true, users: authStore.listUsers() });
+          return;
+        }
         authStore.setUserRole(id, role);
         sendJson(res, { ok: true, users: authStore.listUsers() });
       } catch (err) {

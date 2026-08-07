@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "notes": "Tracked defaults: think/Cursor Auto must not silently reverse these without GM ask. Runtime marks go in agents/state/human-authored-paths.json.",
+  "paths": [
+    "campaigns/tropic-gooner/map/regions-ui.json",
+    "campaigns/tropic-gooner/map/regions-ui.gm-watermark.json",
+    "campaigns/tropic-gooner/characters-registry.json",
+    "campaigns/tropic-gooner/player-character-links.json",
+    "agents/model-budget/chat-catalog.json"
+  ],
+  "globs": [
+    "agents/state/chat-threads/**",
+    "campaigns/*/characters/portraits/**"
+  ]
+}

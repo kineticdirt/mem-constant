@@ -1148,10 +1148,26 @@ PY
   max_turns: ${THINK_MAX_TURNS}
 When this packet's verify passes, run:
   python3 scripts/linuxbox/think-work-packet.py complete --repo . --packet-id ${PACKET_ID}
-Only set user-task ${TASK_ID} status=done when the complete command reports task_complete=true (all packets done). If blocked: complete --blocked '<reason>' then set task blocked."
+Only set user-task ${TASK_ID} status=done when the complete command reports task_complete=true (all packets done). If blocked: complete --blocked '<reason>' then set task blocked.
+VERIFY CULTURE: run the verify command (or curl/script named in verify) before complete. Do not mark done on 'looks fine'."
       THINK_SUCCESS_METRIC="work-packet ${PACKET_ID} verify: ${PACKET_VERIFY}"
       THINK_VERIFY_CMD="harness: packet ${PACKET_ID} status=done (think-work-packet.py) + concrete check"
     fi
+  fi
+fi
+
+# Human / Cursor authorship — refuse silent reverse of GM/IDE work.
+HUMAN_AUTH_BLOCK=""
+if [[ -f "${REPO}/scripts/linuxbox/human-authored.py" ]]; then
+  HUMAN_AUTH_BLOCK="$(python3 "${REPO}/scripts/linuxbox/human-authored.py" block --repo "${REPO}" 2>/dev/null || true)"
+fi
+if [[ -n "${HUMAN_AUTH_BLOCK}" ]]; then
+  if [[ -n "${PACKET_BLOCK}" ]]; then
+    PACKET_BLOCK="${PACKET_BLOCK}
+
+${HUMAN_AUTH_BLOCK}"
+  else
+    PACKET_BLOCK="${HUMAN_AUTH_BLOCK}"
   fi
 fi
 

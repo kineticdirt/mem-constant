@@ -281,3 +281,7 @@
 ## 2026-08-06 21:07 ET — [PC] Intent: diagnose border save refuse + Cursor Auto down / free-down paid-idle
 
 [PC] Result: border save — global vert-drop refuse was blocking GM simplify (Paradise 277→fewer); fixed per-id sibling guard (5c4bbec+). Cursor Auto — archive-paths clobbered REPO under Hermes HOME (fixed); ~/.cursor-agent.env has NO CURSOR_API_KEY (commented placeholder) — needs human paste from Cursor Dashboard. Think — not idle: thrashing free (Laguna 429, ling timeout/exit 124, iter budget 28); paid C8 needs ≥2 verify fails (currently 1). Hub note "Work on non cursor".
+
+## 2026-08-06 21:36 ET — [PC] Intent: (1) lower think friction + human-vs-AI authorship so Cursor work is not backtracked (2) GM character editor panel + Discord account Hiatus Cuz Life 457403984936960010
+
+[PC] Result: Hub Chars **GM · Discord accounts** panel (`#chars-discord-panel`) + `POST /api/characters-registry/link-discord` (registry + `player-character-links.json`). Linked **Hiatus Cuz Life** `457403984936960010` → **toga** (username typo Cause→Cuz; registry v37; links row written). Tableslop Users **Add account** + `create:true` owner API; seeded auth user role=user in `tableslop-auth.db`. Authorship: `human-authored.py` + `agents/human-authored-defaults.json` injected into think packets; protected path for state marks. Think: verify-culture line in packet block (28 still ceiling; packets shrink work). Deployed potato (status+tableslop restart). GM: hard-refresh Hub Chars; confirm Toga is the right cast row.

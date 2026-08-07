@@ -4246,6 +4246,68 @@ function patchCharacterRegistry(campaignId, patch) {
   return getCharactersRegistry(campaignId, { includeHidden: Boolean(patch.include_hidden) });
 }
 
+/** GM: bind a Discord snowflake to a cast row + player-character-links.json (same campaign). */
+function linkDiscordAccount(campaignId, body) {
+  const characterId = String(body.character_id || body.id || "").trim();
+  const discordUserId = String(body.discord_user_id || "").trim();
+  const discordUsername = String(body.discord_username || "").trim();
+  const playerName = String(body.player_name || discordUsername || "").trim();
+  if (!characterId) throw new Error("character_id_required");
+  if (!/^\d{17,20}$/.test(discordUserId)) throw new Error("bad_discord_user_id");
+  const registry = readCharactersRegistry(campaignId);
+  const row = registry.characters.find((c) => c && c.id === characterId);
+  if (!row) throw new Error("character_not_found");
+  row.discord_user_id = discordUserId;
+  if (discordUsername) row.discord_username = discordUsername;
+  if (playerName) row.player_name = playerName;
+  writeCharactersRegistry(campaignId, registry, {
+    baseVersion: registryBaseVersionFromBody(body),
+  });
+
+  const linksPath = path.join(REPO, "campaigns", campaignId, "player-character-links.json");
+  let linksDoc = {
+    version: 1,
+    campaign_id: campaignId,
+    updated_at: null,
+    links: [],
+    notes: "Manual Discord user id ↔ character registry id. No OAuth.",
+  };
+  try {
+    if (fs.existsSync(linksPath)) {
+      linksDoc = JSON.parse(fs.readFileSync(linksPath, "utf8"));
+    }
+  } catch (_) {
+    /* keep default */
+  }
+  if (!Array.isArray(linksDoc.links)) linksDoc.links = [];
+  const now = new Date().toISOString();
+  const next = {
+    discord_user_id: discordUserId,
+    character_id: characterId,
+    linked_at: now,
+    note: String(body.note || playerName || discordUsername || "").slice(0, 200),
+  };
+  const ix = linksDoc.links.findIndex(
+    (L) => L && String(L.discord_user_id) === discordUserId
+  );
+  if (ix >= 0) linksDoc.links[ix] = { ...linksDoc.links[ix], ...next };
+  else linksDoc.links.push(next);
+  linksDoc.updated_at = now;
+  linksDoc.campaign_id = campaignId;
+  linksDoc.version = Math.max(1, Number(linksDoc.version || 1) + 1);
+  fs.writeFileSync(linksPath, JSON.stringify(linksDoc, null, 2) + "\n", "utf8");
+
+  return {
+    ok: true,
+    character_id: characterId,
+    discord_user_id: discordUserId,
+    discord_username: row.discord_username,
+    player_name: row.player_name,
+    link: next,
+    registry: getCharactersRegistry(campaignId, { includeHidden: true }),
+  };
+}
+
 function createCharacterRegistry(campaignId, body) {
   // Soft rule: never hard-delete user-created characters (or overwrite registry wiping them) without explicit GM ask.
   const display = String(body.display_name || body.name || "").trim();
@@ -9141,6 +9203,20 @@ const server = http.createServer(async (req, res) => {
         const campaignId = body.campaign || "tropic-gooner";
         try {
           sendJson(res, 200, patchCharacterRegistry(campaignId, body), publicMode);
+        } catch (e) {
+          sendRegistryWriteError(res, e, publicMode);
+        }
+        return;
+      }
+
+      if (pathname === "/api/characters-registry/link-discord") {
+        if (auth?.role !== "admin") {
+          sendJson(res, 403, { error: "admin_required" }, publicMode);
+          return;
+        }
+        const campaignId = body.campaign || "tropic-gooner";
+        try {
+          sendJson(res, 200, linkDiscordAccount(campaignId, body), publicMode);
         } catch (e) {
           sendRegistryWriteError(res, e, publicMode);
         }

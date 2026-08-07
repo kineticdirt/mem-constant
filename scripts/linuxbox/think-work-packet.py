@@ -143,7 +143,7 @@ def _heuristic_packets(task_id: str, blurb: str, body: str) -> list[dict]:
                 pkt(
                     i,
                     f"Ship slice {i}/{min(3, len(parts))}: {part[:200]}",
-                    f"Concrete verify for slice {i} (script exit 0 / curl 200+marker / file exists); "
+                "Concrete verify for slice {i}: name ONE command (bash/curl/python) that exits 0 if the slice worked; "
                     f"leave parent task open until all packets done",
                     10,
                 )
