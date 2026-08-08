@@ -197,6 +197,117 @@ async function isGuildMember(userId) {
   return r.status === 200;
 }
 
+/** Dedicated Discord login page — public; OAuth button only when env is complete. */
+function loginPageHtml() {
+  const configured = OAUTH_CONFIGURED;
+  const gating = AUTH_GATING;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Login · tableslop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --void:#0d0221; --panel:#16082a; --text:#f8f0ff; --muted:#9a8ab8;
+    --pink:#ff71ce; --cyan:#01cdfe; --purple:#b967ff; --sun:#fffb96;
+    --glow-pink:rgba(255,113,206,.35); --glow-cyan:rgba(1,205,254,.3);
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; font-family:VT323,monospace; color:var(--text);
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(185,103,255,.25), transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(1,205,254,.18), transparent 45%),
+      linear-gradient(180deg, #12061f, var(--void));
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card {
+    width:min(420px, 100%);
+    padding:28px 26px 24px;
+    background:linear-gradient(180deg, rgba(22,8,42,.98), rgba(13,2,33,.98));
+    border:2px solid transparent;
+    border-image:linear-gradient(90deg, var(--pink), var(--cyan), var(--purple)) 1;
+    box-shadow:0 0 40px rgba(255,113,206,.12);
+  }
+  .brand {
+    font:700 .95rem Orbitron,sans-serif; letter-spacing:.2em; text-transform:uppercase;
+    background:linear-gradient(90deg, var(--pink), var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  h1 {
+    margin:10px 0 6px; font:700 1.35rem Orbitron,sans-serif; letter-spacing:.06em;
+    color:var(--sun); text-shadow:0 0 16px rgba(255,251,150,.35);
+  }
+  p { margin:0 0 12px; color:var(--muted); font-size:1.15rem; line-height:1.35; }
+  .roles { margin:14px 0 18px; padding:10px 12px; border:1px solid rgba(185,103,255,.35); font-size:1.05rem; color:var(--muted); }
+  .roles strong { color:var(--cyan); font-weight:400; }
+  .cta {
+    display:block; text-align:center; text-decoration:none;
+    font:700 .8rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+    padding:14px 16px; border:1px solid var(--cyan); color:var(--cyan);
+    background:rgba(1,205,254,.1); box-shadow:0 0 16px var(--glow-cyan);
+  }
+  .cta:hover { border-color:var(--pink); color:var(--pink); box-shadow:0 0 18px var(--glow-pink); }
+  .cta[aria-disabled="true"] { opacity:.45; pointer-events:none; }
+  .status { margin-top:14px; font-size:1.05rem; color:var(--muted); min-height:1.2em; }
+  .status.ok { color:var(--cyan); }
+  .status.warn { color:var(--sun); }
+  .back { display:inline-block; margin-top:18px; color:var(--purple); text-decoration:none; font-size:1.1rem; }
+  .back:hover { color:var(--pink); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">tableslop</div>
+    <h1>Map login</h1>
+    <p>View the island map without signing in. Login with Discord to edit borders, pins, and (for the GM) manage who can edit.</p>
+    <div class="roles">
+      <div><strong>owner</strong> — edit + grant/revoke roles</div>
+      <div><strong>admin</strong> — edit map</div>
+      <div><strong>user</strong> — view + play features</div>
+    </div>
+    <a class="cta" id="discordBtn" href="/auth/discord" ${configured ? "" : 'aria-disabled="true"'}>Login with Discord</a>
+    <div class="status" id="status">${configured ? (gating ? "Auth ready — edits require login." : "Discord connected — gating off until TABLESLOP_REQUIRE_DISCORD_AUTH=1.") : "Discord OAuth env not on this server yet — GM must finish portal secrets."}</div>
+    <a class="back" href="/">← Back to map</a>
+  </main>
+<script>
+(async function () {
+  const status = document.getElementById('status');
+  const btn = document.getElementById('discordBtn');
+  try {
+    const me = await fetch('/api/me').then(function (r) { return r.json(); });
+    if (me.logged_in) {
+      status.className = 'status ok';
+      status.textContent = 'Signed in as @' + (me.username || me.id) + (me.role ? ' · ' + me.role : '') + '.';
+      btn.textContent = 'Open map';
+      btn.href = '/';
+      btn.removeAttribute('aria-disabled');
+      return;
+    }
+    if (me.discord_configured) {
+      status.className = 'status ok';
+      status.textContent = me.auth_gating
+        ? 'Ready — login required to edit. Owner manages roles after login.'
+        : 'Discord ready (edit gate off).';
+      btn.removeAttribute('aria-disabled');
+    } else {
+      status.className = 'status warn';
+      status.textContent = 'Waiting on Discord OAuth client secret + owner id on potato (~/.linuxbox-tableslop/.env).';
+      btn.setAttribute('aria-disabled', 'true');
+    }
+  } catch (e) {
+    status.className = 'status warn';
+    status.textContent = 'Could not read /api/me — try the map anyway.';
+  }
+})();
+</script>
+</body>
+</html>`;
+}
+
 function viewerHtml() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -207,6 +318,7 @@ function viewerHtml() {
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="/wiki-entity-links.js?v=20260807e"></script>
 <style>
   :root {
     --void:#0d0221; --panel:#16082a; --line:#ff71ce; --text:#e8f4ff; --muted:#9d8fc9;
@@ -264,6 +376,24 @@ function viewerHtml() {
   .hud-login { font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; padding:5px 10px; border:1px solid var(--cyan); border-radius:4px; background:rgba(1,205,254,.08); }
   .hud-login-hint { color:var(--muted); font-size:.68rem; letter-spacing:.04em; }
   .hud-users-btn { font:inherit; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sun); background:none; border:1px solid var(--sun); border-radius:4px; padding:3px 8px; cursor:pointer; }
+  .hud-mychar { font-size:.68rem; letter-spacing:.06em; color:var(--pink); text-decoration:none; border-bottom:1px dotted rgba(255,113,206,.5); }
+  .hud-mychar:hover { text-shadow:0 0 8px var(--glow-pink); }
+  .world-panel { position:fixed; top:52px; right:12px; z-index:60; width:min(360px,92vw); max-height:70vh; overflow:auto; background:var(--panel); border:1px solid var(--cyan); border-radius:8px; padding:12px 14px; box-shadow:0 8px 32px rgba(0,0,0,.6); }
+  .world-panel[hidden] { display:none !important; }
+  .world-panel h3 { margin:0 0 6px; font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--cyan); }
+  .world-panel .wp-note { margin:0 0 10px; font-size:.72rem; color:var(--muted); line-height:1.35; }
+  .world-panel .wp-list { list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+  .world-panel .wp-list button, .world-panel .wp-list a.wp-link {
+    display:block; width:100%; text-align:left; font:inherit; font-size:.85rem;
+    color:var(--text); background:rgba(1,205,254,.06); border:1px solid rgba(1,205,254,.35);
+    border-radius:4px; padding:8px 10px; cursor:pointer; text-decoration:none;
+  }
+  .world-panel .wp-list button:hover, .world-panel .wp-list a.wp-link:hover {
+    border-color:var(--pink); background:rgba(255,113,206,.1);
+  }
+  .world-panel .wp-soon { color:var(--muted); font-size:.72rem; }
+  .world-panel .wp-close { margin-top:10px; font:inherit; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:none; border:1px solid var(--muted); border-radius:4px; padding:4px 10px; cursor:pointer; }
+  body.day .world-panel { background:rgba(253,243,250,.97); }
   .auth-users { position:fixed; top:52px; right:12px; z-index:60; width:320px; max-height:70vh; overflow:auto; background:var(--panel); border:1px solid var(--purple); border-radius:8px; padding:12px; box-shadow:0 8px 32px rgba(0,0,0,.6); }
   .auth-users h3 { margin:0 0 8px; font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
   .auth-users .au-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid rgba(185,103,255,.18); font-size:.78rem; }
@@ -301,11 +431,36 @@ function viewerHtml() {
   }
   .city-map-link:hover { color:var(--pink); border-color:var(--pink); box-shadow:0 0 12px var(--glow-pink); }
   .city-map-link[hidden] { display:none; }
+  /* isla-lived-in: compact demographics + rentals in journal (not fullscreen) */
+  .lived-in-box {
+    margin-top:10px; padding:8px 9px; border:1px solid rgba(1,205,254,.28);
+    background:rgba(13,2,33,.72); border-radius:4px; font-size:.72rem; color:var(--text);
+  }
+  .lived-in-box[hidden] { display:none; }
+  .lived-in-box h3 {
+    margin:0 0 6px; font:700 .65rem Orbitron,sans-serif; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--cyan);
+  }
+  .lived-in-box .li-stats { color:var(--sun); margin-bottom:6px; line-height:1.35; }
+  .lived-in-box .li-dist { color:var(--muted); font-size:.68rem; margin-bottom:6px; max-height:3.2em; overflow:hidden; }
+  .lived-in-box .li-list { display:grid; gap:5px; margin:0; padding:0; list-style:none; }
+  .lived-in-box .li-list li {
+    border-top:1px dashed rgba(185,103,255,.22); padding-top:4px; color:var(--text);
+  }
+  .lived-in-box .li-price { color:var(--green, #05ffa1); float:right; font-weight:700; }
+  .lived-in-box .li-more {
+    display:inline-block; margin-top:7px; color:var(--pink); text-decoration:none;
+    font:700 .62rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+  }
+  .lived-in-box .li-more:hover { text-decoration:underline; }
   .game-shell {
     flex:1; min-height:0; overflow:hidden;
-    display:grid; grid-template-columns:1fr min(300px,32vw);
+    display:grid; grid-template-columns:1fr var(--journal-w, min(300px, 32vw));
   }
-  @media (max-width:800px) { .game-shell { grid-template-columns:1fr; grid-template-rows:1fr auto; } }
+  @media (max-width:800px) {
+    .game-shell { grid-template-columns:1fr; grid-template-rows:1fr auto; }
+    .journal-resize { display:none !important; }
+  }
   .map-viewport {
     position:relative; min-height:0; overflow:hidden;
     overscroll-behavior:none;
@@ -476,6 +631,24 @@ function viewerHtml() {
     display:flex; flex-direction:column; min-height:0;
     box-shadow:-8px 0 32px rgba(255,113,206,.12);
   }
+  .journal-resize {
+    position:absolute; left:0; top:0; bottom:0; width:10px; z-index:20;
+    cursor:col-resize; touch-action:none;
+    background:transparent;
+  }
+  /* Resize handle must not sit above the dock iframe (phone/radio softkeys). */
+  .region-journal:has(#dockSide:not([hidden])) .journal-resize { z-index:1; }
+  .journal-resize::after {
+    content:""; position:absolute; left:2px; top:50%; transform:translateY(-50%);
+    width:4px; height:48px; border-radius:2px;
+    background:linear-gradient(180deg, var(--pink), var(--cyan));
+    box-shadow:0 0 10px var(--glow-cyan); opacity:.85;
+  }
+  .journal-resize:hover::after, .game-shell.is-resizing-journal .journal-resize::after {
+    opacity:1; width:5px; box-shadow:0 0 14px var(--glow-pink);
+  }
+  .game-shell.is-resizing-journal { cursor:col-resize; user-select:none; }
+  .game-shell.is-resizing-journal .map-viewport { pointer-events:none; }
   .region-journal::before {
     content:""; position:absolute; inset:0; pointer-events:none;
     background:linear-gradient(180deg, rgba(255,113,206,.06), transparent 30%, rgba(1,205,254,.04));
@@ -696,6 +869,59 @@ function viewerHtml() {
 
   .region-journal::after { display:none; }
   .hud-res.is-on { border-color:var(--sun); color:var(--sun); box-shadow:0 0 12px rgba(255,251,150,.45); }
+  /* Named dock parts: RADIO / PHONE / SIM — orange idle → turquoise active; expand over cast/info */
+  .hud-dock {
+    font:inherit; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
+    color:#2a1408; background:rgba(255,140,40,.92); border:1px solid #ff8c28;
+    padding:4px 12px; cursor:pointer;
+    box-shadow:0 0 10px rgba(255,140,40,.45);
+  }
+  .hud-dock:hover { filter:brightness(1.08); }
+  .hud-dock.is-on {
+    color:#041612; background:rgba(45,212,191,.95); border-color:#2dd4bf;
+    box-shadow:0 0 14px rgba(45,212,191,.55);
+  }
+  .hud-3d.is-on {
+    border-color:#2dd4bf; color:#2dd4bf; background:rgba(45,212,191,.12);
+    box-shadow:0 0 12px rgba(45,212,191,.4);
+  }
+  .dock-side {
+    display:flex; flex-direction:column; flex:1; min-height:0; position:relative; z-index:2;
+    background:#07070c;
+  }
+  .dock-side[hidden] { display:none !important; }
+  .dock-side-head {
+    display:flex; align-items:center; gap:8px; padding:6px 10px;
+    border-bottom:1px solid rgba(255,140,40,.35);
+    flex-shrink:0;
+  }
+  .dock-side-head h2 {
+    margin:0; flex:1; font:700 .75rem Orbitron,sans-serif; letter-spacing:.12em;
+    color:#ff8c28; text-transform:uppercase;
+  }
+  .dock-side.is-on-active .dock-side-head h2 { color:#2dd4bf; }
+  .dock-close {
+    font:inherit; font-size:.65rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted); background:transparent; border:1px solid rgba(157,143,201,.4);
+    padding:3px 8px; cursor:pointer;
+  }
+  .dock-close:hover { color:var(--pink); border-color:var(--pink); }
+  .dock-frame {
+    flex:1; min-height:0; width:100%; height:100%; border:0; background:#07070c;
+    display:block;
+  }
+  .map-3d-overlay {
+    position:absolute; inset:0; z-index:8; border:0; width:100%; height:100%;
+    background:rgba(8,4,18,.92);
+  }
+  .map-3d-overlay[hidden] { display:none !important; }
+  .map-3d-badge {
+    position:absolute; top:10px; left:10px; z-index:9;
+    font:700 .65rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+    color:#041612; background:rgba(45,212,191,.92); border:1px solid #2dd4bf;
+    padding:4px 10px; pointer-events:none;
+  }
+  .map-3d-badge[hidden] { display:none !important; }
   .cast-side { display:flex; flex-direction:column; flex:1; min-height:0; position:relative; z-index:1; }
   .cast-side.has-sheet { /* list + full-width sheet reader */
   }
@@ -820,19 +1046,30 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="areasToggle" hidden>Areas</button>
   <button type="button" class="hud-res" id="labelToggle" hidden>Labels</button>
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
-  <button type="button" class="hud-res" id="castToggle" aria-pressed="false">Cast</button>
-  <button type="button" class="hud-res hud-edit" id="editToggle">Edit</button>
-  <button type="button" class="hud-res" id="drawToggle">Draw borders</button>
+  <button type="button" class="hud-res hud-edit" id="editToggle" hidden>Edit</button>
+  <button type="button" class="hud-res" id="drawToggle" hidden>Draw borders</button>
+  <button type="button" class="hud-res" id="worldToggle" hidden title="World tools — panels on the map (admin)">World</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
   <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
-  <a class="hud-res" href="/3d" title="Stylized 3D island view">3D</a>
-  <a class="hud-res" href="/radio/" title="Island radio">Radio</a>
-  <a class="hud-res" href="/phone/" title="Island phone">Phone</a>
+  <button type="button" class="hud-res hud-3d" id="map3dToggle" aria-pressed="false" title="Toggle 3D overlay on the 2D map (Google Maps-style)">3D</button>
   <a class="hud-res" href="/hunter/" title="Hunter board">Hunter</a>
-  <a class="hud-res" href="/sim/" title="Market and gunplay sim">Sim</a>
+  <button type="button" class="hud-dock" id="dockRadio" data-dock="radio" aria-pressed="false" title="Radio — expands over cast/info">Radio</button>
+  <button type="button" class="hud-dock" id="dockPhone" data-dock="phone" aria-pressed="false" title="Phone (call + text) — expands over cast/info">Phone</button>
+  <button type="button" class="hud-dock" id="dockSim" data-dock="sim" aria-pressed="false" title="Sim — expands over cast/info">Sim</button>
+  <button type="button" class="hud-dock" id="castToggle" aria-pressed="false" title="Cast — expands over info panel">Cast</button>
   <div class="hud-auth" id="authSlot"></div>
 </header>
+<div class="world-panel" id="worldPanel" hidden>
+  <h3>World tools</h3>
+  <p class="wp-note">Map stays the screen — tools open as panels. Observers never see this chrome.</p>
+  <ul class="wp-list">
+    <li><button type="button" id="wpCastBtn">Chars / Cast</button></li>
+    <li><button type="button" id="wpDrawBtn">Draw borders</button></li>
+    <li><span class="wp-soon">Stories · Places · Quests · Questions — next</span></li>
+  </ul>
+  <button type="button" class="wp-close" id="worldPanelClose">Close</button>
+</div>
 <div class="draw-bar" id="drawBar" hidden>
   <!-- v1: parent region (R#) only. Next: nest city sub-regions (e.g. paradise-subzones.json); do not hardcode flat R1–R14 forever. -->
   <label for="drawRegionSelect">Region</label>
@@ -870,7 +1107,9 @@ function viewerHtml() {
     <div class="map-camera" id="mapCamera">
       <div class="map-stage" id="mapStage"></div>
     </div>
-    <div class="map-hint" id="mapHint">drag to pan · scroll to zoom · legend to focus · Cast for roster</div>
+    <iframe class="map-3d-overlay" id="map3dOverlay" hidden title="3D map overlay" src="about:blank"></iframe>
+    <div class="map-3d-badge" id="map3dBadge" hidden>3D overlay · PCs/routines on 2D when off</div>
+    <div class="map-hint" id="mapHint">drag to pan · scroll to zoom · legend to focus · Cast for roster · 3D toggles overlay</div>
     <div class="map-zoom-label" id="zoomLabel">—</div>
     <div class="map-controls" id="mapControls">
       <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
@@ -878,7 +1117,8 @@ function viewerHtml() {
       <button type="button" id="zoomFit" aria-label="Fit entire map">⌂</button>
     </div>
   </section>
-  <aside class="region-journal">
+  <aside class="region-journal" id="regionJournal">
+    <div class="journal-resize" id="journalResize" title="Drag to widen / narrow panel" role="separator" aria-orientation="vertical" aria-label="Resize info panel"></div>
     <div class="pilot-panel" id="pilotPanel">
       <div class="pilot-name" id="pilotName">Local pilot</div>
       <div class="pilot-meta" id="pilotMeta">Progress saves in this browser</div>
@@ -886,6 +1126,13 @@ function viewerHtml() {
       <label class="pilot-note-label" for="regionNote" id="noteLabel" hidden>Region note</label>
       <textarea class="pilot-note" id="regionNote" hidden placeholder="Session notes for this region…"></textarea>
       <a class="city-map-link" id="cityMapLink" href="#" hidden>City map →</a>
+      <div class="lived-in-box" id="livedInBox" hidden>
+        <h3>◇ Lived-in</h3>
+        <div class="li-stats" id="livedInStats"></div>
+        <div class="li-dist" id="livedInDist"></div>
+        <ul class="li-list" id="livedInList"></ul>
+        <a class="li-more" id="livedInMore" href="/lived-in/" hidden>All listings →</a>
+      </div>
     </div>
     <div class="map-side" id="mapSide">
       <h2>◇ Legend</h2>
@@ -897,6 +1144,13 @@ function viewerHtml() {
       <div class="cast-meta" id="castMeta">Loading roster…</div>
       <div class="cast-list" id="castList"></div>
       <div class="cast-detail" id="castDetail" hidden></div>
+    </div>
+    <div class="dock-side" id="dockSide" hidden data-dock="">
+      <div class="dock-side-head">
+        <h2 id="dockSideTitle">◇ Dock</h2>
+        <button type="button" class="dock-close" id="dockClose" title="Close dock panel">Close</button>
+      </div>
+      <iframe class="dock-frame" id="dockFrame" title="tableslop dock panel" src="about:blank"></iframe>
     </div>
   </aside>
 </div>
@@ -920,6 +1174,61 @@ function viewerHtml() {
     var next = document.body.classList.contains('day') ? 'night' : 'day';
     try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
     applyTheme(next);
+  });
+})();
+(function () {
+  var KEY = 'tableslop-journal-w';
+  var shell = document.querySelector('.game-shell');
+  var handle = document.getElementById('journalResize');
+  if (!shell || !handle) return;
+  function clamp(px) {
+    var max = Math.floor(window.innerWidth * 0.72);
+    var min = 240;
+    if (max < min) max = min;
+    return Math.max(min, Math.min(max, Math.round(px)));
+  }
+  function apply(px) {
+    var w = clamp(px);
+    shell.style.setProperty('--journal-w', w + 'px');
+    return w;
+  }
+  try {
+    var saved = parseInt(localStorage.getItem(KEY) || '', 10);
+    if (saved) apply(saved);
+  } catch (e) {}
+  var dragging = false;
+  function onMove(ev) {
+    if (!dragging) return;
+    var x = ev.clientX != null ? ev.clientX : (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+    if (x == null) return;
+    apply(window.innerWidth - x);
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    shell.classList.remove('is-resizing-journal');
+    try {
+      var cur = getComputedStyle(shell).getPropertyValue('--journal-w').trim();
+      var n = parseInt(cur, 10);
+      if (n) localStorage.setItem(KEY, String(n));
+    } catch (e) {}
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+  }
+  handle.addEventListener('pointerdown', function (ev) {
+    if (window.matchMedia('(max-width:800px)').matches) return;
+    ev.preventDefault();
+    dragging = true;
+    shell.classList.add('is-resizing-journal');
+    try { handle.setPointerCapture(ev.pointerId); } catch (e) {}
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  });
+  handle.addEventListener('dblclick', function () {
+    var w = apply(Math.min(520, Math.floor(window.innerWidth * 0.42)));
+    try { localStorage.setItem(KEY, String(w)); } catch (e) {}
   });
 })();
 const PROFILE_KEY = 'tableslop-primavera-profile-v1';
@@ -970,6 +1279,47 @@ const tooltip = document.getElementById('tooltip');
 let castMode = false;
 let castCache = null;
 let activeCastId = null;
+let wikiEntitiesCache = null;
+let wikiEntitiesBound = false;
+
+async function ensureWikiEntities() {
+  if (wikiEntitiesCache) return wikiEntitiesCache;
+  if (typeof WikiEntities === 'undefined') {
+    wikiEntitiesCache = [];
+    return wikiEntitiesCache;
+  }
+  try {
+    const data = await WikiEntities.fetchEntities('/api/wiki/entities?campaign=tropic-gooner');
+    wikiEntitiesCache = Array.isArray(data) ? data : (data && data.entities) || [];
+  } catch (e) {
+    wikiEntitiesCache = [];
+  }
+  if (!wikiEntitiesBound && typeof WikiEntities !== 'undefined') {
+    WikiEntities.bindPopovers(document.body, wikiEntitiesCache);
+    wikiEntitiesBound = true;
+  }
+  return wikiEntitiesCache;
+}
+
+async function enhanceCastWiki(root) {
+  if (!root || typeof WikiEntities === 'undefined') return;
+  const ents = await ensureWikiEntities();
+  WikiEntities.linkifyDom(root, ents);
+}
+/** Active dock over cast/info: '' | 'radio' | 'phone' | 'sim' */
+let dockMode = '';
+let map3dOn = false;
+
+const DOCK_SRC = {
+  radio: '/radio/?embed=1',
+  phone: '/phone/?embed=1&v=20260807d',
+  sim: '/sim/?embed=1',
+};
+const DOCK_TITLE = {
+  radio: '◇ Radio',
+  phone: '◇ Phone · call + text',
+  sim: '◇ Sim',
+};
 
 function escapeHtml(s) {
   return String(s == null ? '' : s)
@@ -977,18 +1327,125 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
-function setCastMode(on, opts) {
-  castMode = Boolean(on);
+function syncInfoColumn() {
   const mapSide = document.getElementById('mapSide');
   const castSide = document.getElementById('castSide');
+  const dockSide = document.getElementById('dockSide');
+  const pilotPanel = document.getElementById('pilotPanel');
+  if (dockMode) {
+    if (mapSide) mapSide.hidden = true;
+    if (castSide) castSide.hidden = true;
+    // Pilot notes steal vertical space and clip phone softkeys in the iframe.
+    if (pilotPanel) pilotPanel.hidden = true;
+    if (dockSide) {
+      dockSide.hidden = false;
+      dockSide.dataset.dock = dockMode;
+      dockSide.classList.add('is-on-active');
+    }
+  } else if (castMode) {
+    if (mapSide) mapSide.hidden = true;
+    if (castSide) castSide.hidden = false;
+    if (pilotPanel) pilotPanel.hidden = false;
+    if (dockSide) {
+      dockSide.hidden = true;
+      dockSide.classList.remove('is-on-active');
+    }
+  } else {
+    if (mapSide) mapSide.hidden = false;
+    if (castSide) castSide.hidden = true;
+    if (pilotPanel) pilotPanel.hidden = false;
+    if (dockSide) {
+      dockSide.hidden = true;
+      dockSide.classList.remove('is-on-active');
+    }
+  }
+}
+
+function setDockMode(name) {
+  const next = (name === 'radio' || name === 'phone' || name === 'sim') ? name : '';
+  if (dockMode === next) {
+    dockMode = '';
+  } else {
+    dockMode = next;
+    if (dockMode) castMode = false;
+  }
+  const frame = document.getElementById('dockFrame');
+  const title = document.getElementById('dockSideTitle');
+  if (frame) {
+    if (dockMode) {
+      const src = DOCK_SRC[dockMode];
+      if (frame.getAttribute('data-src') !== src) {
+        frame.src = src;
+        frame.setAttribute('data-src', src);
+      }
+    } else {
+      frame.src = 'about:blank';
+      frame.removeAttribute('data-src');
+    }
+  }
+  if (title) title.textContent = dockMode ? (DOCK_TITLE[dockMode] || '◇ Dock') : '◇ Dock';
+  ['radio', 'phone', 'sim'].forEach(function (k) {
+    const id = 'dock' + k.charAt(0).toUpperCase() + k.slice(1);
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    const on = dockMode === k;
+    btn.classList.toggle('is-on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const castBtn = document.getElementById('castToggle');
+  if (castBtn && dockMode) {
+    castBtn.classList.remove('is-on');
+    castBtn.setAttribute('aria-pressed', 'false');
+  }
+  syncInfoColumn();
+}
+
+function setMap3dOverlay(on) {
+  map3dOn = Boolean(on);
+  const overlay = document.getElementById('map3dOverlay');
+  const badge = document.getElementById('map3dBadge');
+  const btn = document.getElementById('map3dToggle');
+  if (overlay) {
+    if (map3dOn) {
+      if (overlay.getAttribute('data-loaded') !== '1') {
+        overlay.src = '/3d/?embed=1';
+        overlay.setAttribute('data-loaded', '1');
+      }
+      overlay.hidden = false;
+    } else {
+      overlay.hidden = true;
+    }
+  }
+  if (badge) badge.hidden = !map3dOn;
+  if (btn) {
+    btn.classList.toggle('is-on', map3dOn);
+    btn.setAttribute('aria-pressed', map3dOn ? 'true' : 'false');
+  }
+}
+
+function setCastMode(on, opts) {
+  castMode = Boolean(on);
+  if (castMode) dockMode = '';
   const btn = document.getElementById('castToggle');
-  if (mapSide) mapSide.hidden = castMode;
-  if (castSide) castSide.hidden = !castMode;
   if (btn) {
     btn.classList.toggle('is-on', castMode);
     btn.setAttribute('aria-pressed', castMode ? 'true' : 'false');
   }
   if (castMode) {
+    dockMode = '';
+    ['radio', 'phone', 'sim'].forEach(function (k) {
+      const id = 'dock' + k.charAt(0).toUpperCase() + k.slice(1);
+      const b = document.getElementById(id);
+      if (b) {
+        b.classList.remove('is-on');
+        b.setAttribute('aria-pressed', 'false');
+      }
+    });
+    const frame = document.getElementById('dockFrame');
+    if (frame) {
+      frame.src = 'about:blank';
+      frame.removeAttribute('data-src');
+    }
     if (!castCache) loadCast().then(() => {
       if (opts && opts.id) selectCast(opts.id);
     });
@@ -999,6 +1456,7 @@ function setCastMode(on, opts) {
   } else if (location.hash.indexOf('#cast') === 0) {
     history.replaceState(null, '', location.pathname + location.search);
   }
+  syncInfoColumn();
 }
 
 function renderCastList() {
@@ -1060,17 +1518,21 @@ function selectCast(id) {
     '<h3>' + escapeHtml(c.display_name) + '</h3>' +
     '<p class="meta">' + escapeHtml([c.role, c.status, c.player_name].filter(Boolean).join(' · ')) + '</p>' +
     aliases +
-    (c.notes ? '<p class="notes">' + escapeHtml(c.notes) + '</p>' : '') +
+    (c.notes ? '<p class="notes" id="castNotes">' + escapeHtml(c.notes) + '</p>' : '') +
     '<div class="cast-sheet" id="castSheet" aria-live="polite"><p class="meta">' +
       (c.story_path ? 'Loading sheet…' : 'No story sheet linked.') + '</p></div>' +
     (rels ? '<ul class="cast-rels">' + rels + '</ul>' : '<p class="meta">No relations linked.</p>') +
-    '<p class="cast-admin-hint">Edit / upload / merge on <a href="' + escapeHtml(dashEdit) +
-      '" target="_blank" rel="noopener">Linuxbox Chars → ' + escapeHtml(c.display_name) + '</a> (admin).</p>';
+    ((meCache && meCache.can_edit)
+      ? '<p class="cast-admin-hint">Edit / upload / merge on <a href="' + escapeHtml(dashEdit) +
+        '" target="_blank" rel="noopener">Linuxbox Chars → ' + escapeHtml(c.display_name) + '</a> (admin). Wiki links: [[school: PIU South]]</p>'
+      : '');
   detail.hidden = false;
   detail.querySelectorAll('button[data-to]').forEach((b) => {
     b.onclick = () => selectCast(b.getAttribute('data-to'));
   });
   history.replaceState(null, '', '#cast/' + encodeURIComponent(c.id));
+  const notesEl = document.getElementById('castNotes');
+  if (notesEl) enhanceCastWiki(notesEl);
   if (c.story_path) loadCastSheet(c.id);
 }
 
@@ -1097,6 +1559,7 @@ async function loadCastSheet(id) {
     } else {
       el.innerHTML = '<pre>' + escapeHtml(md) + '</pre>';
     }
+    enhanceCastWiki(el);
   } catch (e) {
     if (id === activeCastId && el) {
       el.innerHTML = '<p class="meta">Sheet load failed: ' + escapeHtml(e.message || String(e)) + '</p>';
@@ -2272,7 +2735,8 @@ async function saveDrawBorder() {
     }
   }
   const regionNum = m && m.region != null ? m.region : prev.region;
-  const paint = shadeForArea({ id: id, region: regionNum, fill: prev.fill, stroke: prev.stroke });
+  // Always paint from this region's palette (never inherit a sibling city's gold/teal after rebind).
+  const paint = shadeForArea({ id: id, region: regionNum });
   const area = {
     id: id,
     region: regionNum,
@@ -2395,6 +2859,7 @@ function initDrawMode() {
   const rebindBtn = document.getElementById('drawRebindBtn');
 
   btn.onclick = function() {
+    if (meCache && meCache.auth_gating && meCache.can_edit !== true) return;
     drawMode = !drawMode;
     if (drawMode && editMode) {
       editMode = false;
@@ -2474,7 +2939,7 @@ function initEditMode(profile) {
   const vp = document.getElementById('viewport');
   if (!btn) return;
   // Auth gating: never restore a persisted editMode for viewers — server rejects saves anyway.
-  const gatedOut = meCache && meCache.auth_gating && !(meCache.logged_in && (meCache.role === 'owner' || meCache.role === 'admin'));
+  const gatedOut = meCache && meCache.auth_gating && !(meCache.can_edit === true || (meCache.logged_in && (meCache.role === 'owner' || meCache.role === 'admin')));
   editMode = gatedOut ? false : profile.editMode === true;
   btn.textContent = editMode ? 'Edit ON' : 'Edit';
   btn.classList.toggle('is-on', editMode);
@@ -2485,6 +2950,7 @@ function initEditMode(profile) {
   if (vp) vp.classList.toggle('is-edit-mode', editMode);
   updateEditHint();
   btn.onclick = function() {
+    if (meCache && meCache.auth_gating && meCache.can_edit !== true) return;
     editMode = !editMode;
     if (editMode && drawMode) {
       drawMode = false;
@@ -3012,34 +3478,149 @@ function updateAuthUi(me) {
   const slot = document.getElementById('authSlot');
   if (!slot) return;
   slot.innerHTML = '';
-  // Server always enforces; the client just mirrors by hiding edit entry points.
-  const canEdit = !me.auth_gating || (me.logged_in && (me.role === 'owner' || me.role === 'admin'));
-  const editBtn = document.getElementById('editToggle');
-  const drawBtn = document.getElementById('drawToggle');
-  if (editBtn) editBtn.hidden = !canEdit;
-  if (drawBtn) drawBtn.hidden = !canEdit;
+  // Prefer server can_edit; fall back to role check if older payload.
+  const canEdit = typeof me.can_edit === 'boolean'
+    ? me.can_edit
+    : (!me.auth_gating || (me.logged_in && (me.role === 'owner' || me.role === 'admin')));
+  applyEditChrome(canEdit);
   if (me.logged_in && me.username) {
     let html = '';
     if (me.avatar) html += '<img class="hud-avatar" alt="" src="' + escapeHtml(me.avatar) + '"/>';
     html += '<span class="hud-user">@' + escapeHtml(me.username) + '</span>';
     if (me.role) html += '<span class="hud-role hud-role--' + escapeHtml(me.role) + '">' + escapeHtml(me.role) + '</span>';
+    if (me.my_character && me.my_character.id) {
+      html += '<a class="hud-mychar" href="#cast/' + encodeURIComponent(me.my_character.id) + '" id="myCharLink" title="Your linked character">' +
+        escapeHtml(me.my_character.display_name || me.my_character.id) + '</a>';
+    }
     if (me.role === 'owner') html += '<button type="button" class="hud-users-btn" id="usersPanelBtn">Users</button>';
     html += '<a class="hud-logout" href="/auth/logout">logout</a>';
     slot.innerHTML = html;
     if (me.role === 'owner') initUsersPanel();
+    const myLink = document.getElementById('myCharLink');
+    if (myLink) {
+      myLink.onclick = function (ev) {
+        ev.preventDefault();
+        setCastMode(true);
+        selectCast(me.my_character.id);
+      };
+    }
     const name = document.getElementById('pilotName');
     if (name) name.textContent = me.username;
     const meta = document.getElementById('pilotMeta');
-    if (meta) meta.textContent = me.cloud_save ? 'Synced to tableslop' : 'Linked Discord · saves still local until cloud sync';
+    if (meta) {
+      if (me.my_character && me.my_character.display_name) {
+        meta.textContent = 'PC · ' + me.my_character.display_name + (me.cloud_save ? ' · cloud' : ' · local saves');
+      } else {
+        meta.textContent = me.cloud_save ? 'Synced to tableslop' : 'Linked Discord · saves still local until cloud sync';
+      }
+    }
     if (me.auth_gating && !canEdit) {
       slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">view only</span>');
     }
-  } else if (me.discord_configured) {
-    slot.innerHTML = '<a class="hud-login" href="/auth/discord">Login with Discord</a>';
-    if (me.auth_gating) slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">login required to edit</span>');
   } else if (me.dev_auth) {
     slot.innerHTML = '<span class="hud-login-hint">dev</span> <a href="/auth/dev-login?as=owner">owner</a> <a href="/auth/dev-login?as=admin">admin</a> <a href="/auth/dev-login?as=user">user</a>';
+  } else {
+    // Always expose /login (Discord OAuth when configured; setup status when not).
+    slot.innerHTML = '<a class="hud-login" href="/login">Login</a>';
+    if (me.auth_gating) slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">login required to edit</span>');
+    else if (!me.discord_configured) slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">auth setup</span>');
   }
+  initWorldPanel();
+  maybeOpenWorldFromQuery(canEdit);
+}
+
+/** Hide / force-off map edit chrome for observers (server still 401/403s writes). */
+function applyEditChrome(canEdit) {
+  const editBtn = document.getElementById('editToggle');
+  const drawBtn = document.getElementById('drawToggle');
+  const worldBtn = document.getElementById('worldToggle');
+  const saveCoords = document.getElementById('saveCoordsBtn');
+  if (editBtn) editBtn.hidden = !canEdit;
+  if (drawBtn) drawBtn.hidden = !canEdit;
+  if (worldBtn) worldBtn.hidden = !canEdit;
+  if (!canEdit) {
+    if (typeof drawMode !== 'undefined' && drawMode) {
+      drawMode = false;
+      if (typeof clearDrawVerts === 'function') clearDrawVerts();
+      if (typeof syncDrawUi === 'function') syncDrawUi();
+    }
+    if (typeof editMode !== 'undefined' && editMode) {
+      editMode = false;
+      if (editBtn) {
+        editBtn.textContent = 'Edit';
+        editBtn.classList.remove('is-on');
+      }
+      if (saveCoords) saveCoords.hidden = true;
+      const vp = document.getElementById('viewport');
+      if (vp) vp.classList.remove('is-edit-mode');
+      if (typeof updateEditHint === 'function') updateEditHint();
+    }
+    closeWorldPanel();
+  }
+}
+
+function closeWorldPanel() {
+  const panel = document.getElementById('worldPanel');
+  if (panel) panel.hidden = true;
+  const btn = document.getElementById('worldToggle');
+  if (btn) {
+    btn.classList.remove('is-on');
+    btn.setAttribute('aria-pressed', 'false');
+  }
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.get('panel') === 'world') {
+      u.searchParams.delete('panel');
+      history.replaceState(null, '', u.pathname + u.search + u.hash);
+    }
+  } catch (_) { /* ignore */ }
+}
+
+function openWorldPanel() {
+  const panel = document.getElementById('worldPanel');
+  if (!panel) return;
+  panel.hidden = false;
+  const btn = document.getElementById('worldToggle');
+  if (btn) {
+    btn.classList.add('is-on');
+    btn.setAttribute('aria-pressed', 'true');
+  }
+}
+
+function initWorldPanel() {
+  const btn = document.getElementById('worldToggle');
+  const panel = document.getElementById('worldPanel');
+  if (!btn || !panel || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  btn.onclick = function () {
+    if (panel.hidden) openWorldPanel();
+    else closeWorldPanel();
+  };
+  const closeBtn = document.getElementById('worldPanelClose');
+  if (closeBtn) closeBtn.onclick = closeWorldPanel;
+  const castBtn = document.getElementById('wpCastBtn');
+  if (castBtn) {
+    castBtn.onclick = function () {
+      closeWorldPanel();
+      setCastMode(true);
+    };
+  }
+  const drawBtn = document.getElementById('wpDrawBtn');
+  if (drawBtn) {
+    drawBtn.onclick = function () {
+      closeWorldPanel();
+      const toggle = document.getElementById('drawToggle');
+      if (toggle && !toggle.hidden) toggle.click();
+    };
+  }
+}
+
+function maybeOpenWorldFromQuery(canEdit) {
+  if (!canEdit) return;
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.get('panel') === 'world') openWorldPanel();
+  } catch (_) { /* ignore */ }
 }
 
 /** Owner-only role panel: list users, set admin/user. Owner role itself is env-only. */
@@ -3131,6 +3712,88 @@ function initUsersPanel() {
   };
 }
 
+let livedInCache = null;
+let livedInCacheAt = 0;
+
+async function loadLivedInListings() {
+  const now = Date.now();
+  if (livedInCache && now - livedInCacheAt < 60000) return livedInCache;
+  try {
+    const r = await fetch('/lived-in/listings.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error(String(r.status));
+    livedInCache = await r.json();
+    livedInCacheAt = now;
+    return livedInCache;
+  } catch (e) {
+    return null;
+  }
+}
+
+function moneyLi(n) {
+  if (n == null) return '—';
+  return '$' + Number(n).toLocaleString('en-US');
+}
+
+async function updateLivedInPanel(regionId, hasCityMap) {
+  const box = document.getElementById('livedInBox');
+  if (!box) return;
+  if (!regionId || !hasCityMap) {
+    box.hidden = true;
+    return;
+  }
+  const doc = await loadLivedInListings();
+  const city = doc && (doc.cities || []).find(function (c) { return c.region_id === regionId; });
+  if (!city) {
+    box.hidden = true;
+    return;
+  }
+  const pop = city.population || {};
+  const stats = document.getElementById('livedInStats');
+  const dist = document.getElementById('livedInDist');
+  const list = document.getElementById('livedInList');
+  const more = document.getElementById('livedInMore');
+  if (stats) {
+    stats.textContent =
+      (pop.total ? Number(pop.total).toLocaleString('en-US') : '—') +
+      ' pop · age ' + (pop.age_peak || '—') +
+      ' · ' + String(pop.class_top || '—').replace(/_/g, ' ') +
+      (city.stub ? ' · stub' : '') +
+      ' · ' + (city.listing_count || 0) + ' listings';
+  }
+  if (dist) {
+    dist.textContent = (city.districts || [])
+      .slice(0, 4)
+      .map(function (d) {
+        return (d.name || d.id) + ' ' + Number(d.population || 0).toLocaleString('en-US');
+      })
+      .join(' · ');
+  }
+  const flat = [];
+  for (const d of city.districts || []) {
+    for (const L of d.listings || []) flat.push(L);
+  }
+  flat.sort(function (a, b) {
+    return (a.price_month || a.price_sale || 0) - (b.price_month || b.price_sale || 0);
+  });
+  if (list) {
+    list.innerHTML = flat.slice(0, 4).map(function (L) {
+      const price = L.offer === 'sale' ? moneyLi(L.price_sale) + ' sale' : moneyLi(L.price_month) + '/mo';
+      return (
+        '<li><span class="li-price">' + escapeHtml(price) + '</span>' +
+        escapeHtml(L.title || L.kind) +
+        '<div style="color:var(--muted);font-size:.65rem;clear:both">' +
+        escapeHtml(L.district_name || '') + ' · ' + escapeHtml(L.offer) +
+        '</div></li>'
+      );
+    }).join('');
+  }
+  if (more) {
+    more.hidden = false;
+    more.href = '/lived-in/?region=' + encodeURIComponent(regionId);
+  }
+  box.hidden = false;
+}
+
 function syncNoteField(id) {
   const noteEl = document.getElementById('regionNote');
   const labelEl = document.getElementById('noteLabel');
@@ -3138,6 +3801,7 @@ function syncNoteField(id) {
   if (!id) {
     noteEl.hidden = true;
     labelEl.hidden = true;
+    updateLivedInPanel(null, false);
     return;
   }
   noteEl.hidden = false;
@@ -3152,14 +3816,15 @@ function syncNoteField(id) {
     saveProfile({ notes: { [id]: noteEl.value } });
   };
   const cityLink = document.getElementById('cityMapLink');
+  const cm = m && m.city_map;
   if (cityLink) {
-    const cm = m && m.city_map;
     cityLink.hidden = !cm;
     if (cm) {
       cityLink.href = cm;
       cityLink.textContent = 'City map · ' + name + ' →';
     }
   }
+  updateLivedInPanel(id, !!cm);
 }
 
 /**
@@ -3245,6 +3910,17 @@ function isNeonShadeColor(s) {
   return /255,113,206|ff71ce|185,103,255|b967ff|255,251,150|fffb96|1,205,254|01cdfe|c0c0c0|#c0c0c0|180,180,180/.test(t);
 }
 
+function paletteOwnerRegion(color) {
+  if (!color) return 0;
+  const t = String(color).toLowerCase().replace(/\s/g, '');
+  for (const key of Object.keys(REGION_SHADE_PALETTE)) {
+    const p = REGION_SHADE_PALETTE[key];
+    if (!p) continue;
+    if (String(p.fill).toLowerCase() === t || String(p.stroke).toLowerCase() === t) return Number(key);
+  }
+  return 0;
+}
+
 function shadeForArea(a) {
   let n = Number(a && a.region) || 0;
   if (!n && a && a.id) {
@@ -3253,10 +3929,14 @@ function shadeForArea(a) {
   }
   if (!n || n < 1) n = 1;
   const pal = REGION_SHADE_PALETTE[n] || REGION_SHADE_PALETTE[((n - 1) % 17) + 1] || REGION_SHADE_PALETTE[1];
-  // Keep non-neon custom fills from JSON; override legacy neon/vaporwave shades for display
-  const fill = a && a.fill && !isNeonShadeColor(a.fill) ? a.fill : pal.fill;
-  const stroke = a && a.stroke && !isNeonShadeColor(a.stroke) ? a.stroke : pal.stroke;
-  return { fill: fill, stroke: stroke };
+  // Keep true custom fills; drop neon + sibling-region palette leftovers (e.g. Paradise gold on Porto).
+  function pick(stored, side) {
+    if (!stored || isNeonShadeColor(stored)) return pal[side];
+    const owner = paletteOwnerRegion(stored);
+    if (owner && owner !== n) return pal[side];
+    return stored;
+  }
+  return { fill: pick(a && a.fill, 'fill'), stroke: pick(a && a.stroke, 'stroke') };
 }
 
 function placeRegionAreas(container, areasData) {
@@ -3514,6 +4194,15 @@ async function load() {
   if (castBtn) {
     castBtn.onclick = () => setCastMode(!castMode);
   }
+  const dockClose = document.getElementById('dockClose');
+  if (dockClose) dockClose.onclick = () => setDockMode('');
+  ['radio', 'phone', 'sim'].forEach(function (k) {
+    const id = 'dock' + k.charAt(0).toUpperCase() + k.slice(1);
+    const b = document.getElementById(id);
+    if (b) b.onclick = () => setDockMode(k);
+  });
+  const map3dBtn = document.getElementById('map3dToggle');
+  if (map3dBtn) map3dBtn.onclick = () => setMap3dOverlay(!map3dOn);
   window.addEventListener('hashchange', applyCastHash);
   applyCastHash();
   loadCast();
@@ -3742,6 +4431,7 @@ const STATIC_MOUNTS = {
   phone: { dir: path.join(STATIC_ROOT, "phone"), cacheSec: 300 },
   hunter: { dir: path.join(STATIC_ROOT, "hunter"), cacheSec: 300 },
   sim: { dir: path.join(STATIC_ROOT, "sim"), cacheSec: 60, jsonCacheSec: 30 },
+  "lived-in": { dir: path.join(STATIC_ROOT, "lived-in"), cacheSec: 120, jsonCacheSec: 30 },
 };
 const STATIC_MIME = {
   ".html": "text/html; charset=utf-8",
@@ -4652,17 +5342,55 @@ function readCastSheetMarkdown(id) {
   };
 }
 
+function findMyCharacter(discordId, username) {
+  const raw = readCharactersRegistryRaw();
+  const chars = Array.isArray(raw.characters) ? raw.characters : [];
+  const id = String(discordId || "").trim();
+  const uname = String(username || "").trim().toLowerCase();
+  if (id) {
+    const byId = chars.find(
+      (c) => c && !c.hidden && String(c.discord_user_id || "").trim() === id
+    );
+    if (byId) {
+      return { id: byId.id, display_name: byId.display_name || byId.id };
+    }
+  }
+  if (uname) {
+    // Fallback: Discord username on PC rows (ids often empty until GM fills them).
+    const byName = chars.find((c) => {
+      if (!c || c.hidden) return false;
+      const role = String(c.role || "").toLowerCase();
+      if (role !== "pc" && String(c.status || "").toLowerCase() !== "pc") return false;
+      return String(c.discord_username || "").trim().toLowerCase() === uname;
+    });
+    if (byName) {
+      return { id: byName.id, display_name: byName.display_name || byName.id };
+    }
+  }
+  return null;
+}
+
 function mePayload(req) {
   const session = sessionFromReq(req);
   const loggedIn = Boolean(session && session.id && session.id !== "public");
   const role = loggedIn ? session.role || "user" : null;
+  const canEdit = !AUTH_GATING || Boolean(role && EDIT_ROLES.has(role));
+  let myCharacter = null;
+  if (loggedIn) {
+    try {
+      myCharacter = findMyCharacter(session.id, session.username);
+    } catch (_) {
+      myCharacter = null;
+    }
+  }
   return {
     logged_in: loggedIn,
     id: loggedIn ? session.id : null,
     username: loggedIn ? session.username : null,
     role,
     avatar: loggedIn ? session.avatar || "" : null,
-    can_edit: !AUTH_GATING || Boolean(role && EDIT_ROLES.has(role)),
+    can_edit: canEdit,
+    my_character: myCharacter,
     auth_gating: AUTH_GATING,
     dev_auth: DEV_AUTH,
     discord_auth_required: REQUIRE_AUTH,
@@ -4832,6 +5560,7 @@ function saveRegionAreas(bodyStr) {
   }
 
   // Never touch sibling regions — only merge into nextId.
+  // Fill/stroke always follow this region's city palette (not a mis-bound sibling color).
   const paint = regionShadePaint(area.region);
   const next = {
     id: nextId,
@@ -4839,8 +5568,8 @@ function saveRegionAreas(bodyStr) {
     name: String(area.name || area.id),
     shape: area.shape || "polygon",
     points: pts,
-    stroke: area.stroke || paint.stroke,
-    fill: area.fill || paint.fill,
+    stroke: paint.stroke,
+    fill: paint.fill,
     note: area.note || ("GM Draw borders " + new Date().toISOString().slice(0, 10)),
   };
   if (next.region === undefined) delete next.region;
@@ -5070,13 +5799,35 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (url === "/login" || url === "/login/") {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(loginPageHtml());
+    return;
+  }
+
+  // Deep-link only: world tools live as HUD panel on the map — never a takeover home.
+  if (url === "/worldeditor" || url === "/worldeditor/") {
+    const gate = editGate(session);
+    if (gate) {
+      if (gate.code === 401) {
+        res.writeHead(302, { Location: "/login?next=/worldeditor" });
+        res.end();
+        return;
+      }
+      // role=user (403): bounce to map view, no world chrome
+      res.writeHead(302, { Location: "/" });
+      res.end();
+      return;
+    }
+    res.writeHead(302, { Location: "/?panel=world" });
+    res.end();
+    return;
+  }
+
   if (url === "/auth/discord") {
     if (!OAUTH_CONFIGURED) {
-      res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8" });
-      res.end(
-        "Discord OAuth not configured" +
-          (DEV_AUTH ? " — dev stub: /auth/dev-login?as=owner|admin|user" : "")
-      );
+      res.writeHead(302, { Location: "/login?need=oauth" });
+      res.end();
       return;
     }
     const state = crypto.randomBytes(16).toString("hex");
@@ -5355,6 +6106,22 @@ async function handleRequest(req, res) {
   if (url === "/api/characters") {
     const includeHidden = q.searchParams.get("include_hidden") === "1";
     sendJson(res, loadCastRegistry({ includeHidden }), 200, 0);
+    return;
+  }
+  if (url === "/api/wiki/entities") {
+    const campaign = String(q.searchParams.get("campaign") || "tropic-gooner").replace(/[^a-z0-9_-]/gi, "");
+    const entPath = path.join(REPO, "campaigns", campaign, "wiki", "entities.json");
+    try {
+      const data = JSON.parse(fs.readFileSync(entPath, "utf8"));
+      sendJson(res, data, 200, 30);
+    } catch (e) {
+      sendJson(res, { error: e.code === "ENOENT" ? "entities_missing" : "entities_read_failed" }, e.code === "ENOENT" ? 404 : 500);
+    }
+    return;
+  }
+  if (url === "/wiki-entity-links.js") {
+    const abs = path.join(__dirname, "linuxbox-status", "wiki-entity-links.js");
+    serveStaticFile(res, abs, 300);
     return;
   }
   if (url === "/api/characters/sheet") {
