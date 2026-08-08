@@ -10,6 +10,7 @@ const fs = require("fs");
 const http = require("http");
 const path = require("path");
 const { TableslopAuth, EDIT_ROLES } = require("./tableslop-auth.js");
+const { writeRegistryFile, VersionConflictError } = require("./chars-registry-persist.js");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
@@ -308,6 +309,323 @@ function loginPageHtml() {
 </html>`;
 }
 
+function worldPageHtml() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>World — Isla Primavera character studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="/wiki-entity-links.js?v=20260808-world"></script>
+<style>
+  :root { --void:#050208; --panel:#0d0616; --text:#f7ecff; --muted:#a98fc4; --pink:#ff71ce; --cyan:#01cdfe; --sun:#fffb96; --purple:#b967ff; --lime:#c8ff4d; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:radial-gradient(circle at 20% 0%, rgba(185,103,255,.22), transparent 34%), radial-gradient(circle at 90% 10%, rgba(1,205,254,.16), transparent 30%), var(--void); color:var(--text); font-family:"Share Tech Mono", ui-monospace, monospace; }
+  a { color:var(--cyan); }
+  header { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid rgba(185,103,255,.35); background:rgba(5,2,8,.88); position:sticky; top:0; z-index:5; }
+  .brand { font:700 .95rem Orbitron,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--pink); text-shadow:0 0 14px rgba(255,113,206,.45); }
+  .title { font:700 .78rem Orbitron,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--sun); }
+  .spacer { flex:1; }
+  .chip { border:1px solid var(--purple); border-radius:999px; padding:4px 10px; color:var(--muted); font-size:.72rem; }
+  .btn { font:inherit; font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--cyan); background:rgba(1,205,254,.08); border:1px solid var(--cyan); border-radius:4px; padding:7px 10px; cursor:pointer; text-decoration:none; display:inline-block; }
+  .btn:hover { box-shadow:0 0 12px rgba(1,205,254,.35); }
+  .btn.warn { color:var(--sun); border-color:var(--sun); background:rgba(255,251,150,.08); }
+  .btn.danger { color:var(--pink); border-color:var(--pink); background:rgba(255,113,206,.08); }
+  main { padding:16px; }
+  #gate { max-width:680px; margin:12vh auto; padding:22px; border:1px solid var(--purple); border-radius:10px; background:rgba(13,6,22,.92); }
+  #app { display:grid; grid-template-columns:minmax(240px,320px) minmax(0,1fr) minmax(320px,430px); gap:14px; align-items:start; }
+  .col { border:1px solid rgba(185,103,255,.32); border-radius:10px; background:rgba(13,6,22,.86); min-height:calc(100vh - 92px); }
+  .col h2 { margin:0; padding:12px 14px; border-bottom:1px solid rgba(185,103,255,.25); font:700 .72rem Orbitron,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
+  .pad { padding:12px 14px; }
+  .roster-tools { display:grid; gap:8px; }
+  input, select, textarea { width:100%; font:inherit; color:var(--text); background:rgba(5,2,8,.9); border:1px solid rgba(169,143,196,.55); border-radius:5px; padding:8px 9px; }
+  textarea { min-height:150px; resize:vertical; line-height:1.4; }
+  label { display:block; margin:10px 0 4px; color:var(--muted); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .row > * { flex:1; }
+  .roster { list-style:none; margin:12px 0 0; padding:0; display:grid; gap:8px; max-height:calc(100vh - 250px); overflow:auto; }
+  .rost { width:100%; text-align:left; display:grid; grid-template-columns:44px 1fr; gap:10px; align-items:center; padding:8px; border:1px solid rgba(1,205,254,.25); border-radius:8px; background:rgba(1,205,254,.05); color:var(--text); cursor:pointer; }
+  .rost:hover, .rost.is-active { border-color:var(--pink); background:rgba(255,113,206,.1); }
+  .rost img { width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid rgba(185,103,255,.5); }
+  .rost .face { width:44px; height:44px; border-radius:6px; display:grid; place-items:center; border:1px solid rgba(185,103,255,.5); color:var(--sun); font:700 1rem Orbitron,sans-serif; }
+  .rost strong { display:block; font-size:.92rem; }
+  .rost span { display:block; color:var(--muted); font-size:.68rem; margin-top:2px; }
+  .sheet-wrap { padding:0; }
+  .sheet-head { display:flex; gap:12px; align-items:center; padding:14px 16px; border-bottom:1px solid rgba(185,103,255,.25); }
+  .sheet-head img { width:92px; height:92px; object-fit:cover; border-radius:10px; border:1px solid var(--cyan); box-shadow:0 0 18px rgba(1,205,254,.28); }
+  .sheet-head .face { width:92px; height:92px; border-radius:10px; display:grid; place-items:center; border:1px solid var(--cyan); color:var(--sun); font:700 2rem Orbitron,sans-serif; }
+  .sheet-head h1 { margin:0; font:700 clamp(1.5rem, 3vw, 2.6rem) Orbitron,sans-serif; letter-spacing:.04em; color:var(--text); }
+  .sheet-head p { margin:4px 0 0; color:var(--muted); }
+  .sheet { padding:18px clamp(16px, 3vw, 34px) 30px; font-size:1.02rem; line-height:1.62; }
+  .sheet h1, .sheet h2, .sheet h3 { font-family:Orbitron,sans-serif; letter-spacing:.05em; }
+  .sheet h2 { margin-top:1.4em; padding-top:.7em; border-top:1px solid rgba(1,205,254,.25); color:var(--cyan); }
+  .sheet img { max-width:100%; }
+  .checks { display:grid; gap:7px; margin-top:10px; }
+  .check { display:flex; gap:8px; align-items:flex-start; padding:7px 8px; border:1px solid rgba(169,143,196,.25); border-radius:6px; color:var(--muted); font-size:.74rem; }
+  .check.ok { border-color:rgba(200,255,77,.45); color:var(--lime); }
+  .check.miss { border-color:rgba(255,113,206,.45); color:var(--pink); }
+  .status { min-height:1.2em; margin-top:10px; color:var(--sun); font-size:.78rem; }
+  .rel { display:flex; gap:6px; align-items:center; margin:6px 0; color:var(--muted); font-size:.74rem; }
+  .rel button { flex:0 0 auto; }
+  @media (max-width: 1100px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">tableslop</span>
+  <span class="title">World · character studio</span>
+  <span class="chip" id="who">checking…</span>
+  <span class="spacer"></span>
+  <a class="btn" href="/">← Map</a>
+  <a class="btn warn" id="hubChars" href="https://abhinavall.net/Linuxbox/?tab=characters&campaign=tropic-gooner" target="_blank" rel="noopener">Hub Chars</a>
+  <a class="btn danger" href="/auth/logout">Logout</a>
+</header>
+<main>
+  <section id="gate" hidden>
+    <h1 style="font:700 1.2rem Orbitron,sans-serif">World editor locked</h1>
+    <p id="gateMsg" style="color:var(--muted)">Checking access…</p>
+    <p><a class="btn" id="gateLink" href="/login?next=/world">Continue</a></p>
+  </section>
+  <section id="app" hidden>
+    <aside class="col">
+      <h2>Cast</h2>
+      <div class="pad roster-tools">
+        <input id="q" placeholder="Search name / alias / notes" autocomplete="off"/>
+        <div class="row">
+          <input id="newName" placeholder="New character name"/>
+          <button class="btn" id="addBtn" type="button" style="flex:0 0 auto">Add</button>
+        </div>
+        <div class="chip" id="regMeta">registry …</div>
+      </div>
+      <ul class="roster pad" id="roster"></ul>
+    </aside>
+    <section class="col sheet-wrap">
+      <div class="sheet-head" id="sheetHead"></div>
+      <article class="sheet" id="sheet"></article>
+    </section>
+    <aside class="col">
+      <h2>Edit</h2>
+      <div class="pad">
+        <label for="f_name">Display name</label><input id="f_name"/>
+        <div class="row">
+          <div><label for="f_role">Role</label><select id="f_role"><option value="pc">pc</option><option value="npc">npc</option><option value="side">side</option><option value="gm">gm</option></select></div>
+          <div><label for="f_status">Status</label><input id="f_status" placeholder="active / hiatus / dead"/></div>
+        </div>
+        <label for="f_player">Player</label><input id="f_player"/>
+        <label for="f_aliases">Aliases (comma)</label><input id="f_aliases"/>
+        <label for="f_story">Sheet path (.md)</label><input id="f_story" placeholder="characters/name.md"/>
+        <label for="f_image">Primary portrait path</label><select id="f_image"></select>
+        <label style="display:flex;align-items:center;gap:8px"><input id="f_hidden" type="checkbox" style="width:auto"/> Hidden / stub</label>
+        <label for="f_notes">Notes</label><textarea id="f_notes" placeholder="GM notes, additions, WoD fit notes"></textarea>
+        <h3 style="margin:16px 0 6px;color:var(--cyan);font:700 .68rem Orbitron,sans-serif;letter-spacing:.1em;text-transform:uppercase">WoD fit check</h3>
+        <div class="checks" id="checks"></div>
+        <h3 style="margin:16px 0 6px;color:var(--cyan);font:700 .68rem Orbitron,sans-serif;letter-spacing:.1em;text-transform:uppercase">Relations</h3>
+        <div id="rels"></div>
+        <div class="row">
+          <select id="relTo"></select>
+          <input id="relType" placeholder="type" value="related"/>
+          <button class="btn" id="relAdd" type="button" style="flex:0 0 auto">Add</button>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn warn" id="saveBtn" type="button">Save character</button>
+          <button class="btn" id="reloadBtn" type="button">Reload</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+    </aside>
+  </section>
+</main>
+<script>
+(function () {
+  let me = null;
+  let reg = null;
+  let active = null;
+  let sheetMd = '';
+  let rels = [];
+  const $ = (id) => document.getElementById(id);
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function status(msg) { $('status').textContent = msg || ''; }
+  function gate(msg, href) {
+    $('gate').hidden = false;
+    $('app').hidden = true;
+    $('gateMsg').textContent = msg;
+    $('gateLink').href = href;
+  }
+  function parseAliases(v) {
+    return String(v || '').split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  function charById(id) {
+    return (reg && reg.characters || []).find((c) => String(c.id) === String(id)) || null;
+  }
+  async function init() {
+    const r = await fetch('/api/me', { cache: 'no-store' });
+    me = await r.json();
+    if (!me.logged_in) return gate('Login required. Owner/admin only.', '/login?next=/world');
+    if (me.can_edit !== true) return gate('World editor is owner/admin only. The map stays view-only for this role.', '/');
+    $('who').textContent = '@' + (me.username || me.id) + ' · ' + (me.role || 'user');
+    $('app').hidden = false;
+    bind();
+    await loadRegistry(null);
+  }
+  function bind() {
+    $('q').addEventListener('input', renderRoster);
+    $('addBtn').onclick = addCharacter;
+    $('saveBtn').onclick = save;
+    $('reloadBtn').onclick = () => loadRegistry(active && active.id);
+    $('relAdd').onclick = addRel;
+    for (const id of ['f_name','f_role','f_status','f_player','f_aliases','f_story','f_image','f_hidden','f_notes']) {
+      $(id).addEventListener('input', () => status('unsaved changes'));
+    }
+  }
+  async function loadRegistry(selectId) {
+    const r = await fetch('/api/characters?include_hidden=1', { cache: 'no-store' });
+    if (!r.ok) throw new Error('characters ' + r.status);
+    reg = await r.json();
+    $('regMeta').textContent = 'registry v' + (reg.version || '?') + ' · ' + (reg.count || 0) + ' rows';
+    renderRoster();
+    const wanted = selectId || (active && active.id) || (reg.characters[0] && reg.characters[0].id);
+    if (wanted) await select(wanted);
+  }
+  function renderRoster() {
+    const q = String($('q').value || '').toLowerCase();
+    const list = (reg.characters || []).filter((c) => {
+      const hay = [c.display_name, c.id, c.role, c.status, c.player_name, (c.aliases || []).join(' '), c.notes].join(' ').toLowerCase();
+      return !q || hay.includes(q);
+    });
+    $('roster').innerHTML = list.map((c) => {
+      const face = c.image_url ? '<img src="' + esc(c.image_url) + '" alt="" loading="lazy"/>' : '<span class="face">' + esc(String(c.display_name || c.id).slice(0, 1).toUpperCase()) + '</span>';
+      return '<li><button type="button" class="rost' + (active && active.id === c.id ? ' is-active' : '') + '" data-id="' + esc(c.id) + '">' + face + '<span><strong>' + esc(c.display_name || c.id) + '</strong><span>' + esc([c.role, c.status, c.hidden ? 'hidden' : ''].filter(Boolean).join(' · ')) + '</span></span></button></li>';
+    }).join('') || '<li class="chip">No matches.</li>';
+    $('roster').querySelectorAll('button[data-id]').forEach((b) => { b.onclick = () => select(b.getAttribute('data-id')); });
+    const relTo = $('relTo');
+    relTo.innerHTML = '<option value="">relation target…</option>' + (reg.characters || []).map((c) => '<option value="' + esc(c.id) + '">' + esc(c.display_name || c.id) + '</option>').join('');
+  }
+  async function select(id) {
+    active = charById(id);
+    if (!active) return;
+    renderRoster();
+    populate();
+    $('sheet').innerHTML = '<p style="color:var(--muted)">Loading sheet…</p>';
+    const r = await fetch('/api/characters/sheet?id=' + encodeURIComponent(id), { cache: 'no-store' });
+    const j = r.ok ? await r.json() : { markdown: '', error: 'sheet_' + r.status };
+    sheetMd = j.markdown || '';
+    renderSheet(j);
+    renderChecks();
+  }
+  function populate() {
+    $('f_name').value = active.display_name || '';
+    $('f_role').value = active.role || 'npc';
+    $('f_status').value = active.status || '';
+    $('f_player').value = active.player_name || '';
+    $('f_aliases').value = (active.aliases || []).join(', ');
+    $('f_story').value = active.story_path || '';
+    $('f_hidden').checked = Boolean(active.hidden);
+    $('f_notes').value = active.notes || '';
+    const imgs = (active.images || []).slice();
+    if (active.image_path && !imgs.includes(active.image_path)) imgs.unshift(active.image_path);
+    $('f_image').innerHTML = '<option value="">(no primary portrait)</option>' + imgs.map((p) => '<option value="' + esc(p) + '"' + (p === active.image_path ? ' selected' : '') + '>' + esc(p) + '</option>').join('');
+    rels = (active.relations || []).map((r) => ({ to_id: r.to_id, type: r.type || 'related', label: r.label || r.type || 'related' }));
+    renderRels();
+    const hero = active.image_url ? '<img src="' + esc(active.image_url) + '" alt=""/>' : '<span class="face">' + esc(String(active.display_name || active.id).slice(0, 1).toUpperCase()) + '</span>';
+    $('sheetHead').innerHTML = hero + '<div><h1>' + esc(active.display_name || active.id) + '</h1><p>' + esc([active.role, active.status, active.player_name, active.id].filter(Boolean).join(' · ')) + '</p></div>';
+    status('');
+  }
+  function renderSheet(j) {
+    if (!sheetMd) {
+      $('sheet').innerHTML = '<p style="color:var(--pink)">No sheet markdown' + (j && j.story_path ? ' at ' + esc(j.story_path) : '') + '.</p>';
+      return;
+    }
+    if (window.marked && marked.parse) {
+      if (marked.setOptions) marked.setOptions({ breaks: true, gfm: true });
+      $('sheet').innerHTML = marked.parse(sheetMd);
+    } else {
+      $('sheet').innerHTML = '<pre>' + esc(sheetMd) + '</pre>';
+    }
+  }
+  function hasPillar(re) { return re.test(sheetMd); }
+  function renderChecks() {
+    const checks = [
+      { label: 'Portrait present', ok: Boolean(active.has_image || active.image_path), hint: 'pick a primary portrait path' },
+      { label: 'Sheet linked', ok: Boolean(active.story_path && sheetMd), hint: 'set a campaign .md sheet path' },
+      { label: 'Look pillar', ok: hasPillar(/^##\s+Look\b/im), hint: 'add ## Look' },
+      { label: 'Speech pillar', ok: hasPillar(/^##\s+Speech\b/im), hint: 'add ## Speech' },
+      { label: 'Act pillar', ok: hasPillar(/^##\s+Act\b/im), hint: 'add ## Act' },
+      { label: 'Think pillar', ok: hasPillar(/^##\s+Think\b/im), hint: 'add ## Think' },
+      { label: 'Skills / sexuality / else pillar', ok: hasPillar(/^##\s+.*(Skills|sexuality|else)/im), hint: 'add the fifth pillar' },
+      { label: 'Backstory pillar', ok: hasPillar(/^##\s+Backstory\b/im), hint: 'add ## Backstory' },
+      { label: 'GM notes present', ok: Boolean(String(active.notes || '').trim()), hint: 'notes carry additions / WoD fit intent' },
+    ];
+    $('checks').innerHTML = checks.map((c) => '<div class="check ' + (c.ok ? 'ok' : 'miss') + '"><span>' + (c.ok ? '✓' : '×') + '</span><span><strong>' + esc(c.label) + '</strong><br/>' + esc(c.hint) + '</span></div>').join('');
+  }
+  function renderRels() {
+    $('rels').innerHTML = rels.map((r, i) => {
+      const target = charById(r.to_id);
+      return '<div class="rel"><span>' + esc(r.type) + ' → ' + esc(target ? (target.display_name || target.id) : r.to_id) + (r.label ? ' · ' + esc(r.label) : '') + '</span><button class="btn danger" type="button" data-i="' + i + '">Remove</button></div>';
+    }).join('') || '<div class="chip">No relations yet.</div>';
+    $('rels').querySelectorAll('button[data-i]').forEach((b) => { b.onclick = () => { rels.splice(Number(b.getAttribute('data-i')), 1); renderRels(); status('unsaved changes'); }; });
+  }
+  function addRel() {
+    const to = $('relTo').value;
+    if (!to) return status('pick a relation target');
+    rels.push({ to_id: to, type: $('relType').value.trim() || 'related', label: $('relType').value.trim() || 'related' });
+    renderRels();
+    status('unsaved changes');
+  }
+  async function save() {
+    if (!active) return;
+    status('saving…');
+    const body = {
+      base_version: reg.version,
+      id: active.id,
+      display_name: $('f_name').value.trim(),
+      role: $('f_role').value,
+      status: $('f_status').value.trim(),
+      player_name: $('f_player').value.trim(),
+      aliases: parseAliases($('f_aliases').value),
+      story_path: $('f_story').value.trim(),
+      image_path: $('f_image').value,
+      hidden: $('f_hidden').checked,
+      notes: $('f_notes').value,
+      relations: rels,
+    };
+    const r = await fetch('/api/world/characters', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 409) {
+      status('version conflict — registry changed elsewhere. Reload, then re-apply.');
+      return;
+    }
+    if (!r.ok) {
+      status('save failed: ' + (j.error || r.status));
+      return;
+    }
+    status('saved · registry v' + j.version);
+    await loadRegistry(j.id || active.id);
+  }
+  async function addCharacter() {
+    const name = $('newName').value.trim();
+    if (!name) return status('name required for new character');
+    status('creating…');
+    const r = await fetch('/api/world/characters', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ create: true, base_version: reg.version, display_name: name }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      status('create failed: ' + (j.error || r.status));
+      return;
+    }
+    $('newName').value = '';
+    await loadRegistry(j.id);
+  }
+  init().catch((e) => gate('World editor failed to load: ' + (e.message || e), '/'));
+})();
+</script>
+</body>
+</html>`;
+}
+
 function viewerHtml() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -378,22 +696,6 @@ function viewerHtml() {
   .hud-users-btn { font:inherit; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sun); background:none; border:1px solid var(--sun); border-radius:4px; padding:3px 8px; cursor:pointer; }
   .hud-mychar { font-size:.68rem; letter-spacing:.06em; color:var(--pink); text-decoration:none; border-bottom:1px dotted rgba(255,113,206,.5); }
   .hud-mychar:hover { text-shadow:0 0 8px var(--glow-pink); }
-  .world-panel { position:fixed; top:52px; right:12px; z-index:60; width:min(360px,92vw); max-height:70vh; overflow:auto; background:var(--panel); border:1px solid var(--cyan); border-radius:8px; padding:12px 14px; box-shadow:0 8px 32px rgba(0,0,0,.6); }
-  .world-panel[hidden] { display:none !important; }
-  .world-panel h3 { margin:0 0 6px; font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--cyan); }
-  .world-panel .wp-note { margin:0 0 10px; font-size:.72rem; color:var(--muted); line-height:1.35; }
-  .world-panel .wp-list { list-style:none; margin:0; padding:0; display:grid; gap:6px; }
-  .world-panel .wp-list button, .world-panel .wp-list a.wp-link {
-    display:block; width:100%; text-align:left; font:inherit; font-size:.85rem;
-    color:var(--text); background:rgba(1,205,254,.06); border:1px solid rgba(1,205,254,.35);
-    border-radius:4px; padding:8px 10px; cursor:pointer; text-decoration:none;
-  }
-  .world-panel .wp-list button:hover, .world-panel .wp-list a.wp-link:hover {
-    border-color:var(--pink); background:rgba(255,113,206,.1);
-  }
-  .world-panel .wp-soon { color:var(--muted); font-size:.72rem; }
-  .world-panel .wp-close { margin-top:10px; font:inherit; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:none; border:1px solid var(--muted); border-radius:4px; padding:4px 10px; cursor:pointer; }
-  body.day .world-panel { background:rgba(253,243,250,.97); }
   .auth-users { position:fixed; top:52px; right:12px; z-index:60; width:320px; max-height:70vh; overflow:auto; background:var(--panel); border:1px solid var(--purple); border-radius:8px; padding:12px; box-shadow:0 8px 32px rgba(0,0,0,.6); }
   .auth-users h3 { margin:0 0 8px; font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
   .auth-users .au-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid rgba(185,103,255,.18); font-size:.78rem; }
@@ -1048,7 +1350,7 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
   <button type="button" class="hud-res hud-edit" id="editToggle" hidden>Edit</button>
   <button type="button" class="hud-res" id="drawToggle" hidden>Draw borders</button>
-  <button type="button" class="hud-res" id="worldToggle" hidden title="World tools — panels on the map (admin)">World</button>
+  <a class="hud-res" id="worldToggle" href="/world" hidden title="World — separate character studio (admin)">World</a>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
   <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
@@ -1060,16 +1362,6 @@ function viewerHtml() {
   <button type="button" class="hud-dock" id="castToggle" aria-pressed="false" title="Cast — expands over info panel">Cast</button>
   <div class="hud-auth" id="authSlot"></div>
 </header>
-<div class="world-panel" id="worldPanel" hidden>
-  <h3>World tools</h3>
-  <p class="wp-note">Map stays the screen — tools open as panels. Observers never see this chrome.</p>
-  <ul class="wp-list">
-    <li><button type="button" id="wpCastBtn">Chars / Cast</button></li>
-    <li><button type="button" id="wpDrawBtn">Draw borders</button></li>
-    <li><span class="wp-soon">Stories · Places · Quests · Questions — next</span></li>
-  </ul>
-  <button type="button" class="wp-close" id="worldPanelClose">Close</button>
-</div>
 <div class="draw-bar" id="drawBar" hidden>
   <!-- v1: parent region (R#) only. Next: nest city sub-regions (e.g. paradise-subzones.json); do not hardcode flat R1–R14 forever. -->
   <label for="drawRegionSelect">Region</label>
@@ -3525,8 +3817,6 @@ function updateAuthUi(me) {
     if (me.auth_gating) slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">login required to edit</span>');
     else if (!me.discord_configured) slot.insertAdjacentHTML('beforeend', '<span class="hud-login-hint">auth setup</span>');
   }
-  initWorldPanel();
-  maybeOpenWorldFromQuery(canEdit);
 }
 
 /** Hide / force-off map edit chrome for observers (server still 401/403s writes). */
@@ -3555,72 +3845,7 @@ function applyEditChrome(canEdit) {
       if (vp) vp.classList.remove('is-edit-mode');
       if (typeof updateEditHint === 'function') updateEditHint();
     }
-    closeWorldPanel();
   }
-}
-
-function closeWorldPanel() {
-  const panel = document.getElementById('worldPanel');
-  if (panel) panel.hidden = true;
-  const btn = document.getElementById('worldToggle');
-  if (btn) {
-    btn.classList.remove('is-on');
-    btn.setAttribute('aria-pressed', 'false');
-  }
-  try {
-    const u = new URL(location.href);
-    if (u.searchParams.get('panel') === 'world') {
-      u.searchParams.delete('panel');
-      history.replaceState(null, '', u.pathname + u.search + u.hash);
-    }
-  } catch (_) { /* ignore */ }
-}
-
-function openWorldPanel() {
-  const panel = document.getElementById('worldPanel');
-  if (!panel) return;
-  panel.hidden = false;
-  const btn = document.getElementById('worldToggle');
-  if (btn) {
-    btn.classList.add('is-on');
-    btn.setAttribute('aria-pressed', 'true');
-  }
-}
-
-function initWorldPanel() {
-  const btn = document.getElementById('worldToggle');
-  const panel = document.getElementById('worldPanel');
-  if (!btn || !panel || btn.dataset.bound) return;
-  btn.dataset.bound = '1';
-  btn.onclick = function () {
-    if (panel.hidden) openWorldPanel();
-    else closeWorldPanel();
-  };
-  const closeBtn = document.getElementById('worldPanelClose');
-  if (closeBtn) closeBtn.onclick = closeWorldPanel;
-  const castBtn = document.getElementById('wpCastBtn');
-  if (castBtn) {
-    castBtn.onclick = function () {
-      closeWorldPanel();
-      setCastMode(true);
-    };
-  }
-  const drawBtn = document.getElementById('wpDrawBtn');
-  if (drawBtn) {
-    drawBtn.onclick = function () {
-      closeWorldPanel();
-      const toggle = document.getElementById('drawToggle');
-      if (toggle && !toggle.hidden) toggle.click();
-    };
-  }
-}
-
-function maybeOpenWorldFromQuery(canEdit) {
-  if (!canEdit) return;
-  try {
-    const u = new URL(location.href);
-    if (u.searchParams.get('panel') === 'world') openWorldPanel();
-  } catch (_) { /* ignore */ }
 }
 
 /** Owner-only role panel: list users, set admin/user. Owner role itself is env-only. */
@@ -5342,6 +5567,127 @@ function readCastSheetMarkdown(id) {
   };
 }
 
+function cleanWorldText(v, max) {
+  return String(v == null ? "" : v).replace(/\s+$/,"").slice(0, max || 2000);
+}
+
+function slugifyCharacterId(name) {
+  const slug = String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return slug || `character-${Date.now()}`;
+}
+
+function normalizeStoryPathInput(v) {
+  const s = String(v || "").replace(/\\/g, "/").replace(/^\/+/, "").trim();
+  if (!s) return "";
+  if (s.includes("..") || path.isAbsolute(s) || !s.toLowerCase().endsWith(".md")) {
+    throw new Error("story_path must be a campaign-relative .md path");
+  }
+  return s;
+}
+
+function normalizeWorldRelations(input, raw) {
+  const ids = new Set((raw.characters || []).map((c) => String(c.id)));
+  const out = [];
+  const seen = new Set();
+  for (const r of Array.isArray(input) ? input : []) {
+    const to_id = String(r && (r.to_id || r.to) || "").trim();
+    if (!to_id || !ids.has(to_id)) continue;
+    const type = String(r.type || "related").trim().slice(0, 48) || "related";
+    const label = String(r.label || type).trim().slice(0, 80);
+    const key = to_id.toLowerCase() + "::" + type.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ to_id, type, label });
+  }
+  return out;
+}
+
+/** Full-page World studio write path — version-checked, locked, revision-backed. */
+function patchWorldCharacter(payload) {
+  const raw = readCharactersRegistryRaw();
+  if (raw.error) throw new Error("registry_read_failed: " + raw.error);
+  raw.characters = Array.isArray(raw.characters) ? raw.characters : [];
+  const baseVersion = payload.base_version;
+  let id = String(payload.id || "").trim();
+  let row = null;
+
+  if (payload.create === true) {
+    const name = cleanWorldText(payload.display_name, 120);
+    if (!name) throw new Error("display_name required");
+    id = slugifyCharacterId(name);
+    let n = 2;
+    while (raw.characters.some((c) => c && String(c.id) === id)) {
+      id = `${slugifyCharacterId(name)}-${n++}`;
+    }
+    row = {
+      id,
+      display_name: name,
+      role: "npc",
+      status: "draft",
+      notes: "",
+      player_name: "",
+      aliases: [],
+      relations: [],
+      images: [],
+      image_path: "",
+      hidden: false,
+      created_at: new Date().toISOString(),
+    };
+    raw.characters.push(row);
+  } else {
+    if (!id) throw new Error("id required");
+    row = raw.characters.find((c) => c && String(c.id) === id);
+    if (!row) throw new Error("character_not_found");
+  }
+
+  if (payload.create !== true) {
+    if (payload.display_name !== undefined) {
+      const name = cleanWorldText(payload.display_name, 120);
+      if (!name) throw new Error("display_name required");
+      row.display_name = name;
+    }
+    if (payload.role !== undefined) {
+      const role = String(payload.role || "").trim();
+      if (!["pc", "npc", "side", "gm"].includes(role)) throw new Error("bad role");
+      row.role = role;
+    }
+    if (payload.status !== undefined) row.status = cleanWorldText(payload.status, 60);
+    if (payload.player_name !== undefined) row.player_name = cleanWorldText(payload.player_name, 80);
+    if (payload.aliases !== undefined) {
+      row.aliases = (Array.isArray(payload.aliases) ? payload.aliases : [])
+        .map((a) => cleanWorldText(a, 80))
+        .filter(Boolean)
+        .filter((a, i, arr) => arr.findIndex((x) => x.toLowerCase() === a.toLowerCase()) === i);
+    }
+    if (payload.story_path !== undefined) row.story_path = normalizeStoryPathInput(payload.story_path);
+    if (payload.image_path !== undefined) {
+      const img = normalizeCampaignRelPath(payload.image_path || "");
+      if (img && !characterImageAbs(img)) throw new Error("image_path not on disk");
+      row.image_path = img;
+    }
+    if (payload.hidden !== undefined) row.hidden = payload.hidden === true;
+    if (payload.notes !== undefined) row.notes = cleanWorldText(payload.notes, 20000);
+    if (payload.relations !== undefined) row.relations = normalizeWorldRelations(payload.relations, raw);
+    row.updated_at = new Date().toISOString();
+  }
+
+  const written = writeRegistryFile({
+    absPath: REGISTRY_JSON,
+    data: raw,
+    repoRoot: REPO,
+    campaignId: CAMPAIGN,
+    baseVersion,
+    preserveUnknownIds: true,
+    lockHolder: `tableslop-world:${process.pid}`,
+    lockNote: "world page character patch",
+  });
+  return { ok: true, id, version: written.version, updated_at: written.updated_at };
+}
+
 function findMyCharacter(discordId, username) {
   const raw = readCharactersRegistryRaw();
   const chars = Array.isArray(raw.characters) ? raw.characters : [];
@@ -5805,22 +6151,26 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // Deep-link only: world tools live as HUD panel on the map — never a takeover home.
-  if (url === "/worldeditor" || url === "/worldeditor/") {
+  // Separate full-page World studio. The map stays the map; World is its own dashboard.
+  if (url === "/world" || url === "/world/" || url === "/worldeditor" || url === "/worldeditor/") {
     const gate = editGate(session);
     if (gate) {
       if (gate.code === 401) {
-        res.writeHead(302, { Location: "/login?next=/worldeditor" });
+        res.writeHead(302, { Location: "/login?next=/world" });
         res.end();
         return;
       }
-      // role=user (403): bounce to map view, no world chrome
-      res.writeHead(302, { Location: "/" });
+      res.writeHead(403, { "Content-Type": "text/html; charset=utf-8" });
+      res.end("<!doctype html><title>World locked</title><p>World editor requires owner/admin. <a href=\"/\">Back to map</a></p>");
+      return;
+    }
+    if (url === "/worldeditor" || url === "/worldeditor/") {
+      res.writeHead(302, { Location: "/world" });
       res.end();
       return;
     }
-    res.writeHead(302, { Location: "/?panel=world" });
-    res.end();
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(worldPageHtml());
     return;
   }
 
@@ -6101,6 +6451,26 @@ async function handleRequest(req, res) {
     // Align board titles to map pin labels (vibes SoT) so board UI cannot drift.
     const map = loadMapJson();
     sendJson(res, alignBoardNamesToMarkers(board, map.markers || []), 200, 300);
+    return;
+  }
+  if (url === "/api/world/characters" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      sendJson(res, patchWorldCharacter(payload), 200, 0);
+    } catch (err) {
+      if (err && err.code === "version_conflict") {
+        sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
+      } else {
+        sendJson(res, { error: (err && err.message) || "save_failed" }, 400);
+      }
+    }
     return;
   }
   if (url === "/api/characters") {
