@@ -315,7 +315,7 @@ function worldPageHtml() {
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>World — Isla Primavera character studio</title>
+<title>World editor — Isla Primavera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -336,7 +336,7 @@ function worldPageHtml() {
   .btn.danger { color:var(--pink); border-color:var(--pink); background:rgba(255,113,206,.08); }
   main { padding:16px; }
   #gate { max-width:680px; margin:12vh auto; padding:22px; border:1px solid var(--purple); border-radius:10px; background:rgba(13,6,22,.92); }
-  #app { display:grid; grid-template-columns:minmax(240px,320px) minmax(0,1fr) minmax(320px,430px); gap:14px; align-items:start; }
+  #app { display:grid; grid-template-columns:minmax(220px,260px) minmax(0,1fr) minmax(300px,360px); gap:14px; align-items:start; }
   .col { border:1px solid rgba(185,103,255,.32); border-radius:10px; background:rgba(13,6,22,.86); min-height:calc(100vh - 92px); }
   .col h2 { margin:0; padding:12px 14px; border-bottom:1px solid rgba(185,103,255,.25); font:700 .72rem Orbitron,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
   .pad { padding:12px 14px; }
@@ -370,13 +370,13 @@ function worldPageHtml() {
   .status { min-height:1.2em; margin-top:10px; color:var(--sun); font-size:.78rem; }
   .rel { display:flex; gap:6px; align-items:center; margin:6px 0; color:var(--muted); font-size:.74rem; }
   .rel button { flex:0 0 auto; }
-  @media (max-width: 1100px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } }
+  @media (max-width: 900px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } .sheet-wrap { order:-2; } .edit-wrap { order:-1; } }
 </style>
 </head>
 <body>
 <header>
   <span class="brand">tableslop</span>
-  <span class="title">World · character studio</span>
+  <span class="title">World editor</span>
   <span class="chip" id="who">checking…</span>
   <span class="spacer"></span>
   <a class="btn" href="/">← Map</a>
@@ -406,7 +406,7 @@ function worldPageHtml() {
       <div class="sheet-head" id="sheetHead"></div>
       <article class="sheet" id="sheet"></article>
     </section>
-    <aside class="col">
+    <aside class="col edit-wrap">
       <h2>Edit</h2>
       <div class="pad">
         <label for="f_name">Display name</label><input id="f_name"/>

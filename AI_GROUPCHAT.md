@@ -428,3 +428,9 @@
 ## 2026-08-08 18:30 ET — [PC] Result: free→Cursor→paid gate (stop DeepSeek on campaign boards)
 
 [PC] Result: Hub showed paid DeepSeek on H-2 Watch while Cursor idle — root cause: C8 free-exhaust jumped straight to paid Hermes, and continuous campaign boards still lived on the Hermes picker (Cursor only sees user-tasks). Fix `a3fcc57` (hot-deployed): when paid last-resort + Cursor key present, skip continuous boards; skip Watch/wait boxes; Hermes ignores `assigned_lane=cursor` tasks. Parked H-2 as deferred (player-gated). Killed in-flight paid H-2 tick (exit 130). Cursor already finished `nyc-ready-bluenote-venue` → `worldbuilding/details/blue-note-venue.md`; next pick = consistency audit.
+
+## 2026-08-08 19:43 ET — [PC] Intent: fix `/world` responsive collapse hiding sheet/editor at ~1024px
+
+[PC] Intent: GM reports `/world` shows "just the cast"; screenshot is 1024×515 and the page's 1100px breakpoint stacks the grid Cast-first, pushing sheet/editor below the fold. Change `/world` grid minimums, move collapse to 900px, and order sheet/editor before roster when stacked. Deploy `tableslop-server.js` to potato, restart `linuxbox-tableslop`, verify header/grid markers. Holder: `tableslop-world-responsive`.
+
+[PC] Result: `/world` responsive fix live. Remote `tableslop-server.js` sha256 matches PC `5988c584…1660`; markers verified (`World editor`, `max-width: 900px`, `edit-wrap`). `linuxbox-tableslop` restarted and `systemctl is-active` = active; loopback `/` = 200, `/world` anon = 302 → `/login?next=/world`. At ~1024px the studio now stays three-column; if a narrower window ever stacks, sheet/edit come before Cast. Hard-refresh the `/world` tab.
