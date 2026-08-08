@@ -18,12 +18,19 @@ Urban fantasy TTRPG: **New York organized crime** (families, crews, rackets) whe
 
 ## Start here (play)
 
-1. `LOCKS.md` + `story/premise.md`
-2. `reports/2026-08-01-era-and-tone.md`
-3. `reports/2026-08-01-five-families.md`
-4. `reports/2026-08-01-opening-job.md` (Blue Note ledger)
-5. `reports/2026-08-01-player-handout.md` (table-facing)
-6. Index: `reports/README.md`
+**Session-ready bundle (2026-08-08, heister crew frame):**
+
+1. `story/session-zero-discord.md` — session-zero agenda + paste-ready Discord posts
+2. `reports/2026-08-08-player-handout-heisters.md` — table-facing handout (roles, arms, money)
+3. `story/heist-blue-note-job.md` — Session-1 job packet (players know §1–2; GM holds the rest)
+4. `story/session-01-run-sheet.md` — GM night-of (clocks, NPC quick cards, endings)
+
+**World canon (GM deep read):**
+
+1. `LOCKS.md` + `story/premise.md` + `story/crew-start-heisters.md`
+2. `reports/2026-08-01-era-and-tone.md` · `reports/2026-08-01-five-families.md`
+3. `reports/2026-08-01-npc-roster.md` + `-expansion.md`
+4. Index: `reports/README.md`
 
 ## Tone
 

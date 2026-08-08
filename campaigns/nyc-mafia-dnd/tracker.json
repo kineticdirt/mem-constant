@@ -12,8 +12,22 @@
     "channel_id": "1528215752576995580",
     "notes": "Big Apples category, linked 2026-08-08. Sheets in #characters-ba (1528216141229461597). Full channel map in discord.json."
   },
-  "updated_at": "2026-08-08T22:05:00.000Z",
+  "updated_at": "2026-08-08T22:25:00.000Z",
   "party_frame": "heister-crew",
+  "session_ready": {
+    "as_of": "2026-08-08",
+    "bundle": [
+      "story/session-zero-discord.md (session-zero agenda + paste-ready Discord posts)",
+      "reports/2026-08-08-player-handout-heisters.md (player handout)",
+      "story/heist-blue-note-job.md (Session-1 packet; collector = Rosa Lombardo, canon-fixed)",
+      "story/session-01-run-sheet.md (GM night-of: clocks, quick cards, endings)"
+    ],
+    "blocking": [
+      "5 player sheets still pending (#characters-ba; watch item H-2)",
+      "GM G-5 archetype steer pick (run-sheet §7 covers all three options meanwhile)",
+      "Session-zero date poll in #rolly-poley"
+    ]
+  },
   "pcs": [
     {
       "id": "candice-graves",

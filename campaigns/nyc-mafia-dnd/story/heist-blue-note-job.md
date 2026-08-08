@@ -11,7 +11,7 @@ The crew's last job — the one that put food on the table and bought them anoth
 
 Which family? **Valenti.** (Canon lock: `reports/2026-08-01-five-families.md` — Valenti runs Red Hook docks; the counting room was a Valenti-contract shipping clerk's back office the crew hit for a dead-drop retrieval job. They didn't know whose door they were kicking until the ledger book on the desk had a Valenti seal.)
 
-The debt collector arrived two weeks later. Name: **Lena "the Crane" Lombardo** — Valenti capo, Red Hook union hall. She didn't threaten. She handed over a typed note:
+The debt collector arrived two weeks later. Name: **Rosa "The Crane" Lombardo** — Valenti capo out of the Red Hook union hall (`reports/2026-08-01-five-families.md`; boss is Lena "Grease" Valenti — Rosa answers to her). Cargo hook on the hip, coffee thermos, no speech. She handed over a typed note:
 
 > *Blue Note. West 52nd. Cellar safe. Artie Shaw's book. Return it to me. We're square.*
 
@@ -146,13 +146,13 @@ The book is not Artie Shaw's private record. It is a **Spirit-Ledger** — a bou
 
 | Party | Why they want the ledger |
 |-------|--------------------------|
-| **Valenti (Lena)** | The family's Below-pact signature is on the page. If it reaches the OCU, that's a magical conspiracy charge — life imprisonment or binding. If it reaches the Commission, that's a violation of the territorial charter. Valenti needs the book back before anyone reads the deeper layer. |
+| **Valenti (Rosa → Lena)** | The family's Below-pact signature is on the page. If it reaches the OCU, that's a magical conspiracy charge — life imprisonment or binding. If it reaches the Commission, that's a violation of the territorial charter. Valenti needs the book back before anyone reads the deeper layer. |
 | **Ashford (parallel contract)** | The Ashford page is either blank (meaning the family is not bound to the Bone Index — leverage over the other four families) or written in a script Ashford controls (meaning they *placed* the pact and now want the evidence back before the Commission asks questions). Ashford put a second contract on the ledger through a cutout — they want it too. |
 | **OCU (Det. Adaeze Chen-Okafor)** | A bound book with blood signatures and Below-tunnel access details is a slam-dunk RICO case under magical conspiracy statutes. The OCU has a warrant drafted, waiting for the ledger to surface. |
 | **The Commission** | If the families are secretly titheing to the Below without Commission approval, that voids every territorial agreement. The Commission needs the ledger to adjudicate — or to burn it and pretend they never saw it. |
 | **The Bone Index (Below)** | The pact is the Index's claim on the families. If the ledger is destroyed, the pact is broken and the Below loses the tithe. If the ledger is read aloud by any mortal who understands the deeper script, the pact is *fulfilled* — and the Below collects immediately. |
 
-**Session fuel:** The crew retrieves the ledger, hands it to Lena Valenti, and thinks they're square. Then Ashford's man (Eddie Trillo from the handout) shows up at the pier saying "you have something of mine." Then the OCU calls in a courtesy conversation. Then the crew hears a sound like dry bones rattling from the manhole cover outside the diner. They are holding a grenade with the pin pulled, and everyone in the room knows it.
+**Session fuel:** The crew retrieves the ledger, hands it to Rosa (who carries it up to Lena Valenti), and thinks they're square. Then Ashford's man (Eddie Trillo from the handout) shows up at the pier saying "you have something of mine." Then the OCU calls in a courtesy conversation. Then the crew hears a sound like dry bones rattling from the manhole cover outside the diner. They are holding a grenade with the pin pulled, and everyone in the room knows it.
 
 ---
 
