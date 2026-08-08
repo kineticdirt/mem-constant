@@ -88,8 +88,9 @@ Change models via `scripts/linuxbox/install-hermes-profiles.sh` then re-run it o
 
 ## Update gate (supply-chain "pwned" check before upgrading anything)
 
-Covered targets are in `agents/update-targets.json`. **Never upgrade a framework/package/library
-without first running the supply-chain check and getting a `SAFE` verdict.**
+Covered targets are in `agents/update-targets.json` (includes **hermes**, **cloudflared**,
+mem-constant, …). **Never upgrade a framework/package/library without first running the
+supply-chain check and getting a `SAFE` verdict.**
 
 ```bash
 bash scripts/linuxbox/safe-update-check.sh <target>   # writes reports/supply-chain/<target>-<date>.md
@@ -98,11 +99,18 @@ bash scripts/linuxbox/safe-update-check.sh <target>   # writes reports/supply-ch
 - Verdict `SAFE`  → upgrade is **auto-approved** (human policy: auto-upgrade-if-SAFE), then snapshot
   the prior version, upgrade, smoke-test, log to `AI_GROUPCHAT.md`.
 - Verdict `HOLD`  → do **not** upgrade. Write the reason to the report + `agents/human-inbox.json`.
-- Always record: old version → new version, advisory/CVE check result, audit result.
+- **Soak (≥7 days):** `min_release_age_days` (global + per-target). Even a clean advisory check is
+  `HOLD` if the candidate release is younger than 7 days. Check Hermes / cloudflared on the
+  recurring cadence; **do not same-day chase** a fresh GitHub/apt drop — wait a week, re-run the
+  gate, then upgrade. After `cloudflared` upgrade, restart **both** named tunnel units.
+- Always record: old version → new version, advisory/CVE check result, audit result, release age.
 
 "Pwned/leaked" means: hijacked/compromised release, malicious post-install, secret-exfil, a
 yanked/force-pushed version, or an open critical advisory. If the check can't run, treat as `HOLD`.
 
+Neuro-symbolic ops (Coyle musing): see `docs/musings/2026-08-08-agentic-ontologies-coyle.md` +
+`agents/ontology/ops-v1.json` — validate domain rules before SoT side effects
+(`ontology-ledger-check.py`).
 ## Testing (Playwright + tools)
 
 Verify before marking done:

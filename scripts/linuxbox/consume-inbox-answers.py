@@ -113,30 +113,23 @@ def append_decision_row(repo: Path, rel: str, qid: str, answer: str, question: s
 
 
 def close_user_task(repo: Path, task_id: str, answer: str) -> bool:
-    fp = repo / "agents" / "user-tasks.json"
-    data = load_json(fp, None)
-    if not isinstance(data, dict):
+    try:
+        import importlib.util
+
+        _p = Path(__file__).with_name("user-tasks-store.py")
+        _spec = importlib.util.spec_from_file_location("user_tasks_store", _p)
+        _mod = importlib.util.module_from_spec(_spec)
+        assert _spec and _spec.loader
+        _spec.loader.exec_module(_mod)
+        r = _mod.set_task_status(
+            repo,
+            task_id,
+            "done",
+            note=f"Inbox answer: {answer[:200]}",
+        )
+        return bool(r.get("ok"))
+    except Exception:
         return False
-    tasks = data.get("tasks")
-    if not isinstance(tasks, list):
-        return False
-    changed = False
-    for t in tasks:
-        if not isinstance(t, dict) or t.get("id") != task_id:
-            continue
-        if t.get("status") == "done":
-            return False
-        t["status"] = "done"
-        t["updated_at"] = utc_now()
-        note = f"Inbox answer ({utc_now()}): {answer[:200]}"
-        body = str(t.get("body") or "")
-        if note not in body:
-            t["body"] = (body.rstrip() + "\n\n" + note).strip()
-        changed = True
-        break
-    if changed:
-        save_json(fp, data)
-    return changed
 
 
 def append_inbox_log(repo: Path, lines: list[str]) -> None:

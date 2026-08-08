@@ -1,6 +1,7 @@
 {
-  "_doc": "Targets for the recurring supply-chain-gated update lane. gate=auto-upgrade-if-SAFE (human policy 2026-06-27). See scripts/linuxbox/safe-update-check.sh and CLAUDE.md > Update gate.",
+  "_doc": "Targets for the recurring supply-chain-gated update lane. gate=auto-upgrade-if-SAFE (human policy 2026-06-27) PLUS min_release_age_days soak (2026-08-08: ≥7 days after publish before upgrade — Hermes/cloudflared especially). See scripts/linuxbox/safe-update-check.sh and CLAUDE.md > Update gate. Do NOT upgrade same-day a release drops.",
   "cadence_days": 3,
+  "min_release_age_days": 7,
   "gate": "auto_if_safe",
   "targets": [
     {
@@ -11,7 +12,19 @@
       "version_cmd": "hermes --version",
       "upgrade_cmd": "hermes update",
       "advisory_lookup": "github:NousResearch/hermes-agent",
-      "notes": "Nous Hermes Agent. Snapshot version before upgrade; smoke `hermes chat -q ping` after."
+      "min_release_age_days": 7,
+      "notes": "Nous Hermes Agent. Snapshot version before upgrade; smoke `hermes chat -q ping` after. Soak ≥7d after GitHub release (supply-chain + stability)."
+    },
+    {
+      "name": "cloudflared",
+      "ecosystem": "custom",
+      "kind": "infra",
+      "repo": "cloudflare/cloudflared",
+      "version_cmd": "cloudflared --version",
+      "upgrade_cmd": "sudo apt-get install -y cloudflared",
+      "advisory_lookup": "github:cloudflare/cloudflared",
+      "min_release_age_days": 7,
+      "notes": "Edge tunnels (abhinavall + tableslop). After upgrade restart BOTH named units. Soak ≥7d after GitHub release; never same-day chase."
     },
     {
       "name": "mem-constant",

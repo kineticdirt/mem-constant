@@ -275,159 +275,9 @@ if n:
   print(f"think-reconcile: total closed={n}", flush=True)
 PY
 
-# Soft-close pf-blog-01 when v8 depth+smoke already landed (exit124 thrash:
-# Hermes patched timeline-strip + Playwright PASS then timed out mid user-tasks edit).
-REPO="${REPO}" python3 - <<'PY' 2>/dev/null || true
-import json
-from datetime import datetime, timezone
-from pathlib import Path
-repo = Path("/home/abhinav/agent-dump")
-ut = repo / "agents/user-tasks.json"
-exp = repo / ".staging/portfolio-redesign/v8-brutalist-map/experience.html"
-css = repo / ".staging/portfolio-redesign/v8-brutalist-map/styles.css"
-smoke = repo / "reports/portfolio-smoke/LATEST.md"
-if not ut.is_file():
-  raise SystemExit(0)
-try:
-  has_strip = (
-    exp.is_file() and "timeline-strip" in exp.read_text(encoding="utf-8", errors="replace")
-    and css.is_file() and "timeline-strip" in css.read_text(encoding="utf-8", errors="replace")
-  )
-  smoke_ok = smoke.is_file() and "PASS" in smoke.read_text(encoding="utf-8", errors="replace")
-except OSError:
-  raise SystemExit(0)
-if not (has_strip and smoke_ok):
-  raise SystemExit(0)
-try:
-  data = json.loads(ut.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-  raise SystemExit(0)
-tasks = data.get("tasks") if isinstance(data, dict) else None
-if not isinstance(tasks, list):
-  raise SystemExit(0)
-now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-note = f"think-soft-close:timeline-strip+portfolio-smoke PASS ({now})"
-touched = False
-for t in tasks:
-  if not isinstance(t, dict) or str(t.get("id") or "") != "pf-blog-01":
-    continue
-  if str(t.get("status") or "").lower() not in ("open", "in_progress", "running", ""):
-    break
-  t["status"] = "done"
-  t["updated_at"] = now
-  prev = str(t.get("agent_note") or "")
-  t["agent_note"] = (prev + "\n" + note).strip() if prev else note
-  touched = True
-  break
-if touched:
-  bak = ut.with_suffix(ut.suffix + f".bak.pfblog.{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}")
-  try:
-    bak.write_text(ut.read_text(encoding="utf-8"), encoding="utf-8")
-  except OSError:
-    pass
-  ut.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-  print("think-soft-close: pf-blog-01 -> done (timeline-strip + smoke PASS)", flush=True)
-PY
-
-# Soft-close lb-01-laptop-connected when OPEN CHANNEL + Machines panel already shipped
-# (exit124 thrash: Hermes cannot complete human laptop handshake from potato).
-REPO="${REPO}" python3 - <<'PY' 2>/dev/null || true
-import json
-from datetime import datetime, timezone
-from pathlib import Path
-repo = Path("/home/abhinav/agent-dump")
-ut = repo / "agents/user-tasks.json"
-ledger = repo / "AI_GROUPCHAT.md"
-machines_js = repo / "scripts/linuxbox/linuxbox-status-server.js"
-if not ut.is_file():
-  raise SystemExit(0)
-try:
-  led = ledger.read_text(encoding="utf-8", errors="replace") if ledger.is_file() else ""
-  has_open_channel = "OPEN CHANNEL" in led and "Machines" in led
-  has_machines_api = machines_js.is_file() and "/api/machines" in machines_js.read_text(
-    encoding="utf-8", errors="replace"
-  )
-except OSError:
-  raise SystemExit(0)
-if not (has_open_channel and has_machines_api):
-  raise SystemExit(0)
-try:
-  data = json.loads(ut.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-  raise SystemExit(0)
-tasks = data.get("tasks") if isinstance(data, dict) else None
-if not isinstance(tasks, list):
-  raise SystemExit(0)
-now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-note = f"think-soft-close: OPEN CHANNEL + /api/machines shipped ({now})"
-touched = False
-for t in tasks:
-  if not isinstance(t, dict) or str(t.get("id") or "") != "lb-01-laptop-connected":
-    continue
-  if str(t.get("status") or "").lower() not in ("open", "in_progress", "running", ""):
-    break
-  t["status"] = "done"
-  t["updated_at"] = now
-  prev = str(t.get("agent_note") or "")
-  t["agent_note"] = (prev + "\n" + note).strip() if prev else note
-  touched = True
-  break
-if touched:
-  bak = ut.with_suffix(ut.suffix + f".bak.lb01.{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}")
-  try:
-    bak.write_text(ut.read_text(encoding="utf-8"), encoding="utf-8")
-  except OSError:
-    pass
-  ut.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-  print("think-soft-close: lb-01-laptop-connected -> done (OPEN CHANNEL + machines)", flush=True)
-PY
-
-# Soft-close lb-02 when /api/machines already responds (same Jul-9 ship; avoid exit124 redo).
-REPO="${REPO}" python3 - <<'PY' 2>/dev/null || true
-import json
-import urllib.request
-from datetime import datetime, timezone
-from pathlib import Path
-repo = Path("/home/abhinav/agent-dump")
-ut = repo / "agents/user-tasks.json"
-if not ut.is_file():
-  raise SystemExit(0)
-try:
-  with urllib.request.urlopen("http://127.0.0.1:8790/api/machines", timeout=3) as r:
-    if int(getattr(r, "status", 200) or 200) >= 400:
-      raise SystemExit(0)
-except Exception:
-  raise SystemExit(0)
-try:
-  data = json.loads(ut.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-  raise SystemExit(0)
-tasks = data.get("tasks") if isinstance(data, dict) else None
-if not isinstance(tasks, list):
-  raise SystemExit(0)
-now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-note = f"think-soft-close: /api/machines live ({now})"
-touched = False
-for t in tasks:
-  if not isinstance(t, dict) or str(t.get("id") or "") != "lb-02-multi-machine-sync":
-    continue
-  if str(t.get("status") or "").lower() not in ("open", "in_progress", "running", ""):
-    break
-  t["status"] = "done"
-  t["updated_at"] = now
-  prev = str(t.get("agent_note") or "")
-  t["agent_note"] = (prev + "\n" + note).strip() if prev else note
-  touched = True
-  break
-if touched:
-  bak = ut.with_suffix(ut.suffix + f".bak.lb02.{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}")
-  try:
-    bak.write_text(ut.read_text(encoding="utf-8"), encoding="utf-8")
-  except OSError:
-    pass
-  ut.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-  print("think-soft-close: lb-02-multi-machine-sync -> done (/api/machines)", flush=True)
-PY
+# Soft-close lane (evidence-gated): one entry point, writes via user-tasks-store
+# (door+ledger). Replaces inline heredoc writers — audit: think-tick dedupe.
+python3 "${REPO}/scripts/linuxbox/think-soft-close.py" --all --repo "${REPO}" 2>/dev/null || true
 
 # Continuity: seed testable [ops] tasks when queues would go quiet (no LLM).
 CONTINUITY_SEED="${REPO}/scripts/linuxbox/think-continuity-seed.py"
@@ -448,10 +298,17 @@ if [[ -f "${HAS}" ]]; then
   hw=$?
   set -e
   if [[ "${hw}" -eq 1 ]]; then
+    # Idle for Hermes ≠ idle for the box: seed Cursor work + force Agent 2.
+    if [[ -f "${CONTINUITY_SEED}" ]]; then
+      python3 "${CONTINUITY_SEED}" "${REPO}" 2>/dev/null || true
+    fi
+    date +%s > "${REPO}/agents/state/cursor-tick.force" 2>/dev/null || true
+    nohup bash "${REPO}/scripts/linuxbox/agent-cycle-cursor-tick.sh" \
+      >/tmp/cursor-tick-from-think-idle.log 2>&1 &
     THINK_TASK_ID=""
     trap - EXIT
-    focus idle "IDLE — no open work" ""
-    python3 "${REPO}/scripts/linuxbox/archive_meta.py" append agent_runs think 0 "${LOG}" "IDLE — no open work" --outcome idle --blurb "IDLE — no open work" 2>/dev/null || true
+    focus idle "IDLE — no open work (Cursor kicked)" ""
+    python3 "${REPO}/scripts/linuxbox/archive_meta.py" append agent_runs think 0 "${LOG}" "IDLE — no open work (Cursor kicked)" --outcome idle --blurb "IDLE — Cursor kick" 2>/dev/null || true
     exit 0
   fi
   HW_REASON="$(printf '%s\n' "${HW_OUT}" | sed -n 's/^WORK:[[:space:]]*//p' | head -1)"
@@ -1890,13 +1747,21 @@ fi
 set -e
 tail="$(tail -n 12 "${LOG}" 2>/dev/null | tr '\n' ' ' | cut -c1-480 || true)"
 
+# Hermes often exits 0 after burning the turn budget while claiming DONE mid-wire.
+MAX_TURNS_HIT=0
+if grep -qE 'Iteration budget exhausted|Reached maximum iterations' "${LOG}" 2>/dev/null; then
+  MAX_TURNS_HIT=1
+fi
+
 # Free-cap handling: if we used paid last-resort, judge by paid attempt (not earlier free 429s).
 if [[ "${THINK_PAID_LAST_RESORT}" == "1" ]]; then
   # Wording: "free-pool→paid" — not "exhausted" alone (Hub/humans read that as paid credits dead).
   _c8_label="free-pool→paid"
   [[ "${THINK_PAID_SCENARIO}" == "verified_fail" ]] && _c8_label="verified-free-fail→paid"
-  if [[ "${rc}" -eq 0 ]]; then
+  if [[ "${rc}" -eq 0 && "${MAX_TURNS_HIT}" -eq 0 ]]; then
     focus done "PAID C8 ${_c8_label} ${USED_MODEL}: ${tail:-done}" "${THINK_TASK_ID}"
+  elif [[ "${MAX_TURNS_HIT}" -eq 1 ]]; then
+    focus failed "PAID C8 ${_c8_label} ${USED_MODEL} max-turns→Cursor: ${tail}" "${THINK_TASK_ID}"
   else
     focus failed "PAID C8 ${_c8_label} ${USED_MODEL} exit ${rc}: ${tail}" "${THINK_TASK_ID}"
   fi
@@ -1926,10 +1791,75 @@ PY
   else
     focus failed "HTTP 429 on ${USED_MODEL} — will rotate next free in pool" "${THINK_TASK_ID}"
   fi
+elif [[ "${MAX_TURNS_HIT}" -eq 1 ]]; then
+  focus failed "max-turns exhausted → Cursor handoff: ${tail}" "${THINK_TASK_ID}"
 elif [[ "${rc}" -eq 0 ]]; then
   focus done "${tail:-done}" "${THINK_TASK_ID}"
 else
   focus failed "exit ${rc}: ${tail}" "${THINK_TASK_ID}"
+fi
+
+# Max-turns: reopen false-DONE + force Cursor (failover N=1).
+if [[ "${MAX_TURNS_HIT}" -eq 1 ]]; then
+  {
+    echo ""
+    echo "======== max-turns hit → Cursor handoff (think claimed done/incomplete) ========"
+  } >> "${LOG}" 2>&1 || true
+  if [[ -n "${TASK_ID}" && "${TASK_ID}" != lane:* ]]; then
+    REPO="${REPO}" TASK_ID="${TASK_ID}" python3 - <<'PY' >> "${LOG}" 2>&1 || true
+import json, os
+from pathlib import Path
+from datetime import datetime, timezone
+repo = Path(os.environ["REPO"])
+tid = os.environ["TASK_ID"]
+fp = repo / "agents" / "user-tasks.json"
+data = json.loads(fp.read_text(encoding="utf-8"))
+tasks = data.get("tasks") or []
+now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+for t in tasks:
+    if isinstance(t, dict) and str(t.get("id") or "") == tid:
+        st = str(t.get("status") or "").lower()
+        if st == "done":
+            t["status"] = "open"
+            ctx = t.get("context") if isinstance(t.get("context"), dict) else {}
+            ctx["assigned_lane"] = "cursor"
+            ctx["think_max_turns_reopen"] = now
+            t["context"] = ctx
+            note = str(t.get("agent_note") or "")
+            t["agent_note"] = (note + f"\n[{now}] think hit max-turns; reopened → Cursor Auto.").strip()
+            t["updated_at"] = now
+            print(f"REOPEN:{tid} → open assigned_lane=cursor")
+        break
+data["tasks"] = tasks
+fp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+  fi
+  date +%s > "${REPO}/agents/state/cursor-tick.force" 2>/dev/null || true
+  nohup bash "${REPO}/scripts/linuxbox/agent-cycle-cursor-tick.sh" \
+    >/tmp/cursor-tick-from-max-turns.log 2>&1 &
+fi
+
+# Cross-lane failover: closed→clear; failed+open→handoff/archive; ok+open→no-op.
+# User-tasks only (not lane:*). Free-429 skipped inside after-run.
+# Timeout / iter-budget (124) / max-turns: N=1 so first burn hands to Cursor Auto.
+LANE_FO_PY="${REPO}/scripts/linuxbox/lane-failover.py"
+if [[ -f "${LANE_FO_PY}" && -n "${TASK_ID}" && "${TASK_ID}" != lane:* ]]; then
+  _fo_n="${LANE_FAILOVER_N:-2}"
+  _fo_rc="${rc}"
+  if [[ "${rc}" -eq 124 || "${MAX_TURNS_HIT}" -eq 1 ]]; then
+    _fo_n="${LANE_FAILOVER_TIMEOUT_N:-1}"
+    _fo_rc=124
+  fi
+  {
+    echo ""
+    echo "======== lane-failover after-run (think) exit=${rc} fo_rc=${_fo_rc} n=${_fo_n} max_turns=${MAX_TURNS_HIT} ========"
+    python3 "${LANE_FO_PY}" after-run --repo "${REPO}" --task-id "${TASK_ID}" \
+      --lane think --exit-code "${_fo_rc}" --n "${_fo_n}" || true
+  } >> "${LOG}" 2>&1 || true
+  # Kick Cursor tick next minute (skip its interval gate).
+  if [[ "${rc}" -ne 0 && "${rc}" -ne 429 ]] || [[ "${MAX_TURNS_HIT}" -eq 1 ]]; then
+    date +%s > "${REPO}/agents/state/cursor-tick.force" 2>/dev/null || true
+  fi
 fi
 
 # Meta-Harness: leave a scored run trace so rollup/Hub aren't stale (pod-scheduler inactive).

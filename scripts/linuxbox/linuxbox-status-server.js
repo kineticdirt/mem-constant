@@ -34,7 +34,7 @@ const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db_20260805-hub-status-colors-r1";
+const DASH_BUILD = "db_20260808-ssh-sessions-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -53,6 +53,9 @@ const CURSOR_AGENT_SCRIPT = path.join(__dirname, "cursor-agent-run.sh");
 const CURSOR_LANE_STATUS_SCRIPT = path.join(__dirname, "cursor-lane-status.sh");
 const FREE_MODELS_HEALTH_SCRIPT = path.join(__dirname, "free-models-health.sh");
 const FREE_MODELS_HEALTH_CACHE = path.join(REPO, "agents", "state", "free-models-health.json");
+const SSH_TRACK_SCRIPT = path.join(__dirname, "ssh-session-track.sh");
+const SSH_STATE_FILE = path.join(REPO, "agents", "state", "ssh-sessions.json");
+const SSH_ARCHIVE_DIRS = ["/mnt/archive/logs/ssh-sessions", path.join(REPO, "agents", "state", "ssh-sessions")];
 const AGENT_GOAL_CONTROL_FILE = path.join(REPO, "agents", "state", "agent-goal-control.json");
 const CURSOR_AGENT_ENV = path.join(process.env.HOME || "/home/abhinav", ".cursor-agent.env");
 const SITUATION_DIR = "reports/situation-monitor";
@@ -858,6 +861,33 @@ function parseProgress(content) {
     if (m) items.push({ done: m[1].toLowerCase() === "x", text: m[2].trim() });
   }
   return items;
+}
+
+/** First open tableslop board task (tropic map product) — Hub next-up when progress.md is clear. */
+function firstTableslopPendingTask() {
+  const manifestPath = path.join(REPO, "projects", "tableslop", "manifest.json");
+  if (!fs.existsSync(manifestPath)) return null;
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    return null;
+  }
+  const pending = [];
+  for (const sp of manifest.subprojects || []) {
+    if (!sp || typeof sp !== "object") continue;
+    const spName = String(sp.name || sp.id || "tableslop").trim();
+    for (const t of sp.tasks || []) {
+      if (!t || typeof t !== "object") continue;
+      const st = String(t.status || "").toLowerCase();
+      if (!st || st === "done" || st === "deferred") continue;
+      const title = String(t.title || t.id || "").trim();
+      if (!title) continue;
+      pending.push(`${spName}: ${title}`);
+    }
+  }
+  if (!pending.length) return null;
+  return { next_item: pending[0], pending_count: pending.length };
 }
 
 function listReports(dir) {
@@ -2321,6 +2351,7 @@ function readThinkModelHint() {
 }
 
 /** Cursor Auto lane — delegates to cursor-lane-status.sh --json (single detector). */
+let _cursorLaneCache = { at: 0, value: null };
 function readCursorLaneStatus() {
   const idle = {
     running: false,
@@ -2334,20 +2365,131 @@ function readCursorLaneStatus() {
     today_runs: null,
     today_ok: null,
     last_outcome: null,
-    schedule: null,
-    model_hint: null,
+    schedule: "auto — cron */5 min (agent-cycle-cursor-tick.sh)",
+    model_hint: "cursor:auto (SDK)",
   };
+  // Memo: /api/agent calls this via buildRunningNow + buildAgentGoalsInsight.
+  const nowMs = Date.now();
+  if (_cursorLaneCache.value && nowMs - _cursorLaneCache.at < 5000) {
+    return _cursorLaneCache.value;
+  }
+  // Fast path: cursor-focus.json status=running + live pid (Hub must not lie idle mid-run).
+  try {
+    const focusFp = path.join(REPO, "agents", "state", "cursor-focus.json");
+    if (fs.existsSync(focusFp)) {
+      const f = JSON.parse(fs.readFileSync(focusFp, "utf8"));
+      const pid = Number(f && f.pid);
+      if (
+        f &&
+        String(f.status || "").toLowerCase() === "running" &&
+        Number.isFinite(pid) &&
+        pid > 1 &&
+        fs.existsSync(`/proc/${pid}`)
+      ) {
+        let todayRuns = null;
+        let todayOk = null;
+        try {
+          const logDir = "/mnt/archive/logs/cursor-agent";
+          if (fs.existsSync(logDir)) {
+            const dayEt = new Intl.DateTimeFormat("en-CA", {
+              timeZone: "America/New_York",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            })
+              .format(new Date())
+              .replace(/-/g, "");
+            let runs = 0;
+            let ok = 0;
+            for (const name of fs.readdirSync(logDir)) {
+              if (!/^cursor-\d{8}T\d{6}Z-\d+\.log$/.test(name)) continue;
+              const st = fs.statSync(path.join(logDir, name));
+              const mEt = new Intl.DateTimeFormat("en-CA", {
+                timeZone: "America/New_York",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+                .format(st.mtime)
+                .replace(/-/g, "");
+              if (mEt !== dayEt) continue;
+              runs += 1;
+              try {
+                const tail = fs.readFileSync(path.join(logDir, name), "utf8").slice(-8000);
+                const m = [...tail.matchAll(/--- exit (\d+) ---/g)].pop();
+                if (m && m[1] === "0") ok += 1;
+              } catch {
+                /* ignore */
+              }
+            }
+            todayRuns = runs;
+            todayOk = ok;
+          }
+        } catch {
+          /* ignore */
+        }
+        const fast = {
+          ...idle,
+          running: true,
+          pid,
+          processes: [{ pid, cmd: String(f.blurb || f.title || "cursor").slice(0, 120) }],
+          job_label: String(f.blurb || f.title || "").slice(0, 120) || null,
+          last_outcome: "running",
+          today_runs: todayRuns,
+          today_ok: todayOk,
+          age_sec: f.started_at
+            ? Math.max(0, Math.floor((Date.now() - Date.parse(f.started_at)) / 1000))
+            : null,
+        };
+        _cursorLaneCache = { at: nowMs, value: fast };
+        return fast;
+      }
+    }
+  } catch {
+    /* fall through */
+  }
   if (!fs.existsSync(CURSOR_LANE_STATUS_SCRIPT)) return idle;
   try {
+    // Was 4s — status.sh regularly took 5–11s when SDK prompt sat on argv (pgrep -af).
+    // Timeout → silent idle stub → Hub "Cursor idle" while lane was mid-run (pc-2026-08-07).
     const out = execFileSync("bash", [CURSOR_LANE_STATUS_SCRIPT, "--json"], {
       encoding: "utf8",
-      timeout: 4000,
+      timeout: 12000,
       env: { ...process.env, AGENT_DUMP: REPO },
     });
     const parsed = JSON.parse(String(out || "").trim());
     if (!parsed || typeof parsed !== "object") return idle;
-    return { ...idle, ...parsed };
+    const value = { ...idle, ...parsed };
+    _cursorLaneCache = { at: nowMs, value };
+    return value;
   } catch {
+    // Last resort: cheap pid probe so a slow/failed status.sh never reports false idle.
+    try {
+      const pidsOut = execFileSync(
+        "pgrep",
+        ["-f", "cursor_sdk_run\\.py|cursor-agent-run\\.sh|nyc-cursor-worldbuilding"],
+        { encoding: "utf8", timeout: 2000 }
+      );
+      const pids = String(pidsOut || "")
+        .trim()
+        .split(/\s+/)
+        .map((x) => Number(x))
+        .filter((p) => Number.isFinite(p) && p > 1);
+      if (pids.length) {
+        const value = {
+          ...idle,
+          running: true,
+          pid: pids[0],
+          processes: pids.slice(0, 6).map((pid) => ({ pid, cmd: "cursor (probe)" })),
+          last_outcome: "running",
+          job_label: "cursor lane (status.sh slow — probe)",
+        };
+        _cursorLaneCache = { at: nowMs, value };
+        return value;
+      }
+    } catch {
+      /* ignore */
+    }
     return idle;
   }
 }
@@ -2886,13 +3028,23 @@ async function collectAgentState(lite = false) {
       progress = parseProgress(fs.readFileSync(progPath, "utf8"));
     }
     const pending = progress.filter((p) => !p.done);
+    let pendingCount = pending.length;
+    let nextItem = pending[0]?.text || null;
+    // progress.md all-done is common; still surface tropic map board as Hub "next up"
+    if (!nextItem && id === "tropic-gooner") {
+      const fb = firstTableslopPendingTask();
+      if (fb) {
+        pendingCount = fb.pending_count;
+        nextItem = fb.next_item;
+      }
+    }
     campaigns[id] = {
       label: cfg.label,
       archived: !!cfg.archived,
       map_url: id === "tropic-gooner" ? "https://map.tableslop.org/" : null,
-      pending_count: pending.length,
+      pending_count: pendingCount,
       done_count: progress.filter((p) => p.done).length,
-      next_item: pending[0]?.text || null,
+      next_item: nextItem,
       progress,
       latest_reports: listReports(cfg.reportsDir).slice(0, 8),
     };
@@ -3524,7 +3676,21 @@ function updateUserTask(taskId, patch) {
   if (idx < 0) throw new Error("task_not_found");
   const task = store.tasks[idx];
   if (patch.status) {
-    const allowed = new Set(["open", "in_progress", "done", "cancelled"]);
+    // Ontology door (Coyle): single enum SoT; keep legacy "cancelled" until triage migrates.
+    let allowed = new Set(["open", "in_progress", "done", "blocked"]);
+    try {
+      const ont = JSON.parse(
+        fs.readFileSync(path.join(REPO, "agents", "ontology", "ops-v1.json"), "utf8")
+      );
+      const oneOf =
+        ont && ont.classes && ont.classes.UserTask &&
+        ont.classes.UserTask.properties && ont.classes.UserTask.properties.status
+          ? ont.classes.UserTask.properties.status.oneOf
+          : null;
+      if (Array.isArray(oneOf) && oneOf.length) allowed = new Set([...oneOf, "cancelled"]);
+    } catch {
+      /* keep default set */
+    }
     if (allowed.has(patch.status)) task.status = patch.status;
   }
   if (patch.body != null) task.body = String(patch.body).slice(0, 4000);
@@ -5187,6 +5353,79 @@ function buildChatStylePreamble(responseMode, context, chatOpts = {}) {
   return lines.join("\n");
 }
 
+/** Tracker state + today's JSONL totals, straight from disk (no subprocess, fail-soft). */
+function readSshSessionState() {
+  const out = { active: [], active_count: 0, today: { sessions: 0, total_sec: 0 } };
+  try {
+    if (fs.existsSync(SSH_STATE_FILE)) {
+      const st = JSON.parse(fs.readFileSync(SSH_STATE_FILE, "utf8"));
+      const now = Math.floor(Date.now() / 1000);
+      for (const s of Object.values((st && st.sessions) || {})) {
+        const ep = Number(s.login_epoch) || now;
+        out.active.push({
+          user: s.user, rhost: s.rhost, pts: s.pts,
+          login: s.login_iso, elapsed_sec: Math.max(0, now - ep),
+        });
+      }
+    }
+  } catch { /* ignore */ }
+  out.active_count = out.active.length;
+  try {
+    const iso = new Date().toISOString();
+    const month = iso.slice(0, 7);
+    const today = iso.slice(0, 10);
+    for (const d of SSH_ARCHIVE_DIRS) {
+      const f = path.join(d, `${month}.jsonl`);
+      if (!fs.existsSync(f)) continue;
+      for (const line of fs.readFileSync(f, "utf8").split("\n")) {
+        if (!line.trim()) continue;
+        try {
+          const r = JSON.parse(line);
+          if (String(r.login || "").slice(0, 10) === today) {
+            out.today.sessions += 1;
+            out.today.total_sec += Number(r.duration_sec) || 0;
+          }
+        } catch { /* skip row */ }
+      }
+    }
+  } catch { /* ignore */ }
+  return out;
+}
+
+/** /api/ssh-sessions: prefer tracker status --json; fall back to state file + who. */
+function readSshSessions() {
+  if (fs.existsSync(SSH_TRACK_SCRIPT)) {
+    try {
+      const out = execFileSync("bash", [SSH_TRACK_SCRIPT, "status", "--json"], {
+        encoding: "utf8",
+        timeout: 4000,
+        env: { ...process.env, AGENT_DUMP: REPO },
+      });
+      const parsed = JSON.parse(String(out || "").trim());
+      if (parsed && typeof parsed === "object") return { ...parsed, source: "timew" };
+    } catch { /* fall through to state/who */ }
+  }
+  const payload = { ...readSshSessionState(), source: "state-file" };
+  if (!payload.active_count) {
+    try {
+      const who = execFileSync("who", [], { encoding: "utf8", timeout: 2000 });
+      payload.active = String(who)
+        .split("\n")
+        .filter((l) => /\spts\//.test(l) && /\([^)]*\)\s*$/.test(l))
+        .map((l) => {
+          const p = l.trim().split(/\s+/);
+          return {
+            user: p[0], pts: p[1], login: `${p[2]} ${p[3]}`,
+            rhost: (p[p.length - 1] || "").replace(/[()]/g, ""),
+          };
+        });
+      payload.active_count = payload.active.length;
+      if (payload.active_count) payload.source = "who";
+    } catch { /* ignore */ }
+  }
+  return payload;
+}
+
 /** Cheap read-only snapshot for chat prompts — no secrets, capped size. */
 function buildChatSystemStatusBlock(context = null) {
   const lines = ["[System / running tasks — injected, read-only]"];
@@ -5254,6 +5493,19 @@ function buildChatSystemStatusBlock(context = null) {
       /* ignore */
     }
     lines.push(`chat jobs: running=${running} queued/pending=${pending}`);
+
+    try {
+      const ssh = readSshSessionState();
+      if (ssh.active_count || ssh.today.sessions) {
+        const whoStr = ssh.active
+          .slice(0, 3)
+          .map((s) => `${s.user}@${s.rhost} ${Math.floor((s.elapsed_sec || 0) / 60)}m`)
+          .join(", ");
+        lines.push(
+          `ssh sessions: active=${ssh.active_count}${whoStr ? ` (${whoStr})` : ""} today=${ssh.today.sessions} ended (${Math.round(ssh.today.total_sec / 60)}min)`
+        );
+      }
+    } catch { /* ssh status optional */ }
 
     const runIndex = path.join(REPO, "agents", "state", "run-index.jsonl");
     if (fs.existsSync(runIndex)) {
@@ -8285,6 +8537,15 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/api/ssh-sessions") {
+      if (auth?.role !== "admin") {
+        sendJson(res, 403, { error: "admin_required" }, publicMode);
+        return;
+      }
+      sendJson(res, 200, { ...readSshSessions(), updated_at: new Date().toISOString() }, publicMode);
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/meta-harness") {
       if (auth?.role !== "admin") {
         sendJson(res, 403, { error: "admin_required" }, publicMode);
@@ -8485,6 +8746,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/wiki-entity-links.js") {
+      sendFile(
+        res,
+        path.join(STATIC_DIR, "wiki-entity-links.js"),
+        "application/javascript; charset=utf-8",
+        publicMode
+      );
+      return;
+    }
+
     if (req.method === "GET" && pathname === "/api/intel") {
       sendJson(res, 200, await collectIntelState(), publicMode);
       return;
@@ -8510,6 +8781,25 @@ const server = http.createServer(async (req, res) => {
       const campaignId = url.searchParams.get("campaign");
       const relPath = url.searchParams.get("path");
       sendJson(res, 200, readStoryDoc(campaignId, relPath), publicMode);
+      return;
+    }
+
+    // Isla Primavera / tropic-gooner wiki entities for [[kind: label]] hyperlinks
+    if (req.method === "GET" && pathname === "/api/wiki/entities") {
+      const campaign = (url.searchParams.get("campaign") || "tropic-gooner").replace(/[^a-z0-9_-]/gi, "");
+      const entPath = path.join(REPO, "campaigns", campaign, "wiki", "entities.json");
+      try {
+        const raw = fs.readFileSync(entPath, "utf8");
+        const data = JSON.parse(raw);
+        sendJson(res, 200, data, publicMode);
+      } catch (e) {
+        sendJson(
+          res,
+          e.code === "ENOENT" ? 404 : 500,
+          { error: e.code === "ENOENT" ? "entities_missing" : "entities_read_failed", detail: String(e.message || e).slice(0, 160) },
+          publicMode
+        );
+      }
       return;
     }
 

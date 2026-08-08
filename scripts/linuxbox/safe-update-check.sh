@@ -10,10 +10,13 @@
 #
 # Policy (CLAUDE.md > Update gate): SAFE => auto-upgrade allowed; HOLD => do not upgrade.
 # Fails CLOSED: any error, missing tool, or open advisory => HOLD.
+# Soak: min_release_age_days (default from update-targets.json, usually 7) — HOLD if
+# the candidate release is younger than that (Hermes/cloudflared: never same-day chase).
 #
 # Signals checked (per ecosystem):
 #   - Known vulnerabilities via OSV (https://osv.dev) for installed + latest version
 #   - Latest published version (PyPI / npm registry / GitHub releases)
+#   - Release age / soak window
 #   - Local dependency audit if available (pip-audit / npm audit)
 # This script does NOT upgrade anything. It only produces a verdict + report.
 set -uo pipefail
@@ -55,6 +58,7 @@ if not t:
 notes = []
 signals = []        # (label, detail)
 hold_reasons = []
+published_at = None  # datetime UTC of candidate latest release, if known
 
 def http_json(url, timeout=20, data=None, headers=None):
     req = urllib.request.Request(url, data=data, headers=headers or {})
@@ -68,8 +72,24 @@ def sh(cmd, timeout=30):
     except Exception as e:  # noqa: BLE001
         return 1, "", str(e)
 
+def parse_iso(s):
+    if not s:
+        return None
+    s = str(s).strip().replace("Z", "+00:00")
+    try:
+        return datetime.datetime.fromisoformat(s)
+    except Exception:  # noqa: BLE001
+        return None
+
 eco = t.get("ecosystem", "custom")
 pkg = t.get("package") or t.get("name")
+min_age = t.get("min_release_age_days")
+if min_age is None:
+    min_age = cfg.get("min_release_age_days", 0)
+try:
+    min_age = int(min_age or 0)
+except Exception:  # noqa: BLE001
+    min_age = 0
 
 # --- current installed version ---
 cur_version = None
@@ -92,6 +112,9 @@ if eco == "pip":
         files = d.get("releases", {}).get(latest, [])
         if files and all(f.get("yanked") for f in files):
             hold_reasons.append(f"latest {latest} is fully yanked on PyPI")
+        # upload time of first file for soak
+        if files:
+            published_at = parse_iso(files[0].get("upload_time_iso_8601") or files[0].get("upload_time"))
         notes.append(f"PyPI latest: {latest}")
     except urllib.error.HTTPError as e:
         if e.code == 404:
@@ -106,6 +129,9 @@ elif eco == "npm":
     try:
         d = http_json(f"https://registry.npmjs.org/{pkg}")
         latest = (d.get("dist-tags") or {}).get("latest")
+        times = d.get("time") or {}
+        if latest and times.get(latest):
+            published_at = parse_iso(times.get(latest))
         notes.append(f"npm latest: {latest}")
     except Exception as e:  # noqa: BLE001
         notes.append(f"npm lookup failed: {e}")
@@ -115,9 +141,34 @@ elif eco == "custom" and t.get("repo"):
         d = http_json(f"https://api.github.com/repos/{t['repo']}/releases/latest",
                        headers={"User-Agent": "safe-update-check"})
         latest = (d.get("tag_name") or "").lstrip("v")
+        published_at = parse_iso(d.get("published_at") or d.get("created_at"))
         notes.append(f"GitHub latest release: {latest or 'none'}")
+        if published_at:
+            notes.append(f"GitHub published_at: {published_at.isoformat()}")
     except Exception as e:  # noqa: BLE001
         notes.append(f"GitHub release lookup failed: {e}")
+
+# --- soak window (min release age) ---
+if min_age > 0:
+    notes.append(f"min_release_age_days: {min_age}")
+    if published_at is None:
+        if latest:
+            hold_reasons.append(
+                f"could not resolve publish time for {latest} — soak gate requires known age"
+            )
+        else:
+            notes.append("soak: skipped (no latest version resolved)")
+    else:
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if published_at.tzinfo is None:
+            published_at = published_at.replace(tzinfo=datetime.timezone.utc)
+        age = now - published_at.astimezone(datetime.timezone.utc)
+        age_days = age.total_seconds() / 86400.0
+        signals.append(("release_age_days", f"{age_days:.2f} (need ≥{min_age})"))
+        if age_days < float(min_age):
+            hold_reasons.append(
+                f"release {latest} is only {age_days:.1f}d old (need ≥{min_age}d soak)"
+            )
 
 # --- OSV known-vulnerability query (installed + latest) ---
 def osv_query(ecosystem, name, version):
@@ -207,7 +258,7 @@ report += ["", "## Hold reasons"]
 report += [f"- {r}" for r in hold_reasons] or ["- none — no compromise/advisory signals found"]
 report += ["", "## Notes"]
 report += [f"- {n}" for n in notes] or ["- (none)"]
-report += ["", "_Auto-upgrade is permitted only on SAFE (policy: auto-upgrade-if-SAFE). HOLD = do not upgrade._", ""]
+report += ["", "_Auto-upgrade is permitted only on SAFE (policy: auto-upgrade-if-SAFE + min_release_age_days soak). HOLD = do not upgrade._", ""]
 
 path = f"{report_dir}/{target_name}-{date}.md"
 open(path, "w", encoding="utf-8").write("\n".join(report))
