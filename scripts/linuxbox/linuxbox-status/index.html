@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db_20260805-hub-status-colors-r1">
+  <meta name="dash-build" content="db_20260808-ssh-sessions-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -13,6 +13,7 @@
   <!-- docs-wiki FIRST: marked CDN is async — must not block Docs module load -->
   <!-- ponytail: absolute /Linuxbox/ path — ./docs-wiki.js breaks when URL is /Linuxbox?tab=… (no trailing slash → /docs-wiki.js 404 on portfolio) -->
   <script src="/Linuxbox/docs-wiki.js?v=db-20260802-docs-recent-r1"></script>
+  <script src="/Linuxbox/wiki-entity-links.js?v=20260807e"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" async></script>
   <style>
     :root {
@@ -5646,7 +5647,9 @@
           <div class="field"><label for="char-edit-status">Status</label><select id="char-edit-status">${statusOpts}</select></div>
           <div class="field"><label for="char-edit-role">Type / role</label><select id="char-edit-role">${roleOpts}</select></div>
           <div class="field field-span"><label for="char-edit-aliases">Aliases (comma-separated)</label><input type="text" id="char-edit-aliases" value="${esc((row.aliases || []).join(", "))}" /></div>
-          <div class="field field-span"><label for="char-edit-notes">Notes</label><textarea id="char-edit-notes" rows="3">${esc(row.notes || "")}</textarea></div>
+          <div class="field field-span"><label for="char-edit-notes">Notes <span class="meta">(use [[school: PIU South]] / [[year: 2019]] / [[place: Boardwalk]])</span></label><textarea id="char-edit-notes" rows="3">${esc(row.notes || "")}</textarea>
+          <div class="meta" id="char-notes-preview" style="margin-top:0.35rem;padding:0.4rem 0.5rem;border:1px solid var(--border, #333);border-radius:4px;min-height:1.5rem"></div>
+          </div>
         </div>
         <div class="sheet-actions">
           <button type="button" class="btn primary" id="char-edit-save">Save fields</button>
@@ -5718,6 +5721,28 @@
       body.querySelectorAll("[data-rel-id]").forEach((btn) => {
         btn.onclick = () => selectCharById(btn.dataset.relId);
       });
+
+      (async function wireCharWikiNotes() {
+        const ta = document.getElementById("char-edit-notes");
+        const prevEl = document.getElementById("char-notes-preview");
+        if (!ta || !prevEl || !globalThis.WikiEntities) return;
+        let ents = [];
+        try {
+          const data = await WikiEntities.fetchEntities(
+            `${base}/api/wiki/entities?campaign=${encodeURIComponent(charsCampaignFilter || "tropic-gooner")}`
+          );
+          ents = Array.isArray(data) ? data : (data && data.entities) || [];
+        } catch { /* empty */ }
+        const paint = () => {
+          prevEl.innerHTML = WikiEntities.linkify(ta.value || "", ents) || "<span class=\"meta\">Link preview…</span>";
+        };
+        paint();
+        ta.addEventListener("input", paint);
+        if (!window.__charsWikiPopBound) {
+          WikiEntities.bindPopovers(document.body, ents);
+          window.__charsWikiPopBound = true;
+        }
+      })();
 
       document.getElementById("char-retire-toggle").onclick = async () => {
         const out = document.getElementById("char-edit-result");
@@ -6754,6 +6779,95 @@
 
     let hubWorkerLogOpen = false;
 
+    /** Poll/refresh must not wipe drafts or text selection (goal / Fix this / chat / live log). */
+    function hubUserIsEditing(root) {
+      const scope = root || document;
+      const ae = document.activeElement;
+      if (ae && scope.contains(ae)) {
+        const tag = (ae.tagName || "").toLowerCase();
+        if (tag === "textarea") return true;
+        if (tag === "select") return true;
+        if (ae.isContentEditable) return true;
+        if (tag === "input") {
+          const t = (ae.type || "text").toLowerCase();
+          if (t === "button" || t === "submit" || t === "reset" || t === "file" || t === "hidden") {
+            /* not draft typing */
+          } else {
+            return true;
+          }
+        }
+      }
+      try {
+        const sel = window.getSelection();
+        if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+          const node = sel.anchorNode;
+          const el = node && (node.nodeType === 1 ? node : node.parentElement);
+          if (
+            el &&
+            scope.contains(el) &&
+            el.closest(
+              "#hub-live-log, #hub-live-log-wrap, #chat-log, #chat-input, #debug-json, #active-work-body, #fix-this, #meta-papercuts, #goal-redirect, pre, textarea, input"
+            )
+          ) {
+            return true;
+          }
+        }
+      } catch (_) {
+        /* ignore */
+      }
+      return false;
+    }
+
+    function hubLiveLogPlain(info) {
+      const log = info?.live_log;
+      const text = (log && log.text) ? String(log.text) : "";
+      return text.trim()
+        ? text.slice(-24000)
+        : "(no think stdout yet — next worker tick streams here)";
+    }
+
+    /** Update Worker Goal/Step/log without replacing the observatory DOM (keeps highlight). */
+    function patchHubWorkerObservatory(data, info) {
+      const wrap = document.getElementById("hub-live-log-wrap");
+      if (!wrap) return false;
+      const log = info?.live_log;
+      const text = (log && log.text) ? String(log.text) : "";
+      const pod = info?.parts?.find((p) => p.kind === "tick" || p.kind === "pod");
+      const last = info?.last_completed;
+      const focus = info?.think_focus;
+      const goalRaw = pod?.blurb || focus?.blurb || last?.blurb || "";
+      const goalTask = pod?.task_id || focus?.task_id || last?.task_id || "";
+      const goal = cleanWorkerGoal(goalRaw, goalTask);
+      const step = deriveWorkerCurrentStep(text) || (text.trim() ? "Waiting for next tool line…" : "No worker output yet");
+      const goalEl = document.getElementById("hub-worker-goal");
+      const stepEl = document.getElementById("hub-worker-step");
+      if (goalEl && goalEl.textContent !== goal) goalEl.textContent = goal;
+      if (stepEl) {
+        const next = step;
+        if (stepEl.textContent !== next) stepEl.textContent = next;
+        stepEl.classList.toggle("muted", !text.trim());
+      }
+      const pre = document.getElementById("hub-live-log");
+      if (pre && !hubUserIsEditing(pre)) {
+        const body = hubLiveLogPlain(info);
+        if (pre.textContent !== body) {
+          const nearBottom = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 48;
+          pre.textContent = body;
+          pre.classList.toggle("empty", !text.trim());
+          if (hubWorkerLogOpen && nearBottom) pre.scrollTop = pre.scrollHeight;
+        }
+      }
+      const head = wrap.querySelector(".hub-live-log-head span:last-child");
+      if (head) {
+        const metaBits = [];
+        if (log?.mtime) metaBits.push(`mtime ${fmtEtTime(log.mtime)}`);
+        if (log?.bytes != null) metaBits.push(`${log.bytes} B`);
+        const h = metaBits.length ? metaBits.join(" · ") : "agents/runs/think-last.log";
+        if (head.textContent !== h) head.textContent = h;
+      }
+      return true;
+    }
+
     function hubLiveLogHtml(info) {
       const log = info?.live_log;
       const text = (log && log.text) ? String(log.text) : "";
@@ -6857,6 +6971,11 @@
       if (mode === "hub") {
         const el = document.getElementById("hub-running-now");
         if (!el) return;
+        // Soft path: any focused field / text selection — full innerHTML kills the caret.
+        if (hubUserIsEditing() && document.getElementById("hub-live-log-wrap")) {
+          patchHubWorkerObservatory(data, info);
+          return;
+        }
         const obs = hubObservatoryHtml(data, info);
         if (!info.anything) {
           el.className = "hub-running-now";
@@ -6866,7 +6985,7 @@
           el.innerHTML = `<div class="aw-label">Running now</div>${rowsHtml}${obs}`;
         }
         bindHubWorkerLogToggle();
-        if (hubWorkerLogOpen) {
+        if (hubWorkerLogOpen && !hubUserIsEditing(el)) {
           const pre = document.getElementById("hub-live-log");
           if (pre) pre.scrollTop = pre.scrollHeight;
         }
@@ -6902,6 +7021,11 @@
       const meta = document.getElementById("active-work-meta");
       const linksEl = document.getElementById("active-work-links");
       if (!body) return;
+      // Goal redirect + other drafts live in this grid — 20s load() was recreating the textarea.
+      if (hubUserIsEditing(body)) {
+        if (meta && data?.updated_at) meta.textContent = `updated ${fmtEtTime(data.updated_at)} · edit paused refresh`;
+        return;
+      }
 
       const obs = data?.observability || {};
       if (linksEl) {
@@ -7449,6 +7573,7 @@
       const el = document.getElementById("meta-papercuts");
       const countEl = document.getElementById("meta-papercuts-count");
       if (!el) return;
+      if (hubUserIsEditing(el)) return;
       if (sessionRole === "viewer") {
         el.innerHTML = "";
         return;
@@ -8138,6 +8263,14 @@
       document.getElementById("ops-title").textContent = title;
       document.getElementById("ops-sub").textContent = sub;
 
+      lastAgentData = data;
+      // Poll while typing/highlighting: textContent OK; skip every innerHTML rebuild (kills selection).
+      if (hubUserIsEditing()) {
+        renderRunningNow(data, "hub");
+        syncThinkLivePoll(data);
+        return;
+      }
+
       const sync = data.lanes?.["agent-cycle-sync"];
       const think = data.lanes?.["agent-cycle-think"];
       const syncSt = sync ? laneState(sync) : "warn";
@@ -8172,7 +8305,6 @@
 
       renderMachines(data.machines_sync);
       renderMachines(data.machines_sync, { listId: "sys-machines-list", metaId: "sys-machines-meta", stepsId: null, skipSteps: true });
-      lastAgentData = data;
       renderRunningNow(data, "hub");
       syncThinkLivePoll(data);
       renderSpend(data);
@@ -9700,7 +9832,10 @@
         }
         agentData = await res.json();
         document.getElementById("clock").textContent = fmtEt(agentData.updated_at || new Date());
-        document.getElementById("debug-json").textContent = JSON.stringify(agentData, null, 2);
+        const debugEl = document.getElementById("debug-json");
+        if (debugEl && !hubUserIsEditing(debugEl)) {
+          debugEl.textContent = JSON.stringify(agentData, null, 2);
+        }
 
         renderHub(agentData);
         renderRunningNow(agentData, "chrome");
@@ -9732,8 +9867,9 @@
         if (activeTab === "tasks") { renderUserProjects(agentData); renderUserTasks(agentData); renderTasks(agentData); renderActiveWork(agentData); }
         // Always refresh model picker after Hub load — default tab is Hub, so Chat
         // would otherwise keep the boot-time Auto-only options forever.
-        populateChatModelSelect();
-        if (activeTab === "chat") {
+        const chatEditing = hubUserIsEditing(document.getElementById("chat") || document);
+        if (!chatEditing) populateChatModelSelect();
+        if (activeTab === "chat" && !chatEditing) {
           fillChatNewSelects(agentData);
           syncChatModeUi({
             modeId: modeIdFromThread(activeChatThread),

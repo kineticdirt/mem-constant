@@ -46,6 +46,36 @@
   let graphLoadGen = 0;
   let docsWikiReady = false;
   let docsWired = false;
+  let wikiEntitiesCache = null;
+  let wikiEntitiesBound = false;
+
+  async function loadWikiEntities() {
+    if (wikiEntitiesCache) return wikiEntitiesCache;
+    if (!globalThis.WikiEntities || !WikiEntities.fetchEntities) return [];
+    try {
+      const camp = docsCampaignFilter || "tropic-gooner";
+      const prefix = typeof base === "string" ? base : "";
+      const data = await WikiEntities.fetchEntities(
+        `${prefix}/api/wiki/entities?campaign=${encodeURIComponent(camp)}`
+      );
+      wikiEntitiesCache = Array.isArray(data) ? data : (data && data.entities) || [];
+    } catch {
+      wikiEntitiesCache = [];
+    }
+    return wikiEntitiesCache;
+  }
+
+  async function enhanceWikiEntityLinks(root) {
+    const prose = root && root.querySelector ? root.querySelector("#docs-prose") : null;
+    if (!prose || !globalThis.WikiEntities) return;
+    const ents = await loadWikiEntities();
+    WikiEntities.linkifyDom(prose, ents);
+    if (!wikiEntitiesBound) {
+      WikiEntities.bindPopovers(document.body, ents);
+      wikiEntitiesBound = true;
+    }
+  }
+
   let docsVersions = [];
   let docsVersionPreview = null; // { id, content }
   let docsPendingDiff = null; // { before, after, reason }
@@ -1442,6 +1472,7 @@
     }
 
     reader.innerHTML = `${toolbar}<div class="docs-reader-split">${body}${renderCommentsPanel()}</div>`;
+    enhanceWikiEntityLinks(reader);
 
     const slider = $("docs-version-slider");
     if (slider) {
