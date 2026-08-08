@@ -53,10 +53,11 @@ All F-1…F-3 closed. Hermes think no longer skips NYC for Phase F.
 GM direction 2026-08-08: **the party starts as a heist crew.** Frame doc: `story/crew-start-heisters.md`. Discord linked: Big Apples category (see `discord.json`); sheets land in `#characters-ba`.
 
 - [x] **H-0** Link Discord + transcribe first sheet — `discord.json` linked; Candice Graves → `characters/candice-graves.md` (+8 portraits). Done 2026-08-08 (PC).
-- [ ] **H-1** Detail — **Session-1 Blue Note job packet** (crew-role beats, casing notes, escape legs, what the ledger actually is) → `story/heist-blue-note-job.md` (builds on `story/crew-start-heisters.md` §5; keep `draft-dependent` until GM picks the G-5 steer)
+- [x] **H-1** Detail — **Session-1 Blue Note job packet** (crew-role beats, casing notes, escape legs, what the ledger actually is) → `story/heist-blue-note-job.md` (builds on `story/crew-start-heisters.md` §5; keep `draft-dependent` until GM picks the G-5 steer)
 - [ ] **H-2** Watch — new sheets in `#characters-ba` → transcribe to `characters/<slug>.md` (template: `campaigns/_templates/character-sheet.md`); expected players: celestialhoneydew, readyforbed, tezador56749, huatu, Mina
 
 ## Done
+- 2026-08-08: **H-1** Detail — Session-1 Blue Note job packet → `story/heist-blue-note-job.md` (crew-role beats ×6, casing notes, 4 escape legs, Spirit-Ledger twist: Below-pact signatures, draft-dependent until G-5 steer lands).
 - 2026-08-08: **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land → `drip/2026-08-05-post-borough-stub-drip.md` (updated with G-2/G-3 landed; posted to inbox for GM pick).
 - 2026-08-08: **G-2** dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md` (Q3 contested zones still open) — evidence on disk (think-reconcile)
 - 2026-08-08: **G-3** dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md` (reskinned 2026-08-02; conf — evidence on disk (think-reconcile)
