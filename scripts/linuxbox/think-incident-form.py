@@ -250,14 +250,14 @@ def _ensure_user_task(item: dict, key: str) -> str | None:
             return str(t.get("id"))
 
     blurb = (item.get("blurb_sample") or "")[:120]
-    if blurb.lstrip().startswith("[ops] Think incident cleanup"):
+    if blurb.lstrip().startswith(("[ops] Think incident cleanup", "[incident] Think incident cleanup")):
         # Never mint a cleanup task about a cleanup task (recursive title junk).
         return None
     count = item.get("count") or 0
     sev = item.get("severity") or 0
     task = {
         "id": tid,
-        "title": f"[ops] Think incident cleanup: {cat} ×{count} — {blurb}",
+        "title": f"[incident] Think incident cleanup: {cat} ×{count} — {blurb}",
         "body": (
             f"Recurring think failure (severity={sev}). "
             f"recurrence_key={key}. "
