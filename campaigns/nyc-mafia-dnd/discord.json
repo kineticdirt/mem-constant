@@ -1,8 +1,20 @@
 {
-  "guild_id": null,
-  "category_id": null,
-  "channel_id": null,
+  "guild_id": "1012888284222988409",
+  "category_id": "1528215677272330300",
+  "channel_id": "1528215752576995580",
   "label": "NYC Mafia × D&D",
   "campaign_id": "nyc-mafia-dnd",
-  "status": "needs_ids"
+  "status": "linked",
+  "category_name": "Big Apples",
+  "channels": {
+    "general-ba": "1528215752576995580",
+    "characters-ba": "1528216141229461597",
+    "art": "1528216124632600587",
+    "dm-screen": "1528216246540173313",
+    "campaign-discussion-lore (forum)": "1528216296779415683",
+    "rolly-poley": "1528225899227512902",
+    "general": "1533280510527406131"
+  },
+  "notes": "Resolved via bot API 2026-08-08 (AI_RP_Master). Sheets land in #characters-ba. Players seen: hiatuscauselife, celestialhoneydew, readyforbed, tezador56749, huatu; Mina <@130870631641251842> TBC. Same guild as tropic-gooner.",
+  "linked_at": "2026-08-08T22:00:00Z"
 }

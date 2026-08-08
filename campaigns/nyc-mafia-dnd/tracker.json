@@ -7,45 +7,78 @@
   "player_facing": true,
   "map_href": null,
   "discord": {
-    "guild_id": null,
-    "category_id": null,
-    "channel_id": null,
-    "notes": "NEED: guild + category/channel IDs (same shape as Euro). Inbox seeded."
+    "guild_id": "1012888284222988409",
+    "category_id": "1528215677272330300",
+    "channel_id": "1528215752576995580",
+    "notes": "Big Apples category, linked 2026-08-08. Sheets in #characters-ba (1528216141229461597). Full channel map in discord.json."
   },
-  "updated_at": "2026-07-26T19:30:00.000Z",
+  "updated_at": "2026-08-08T22:05:00.000Z",
+  "party_frame": "heister-crew",
   "pcs": [
     {
-      "id": "pc-placeholder-1",
-      "name": "(PC slot — fill at table)",
-      "player": "TBD",
+      "id": "candice-graves",
+      "name": "Candice Graves",
+      "player": "hiatuscauselife (Discord 457403984936960010)",
+      "role": "Muscle — Brawler 3, Wolfkin (Wulf)",
+      "notes": "Sheet transcribed from #characters-ba (2026-07-19). Heister crew muscle seat.",
+      "sheet": "characters/candice-graves.md"
+    },
+    {
+      "id": "pc-slot-celestialhoneydew",
+      "name": "(sheet pending — celestialhoneydew)",
+      "player": "celestialhoneydew",
       "role": "TBD",
-      "notes": "Seed row — replace with real PC when cast locks.",
+      "notes": "Player said 2026-08: 'I still havent made my sheet.' Transcribe when posted to #characters-ba.",
+      "sheet": ""
+    },
+    {
+      "id": "pc-slot-readyforbed",
+      "name": "(sheet pending — readyforbed)",
+      "player": "readyforbed",
+      "role": "TBD",
+      "notes": "Seen active in Big Apples. Transcribe when posted.",
+      "sheet": ""
+    },
+    {
+      "id": "pc-slot-tezador56749",
+      "name": "(sheet pending — tezador56749)",
+      "player": "tezador56749",
+      "role": "TBD",
+      "notes": "Seen active in Big Apples. Transcribe when posted.",
+      "sheet": ""
+    },
+    {
+      "id": "pc-slot-mina",
+      "name": "Mina? (unconfirmed)",
+      "player": "Discord 130870631641251842",
+      "role": "TBD",
+      "notes": "GM asked in #general if they are going with 'Mina'. Confirm name + sheet.",
       "sheet": ""
     }
   ],
   "schedule": [
     {
       "id": "sess-next",
-      "when": "TBD — Discord once linked",
+      "when": "TBD — watch #general-ba (GM said 'gonna drop some lore before game start')",
       "title": "Next session",
-      "location": "Discord / VTT TBD",
-      "notes": "Will mirror Discord when IDs are set."
+      "location": "Discord — Big Apples category",
+      "notes": "Mirrors #general-ba announcements."
     }
   ],
   "availability": [
     {
       "person": "Table",
-      "windows": "Discord (pending link)",
-      "notes": "GM: paste NYC guild/category/channel IDs via Inbox."
+      "windows": "Discord — Big Apples",
+      "notes": "Sheets still landing; Session 1 hook = Blue Note ledger job (story/crew-start-heisters.md §5)."
     }
   ],
   "inventory": [
     {
       "id": "inv-seed",
-      "item": "(party stash — empty)",
-      "owner": "party",
+      "item": "(crew stash — empty)",
+      "owner": "crew",
       "qty": 0,
-      "notes": "Scrolls, potions, greymarket goods go here."
+      "notes": "Scrolls, potions, greymarket goods, job gear go here."
     }
   ]
 }

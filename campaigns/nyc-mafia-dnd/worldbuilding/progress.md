@@ -36,14 +36,27 @@ All F-1…F-3 closed. Hermes think no longer skips NYC for Phase F.
 
 - [x] **G-0** GM era lock — calendar/culture + tech skin + void (`LOCKS.md` 2026-08-01 night)
 - [x] **G-1** Dialectic — **borough vs ward grain** → `strokes/borough-grain-draft.md` (expanded 2026-08-02)
-- [ ] **G-2** dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md` (Q3 contested zones still open)
+- [x] **G-2** dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md` (Q3 contested zones still open)
 
 ## Phase C — Playable tools (Active)
 
 - [x] **C-2** Rumors table — between-job hooks (12 hooks) → `strokes/c2-rumors-table.md`
   - 2026-08-05: Created `strokes/borough-contested-zones-draft.md` — draft-dependent stub enumerating candidate contested zones from borough-family-turf-draft.md §Deferred; awaiting GM Q3 pick to promote to canon.
-- [ ] **G-3** dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md` (reskinned 2026-08-02; confirm promote)
+- [x] **G-3** dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md` (reskinned 2026-08-02; confirm promote)
 - [x] **G-4** Detail — **priority borough flesh** (city-economics, nightlife-culture, borough-city-build) → `strokes/borough-flesh-draft.md` (draft-dependent; covers Q4/Q5/Q10/Q11/Q12 open forks)
-- [ ] **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land
+- [x] **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land
 
 **Also 2026-08-02:** `strokes/era-law-pack.md` marked **void-for-play** (1931 archive). Phase C reports reskinned under `reports/2026-08-01-*.md`.
+
+## Phase H — Heister crew start (Active)
+
+GM direction 2026-08-08: **the party starts as a heist crew.** Frame doc: `story/crew-start-heisters.md`. Discord linked: Big Apples category (see `discord.json`); sheets land in `#characters-ba`.
+
+- [x] **H-0** Link Discord + transcribe first sheet — `discord.json` linked; Candice Graves → `characters/candice-graves.md` (+8 portraits). Done 2026-08-08 (PC).
+- [ ] **H-1** Detail — **Session-1 Blue Note job packet** (crew-role beats, casing notes, escape legs, what the ledger actually is) → `story/heist-blue-note-job.md` (builds on `story/crew-start-heisters.md` §5; keep `draft-dependent` until GM picks the G-5 steer)
+- [ ] **H-2** Watch — new sheets in `#characters-ba` → transcribe to `characters/<slug>.md` (template: `campaigns/_templates/character-sheet.md`); expected players: celestialhoneydew, readyforbed, tezador56749, huatu, Mina
+
+## Done
+- 2026-08-08: **G-5** Drip-steer — post-borough-stub steer options after G-1…G-3 land → `drip/2026-08-05-post-borough-stub-drip.md` (updated with G-2/G-3 landed; posted to inbox for GM pick).
+- 2026-08-08: **G-2** dialectic — **family territory hardness + contested** → `strokes/borough-family-turf-draft.md` (Q3 contested zones still open) — evidence on disk (think-reconcile)
+- 2026-08-08: **G-3** dialectic — **borough spell-tech emphasis + travel chokes** → `strokes/borough-magitech-travel-draft.md` (reskinned 2026-08-02; conf — evidence on disk (think-reconcile)
