@@ -144,6 +144,7 @@ BOARDS = [
   "agents/PIXI_RP_PROGRESS.md",
   "agents/portfolio-progress.md",
   "campaigns/nyc-mafia-dnd/reports/progress.md",
+  "campaigns/nyc-mafia-dnd/worldbuilding/progress.md",
   "campaigns/tropic-gooner/reports/progress.md",
   "campaigns/tropic-gooner/reports/progress-hunter.md",
   "campaigns/spacequest/reports/progress.md",
@@ -562,6 +563,7 @@ CONTINUOUS_LANES = [
   "agents/PIXI_RP_PROGRESS.md",
   "agents/portfolio-progress.md",
   "campaigns/nyc-mafia-dnd/reports/progress.md",
+  "campaigns/nyc-mafia-dnd/worldbuilding/progress.md",
   "campaigns/tropic-gooner/reports/progress.md",
 ]
 RR_PATH = repo / "agents/state/think-continuous-rr.json"
@@ -1104,7 +1106,7 @@ if [[ -n "${LANE_FILE}" ]]; then
   if printf '%s\n' "${LANE_FILE}" | grep -q 'portfolio-progress'; then
     FREE_NOTE=" Models: FREE-FIRST only. Preview-only — never auto-deploy live abhinavall.net. Spec: agents/PORTFOLIO_REDESIGN_TASK.md / agents/BLOG_AI_LANE_TASK.md."
   fi
-  if printf '%s\n' "${LANE_FILE}" | grep -qE 'nyc-mafia-dnd/reports/progress|tropic-gooner/reports/progress\.md'; then
+  if printf '%s\n' "${LANE_FILE}" | grep -qE 'nyc-mafia-dnd/(reports|worldbuilding)/progress|tropic-gooner/reports/progress\.md'; then
     FREE_NOTE=" Campaign lane (same tier as product boards). Spec: agents/NYC_MAFIA_DND_TASK.md or agents/TROPIC_GOONER_TASK.md. One tick-sized report/sheet only."
   fi
   if printf '%s\n' "${LANE_FILE}" | grep -q 'self-improvement-progress'; then

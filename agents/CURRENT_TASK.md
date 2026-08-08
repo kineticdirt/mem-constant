@@ -36,7 +36,7 @@ Human questions → `agents/state/human-inbox.json` · answers via `/Linuxbox/` 
 2. **Urgent `[ops]` / Fix-this** user-tasks — Hub Fix this first (`agents/USER_TASKS_TASK.md`).
 3. **SAME TIER — product boards + campaign progress (round-robin)** — pick **one** open `[ ]` from continuous boards (state: `agents/state/think-continuous-rr.json`), flip `[ ]`→`[x]` + Done line (enforce-lane safety net):
    - **Product:** `agents/tableslop-progress.md` · `agents/PIXI_RP_PROGRESS.md` · `agents/portfolio-progress.md` (free-first; portfolio preview-only)
-   - **Campaign (ops think):** `campaigns/nyc-mafia-dnd/reports/progress.md` · `campaigns/tropic-gooner/reports/progress.md`
+   - **Campaign (ops think):** `campaigns/nyc-mafia-dnd/reports/progress.md` · `campaigns/nyc-mafia-dnd/worldbuilding/progress.md` (Phase G open) · `campaigns/tropic-gooner/reports/progress.md`
    - ~~**SpaceQuest**~~ — **ARCHIVED** 2026-07-24. Skip.
    - **Hunter: The Reckoning** — dedicated pod `hunter-reckoning` / `progress-hunter.md` — **not** this RR (still in has-work markers).
 4. **Other product user-tasks** (`tableslop` / `pixi-rp` / `abhinavall-portfolio`) when continuous boards are empty.
