@@ -547,7 +547,9 @@ fi
 # task_id / blurb / lane_file / lane_item.
 # Also: skip evidence-satisfied boxes (belt after think-reconcile); when paid
 # last-resort, skip Discord-ingest/export heavy items (timeout class).
-PICK="$(HW_REASON="${HW_REASON}" THINK_MAX_LANE_ATTEMPTS="${THINK_MAX_LANE_ATTEMPTS:-3}" THINK_PAID_LAST_RESORT="${THINK_PAID_LAST_RESORT:-0}" python3 - <<'PY'
+# Free→Cursor Auto→paid: when paid last-resort AND Cursor key present, skip
+# continuous campaign/product boards (Agent 2 owns those; don't burn DeepSeek).
+PICK="$(HW_REASON="${HW_REASON}" THINK_MAX_LANE_ATTEMPTS="${THINK_MAX_LANE_ATTEMPTS:-3}" THINK_PAID_LAST_RESORT="${THINK_PAID_LAST_RESORT:-0}" HOME="${HOME}" REAL_HOME="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f6 || echo "${HOME}")" python3 - <<'PY'
 import json, os, re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -574,6 +576,27 @@ BACKTICK = re.compile(r"`([^`]+)`")
 HEAVY_DISCORD = re.compile(
   r"discord[\s_-]*(ingest|export)|`discord-export/|ingest.?runbook", re.I
 )
+# Watch/wait boxes (player-gated) — never burn a think LLM tick polling them.
+WATCH_WAIT = re.compile(r"\bWatch\s+[—\-]|waiting on players|sheet.?pending", re.I)
+
+def cursor_auto_available():
+  """True when Agent 2 can take Cursor-eligible work (key present; value never printed)."""
+  home = Path(os.environ.get("REAL_HOME") or os.environ.get("HOME") or "").expanduser()
+  envf = Path(os.environ.get("CURSOR_AGENT_ENV") or (home / ".cursor-agent.env"))
+  try:
+    for line in envf.read_text(encoding="utf-8", errors="replace").splitlines():
+      s = line.strip()
+      if s.startswith("#") or "CURSOR_API_KEY=" not in s:
+        continue
+      val = s.split("=", 1)[1].strip().strip("\"'")
+      return bool(val)
+  except Exception:
+    return False
+  return bool((os.environ.get("CURSOR_API_KEY") or "").strip())
+
+# C8 paid path: free → Cursor Auto → paid. Continuous boards are Cursor-eligible.
+cursor_ok = cursor_auto_available()
+skip_continuous_for_cursor = paid_lr and cursor_ok
 # Tropic/tableslop invent thrash (exit124 SIGINT class): already-shipped map server /
 # coord refine / click→character. Skip pick + soft-close if PC board reopens them.
 THRASH_TABLESLOP = re.compile(
@@ -675,6 +698,13 @@ def is_ops(t):
   body = str(t.get("body") or "")
   return title.startswith("[ops]") or body.startswith("## Fix this")
 
+def is_cursor_owned(t):
+  """Agent 2 owns these — Hermes must not pick them (esp. on paid last-resort)."""
+  ctx = t.get("context") if isinstance(t.get("context"), dict) else {}
+  lane = str(ctx.get("assigned_lane") or t.get("assigned_lane") or "").lower()
+  tags = [str(x).lower() for x in (t.get("tags") or [])]
+  return lane == "cursor" or "cursor" in tags or "agent2" in tags
+
 MUTATE = re.compile(
   r"\b(append|expand|update|edit|refine|sync|merge|deep\s*dive|rewrite)\b", re.I
 )
@@ -751,6 +781,8 @@ def open_boxes(rel):
         body = re.sub(r"^\s*[-*]\s*\[\s\]\s*", "", line).strip()[:200]
         if evidence_satisfied(rel, body):
           continue  # evidence on disk — reconcile should have closed; skip pick
+        if WATCH_WAIT.search(body):
+          continue  # player/wait gated — never burn think LLM polling Discord
         if paid_lr and HEAVY_DISCORD.search(body):
           continue  # paid last-resort: no Discord-ingest/export thrash
         # Never re-pick tropic tableslop invent/click (done on potato; PC reopen poison).
@@ -849,6 +881,7 @@ ops_tasks = [t for t in tasks if is_ops(t)]
 product_tasks = [
   t for t in tasks
   if str(t.get("project_id") or "") in PRODUCT_PROJECTS and not is_ops(t)
+  and not is_cursor_owned(t)
   and not is_empty_board_pointer(t)
   and not is_tableslop_empty_board_heavy(t)
   and not is_essay_heavy_under_free_pressure(t)
@@ -857,6 +890,7 @@ product_tasks = [
 other_tasks = [
   t for t in tasks
   if t not in ops_tasks and t not in product_tasks
+  and not is_cursor_owned(t)
   and not is_empty_board_pointer(t)
   and not is_tableslop_empty_board_heavy(t)
   and not is_essay_heavy_under_free_pressure(t)
@@ -868,9 +902,16 @@ if ops_tasks:
   task_id = str(t.get("id") or "")
   blurb = str(t.get("title") or "task")[:120]
 else:
-  candidates = [(rel, open_boxes(rel)) for rel in CONTINUOUS_LANES]
-  candidates = [(rel, boxes) for rel, boxes in candidates if boxes]
-  picked = pick_continuous_rr(candidates)
+  # Free→Cursor→paid: when C8 paid last-resort and Cursor Auto has a key,
+  # do NOT pick continuous campaign/product boards on DeepSeek — Agent 2 owns them.
+  candidates = []
+  if not skip_continuous_for_cursor:
+    candidates = [(rel, open_boxes(rel)) for rel in CONTINUOUS_LANES]
+    candidates = [(rel, boxes) for rel, boxes in candidates if boxes]
+  picked = pick_continuous_rr(candidates) if candidates else None
+  if skip_continuous_for_cursor and not candidates:
+    # Signal for tick log (printed below via blurb empty path); fall through to user-tasks.
+    pass
   if picked:
     rel, boxes, chosen = picked
     lane_item = chosen

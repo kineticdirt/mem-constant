@@ -54,8 +54,8 @@ GM direction 2026-08-08: **the party starts as a heist crew.** Frame doc: `story
 
 - [x] **H-0** Link Discord + transcribe first sheet — `discord.json` linked; Candice Graves → `characters/candice-graves.md` (+8 portraits). Done 2026-08-08 (PC).
 - [x] **H-1** Detail — **Session-1 Blue Note job packet** (crew-role beats, casing notes, escape legs, what the ledger actually is) → `story/heist-blue-note-job.md` (builds on `story/crew-start-heisters.md` §5; keep `draft-dependent` until GM picks the G-5 steer)
-- [ ] **H-2** Watch — new sheets in `#characters-ba` → transcribe to `characters/<slug>.md` (template: `campaigns/_templates/character-sheet.md`); expected players: celestialhoneydew, readyforbed, tezador56749, huatu, Mina
 - [x] **H-3** Readiness sweep (PC, 2026-08-08) — GM run-sheet (`story/session-01-run-sheet.md`), player handout v2 (`reports/2026-08-08-player-handout-heisters.md`), session-zero + Discord posts (`story/session-zero-discord.md`), README start-here rewire. **Canon fix:** packet's collector corrected to **Rosa "The Crane" Lombardo** (was fused with boss Lena "Grease" Valenti).
+- **H-2 (deferred — player-gated, not a think LLM tick):** Watch `#characters-ba` for new sheets → transcribe to `characters/<slug>.md`. Expected: celestialhoneydew, readyforbed, tezador56749, huatu, Mina. Re-open as `[ ]` only when a sheet actually posts (Cursor Auto lane preferred).
 
 ## Done
 - 2026-08-08: **H-1** Detail — Session-1 Blue Note job packet → `story/heist-blue-note-job.md` (crew-role beats ×6, casing notes, 4 escape legs, Spirit-Ledger twist: Below-pact signatures, draft-dependent until G-5 steer lands).

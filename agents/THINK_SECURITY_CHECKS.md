@@ -125,8 +125,13 @@ Not “model said it failed.” Pixi `CHAT_UI_ALLOW_PAID_FALLBACK` is a separate
 ### Scenario 1 — Free pool exhausted
 
 Entire live free swap (`agents/model-budget/think-free-swap.json`) is 429/unavailable
-for this UTC day window (after mid-day re-probe). Then one paid last-resort attempt
-is allowed for the tick.
+for this UTC day window (after mid-day re-probe). Then:
+
+1. **Prefer Cursor Auto** for continuous campaign/product boards when
+   `~/.cursor-agent.env` has a non-empty `CURSOR_API_KEY` (Agent 2). Think skips
+   those boards on the paid path — free → Cursor Auto → paid.
+2. Only then: one paid last-resort attempt for remaining Hermes-owned work
+   (urgent `[ops]` / Fix-this, or continuous boards if Cursor key is missing).
 
 | Env | Default | Meaning |
 |-----|---------|---------|
