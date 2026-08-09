@@ -34,7 +34,7 @@ const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db_20260808-ssh-sessions-r1";
+const DASH_BUILD = "db_20260808-workshop-chat-timeout-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -6678,7 +6678,8 @@ function chatHistoryFromThread(thread) {
 
 const CHAT_JOBS = new Map();
 const CHAT_JOB_TTL_MS = 15 * 60 * 1000;
-const CHAT_JOB_TIMEOUT_MS = 4 * 60 * 1000;
+/** Free-first failover can rotate several models; 4m was killing live jobs mid-chain. */
+const CHAT_JOB_TIMEOUT_MS = 10 * 60 * 1000;
 /** Cursor SDK jobs may run up to ~5m; keep stale-fail slightly above that. */
 const CURSOR_CHAT_JOB_TIMEOUT_MS = 6 * 60 * 1000;
 /** Hermes OR/ZenMux Hub chat — independent of Cursor SDK lane. */
@@ -6740,6 +6741,12 @@ function failStaleChatJobs() {
   const now = Date.now();
   for (const job of CHAT_JOBS.values()) {
     if (job.status !== "pending" && job.status !== "queued") continue;
+    // Don't kill the job the Hermes/Cursor worker is actively running —
+    // free-first failover can exceed the soft limit; finishing is cheaper than a false timeout.
+    if (job.status === "pending" && job.started_at) {
+      if (job.lane === "cursor" && cursorChatWorkerBusy) continue;
+      if (job.lane !== "cursor" && chatWorkerBusy) continue;
+    }
     const started = job.started_at || job.created_at;
     const limit =
       job.lane === "cursor" || isCursorChatModelId(job.preferred_model)
@@ -6751,7 +6758,7 @@ function failStaleChatJobs() {
       error:
         job.lane === "cursor"
           ? "Cursor chat timed out (>6m). Retry or run via SSH `cursor-agent-run.sh`."
-          : "Chat timed out (>4m). Hermes may be busy — retry with less context or wait a minute.",
+          : "Chat timed out (>10m). Hermes may be busy — retry with less context or wait a minute.",
       finished_at: now,
     });
   }
@@ -6824,7 +6831,17 @@ function finishChatJobSideEffects(job, threadId, result) {
     }
     return;
   }
-  updateChatJob(job, { status: "done", finished_at: Date.now(), ...result });
+  // Clear any stale failStale timeout error so /api/chat/status does not
+  // prefer error over the real reply.
+  updateChatJob(job, {
+    status: "done",
+    finished_at: Date.now(),
+    ...result,
+  });
+  if (job.error) {
+    job.error = null;
+    persistChatJobs();
+  }
   if (!threadId) return;
   try {
     let replyText = result.reply || "";
@@ -7230,8 +7247,15 @@ async function runHermesChat(message, profile = "think", context = null, chatOpt
       const pinnedIsFree = isChatFreeModelId(preferredModel);
       phases.push({ chain: [preferredModel], allowFree: pinnedIsFree, pinned: true });
     }
-    if (freeDown && allowCursorOnFreeFail && !preferredModel) {
-      phases.push({ chain: ["cursor:auto"], allowFree: false, cursorOnly: true });
+    // Free pool known-down: Cursor first when allowed; never thrash the dead free chain.
+    if (freeDown && !preferredModel) {
+      if (allowCursorOnFreeFail) {
+        phases.push({ chain: ["cursor:auto"], allowFree: false, cursorOnly: true });
+      }
+      phases.push({
+        chain: paidChain.filter((m) => !isCursorChatModelId(m)),
+        allowFree: false,
+      });
     } else if (preferFree) {
       phases.push({
         chain: freeChain.filter((m) => m !== preferredModel && !isCursorChatModelId(m)),

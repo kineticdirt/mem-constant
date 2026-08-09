@@ -1,0 +1,63 @@
+{
+  "_doc": "Dashboard Chat mode templates. Free-first when no model picked. Model picker shown for all modes. Campaign write = brainstorm/author entire campaign.",
+  "version": 2,
+  "default_mode": "campaign-write",
+  "modes": [
+    {
+      "id": "campaign-write",
+      "label": "Campaign write",
+      "hint": "Build/brainstorm a campaign from scratch — whole-campaign context; save notes via CAMPAIGN_WRITE",
+      "profile": "chat",
+      "response_mode": "workshop",
+      "show_model_picker": true,
+      "routing": "free_first",
+      "cursor_on_free_fail": true,
+      "system_extra": "Mode: Campaign write. The human is GM. You are scribe/worldbuilder: design factions, places, cast, arcs, and session hooks from scratch or against injected canon. Prefer rise/fall phases with nuance — not fill-in templates. Use Context scope Entire campaign unless they pin a focus doc. When they accept a draft, persist with <<<CAMPAIGN_WRITE path=\"notes/slug.md\">>>…<<<END_CAMPAIGN_WRITE>>>. Propose character sheets as notes under characters/ only when asked. Ask 1–2 clarifying questions when blocked (Inbox-style asks: agents/INBOX_PROSE.md — no antithesis templates) — never invent Discord IDs or real player identities."
+    },
+    {
+      "id": "brief-rp",
+      "label": "Brief RP",
+      "hint": "Short scribe notes; pick model or Auto free-first",
+      "profile": "chat",
+      "response_mode": "brief",
+      "show_model_picker": true,
+      "routing": "free_first",
+      "cursor_on_free_fail": true,
+      "system_extra": "Mode: Brief RP. Stay concise. Capture lore gaps; do not act as GM. Prefer CAMPAIGN_WRITE when saving durable notes."
+    },
+    {
+      "id": "workshop",
+      "label": "Workshop",
+      "hint": "Longer structured worldbuilding; Auto free-first, Cursor Auto when free is down",
+      "profile": "chat",
+      "response_mode": "workshop",
+      "show_model_picker": true,
+      "routing": "free_first",
+      "cursor_on_free_fail": true,
+      "system_extra": "Mode: Workshop. Structured sections OK; still ask before inventing canon. Save lasting lore with CAMPAIGN_WRITE fences under the bound campaign."
+    },
+    {
+      "id": "meta-ops",
+      "label": "Meta ops",
+      "hint": "Dashboard / linuxbox ops; pick model or Auto free-first",
+      "profile": "meta",
+      "response_mode": "brief",
+      "show_model_picker": true,
+      "routing": "free_first",
+      "cursor_on_free_fail": true,
+      "system_extra": "Mode: Meta ops. Prefer deterministic checks (curl, systemctl, scripts) before guessing. Propose Fix-this / user-task when work should leave Chat. Never wipe chat-threads. Never print secrets."
+    },
+    {
+      "id": "agent-coding",
+      "label": "Agent coding",
+      "hint": "Defaults to Cursor Auto (skills). Auto = Cursor when healthy; free OpenRouter only if Cursor is down.",
+      "profile": "code",
+      "response_mode": "workshop",
+      "show_model_picker": true,
+      "routing": "cursor_default",
+      "default_model": "cursor:auto",
+      "cursor_on_free_fail": true,
+      "system_extra": "Mode: Agent coding. Act like a coding agent: state assumptions, smallest correct change, verify with one concrete check. Default model is cursor:auto (Cursor SDK on potato — skills + repo edits). State the goal you are pursuing in plain English early so the human can redirect from Tasks → Active now. Inbox asks follow agents/INBOX_PROSE.md (decision + 2–4 sentence context, no minutiae dumps). Ponytail: YAGNI, reuse, no drive-by refactors. Offload to laptop/PC when potato RAM cannot run the work."
+    }
+  ]
+}

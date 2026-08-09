@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db_20260808-ssh-sessions-r1">
+  <meta name="dash-build" content="db_20260808-workshop-chat-timeout-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -3193,10 +3193,10 @@
     let charsShowHidden = localStorage.getItem("chars-show-hidden") === "1";
     let activeChatThreadId = localStorage.getItem("linuxbox-chat-active") || "";
     const CHAT_MODE_DEFAULTS = [
-      { id: "brief-rp", label: "Brief RP", profile: "think", response_mode: "brief", show_model_picker: true, hint: "Brief RP · pick model or Auto free-first" },
-      { id: "workshop", label: "Workshop", profile: "think", response_mode: "workshop", show_model_picker: true, hint: "Workshop · pick model or Auto free-first" },
-      { id: "meta-ops", label: "Meta ops", profile: "meta", response_mode: "brief", show_model_picker: true, hint: "Meta ops · pick model or Auto free-first" },
-      { id: "agent-coding", label: "Agent coding", profile: "code", response_mode: "workshop", show_model_picker: true, routing: "cursor_default", default_model: "cursor:auto", hint: "Agent coding · Cursor default (screenshots + portfolio)" },
+      { id: "brief-rp", label: "Brief RP", profile: "think", response_mode: "brief", show_model_picker: true, cursor_on_free_fail: true, hint: "Brief RP · Auto free-first, Cursor when free down" },
+      { id: "workshop", label: "Workshop", profile: "think", response_mode: "workshop", show_model_picker: true, cursor_on_free_fail: true, hint: "Workshop · Auto free-first, Cursor when free down" },
+      { id: "meta-ops", label: "Meta ops", profile: "meta", response_mode: "brief", show_model_picker: true, cursor_on_free_fail: true, hint: "Meta ops · Auto free-first, Cursor when free down" },
+      { id: "agent-coding", label: "Agent coding", profile: "code", response_mode: "workshop", show_model_picker: true, routing: "cursor_default", default_model: "cursor:auto", cursor_on_free_fail: true, hint: "Agent coding · Cursor default (screenshots + portfolio)" },
     ];
     let chatCatalogFetchInFlight = null;
 
@@ -10090,7 +10090,7 @@
         setChatBubbleLoading(bubble, chatLoadingLabel(j || last, elapsed));
       };
       tick(null);
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < 360; i++) {
         const res = await fetch(
           `${base}/api/chat/status?job_id=${encodeURIComponent(jobId)}`,
           { cache: "no-store", credentials: "same-origin" }
@@ -10111,7 +10111,7 @@
         await new Promise((r) => setTimeout(r, 2000));
       }
       throw new Error(
-        "Chat timed out after 5 minutes. Shorten the message, clear context, or retry when the box is less busy."
+        "Chat timed out after 12 minutes. Shorten the message, clear context, pick Cursor Auto, or retry when the box is less busy."
       );
     }
 
@@ -10205,12 +10205,21 @@
               );
             }
             const result = await pollChatJob(j.job_id, bubble);
-            if (result.error) {
+            // Prefer real reply over stale timeout error (failStale can mark error
+            // while Hermes is still finishing a free-first failover).
+            if (result.reply && String(result.reply).trim()) {
+              setChatModerationBanner(false);
+              setChatBubbleReply(bubble, result.reply, false, {
+                paidRetry: !!result.paid_retry,
+                freeFallback: !!result.free_fallback,
+                model: result.model,
+              });
+            } else if (result.error) {
               setChatBubbleReply(bubble, result.error, true);
               if (result.moderation_refusal) setChatModerationBanner(true, result.error);
             } else {
               setChatModerationBanner(false);
-              setChatBubbleReply(bubble, result.reply || "", false, {
+              setChatBubbleReply(bubble, "", false, {
               paidRetry: !!result.paid_retry,
               freeFallback: !!result.free_fallback,
               model: result.model,
