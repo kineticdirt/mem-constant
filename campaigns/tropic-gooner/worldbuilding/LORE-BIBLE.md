@@ -221,6 +221,10 @@ For the record, so nobody "resolves" these by accident:
 
 - **`DRUGS.md`** — intoxicants, supply nodes, routes, architecture of the trade (2019 present; [proposal] marked). Frame law still lives in `reports/island-vice-and-enforcement.md`.
 - **`STREETS.md`** — tri-city street names, block times, and business placement for Paradise / Porto Lujara / Jackedsonville (most street names [proposal]; pins canon venues onto named faces). Use with the aesthetic and naming guide below.
+- **`CLIMATE.md`** — weather / seasons / storms (World → Weather).
+- **`AGRICULTURE.md`** — crops, fishing, food logistics (World → Agriculture).
+- **`TRANSPORT.md`** — highways (green map lines), streets, boats, rail — prose SoT; map layers stay on the map.
+- **`REGIONS.md`** — region digest (World → Regions).
 
 ---
 

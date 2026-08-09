@@ -321,8 +321,8 @@ function worldPageHtml() {
 <title>World editor — Isla Primavera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="/wiki-entity-links.js?v=20260808-world"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script defer src="/wiki-entity-links.js?v=20260808-world"></script>
 <style>
   :root { --void:#050208; --panel:#0d0616; --text:#f7ecff; --muted:#a98fc4; --pink:#ff71ce; --cyan:#01cdfe; --sun:#fffb96; --purple:#b967ff; --lime:#c8ff4d; }
   * { box-sizing:border-box; }
@@ -385,11 +385,16 @@ function worldPageHtml() {
   <span class="brand">tableslop</span>
   <span class="title">World editor</span>
   <span class="chip" id="who">checking…</span>
+  <span class="chip" id="worldErr" hidden style="border-color:var(--pink);color:var(--pink)"></span>
   <span class="spacer"></span>
   <nav class="mods" id="mods" aria-label="World modules">
     <button class="modbtn is-active" type="button" data-mod="cast">Cast</button>
     <button class="modbtn" type="button" data-mod="places">Places</button>
     <button class="modbtn" type="button" data-mod="docs">Stories &amp; notes</button>
+    <button class="modbtn" type="button" data-mod="regions">Regions</button>
+    <button class="modbtn" type="button" data-mod="climate">Weather</button>
+    <button class="modbtn" type="button" data-mod="agriculture">Agriculture</button>
+    <button class="modbtn" type="button" data-mod="transport">Transport</button>
   </nav>
   <span class="spacer"></span>
   <a class="btn" href="/">← Map</a>
@@ -511,6 +516,30 @@ function worldPageHtml() {
       </section>
     </div>
   </section>
+  <section id="mod-sot" class="mod" hidden>
+    <div class="docs-grid">
+      <aside class="col">
+        <h2 id="sotSideTitle">World SoT</h2>
+        <div class="pad">
+          <p id="sotBlurb" style="color:var(--muted);font-size:.78rem;line-height:1.45;margin:0 0 12px"></p>
+          <div class="chip" id="sotPathChip">path …</div>
+          <p style="margin:14px 0 0"><a class="btn" href="/" id="sotMapLink">← Open map</a></p>
+        </div>
+      </aside>
+      <section class="col">
+        <h2 id="sotTitle">Page</h2>
+        <div class="pad">
+          <label for="sotText">Markdown (campaign SoT)</label>
+          <textarea id="sotText" style="min-height:calc(100vh - 220px)"></textarea>
+          <div class="row" style="margin-top:14px">
+            <button class="btn warn" id="sotSaveBtn" type="button">Save SoT</button>
+            <button class="btn" id="sotReloadBtn" type="button">Reload</button>
+          </div>
+          <div class="status" id="sotStatus"></div>
+        </div>
+      </section>
+    </div>
+  </section>
 </main>
 <script>
 (function () {
@@ -519,16 +548,51 @@ function worldPageHtml() {
   let active = null;
   let sheetMd = '';
   let rels = [];
+  let castBound = false;
+  let modsBound = false;
+  const SOT_MODS = {
+    regions: {
+      path: 'worldbuilding/REGIONS.md',
+      title: 'Regions',
+      blurb: 'Island region digest. Borders live on the map (regions-ui / GM draw) — this file is the prose SoT, not the polygon editor.'
+    },
+    climate: {
+      path: 'worldbuilding/CLIMATE.md',
+      title: 'Weather / climate',
+      blurb: 'Climate, seasons, and storm norms for Isla Primavera. Edit here; map overlays stay separate.'
+    },
+    agriculture: {
+      path: 'worldbuilding/AGRICULTURE.md',
+      title: 'Agriculture / fishing',
+      blurb: 'Crops, fisheries, and food logistics. Links places when they exist in Places / wiki entities.'
+    },
+    transport: {
+      path: 'worldbuilding/TRANSPORT.md',
+      title: 'Transportation',
+      blurb: 'Roads, highways, boats, rail. Green map lines = highways/freeways (map layer highways). Draw more roads on the map later — do not invent border wipes here.'
+    }
+  };
+  let activeSot = null;
+  let sotSha = '';
   const $ = (id) => document.getElementById(id);
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-  function status(msg) { $('status').textContent = msg || ''; }
+  function status(msg) { if ($('status')) $('status').textContent = msg || ''; }
+  function worldErr(msg) {
+    const el = $('worldErr');
+    if (!el) return;
+    if (!msg) { el.hidden = true; el.textContent = ''; return; }
+    el.hidden = false;
+    el.textContent = msg;
+  }
   function gate(msg, href) {
     $('gate').hidden = false;
     $('app').hidden = true;
+    document.querySelectorAll('main .mod').forEach((s) => { if (s.id !== 'gate') s.hidden = true; });
     $('gateMsg').textContent = msg;
     $('gateLink').href = href;
+    $('who').textContent = 'locked';
   }
   function parseAliases(v) {
     return String(v || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -536,31 +600,64 @@ function worldPageHtml() {
   function charById(id) {
     return (reg && reg.characters || []).find((c) => String(c.id) === String(id)) || null;
   }
-  async function init() {
-    const r = await fetch('/api/me', { cache: 'no-store' });
-    me = await r.json();
-    if (!me.logged_in) return gate('Login required. Owner/admin only.', '/login?next=/world');
-    if (me.can_edit !== true) return gate('World editor is owner/admin only. The map stays view-only for this role.', '/');
-    $('who').textContent = '@' + (me.username || me.id) + ' · ' + (me.role || 'user');
-    $('app').hidden = false;
-    bind();
-    await loadRegistry(null);
+  function fetchJson(url, opts, ms) {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), ms || 12000) : null;
+    const o = Object.assign({ cache: 'no-store' }, opts || {});
+    if (ctrl) o.signal = ctrl.signal;
+    return fetch(url, o).then((r) => {
+      if (timer) clearTimeout(timer);
+      return r.json().then((j) => ({ r: r, j: j })).catch(() => ({ r: r, j: {} }));
+    }).catch((e) => {
+      if (timer) clearTimeout(timer);
+      throw e;
+    });
   }
-  function bind() {
+  async function init() {
+    bindMods();
+    try {
+      const out = await fetchJson('/api/me', null, 10000);
+      me = out.j || {};
+      if (!out.r.ok) {
+        worldErr('/api/me failed · HTTP ' + out.r.status);
+        $('who').textContent = 'api error';
+        return;
+      }
+      if (!me.logged_in) return gate('Login required. Owner/admin only.', '/login?next=/world');
+      if (me.can_edit !== true) return gate('World editor is owner/admin only. The map stays view-only for this role.', '/');
+      $('who').textContent = '@' + (me.username || me.id) + ' · ' + (me.role || 'user');
+      worldErr('');
+      $('app').hidden = false;
+      bindCast();
+      try {
+        await loadRegistry(null);
+      } catch (e) {
+        worldErr('Cast load failed: ' + (e.message || e));
+        status('Cast load failed: ' + (e.message || e));
+        $('regMeta').textContent = 'registry load failed';
+        $('roster').innerHTML = '<li class="chip">Registry unavailable — Places / Stories / SoT modules still work.</li>';
+      }
+    } catch (e) {
+      worldErr('Auth check failed: ' + (e.name === 'AbortError' ? 'timeout' : (e.message || e)));
+      $('who').textContent = 'auth timeout';
+    }
+  }
+  function bindCast() {
+    if (castBound) return;
+    castBound = true;
     $('q').addEventListener('input', renderRoster);
     $('addBtn').onclick = addCharacter;
     $('saveBtn').onclick = save;
-    $('reloadBtn').onclick = () => loadRegistry(active && active.id);
+    $('reloadBtn').onclick = () => loadRegistry(active && active.id).catch((e) => status(String(e.message || e)));
     $('relAdd').onclick = addRel;
     for (const id of ['f_name','f_role','f_status','f_player','f_aliases','f_story','f_image','f_hidden','f_notes']) {
       $(id).addEventListener('input', () => status('unsaved changes'));
     }
-    bindMods();
   }
   async function loadRegistry(selectId) {
-    const r = await fetch('/api/characters?include_hidden=1', { cache: 'no-store' });
-    if (!r.ok) throw new Error('characters ' + r.status);
-    reg = await r.json();
+    const out = await fetchJson('/api/characters?include_hidden=1', null, 15000);
+    if (!out.r.ok) throw new Error('characters ' + out.r.status);
+    reg = out.j;
     $('regMeta').textContent = 'registry v' + (reg.version || '?') + ' · ' + (reg.count || 0) + ' rows';
     renderRoster();
     const wanted = selectId || (active && active.id) || (reg.characters[0] && reg.characters[0].id);
@@ -702,6 +799,8 @@ function worldPageHtml() {
   function estatus(msg) { $('estatus').textContent = msg || ''; }
   function dstatus(msg) { $('dstatus').textContent = msg || ''; }
   function bindMods() {
+    if (modsBound) return;
+    modsBound = true;
     $('mods').querySelectorAll('button[data-mod]').forEach((b) => {
       b.onclick = () => showMod(b.getAttribute('data-mod'));
     });
@@ -716,16 +815,65 @@ function worldPageHtml() {
     $('docSaveBtn').onclick = saveDoc;
     $('docReloadBtn').onclick = () => { if (activePage) loadDoc(activePage); };
     $('docText').addEventListener('input', () => dstatus('unsaved changes'));
+    $('sotSaveBtn').onclick = saveSot;
+    $('sotReloadBtn').onclick = () => { if (activeSot) loadSot(activeSot); };
+    $('sotText').addEventListener('input', () => sotStatus('unsaved changes'));
   }
   function showMod(name) {
     $('mods').querySelectorAll('button[data-mod]').forEach((b) => {
       b.classList.toggle('is-active', b.getAttribute('data-mod') === name);
     });
     document.querySelectorAll('main .mod').forEach((s) => { s.hidden = true; });
+    if (SOT_MODS[name]) {
+      $('mod-sot').hidden = false;
+      loadSot(name).catch((e) => sotStatus('load failed: ' + (e.message || e)));
+      return;
+    }
     const el = name === 'cast' ? $('app') : $('mod-' + name);
     if (el) el.hidden = false;
     if (name === 'places' && !entities) loadEntities(null).catch((e) => estatus('load failed: ' + (e.message || e)));
     if (name === 'docs' && !pages.length) loadDocs().catch((e) => dstatus('load failed: ' + (e.message || e)));
+  }
+  function sotStatus(msg) { $('sotStatus').textContent = msg || ''; }
+  async function loadSot(name) {
+    const meta = SOT_MODS[name];
+    if (!meta) return;
+    activeSot = name;
+    $('sotSideTitle').textContent = meta.title;
+    $('sotTitle').textContent = meta.title;
+    $('sotBlurb').textContent = meta.blurb;
+    $('sotPathChip').textContent = meta.path;
+    sotStatus('loading…');
+    const out = await fetchJson('/api/world/page?path=' + encodeURIComponent(meta.path), null, 15000);
+    if (!out.r.ok) {
+      sotStatus('load failed: ' + (out.j.error || out.r.status) + ' — create the SoT file on disk if missing');
+      $('sotText').value = '';
+      sotSha = '';
+      return;
+    }
+    sotSha = out.j.sha256 || '';
+    $('sotText').value = out.j.content || '';
+    sotStatus(out.j.truncated ? 'truncated view' : '');
+  }
+  async function saveSot() {
+    const meta = activeSot && SOT_MODS[activeSot];
+    if (!meta) return;
+    sotStatus('saving…');
+    const out = await fetchJson('/api/world/page', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: meta.path, content: $('sotText').value, base_sha256: sotSha })
+    }, 20000);
+    if (out.r.status === 409) {
+      sotStatus('page changed on disk — reload before saving.');
+      return;
+    }
+    if (!out.r.ok) {
+      sotStatus('save failed: ' + (out.j.error || out.r.status));
+      return;
+    }
+    sotSha = out.j.sha256 || sotSha;
+    sotStatus('saved · ' + (out.j.bytes || 0) + ' bytes');
   }
   function entById(id) {
     return (entities && entities.entities || []).find((e) => String(e.id) === String(id)) || null;
@@ -870,7 +1018,11 @@ function worldPageHtml() {
     pageSha = j.sha256 || pageSha;
     dstatus('saved · ' + (j.bytes || 0) + ' bytes');
   }
-  init().catch((e) => gate('World editor failed to load: ' + (e.message || e), '/'));
+  init().catch((e) => {
+    worldErr('World editor failed: ' + (e.message || e));
+    $('who').textContent = 'error';
+    bindMods();
+  });
 })();
 </script>
 </body>
@@ -6635,8 +6787,16 @@ async function handleRequest(req, res) {
 
   if (url === "/api/me") {
     // Lazy refresh-token rotation: only calls Discord when the stored access token expired.
+    // Never block the who-chip forever if Discord is slow — soft-timeout then serve mePayload.
     if (session && session.id !== "public" && authStore && OAUTH_CONFIGURED) {
-      await authStore.ensureFreshTokens(session.id, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET);
+      try {
+        await Promise.race([
+          authStore.ensureFreshTokens(session.id, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET),
+          new Promise((resolve) => setTimeout(resolve, 2500)),
+        ]);
+      } catch (_) {
+        /* keep existing tokens / session; client still gets /api/me */
+      }
     }
     sendJson(res, mePayload(req), 200, 0);
     return;

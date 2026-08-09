@@ -1,3 +1,9 @@
+- **2026-08-09T02:05Z** — [PC] **Intent:** Draft NYC history-textbook lore (fantasy→modern uneven stack) with demographics + manufacturing — player-safe; for GM review before Discord. Soften/replace heisters forum post later. Holder: `nyc-history-textbook`.
+
+- **2026-08-09T01:58Z** — [PC] **Result:** Posted 5 player-safe lore forum threads to Discord `#campaign-discussion-lore` (1528216296779415683) via AI_RP bot — all 201. Threads: Stack/history · Spell-tech/arms · Five Families+law · Fringe (vampires/lycans/constructs/Below-rumor) · Heister crew start. IDs 1535826690486308884…1535826722954412204. No session-1 spoilers. Holder: `nyc-discord-lore-posts`.
+
+- **2026-08-09T01:55Z** — [PC] **Intent:** Post NYC player-safe lore explainers to Discord forum `campaign-discussion-lore` (1528216296779415683) via AI_RP bot — world stack, spell-tech/arms, families, fringe, heister crew. No session-1 spoilers. Holder: `nyc-discord-lore-posts`.
+
 - **2026-08-09T01:50Z** — [PC] **Result:** Isla streets/businesses landed (`8686ea7`). New `campaigns/tropic-gooner/worldbuilding/STREETS.md` (Paradise / Porto Lujara / Jackedsonville — arteries, alleys, boardwalk/quay, residential, dock, student strips; canon venues pinned; distances [proposal]). Seeded `wiki/entities.json` (39 entities). Updated `places-directory.md` + LORE-BIBLE pointer. Awaiting GM promote/cut on street names + new shops. Holder: `isla-streets-businesses`.
 
 - **2026-08-09T01:42Z** — [PC] **Intent:** Isla Primavera street-level texture for focus cities (Paradise / Porto Lujara / Jackedsonville) — STREETS.md + wiki seed + places-directory pointers. LOCK: no regions-ui / no chars-registry. Holder: `isla-streets-businesses`.
@@ -462,3 +468,7 @@
 ## 2026-08-08 21:55 ET — [PC] Result: drugs/vice drafts pushed + bundled
 
 [PC] Result: GM approved Isla+NYC drugs/vice drafts. Pushed `75e2db6..7b82d61` to `linuxbox` `master:main` (tip `7b82d61` Worldbuild drugs/vice…). Potato `push-linuxbox-git-bundle.sh` apply `d7879ca4 → 7b82d613` verify-runtime-state PASS / GM borders PASS.
+
+## 2026-08-08 21:48 ET — [PC] Intent: tableslop /world hang + module expand
+
+[PC] Intent: GM /world stuck on checking…; cast empty; Cast/Places/Stories dead. Diagnose potato tableslop; fix init/bindMods (bind mods early; do not block on marked CDN); clear API errors; expand World modules (Regions/Climate/Agriculture/Transport) with SoT under campaigns/tropic-gooner/worldbuilding/. LOCK: no chars-registry; no STREETS.md clobber; no regions-ui wipe. Holder: `tableslop-world-fix-expand`.
