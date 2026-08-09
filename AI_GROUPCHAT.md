@@ -1,3 +1,5 @@
+- **2026-08-09T04:28Z** — [PC] **Result:** World bulk+detail dashboard D0–D4 shipped (`834f31b`). Weather Overview/Detail/Advanced + regenerate/+1/+7/set_date/patch_city; Regions/Ag/Transport `*-state.json` + POST summary; Cast/Places multi-select bulk; Transport highways layer status=`placeholder_no_source` (map track only). Potato smoke OK regen_ms=163 cast v37/27; borders **PASS v25/660**. Hard-refresh /world. Holder: `tableslop-world-dashboard`.
+
 - **2026-08-09T04:19Z** — [PC] **Intent:** Urgent map black + DEV LOG broken — diagnose SyntaxError in map viewer after Dev calendar HUD; surgical fix tableslop-server.js map/devlog only; NEVER touch regions-ui.json. Coord with world-dashboard agent. Holder: `tableslop-map-black-devlog`.
 
 - **2026-08-09T04:19Z** — [PC] **Intent:** World editor bulk+detail dashboard D0–D4 (weather detail/bulk, regions/ag/transport state shell, cast/places multi-select, highways track note). NEVER touch regions-ui.json. Holder: `tableslop-world-dashboard`.
