@@ -1,0 +1,129 @@
+{
+  "id": "eurosluts",
+  "title": "Euro Campaign",
+  "subtitle": "Working table name pending (was Eurosluts) · Discord-managed · play clock: Halkin-Gaul arrival",
+  "status": "active",
+  "name_pending": true,
+  "player_facing": true,
+  "map_href": null,
+  "discord": {
+    "guild_id": "1265793253798576148",
+    "category_id": "1477755184607396063",
+    "channel_id": "1495469564060893254",
+    "early_channel_id": "1477735120252178453",
+    "sheets_channel_id": "1475174763533176844",
+    "notes": "Activity probe = #main-rp (primary play). Early SmithsVille + interviews = #campaign-rp. Path slug eurosluts unchanged; display name still pending."
+  },
+  "resources": [
+    {
+      "label": "Event timeline",
+      "path": "campaigns/euro-adventure-2026/analysis/campaign-timeline.md",
+      "note": "Discord-dated arc SmithsVille → Halkin-Gaul"
+    },
+    {
+      "label": "Define with GM",
+      "path": "campaigns/euro-adventure-2026/analysis/define-with-gm.md",
+      "note": "7 swamp Qs + name/roster/probe locks"
+    },
+    {
+      "label": "Swamp bible",
+      "path": "campaigns/euro-adventure-2026/worldbuilding/swamp/",
+      "note": "Halkin-Gaul + approach (canon vs proposal)"
+    },
+    {
+      "label": "LOCKS",
+      "path": "campaigns/euro-adventure-2026/LOCKS.md",
+      "note": "Discord-only locked facts"
+    },
+    {
+      "label": "Discord export",
+      "path": "campaigns/euro-adventure-2026/discord-export/snapshot-2026-08-09/",
+      "note": "Re-ingest 2026-08-09 · no play after 2026-07-26"
+    }
+  ],
+  "updated_at": "2026-08-09T15:20:00.000Z",
+  "pcs": [
+    {
+      "id": "vyllynn-alword",
+      "name": "Vyllynn Alword",
+      "player": "Yuki",
+      "role": "Artificer (Artillerist)",
+      "notes": "Sheets + #main-rp",
+      "sheet": ""
+    },
+    {
+      "id": "fuyuko",
+      "name": "Fuyuko (Natsuki)",
+      "player": "Ren",
+      "role": "Oni bodyguard",
+      "notes": "Sheets + interview thread",
+      "sheet": ""
+    },
+    {
+      "id": "ata",
+      "name": "Ata",
+      "player": "Thesaurus",
+      "role": "Druid (feral exile)",
+      "notes": "Sheets + #main-rp",
+      "sheet": ""
+    },
+    {
+      "id": "leanora",
+      "name": "Leanora",
+      "player": "DementedOne",
+      "role": "Aasimar cleric (Tyr at table)",
+      "notes": "Sheets + #main-rp",
+      "sheet": ""
+    },
+    {
+      "id": "camila",
+      "name": "Camila Estiñe Sua Haizea Bonifacia de Lanzarote",
+      "player": "Prim",
+      "role": "Rogue / Crimson Marauder",
+      "notes": "Joined on swamp road",
+      "sheet": ""
+    },
+    {
+      "id": "gwenevere",
+      "name": "Gwenevere",
+      "player": "Uni",
+      "role": "Serpentine acolyte / archaeologist",
+      "notes": "Earlier arcs + swamp travel",
+      "sheet": ""
+    },
+    {
+      "id": "blaire-blakely",
+      "name": "Blaire Blakely",
+      "player": "(sheets)",
+      "role": "Wild Magic sorcerer",
+      "notes": "Early guild / interview line",
+      "sheet": ""
+    }
+  ],
+  "schedule": [
+    {
+      "id": "sess-next",
+      "when": "See Discord #main-rp",
+      "title": "Next session — Halkin-Gaul town hall",
+      "location": "Discord Guild Hall / #main-rp",
+      "notes": "Play clock: arrived 2026-07-26; no later posts in 2026-08-09 export."
+    }
+  ],
+  "availability": [
+    {
+      "person": "Table",
+      "windows": "Post in Discord #main-rp (Guild Hall)",
+      "notes": "Early channel #campaign-rp is SmithsVille intake/interviews (mostly 2026-03-01)."
+    }
+  ],
+  "inventory": [
+    {
+      "id": "inv-seed",
+      "item": "(party stash — empty)",
+      "owner": "party",
+      "qty": 0,
+      "notes": "Track loot here or pin a Discord thread — keep both in sync."
+    }
+  ]
+}
+

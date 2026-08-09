@@ -2,7 +2,7 @@
 
 Only facts **extracted from Discord export** (or explicit GM verbal with date) belong here. Everything else stays **UNCONFIRMED** / **[proposal]** in worldbuilding drafts.
 
-Export snapshot: **2026-08-02**. DMs not covered.
+Export snapshot: **2026-08-09** re-ingest (same play ceiling as 2026-08-02 — last `#main-rp` **2026-07-26**). DMs not covered.
 
 ## Discord structure (repo config)
 

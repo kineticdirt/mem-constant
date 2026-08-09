@@ -118,12 +118,14 @@ until you decide. Do not silently merge them into one neat mystery.
 
 ## Open questions for GM
 
+Worksheet (locks vs open + portal name decisions): `../../analysis/define-with-gm.md`.
+
 1. Confirm inn spelling/name: **Blackdoor Inn** (from “The blackdoor in.”)?
 2. Who sent the job to the guildmaster — town hall, merchant factor, church, anonymous purse?
 3. Are disappearances **quiet absences**, or do belongings / carts / blood ever turn up?
 4. Is the Blackdoor sulfur-stab **linked**, **copycat pressure**, or **unrelated** to Halkin-Gaul?
 5. Kingdom / duchy name for the frontier beyond “periphery regions”?
-6. Any map sketch, private notes, or post–2026-07-26 Discord that should override this draft? (Export ends at arrival cliffhanger.)
+6. Any map sketch, private notes, or post–2026-07-26 Discord that should override this draft? (Re-ingest 2026-08-09: still no later `#main-rp`.)
 7. Lock “boglin” as slang/typo for **goblin** (Fenrir Hills job), not a swamp species?
 
-Mark promotes by stripping **[proposal]** and adding a line to `LOCKS.md` with a Discord timestamp or “GM verbal YYYY-MM-DD”.
+Mark promotes by stripping **[proposal]** and adding a line to `LOCKS.md` with a Discord timestamp or “GM verbal YYYY-MM-DD”. **Do not** invent answers while GM is away.

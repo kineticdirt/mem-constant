@@ -8,4 +8,4 @@ GM-facing setting notes distilled from Discord export + marked proposals.
 | `../LOCKS.md` | Discord-cited locks only |
 | `../analysis/discord-swamp-extract.md` | Message citations for swamp facts |
 
-**Coverage:** guild channels/threads only. DMs are not tracked. Export snapshot **2026-08-02** — later Discord may exist and is not in-repo until re-exported.
+**Coverage:** guild channels/threads only. DMs are not tracked. Export re-ingest **2026-08-09** — still no play after Halkin-Gaul arrival (2026-07-26).

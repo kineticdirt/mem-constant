@@ -1,11 +1,12 @@
 # Discord extract — swamp / Halkin-Gaul
 
 Export root: `campaigns/euro-adventure-2026/discord-export/`  
-Primary file: `Guild Hall-1477755184607396063/main-rp-1495469564060893254/messages.md`  
-Category summary: `Guild Hall-1477755184607396063/category-summary.md` (exported 2026-08-02)  
-Origin city color: `campaign-rp-1477735120252178453/messages.md` (SmithsVille)
+Dated snapshots: `snapshot-2026-08-02/` · `snapshot-2026-08-09/` (sibling ingest may refresh)  
+Primary file: `…/Guild Hall-1477755184607396063/main-rp-1495469564060893254/messages.md`  
+Category summary: `…/Guild Hall-1477755184607396063/category-summary.md` (exported 2026-08-02)  
+Origin city color: `…/campaign-rp-1477735120252178453/messages.md` (SmithsVille)
 
-**Gap:** private DMs not in export. Nothing after **2026-07-26** Halkin-Gaul arrival cliffhanger is in this snapshot.
+**Gap:** private DMs not in export. Nothing after **2026-07-26** Halkin-Gaul arrival cliffhanger is in export (confirmed again on **2026-08-09** re-ingest).
 
 ---
 

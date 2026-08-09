@@ -1,3 +1,18 @@
+- **2026-08-09T15:18Z** — [PC] **Intent:** Euro wrap then PC sleep
+  Holder: `euro-wrap-pc-sleep`
+  1. Inventory in-flight euro agents/artifacts (discord export, timeline, swamp, next-arc)
+  2. Finish Discord ingest for cats 1477755184607396063 + 1477735120252178453 if incomplete
+  3. Campaign timeline + define-with-gm worksheet
+  4. NEXT-ARC: wraith investigation + necromancer escalation + adult NC encounter seeds (18+; [proposal] discipline)
+  5. Wire/verify campaigns.tableslop.org/c/eurosluts pointers if thin
+  6. Commit + git-bundle to potato; Result lines
+  7. PC sleep only (not potato)
+
+- **2026-08-09T15:30Z** — [PC] **Result:** Euro wrap (holder `euro-wrap-pc-sleep`). Discord re-ingest potato EXIT 0 (cat+channels); `snapshot-2026-08-09` — no play after 2026-07-26. Docs: `analysis/timeline.md` + `define-with-gm.md` + `campaign-timeline.md` alias; `worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md` (wraith+necromancer+adult NC 18+ [proposal]); `prep/` pointers; eurosluts tracker roster+portal https://campaigns.tableslop.org/c/eurosluts (loopback 200). GM decides worksheet answers later. Potato left UP (hermes-gateway active; campaigns-avail node :8768). Next: commit+bundle then **PC sleep only**.
+
+- **2026-08-09T15:17Z** — [PC] **Intent:** Euro next-arc Halkin-Gaul — wraith murders + necromancer foil; investigation prep + adult NC encounter seeds (18+); reuse Discord export; Cursor Auto ∥ Hermes free-first twin on potato. Holder: `euro-next-arc-wraith`.
+- **2026-08-09T15:16Z** — [PC] **Intent:** Eurosluts portal + Discord year ingest finish; analysis timeline + define-with-gm; swamp tighten evidence-only; deploy campaigns-avail if needed. Holder: `eurosluts-campaign-portal`. Coord with `euro-discord-year-timeline` if still open.
+- **2026-08-09T15:15Z** — [PC] **Intent:** Euro Adventure — Discord bot ingest categories 1477755184607396063 (entire year) + channel 1477735120252178453 (additional); event timeline + define-with-GM worksheet. Reuse export_discord_lore.py; dated snapshot under discord-export/; DISCORD_BOT_TOKEN on potato. Holder: `euro-discord-year-timeline`.
 - **2026-08-09T15:20Z** — [PC] **Result:** Euro swamp flesh-out. Discord SoT = `#main-rp` export (Halkin-Gaul arrival 2026-07-26). Wrote `campaigns/euro-adventure-2026/worldbuilding/swamp/` (HALKIN-GAUL + APPROACH-AND-EDGES) + `analysis/discord-swamp-extract.md`; updated LOCKS/README/players. Canon vs [proposal] marked. Gaps: DMs; post-2026-08-02 Discord; culprit unconfirmed. GM Qs in HALKIN-GAUL §Open questions. Holder: `euro-swamp-fleshout`.
 - **2026-08-09T15:06Z** — [PC] **Intent:** Euro Adventure 2026 — analyze Discord + flesh out swamp area (Halkin-Gaul / boglin prior). Inventory GM prior text; mark proposals; no invents as canon. Holder: `euro-swamp-fleshout`.
 - **2026-08-09T15:02Z** — [PC] **Result:** P0 map morning-after. Root cause: `map-reveal` animated opacity 0→1; `prefers-reduced-motion` sets duration 0.01ms → underlay stuck invisible (naturalWidth>0, opacity 0) while prior Result lines claimed fixed. Fix `f3e2839`: no opacity in map-reveal; `#mapImg{opacity:1}`; reduced-motion force-visible; WORLD/DEV LOG `location.assign`; world roster not blocked on sheet. Potato HEAD `f3e2839` active; public meta `2026-08-09-morning-opacity`; Playwright reduced-motion: map nw=1024 op=1 nonBlack=98.6% tiles 6/6; click WORLD→/world registry v37/27; DEV LOG→/devlog Timeline+Features+Bugs; borders PASS v25/660. **GM: Ctrl+Shift+R** on map.tableslop.org. Holder: `tableslop-map-morning-fix`.
