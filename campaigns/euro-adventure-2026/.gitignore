@@ -1,0 +1,3 @@
+# Ignore Discord binary attachments (Windows path length + size).
+# Lore SoT = messages.md; re-export on linuxbox if images needed.
+discord-export/**/attachments/
