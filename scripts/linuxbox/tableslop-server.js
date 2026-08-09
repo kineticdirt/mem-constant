@@ -2171,7 +2171,7 @@ function viewerHtml() {
     }
     .hud-brand { font-size:.85rem; letter-spacing:.12em; }
     .hud-setting { font-size:1rem; }
-    .hud-res, .hud-dock, .hud-login, .hud-users-btn {
+    .hud-res, .hud-dock, .hud-cast, .hud-login, .hud-users-btn {
       font-size:.62rem;
       padding:5px 8px;
     }
@@ -2688,6 +2688,18 @@ function viewerHtml() {
     color:#041612; background:rgba(45,212,191,.95); border-color:#2dd4bf;
     box-shadow:0 0 14px rgba(45,212,191,.55);
   }
+  /* CAST — red silo (not orange dock); sits at end of Radio/Phone/Sim strip */
+  .hud-cast {
+    font:inherit; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
+    color:#2a0608; background:rgba(220,40,55,.94); border:1px solid #ff3b4a;
+    padding:4px 12px; cursor:pointer;
+    box-shadow:0 0 12px rgba(255,59,74,.55);
+  }
+  .hud-cast:hover { filter:brightness(1.08); }
+  .hud-cast.is-on {
+    color:#140408; background:rgba(255,90,110,.98); border-color:#ff7a88;
+    box-shadow:0 0 16px rgba(255,59,74,.75);
+  }
   .hud-3d.is-on {
     border-color:#2dd4bf; color:#2dd4bf; background:rgba(45,212,191,.12);
     box-shadow:0 0 12px rgba(45,212,191,.4);
@@ -2869,7 +2881,7 @@ function viewerHtml() {
   <button type="button" class="hud-dock" id="dockRadio" data-dock="radio" aria-pressed="false" title="Radio — expands over cast/info">Radio</button>
   <button type="button" class="hud-dock" id="dockPhone" data-dock="phone" aria-pressed="false" title="Phone (call + text) — expands over cast/info">Phone</button>
   <button type="button" class="hud-dock" id="dockSim" data-dock="sim" aria-pressed="false" title="Sim — expands over cast/info">Sim</button>
-  <button type="button" class="hud-dock" id="castToggle" aria-pressed="false" title="Cast — expands over info panel">Cast</button>
+  <button type="button" class="hud-cast" id="castToggle" aria-pressed="false" title="Cast — expands over info panel (red silo, not a dock app)">Cast</button>
   <a class="hud-res hud-world" id="worldToggle" href="/world" hidden title="World — separate character studio (admin)">World</a>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
   <a class="hud-res hud-devlog" id="devLogToggle" href="/devlog" title="Dev calendar — dedicated page (timeline / features / bugs)">DEV LOG</a>

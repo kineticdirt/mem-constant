@@ -103,6 +103,19 @@ const hud = await page.locator('.hud-brand').textContent();
 if (!hud?.includes('tableslop')) fail('missing game HUD brand');
 else pass('game HUD present');
 
+// Cast = red silo (not orange Radio/Phone/Sim dock)
+const castClass = await page.locator('#castToggle').getAttribute('class');
+if (!castClass || !/\bhud-cast\b/.test(castClass)) {
+  fail('CODE:TS-HUD-CAST-CHROME #castToggle missing hud-cast class');
+} else if (/\bhud-dock\b/.test(castClass)) {
+  fail('CODE:TS-HUD-CAST-CHROME #castToggle still uses hud-dock (must be red silo)');
+} else {
+  const castBg = await page.locator('#castToggle').evaluate((el) => getComputedStyle(el).backgroundColor);
+  const phoneBg = await page.locator('#dockPhone').evaluate((el) => getComputedStyle(el).backgroundColor);
+  if (castBg === phoneBg) fail(`CODE:TS-HUD-CAST-CHROME Cast bg matches Phone dock (${castBg})`);
+  else pass(`Cast red chrome (class hud-cast; bg≠Phone ${phoneBg})`);
+}
+
 await page.locator('.region-card').first().click();
 await page.waitForTimeout(400);
 await page.locator('.legend-chip').nth(7).click();
