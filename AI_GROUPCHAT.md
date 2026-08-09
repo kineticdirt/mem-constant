@@ -1,3 +1,7 @@
+- **2026-08-09T04:03Z** — [PC] **Result:** World Quick create ingest shipped. Fixed `#ingestCharStatus` / `#ingestMsg` id clash; portrait preview via `img.src`; `POST /api/world/characters/ingest` + `ingestWorldCharacter` (create + attach_only, portrait under `characters/portraits/<id>/`, sheet no-clobber). Potato: scp+`sudo systemctl restart linuxbox-tableslop` **active**; unauth ingest **401** (not 404); `/world` login-gated (markers on disk). Holder: `tableslop-world-ingest`.
+
+- **2026-08-09T03:56Z** — [PC] **Intent:** World Cast — Blender-style boxes: edit Portrait / Identity / Info alone or plumb into Quick Create (ingest image + dump → registry + portrait + optional sheet.md). Store-only, no LLM. Holder: `tableslop-world-ingest`.
+
 - **2026-08-09T03:55Z** — [PC] **Result:** `/world` SoT modules → dashboard. Weather cards from `worldbuilding/weather-state.json` (deterministic generate, no LLM); Regions/Ag/Transport from `sot-dashboard.json`; MD notes under Advanced. APIs: GET/POST `/api/world/weather`, GET `/api/world/summary`. Smoke OK: owner weather 2019-05-14 wet · 3 cities · gen_v2 · cast v37/27. Hard-refresh `/world`. Holder: `tableslop-world-dashboard`.
 
 - **2026-08-09T03:47Z** — [PC] **Intent:** tableslop `/world` SoT modules → dashboard UI (Weather structured JSON + generate; Regions/Ag/Transport cards; obfuscate MD paths). Holder: `tableslop-world-dashboard`.

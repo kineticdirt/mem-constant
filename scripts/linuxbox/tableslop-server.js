@@ -70,6 +70,7 @@ const FEEDBACK_MAX_BYTES = 2.5 * 1024 * 1024;
 const CAMPAIGNS_ORIGIN =
   process.env.TABLESLOP_CAMPAIGNS_ORIGIN || "http://127.0.0.1:8768";
 const CHAR_IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
+const WORLD_PORTRAIT_MAX = 4 * 1024 * 1024;
 /**
  * Unique region shade palette (R1–R17) — map fills/strokes only.
  * Neon/vaporwave stays on HUD chrome only. Opacity owned by CSS fill-opacity (~0.28).
@@ -412,7 +413,16 @@ function worldPageHtml() {
   details.source .src-body { padding:0 12px 12px; }
   .doc-title { font-size:.92rem; }
   .doc-sub { color:var(--muted); font-size:.68rem; }
-  @media (max-width: 900px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } .sheet-wrap { order:-2; } .edit-wrap { order:-1; } .places-grid, .docs-grid { grid-template-columns:1fr; } }
+  .node-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:stretch; }
+  .node-box { border:1px solid rgba(1,205,254,.4); border-radius:10px; background:rgba(13,6,22,.9); min-height:320px; display:flex; flex-direction:column; }
+  .node-box h2 { margin:0; padding:12px 14px; border-bottom:1px solid rgba(1,205,254,.25); font:700 .72rem Orbitron,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--cyan); }
+  .node-box .pad { flex:1; }
+  .node-drop { border:1px dashed rgba(185,103,255,.55); border-radius:8px; min-height:180px; display:grid; place-items:center; text-align:center; color:var(--muted); font-size:.78rem; padding:12px; cursor:pointer; background:rgba(5,2,8,.55); }
+  .node-drop.is-hot { border-color:var(--sun); color:var(--sun); }
+  .node-drop img { max-width:100%; max-height:200px; border-radius:6px; border:1px solid rgba(1,205,254,.45); }
+  .node-plumb { margin-top:14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .node-hint { color:var(--muted); font-size:.74rem; line-height:1.4; margin:0 0 10px; }
+  @media (max-width: 900px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } .sheet-wrap { order:-2; } .edit-wrap { order:-1; } .places-grid, .docs-grid { grid-template-columns:1fr; } .node-row { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -424,6 +434,7 @@ function worldPageHtml() {
   <span class="spacer"></span>
   <nav class="mods" id="mods" aria-label="World modules">
     <button class="modbtn is-active" type="button" data-mod="cast">Cast</button>
+    <button class="modbtn" type="button" data-mod="ingest">Quick create</button>
     <button class="modbtn" type="button" data-mod="places">Places</button>
     <button class="modbtn" type="button" data-mod="docs">Stories &amp; notes</button>
     <button class="modbtn" type="button" data-mod="regions">Regions</button>
@@ -488,6 +499,59 @@ function worldPageHtml() {
         <div class="status" id="status"></div>
       </div>
     </aside>
+  </section>
+  <section id="mod-ingest" class="mod" hidden>
+    <div class="col" style="min-height:calc(100vh - 92px)">
+      <h2>Quick create · boxes</h2>
+      <div class="pad">
+        <p class="node-hint">Fill any box alone, or plumb them together. Store-only — no LLM expand. Portrait accepts drop, paste, file, or image URL. Info dump becomes notes; optional sheet write.</p>
+        <div class="node-row">
+          <article class="node-box" id="boxPortrait">
+            <h2>1 · Portrait</h2>
+            <div class="pad">
+              <div class="node-drop" id="ingestDrop" tabindex="0">Drop / paste image<br/><span style="opacity:.7">or click to choose file</span></div>
+              <input id="ingestFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden/>
+              <label for="ingestUrl" style="margin-top:10px">Image URL</label>
+              <div class="row">
+                <input id="ingestUrl" placeholder="https://…"/>
+                <button class="btn" id="ingestUrlBtn" type="button" style="flex:0 0 auto">Load</button>
+              </div>
+              <button class="btn danger" id="ingestClearImg" type="button" style="margin-top:8px">Clear portrait</button>
+            </div>
+          </article>
+          <article class="node-box" id="boxIdentity">
+            <h2>2 · Identity</h2>
+            <div class="pad">
+              <label for="ingestName">Display name</label><input id="ingestName" placeholder="Required to create"/>
+              <div class="row">
+                <div><label for="ingestRole">Role</label><select id="ingestRole"><option value="npc">npc</option><option value="pc">pc</option><option value="side">side</option><option value="gm">gm</option></select></div>
+                <div><label for="ingestCharStatus">Status</label><input id="ingestCharStatus" value="draft"/></div>
+              </div>
+              <label for="ingestAliases">Aliases (comma)</label><input id="ingestAliases"/>
+              <label for="ingestPlayer">Player</label><input id="ingestPlayer"/>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input id="ingestHidden" type="checkbox" style="width:auto"/> Hidden / stub</label>
+            </div>
+          </article>
+          <article class="node-box" id="boxInfo">
+            <h2>3 · Info dump</h2>
+            <div class="pad">
+              <label for="ingestNotes">Paste bio / Discord / notes</label>
+              <textarea id="ingestNotes" style="min-height:160px" placeholder="Anything useful — creed, look, age, clothing…"></textarea>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input id="ingestAsSheet" type="checkbox" style="width:auto" checked/> Also write characters/&lt;id&gt;.md sheet from dump</label>
+              <label for="ingestSheet" style="margin-top:8px">Or paste full sheet markdown</label>
+              <textarea id="ingestSheet" style="min-height:100px" placeholder="Optional ## Look / ## Speech / …"></textarea>
+            </div>
+          </article>
+        </div>
+        <div class="node-plumb">
+          <button class="btn warn" id="ingestCreateBtn" type="button">Create character (plumb boxes)</button>
+          <button class="btn" id="ingestApplyPortraitBtn" type="button">Apply portrait → selected Cast</button>
+          <button class="btn" id="ingestClearBtn" type="button">Clear boxes</button>
+          <span class="chip" id="ingestMeta">boxes idle</span>
+        </div>
+        <div class="status" id="ingestMsg"></div>
+      </div>
+    </div>
   </section>
   <section id="mod-places" class="mod" hidden>
     <div class="places-grid">
@@ -841,6 +905,167 @@ function worldPageHtml() {
     $('newName').value = '';
     await loadRegistry(j.id);
   }
+  let ingestImageData = '';
+  let ingestImageName = '';
+  function istatus(msg) { $('ingestMsg').textContent = msg || ''; }
+  function setIngestPreview(dataUrl, name) {
+    ingestImageData = dataUrl || '';
+    ingestImageName = name || 'ingest.jpg';
+    const drop = $('ingestDrop');
+    if (!ingestImageData) {
+      drop.innerHTML = 'Drop / paste image<br/><span style="opacity:.7">or click to choose file</span>';
+      $('ingestMeta').textContent = 'boxes idle';
+      return;
+    }
+    drop.textContent = '';
+    const img = document.createElement('img');
+    img.alt = 'preview';
+    img.src = ingestImageData;
+    drop.appendChild(img);
+    $('ingestMeta').textContent = 'portrait ready · ' + ingestImageName;
+  }
+  function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !String(file.type || '').startsWith('image/')) return reject(new Error('not an image file'));
+      if (file.size > 4 * 1024 * 1024) return reject(new Error('image over 4MB'));
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('read failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+  function bindIngest() {
+    const drop = $('ingestDrop');
+    const file = $('ingestFile');
+    drop.onclick = () => file.click();
+    file.onchange = async () => {
+      try {
+        if (!file.files || !file.files[0]) return;
+        const data = await fileToDataUrl(file.files[0]);
+        setIngestPreview(data, file.files[0].name);
+        istatus('portrait loaded from file');
+      } catch (e) { istatus(String(e.message || e)); }
+    };
+    drop.addEventListener('dragover', (ev) => { ev.preventDefault(); drop.classList.add('is-hot'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-hot'));
+    drop.addEventListener('drop', async (ev) => {
+      ev.preventDefault();
+      drop.classList.remove('is-hot');
+      try {
+        const f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+        const data = await fileToDataUrl(f);
+        setIngestPreview(data, f.name);
+        istatus('portrait dropped');
+      } catch (e) { istatus(String(e.message || e)); }
+    });
+    document.addEventListener('paste', async (ev) => {
+      if ($('mod-ingest').hidden) return;
+      const items = ev.clipboardData && ev.clipboardData.items;
+      if (!items) return;
+      for (const it of items) {
+        if (it.type && it.type.startsWith('image/')) {
+          ev.preventDefault();
+          try {
+            const f = it.getAsFile();
+            const data = await fileToDataUrl(f);
+            setIngestPreview(data, f && f.name || 'paste.png');
+            istatus('portrait pasted');
+          } catch (e) { istatus(String(e.message || e)); }
+          return;
+        }
+      }
+    });
+    $('ingestUrlBtn').onclick = async () => {
+      const url = $('ingestUrl').value.trim();
+      if (!url) return istatus('image URL required');
+      istatus('fetching image…');
+      try {
+        const r = await fetch(url, { mode: 'cors' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const blob = await r.blob();
+        if (!String(blob.type || '').startsWith('image/')) throw new Error('URL is not an image');
+        if (blob.size > 4 * 1024 * 1024) throw new Error('image over 4MB');
+        const data = await fileToDataUrl(new File([blob], 'url-image.jpg', { type: blob.type || 'image/jpeg' }));
+        setIngestPreview(data, 'url-image.jpg');
+        istatus('portrait loaded from URL');
+      } catch (e) {
+        istatus('URL load failed (CORS or bad URL): ' + (e.message || e) + ' — drop/paste instead');
+      }
+    };
+    $('ingestClearImg').onclick = () => { setIngestPreview('', ''); istatus('portrait cleared'); };
+    $('ingestClearBtn').onclick = () => {
+      setIngestPreview('', '');
+      $('ingestName').value = '';
+      $('ingestRole').value = 'npc';
+      $('ingestCharStatus').value = 'draft';
+      $('ingestAliases').value = '';
+      $('ingestPlayer').value = '';
+      $('ingestHidden').checked = false;
+      $('ingestNotes').value = '';
+      $('ingestSheet').value = '';
+      $('ingestAsSheet').checked = true;
+      $('ingestUrl').value = '';
+      istatus('boxes cleared');
+    };
+    $('ingestCreateBtn').onclick = createFromIngest;
+    $('ingestApplyPortraitBtn').onclick = applyIngestPortraitToSelected;
+  }
+  async function createFromIngest() {
+    const name = $('ingestName').value.trim();
+    if (!name) return istatus('Identity box: display name required');
+    if (!reg) {
+      try { await loadRegistry(null); } catch (e) { return istatus('registry unavailable: ' + (e.message || e)); }
+    }
+    istatus('creating…');
+    const sheetPaste = $('ingestSheet').value.trim();
+    const notes = $('ingestNotes').value;
+    const body = {
+      base_version: reg.version,
+      display_name: name,
+      role: $('ingestRole').value,
+      status: $('ingestCharStatus').value.trim() || 'draft',
+      aliases: parseAliases($('ingestAliases').value),
+      player_name: $('ingestPlayer').value.trim(),
+      hidden: $('ingestHidden').checked,
+      notes: notes,
+      write_sheet: Boolean($('ingestAsSheet').checked || sheetPaste),
+      sheet_markdown: sheetPaste || notes,
+      image_data_url: ingestImageData || '',
+      image_filename: ingestImageName || 'ingest.jpg',
+    };
+    const out = await fetchJson('/api/world/characters/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }, 60000);
+    if (out.r.status === 409) return istatus('version conflict — reload Cast, then retry');
+    if (!out.r.ok) return istatus('ingest failed: ' + (out.j.error || out.r.status));
+    istatus('created · ' + (out.j.id || '?') + ' · registry v' + out.j.version + (out.j.image_path ? ' · portrait ok' : '') + (out.j.story_path ? ' · sheet ok' : ''));
+    $('ingestMeta').textContent = 'created ' + (out.j.id || '');
+    await loadRegistry(out.j.id);
+    showMod('cast');
+  }
+  async function applyIngestPortraitToSelected() {
+    if (!ingestImageData) return istatus('Portrait box empty');
+    if (!active || !active.id) return istatus('Select a Cast row first (Cast module)');
+    if (!reg) return istatus('registry not loaded');
+    istatus('applying portrait…');
+    const out = await fetchJson('/api/world/characters/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        base_version: reg.version,
+        id: active.id,
+        attach_only: true,
+        image_data_url: ingestImageData,
+        image_filename: ingestImageName || 'ingest.jpg',
+      }),
+    }, 60000);
+    if (out.r.status === 409) return istatus('version conflict — reload Cast, then retry');
+    if (!out.r.ok) return istatus('portrait apply failed: ' + (out.j.error || out.r.status));
+    istatus('portrait applied → ' + active.id);
+    await loadRegistry(active.id);
+  }
   let entities = null;
   let activeEnt = null;
   let pages = [];
@@ -869,6 +1094,7 @@ function worldPageHtml() {
     $('sotReloadBtn').onclick = () => { if (activeSot) loadSot(activeSot); };
     $('weatherGenBtn').onclick = generateWeather;
     $('sotText').addEventListener('input', () => sotStatus('unsaved note changes'));
+    bindIngest();
   }
   function showMod(name) {
     $('mods').querySelectorAll('button[data-mod]').forEach((b) => {
@@ -6324,6 +6550,140 @@ function patchWorldCharacter(payload) {
   return { ok: true, id, version: written.version, updated_at: written.updated_at };
 }
 
+/** Decode portrait data URL (png/jpeg/webp/gif). No URL fetch — client sends bytes. */
+function decodeIngestPortraitDataUrl(dataUrl) {
+  const raw = String(dataUrl || "");
+  if (!raw) return null;
+  const m = /^data:(image\/(png|jpeg|jpg|webp|gif));base64,([A-Za-z0-9+/=]+)$/i.exec(raw);
+  if (!m) throw new Error("image must be png/jpeg/webp/gif data URL");
+  const kind = m[2].toLowerCase();
+  const ext = kind === "jpeg" || kind === "jpg" ? "jpg" : kind;
+  const buf = Buffer.from(m[3], "base64");
+  if (buf.length > WORLD_PORTRAIT_MAX) throw new Error("image too large (max 4MB decoded)");
+  if (!buf.length) throw new Error("empty image");
+  return { buf, ext };
+}
+
+function writeIngestPortraitFile(charId, dataUrl, filenameHint) {
+  const decoded = decodeIngestPortraitDataUrl(dataUrl);
+  if (!decoded) return "";
+  let ext = decoded.ext;
+  const hint = String(filenameHint || "").toLowerCase();
+  const hintExt = path.extname(hint).replace(/^\./, "");
+  if (hintExt && ["png", "jpg", "jpeg", "webp", "gif"].includes(hintExt)) {
+    ext = hintExt === "jpeg" ? "jpg" : hintExt;
+  }
+  const stamp = Date.now();
+  const relDir = `characters/portraits/${charId}`;
+  const absDir = path.join(CAMPAIGN_DIR, relDir);
+  fs.mkdirSync(absDir, { recursive: true });
+  const fname = `ingest-${stamp}.${ext}`;
+  const abs = path.join(absDir, fname);
+  fs.writeFileSync(abs, decoded.buf);
+  return `${relDir}/${fname}`.replace(/\\/g, "/");
+}
+
+function writeIngestSheetFile(charId, markdown) {
+  const md = String(markdown || "");
+  if (!md.trim()) return "";
+  const primaryRel = `characters/${charId}.md`;
+  const primaryAbs = path.join(CAMPAIGN_DIR, primaryRel);
+  let rel = primaryRel;
+  let abs = primaryAbs;
+  if (fs.existsSync(primaryAbs)) {
+    rel = `characters/${charId}-quick-create.md`;
+    abs = path.join(CAMPAIGN_DIR, rel);
+  }
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, md.endsWith("\n") ? md : md + "\n", "utf8");
+  return rel.replace(/\\/g, "/");
+}
+
+/** Quick-create / attach-portrait — store-only, no LLM. */
+function ingestWorldCharacter(payload) {
+  const raw = readCharactersRegistryRaw();
+  if (raw.error) throw new Error("registry_read_failed: " + raw.error);
+  raw.characters = Array.isArray(raw.characters) ? raw.characters : [];
+  const baseVersion = payload.base_version;
+  const attachOnly = payload.attach_only === true;
+  let id = String(payload.id || "").trim();
+  let row = null;
+  let imagePath = "";
+  let storyPath = "";
+
+  if (attachOnly) {
+    if (!id) throw new Error("id required");
+    row = raw.characters.find((c) => c && String(c.id) === id);
+    if (!row) throw new Error("character_not_found");
+    if (!payload.image_data_url) throw new Error("image_data_url required");
+    imagePath = writeIngestPortraitFile(id, payload.image_data_url, payload.image_filename);
+    row.image_path = imagePath;
+    row.images = Array.isArray(row.images) ? row.images : [];
+    if (!row.images.includes(imagePath)) row.images.push(imagePath);
+    row.updated_at = new Date().toISOString();
+  } else {
+    const name = cleanWorldText(payload.display_name, 120);
+    if (!name) throw new Error("display_name required");
+    id = slugifyCharacterId(name);
+    let n = 2;
+    while (raw.characters.some((c) => c && String(c.id) === id)) {
+      id = `${slugifyCharacterId(name)}-${n++}`;
+    }
+    const roleRaw = String(payload.role || "npc").trim();
+    const role = ["pc", "npc", "side", "gm"].includes(roleRaw) ? roleRaw : "npc";
+    const aliases = (Array.isArray(payload.aliases) ? payload.aliases : [])
+      .map((a) => cleanWorldText(a, 80))
+      .filter(Boolean)
+      .filter((a, i, arr) => arr.findIndex((x) => x.toLowerCase() === a.toLowerCase()) === i);
+    row = {
+      id,
+      display_name: name,
+      role,
+      status: cleanWorldText(payload.status, 60) || "draft",
+      notes: cleanWorldText(payload.notes, 20000),
+      player_name: cleanWorldText(payload.player_name, 80),
+      aliases,
+      relations: [],
+      images: [],
+      image_path: "",
+      hidden: payload.hidden === true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    if (payload.image_data_url) {
+      imagePath = writeIngestPortraitFile(id, payload.image_data_url, payload.image_filename);
+      row.image_path = imagePath;
+      row.images.push(imagePath);
+    }
+    if (payload.write_sheet && String(payload.sheet_markdown || "").trim()) {
+      storyPath = writeIngestSheetFile(id, payload.sheet_markdown);
+      if (storyPath && !row.story_path) row.story_path = storyPath;
+    }
+    raw.characters.push(row);
+  }
+
+  const written = writeRegistryFile({
+    absPath: REGISTRY_JSON,
+    data: raw,
+    repoRoot: REPO,
+    campaignId: CAMPAIGN,
+    baseVersion,
+    preserveUnknownIds: true,
+    lockHolder: `tableslop-world-ingest:${process.pid}`,
+    lockNote: "world page quick create / portrait attach",
+  });
+  const out = {
+    ok: true,
+    id,
+    version: written.version,
+    attach_only: attachOnly || undefined,
+  };
+  if (imagePath) out.image_path = imagePath;
+  if (storyPath) out.story_path = storyPath;
+  else if (row.story_path && !attachOnly) out.story_path = row.story_path;
+  return out;
+}
+
 function readEntitiesRaw() {
   if (!fs.existsSync(ENTITIES_JSON)) {
     return { version: 0, campaign: CAMPAIGN, setting: "Isla Primavera", updated_at: null, entities: [], missing: true };
@@ -7359,6 +7719,27 @@ async function handleRequest(req, res) {
         sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
       } else {
         sendJson(res, { error: (err && err.message) || "save_failed" }, 400);
+      }
+    }
+    return;
+  }
+  if (url === "/api/world/characters/ingest" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      // ~6MB: base64 portrait + JSON fields (decoded portrait still capped at WORLD_PORTRAIT_MAX)
+      if (Buffer.byteLength(body, "utf8") > 6 * 1024 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      sendJson(res, ingestWorldCharacter(payload), 200, 0);
+    } catch (err) {
+      if (err && err.code === "version_conflict") {
+        sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
+      } else {
+        sendJson(res, { error: (err && err.message) || "ingest_failed" }, 400);
       }
     }
     return;
