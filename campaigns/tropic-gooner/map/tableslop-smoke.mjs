@@ -38,14 +38,45 @@ fs.mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 
-const res = await page.goto(base, { waitUntil: 'networkidle', timeout: 60000 });
+// Prefer domcontentloaded — CDNs (fonts/marked) can stall `load`/`networkidle` on potato.
+const res = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 60000 });
 if (!res?.ok()) {
   fail(`HTTP ${res?.status() ?? 'none'} at ${base}`);
 } else {
   pass(`loads (${res.status()})`);
 }
 
-await page.waitForSelector('#mapStage', { timeout: 30000 });
+// Regression: stale coord_overrides + Edit OFF used to throw on `const profile` reassign → black map.
+await page.evaluate(() => {
+  localStorage.setItem(
+    'tableslop-primavera-profile-v1',
+    JSON.stringify({
+      v: 1,
+      mapRes: '2k',
+      editMode: false,
+      visited: [],
+      notes: {},
+      coord_overrides: { 'r01-paradise': { x_pct: 10, y_pct: 10 } },
+    })
+  );
+});
+await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+await page.waitForSelector('#mapImg, #mapTileLayer img', { timeout: 30000 });
+await page.waitForTimeout(800);
+const afterOverride = await page.evaluate(() => ({
+  legend: document.querySelectorAll('.legend-chip').length,
+  pins: document.querySelectorAll('.pin').length,
+  mapImg: !!document.getElementById('mapImg') || document.querySelectorAll('#mapTileLayer img').length > 0,
+}));
+if (afterOverride.legend < 14 || afterOverride.pins < 14 || !afterOverride.mapImg) {
+  fail(
+    `CODE:TS-MAP-OVERRIDE-BOOT black-map regression (legend=${afterOverride.legend} pins=${afterOverride.pins} mapImg=${afterOverride.mapImg})`
+  );
+} else {
+  pass('stale coord_overrides boot still renders map');
+}
+
+await page.waitForSelector('#mapStage', { state: 'attached', timeout: 30000 });
 const hasTiles = await page.locator('#mapTileLayer img').count();
 const hasImg = await page.locator('#mapImg').count();
 if (hasTiles > 0) pass(`tile pyramid (${hasTiles} visible tiles)`);

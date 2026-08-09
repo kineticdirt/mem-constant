@@ -1974,8 +1974,8 @@ function viewerHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
 <!-- Eager underlay: start 2k fetch during HTML parse (before 100KB+ map JS boots). -->
-<meta name="tableslop-build" content="2026-08-09-morning-opacity"/>
-<link rel="preload" as="image" href="/map-image?res=2k&v=20260809m"/>
+<meta name="tableslop-build" content="2026-08-09-override-boot"/>
+<link rel="preload" as="image" href="/map-image?res=2k&v=20260809n"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -5939,7 +5939,8 @@ function hideTooltip() {
 }
 
 async function load() {
-  const profile = loadProfile();
+  // let (not const): stale coord_overrides clear reassigns profile — const threw and left the map black.
+  let profile = loadProfile();
   if (profile.mapRes === '2k' || profile.mapRes === '4k') mapRes = profile.mapRes;
   updatePilotStats(profile);
 
@@ -6172,14 +6173,14 @@ function renderMapPyramid(stage, data, profile) {
   if (terrainBase && underUrl) {
     const img = document.createElement('img');
     img.id = 'mapImg';
-    img.src = underUrl.indexOf('?') >= 0 ? underUrl + '&v=20260809m' : underUrl + '?v=20260809m';
+    img.src = underUrl.indexOf('?') >= 0 ? underUrl + '&v=20260809n' : underUrl + '?v=20260809n';
     img.alt = data.title || 'campaign map';
     img.draggable = false;
     img.fetchPriority = 'high';
     img.style.opacity = '1';
     img.onerror = function() {
       if (data.base_image_url && img.src.indexOf('res=2k') >= 0) {
-        img.src = data.base_image_url + (data.base_image_url.indexOf('?') >= 0 ? '&' : '?') + 'v=20260809m';
+        img.src = data.base_image_url + (data.base_image_url.indexOf('?') >= 0 ? '&' : '?') + 'v=20260809n';
         return;
       }
       setMapLoadChip('Map underlay URL failed (HTTP error). Try hard-refresh.', true);

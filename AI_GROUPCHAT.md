@@ -1,5 +1,9 @@
 
 
+
+- **2026-08-09T22:21Z** — [PC] **Intent:** P0 map.tableslop.org blank again (GM screenshot: black viewport, empty legend, REGION NONE). Re-verify potato vs edge; do not trust prior Results. Fix underlay/tiles/data load. NEVER regions-ui. Holder: `tableslop-map-blank-again`.
+
+- **2026-08-09T22:32Z** — [PC] **Result:** P0 blank map (holder `tableslop-map-blank-again`). Root cause: `load()` used `const profile` then reassigned after clearing stale `coord_overrides` → TypeError aborts boot (black viewport, empty legend, REGION NONE) for Edit-OFF users with leftover pin overrides. Fix: `let profile`; smoke gate `TS-MAP-OVERRIDE-BOOT`; build meta `2026-08-09-override-boot`. Potato restarted; override regression PASS. NEVER regions-ui. **GM: Ctrl+Shift+R** on map.tableslop.org.
 - **2026-08-09T21:54Z** — [PC] **Intent:** Tableslop next lane = **Dashboard UX** (open `tableslop-progress` item; default after goals audit). Write tick-sized todo breakdown in ledger; inventory /world + App A gaps; implement first verifiable slice. NEVER regions-ui. Holder: `tableslop-dashboard-ux`.
 
 - **2026-08-09T21:55Z** — [PC] **Plan (Dashboard UX ticks):** dux-01 Cast red ✓ · dux-02 region Discord CTA · dux-03 journal density · dux-05 Phone/Radio/Sim honest stubs · dux-10 /world logged-in smoke · dux-11 Transport highways status · dux-20 tropic Story parity · dux-21 glance chips · dux-22 Cancel/RSVP→P1 defer · dux-30 docs/smoke hygiene. LOCK: no regions-ui.
