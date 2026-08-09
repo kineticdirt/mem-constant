@@ -21,10 +21,30 @@
     "model": "deepseek/deepseek-v4-flash",
     "configure_script": "scripts/linuxbox/configure-hermes-discord-nyc.sh",
     "soul": "campaigns/nyc-mafia-dnd/SOUL-discord-qa.md",
+    "skills_dir": "campaigns/nyc-mafia-dnd/hermes-skills/",
+    "slash": {
+      "what-do-i-know": "/skill what-do-i-know",
+      "archive": "/skill archive"
+    },
+    "gm_discord_id": "265909664590331915",
+    "home_channel": "1528215752576995580",
+    "ingest_script": "scripts/linuxbox/nyc-discord-ingest.sh",
+    "ingest_runbook": "campaigns/nyc-mafia-dnd/reports/discord-ingest-runbook.md",
+    "export_dir": "campaigns/nyc-mafia-dnd/discord-export/",
     "category_only": "1528215677272330300",
-    "notes": "Big Apples channels unioned into hunter Discord listen + free-response; NYC channel_prompts from SOUL-discord-qa.md. Shared bot with Tropic (one token)."
+    "rules_stack": "dnd5e_external + nyc_homebrew_internal",
+    "notes": "Female GM-helper personality; obey wholesome.man; union Big Apples into hunter listen; DeepSeek Flash; daily ingest cron recommended."
   },
-  "notes": "Resolved via bot API 2026-08-08 (AI_RP_Master). Sheets land in #characters-ba. Players seen: hiatuscauselife, celestialhoneydew, readyforbed, tezador56749, huatu; Mina <@130870631641251842> TBC. Same guild as tropic-gooner. Hermes NYC Q&A wired 2026-08-09.",
+  "players_discord_ids": {
+    "wholesome.man": "265909664590331915",
+    "hiatuscauselife": "457403984936960010",
+    "celestialhoneydew": "1097292597715796039",
+    "readyforbed": "530086282240720907",
+    "tezador56749": "1032828126142668850",
+    "huatu": "130870631641251842"
+  },
+  "notes": "Resolved via bot API 2026-08-08 (AI_RP_Master). Sheets land in #characters-ba. Same guild as tropic-gooner.",
   "linked_at": "2026-08-08T22:00:00Z",
-  "qa_wired_at": "2026-08-09T02:20:00Z"
+  "qa_wired_at": "2026-08-09T02:20:00Z",
+  "personality_wired_at": "2026-08-09T02:30:00Z"
 }

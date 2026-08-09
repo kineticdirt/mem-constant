@@ -65,6 +65,24 @@ SAFE_PATTERN_KEYS = [
     "stop/restart system service",
 ]
 
+# Read-only Discord / gateway diagnostics (dangerous-cmd pattern keys).
+# Note: Tirith findings use tirith:<rule_id> and cannot be permanently
+# allowlisted by Hermes — on potato Bullseye (glibc 2.31) stock tirith
+# binaries are broken (exit 1 → false "security issue detected"); disable
+# security.tirith_enabled on hunter instead (see fix-hermes-tirith-glibc.sh).
+SAFE_DIAG_ALLOW = [
+    "hermes gateway status",
+    "hermes gateway",
+    "ls",
+    "ls -la",
+    "tail",
+    "head",
+    "cat",
+    "systemctl --user is-active",
+    "systemctl --user status",
+    "journalctl --user",
+]
+
 DENY_GLOBS = [
     "git push --force*",
     "git push *-f *",
@@ -111,7 +129,7 @@ def patch_config(path: Path) -> bool:
     approvals["deny"] = deny
 
     allow = list(cfg.get("command_allowlist") or [])
-    for a in SAFE_GIT_ALLOW + SAFE_PATTERN_KEYS:
+    for a in SAFE_GIT_ALLOW + SAFE_PATTERN_KEYS + SAFE_DIAG_ALLOW:
         if a not in allow:
             allow.append(a)
     cfg["command_allowlist"] = allow
@@ -119,6 +137,12 @@ def patch_config(path: Path) -> bool:
     terminal = cfg.setdefault("terminal", {})
     if not terminal.get("cwd") or terminal.get("cwd") in (".", ""):
         terminal["cwd"] = str(REPO)
+
+    # Preserve hunter Tirith-off after fix-hermes-tirith-glibc.sh (Bullseye).
+    if profile == "hunter-reckoning":
+        sec = cfg.setdefault("security", {})
+        if sec.get("tirith_enabled") is False:
+            sec["tirith_fail_open"] = True
 
     with path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(cfg, f, default_flow_style=False, sort_keys=False, allow_unicode=True)

@@ -231,9 +231,14 @@ print(f"nyc_only={nyc_only}")
 PY
 
 echo ""
-echo "Restart hunter Discord gateway:"
+echo "Config written. Do NOT restart the gateway mid-conversation — players see"
+echo "'Gateway shutting down' and turns die. Restart only when Discord is idle:"
 echo "  systemctl --user restart hermes-gateway-hunter-reckoning"
 echo "  systemctl --user is-active hermes-gateway-hunter-reckoning"
+echo "Prefer: leave gateway running; next natural restart picks this up."
 echo ""
 echo "Smoke: post in #general-ooc-ba (no @mention required). Expect DeepSeek Flash lore answer."
 echo "Note: DISCORD_ALLOWED_USERS still gates who can talk; add player IDs if needed."
+echo "Tirith note: potato Bullseye (glibc 2.31) cannot run stock tirith binaries"
+echo "(they need glibc ≥2.32). Keep security.tirith_enabled=false on hunter;"
+echo "hardline + dangerous-command guards still apply. See discord-hunter-linuxbox.md."

@@ -1,3 +1,13 @@
+- **2026-08-09T02:35Z** — [PC] **Result:** NYC gateway security fix. Root cause: stock tirith needs glibc≥2.32; potato Bullseye=2.31 → exit 1 mapped to Security-scan block-all; agent `systemctl restart` mid-chat caused Gateway-shutting-down. Fix: `apply-nyc-gateway-security-fix.sh` — tirith_enabled=false + allow-stub, diagnostic command_allowlist, `disabled_toolsets:[terminal]`, SOUL no-terminal + female GM-helper + obey wholesome.man `265909664590331915`. Gateway left up after one idle restart; discord connected; ingest ran (7 channels). Slash: `/skill what-do-i-know`, `/skill archive`. Holder: `nyc-gateway-security-fix`.
+
+- **2026-08-09T02:35Z** — [PC] **Result:** NYC Discord slash+lore+ingest — skills on hunter `gaming/{what-do-i-know,archive}`; SOUL 5e external + NYC homebrew; ingest `nyc-discord-ingest.sh` OK → discord-export Big Apples. Holder: `nyc-discord-slash-lore`.
+
+- **2026-08-09T02:30Z** — [PC] **Intent:** Stabilize hunter Discord gateway (stop restart thrash); fix Tirith glibc false security blocks; keep allowlist+home. Holder: `nyc-gateway-security-fix`.
+
+- **2026-08-09T02:25Z** — [PC] **Intent:** Finish NYC Discord Q&A/ingest; add Hermes slash `/archive` + `/what-do-i-know` (5e external + NYC homebrew); refresh soul/prompts. Holder: `nyc-discord-slash-lore`.
+
+- **2026-08-09T02:15Z** — [PC] **Intent:** Smoke-test NYC Hermes Discord Q&A (delete test msgs after); wire Big Apples category ingest for tracking/readback; note in ledger+docs. Holder: `nyc-discord-qa-ingest`.
+
 - **2026-08-09T02:12Z** — [PC] **Result:** (1) Deleted older lore threads Spell-Tech/Families/Fringe (200). History H1–H6 remain. (2) Wired NYC Big Apples `1528215677272330300` into hunter-reckoning Discord (union with Tropic channels): model `deepseek/deepseek-v4-flash`, free-response + channel_prompts from `SOUL-discord-qa.md`, script `configure-hermes-discord-nyc.sh`, gateway active. ALLOWED_USERS +Mina/hiatus/GM. Smoke: post in #general-ooc-ba. Holder: `nyc-discord-hermes-qa`.
 
 - **2026-08-09T02:05Z** — [PC] **Intent:** (1) DELETE older Discord lore threads Spell-Tech/Families/Fringe; (2) wire Hermes to Big Apples category `1528215677272330300` only for NYC Q&A on DeepSeek V4 Flash. Holder: `nyc-discord-hermes-qa`.
