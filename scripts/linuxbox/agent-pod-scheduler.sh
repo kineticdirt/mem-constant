@@ -453,6 +453,45 @@ state["current"] = {"name": name, "started_at": now, "blurb": blurb}
 state_file.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 print(f"current pod={name} blurb={blurb}")
 
+def dispatch_cursor_twin(pod_name: str, goal: str, prompt_text: str) -> None:
+    """Agent2 parallel copy — same goal as this Hermes pod (CURSOR_PARALLEL=1)."""
+    if os.environ.get("CURSOR_PARALLEL", "1") != "1":
+        return
+    # Skip pure sync/idle-ish pods; twin coding/cleanup/campaigns.
+    if pod_name in ("fast",):
+        return
+    twin = Path(repo) / "scripts" / "linuxbox" / "cursor-twin-dispatch.sh"
+    if not twin.is_file():
+        return
+    try:
+        subprocess.Popen(
+            [
+                "bash",
+                str(twin),
+                "--source",
+                pod_name,
+                "--goal",
+                (goal or pod_name)[:200],
+                "--prompt",
+                (
+                    f"You are Agent 2 (Cursor Auto) twin of Hermes pod `{pod_name}`.\n"
+                    f"Workdir: {repo}. Same goal Hermes is pursuing — ONE step then stop.\n"
+                    f"Goal: {goal}\n\n"
+                    f"Hermes prompt (truncated):\n{(prompt_text or '')[:4000]}\n"
+                ),
+            ],
+            cwd=repo,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        print(f"CURSOR_TWIN dispatched for pod={pod_name}")
+    except OSError as e:
+        print(f"CURSOR_TWIN failed: {e}")
+
+
+dispatch_cursor_twin(name, blurb, prompt)
+
 env = os.environ.copy()
 cwd = pod.get("terminal_cwd") or repo
 done_blurb = blurb

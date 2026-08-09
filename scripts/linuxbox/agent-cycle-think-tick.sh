@@ -4,9 +4,10 @@
 # Guardrails = ordered checks (agents/THINK_SECURITY_CHECKS.md), not rigid bans.
 # Toolsets omit browser/computer_use (C3: potato RAM; navigate :8790 hangs → exit 124).
 #
-# Parallel lanes (2026-08-01): this flock is THINK-ONLY. Never wait on Cursor SDK /
-# cursor-agent-run / Hub cursor:auto. Cursor Auto ∥ Hermes OR+ZenMux — explicit Hub/SSH
-# only; not invoked from this cron.
+# Parallel lanes (2026-08-01 / 2026-08-09): this flock is THINK-ONLY (never waits on
+# Cursor). When CURSOR_PARALLEL=1 (default), dispatches a Cursor Auto *twin* with the
+# same task goal via cursor-twin-dispatch.sh (Agent1 Hermes ∥ Agent2 Cursor). Routing:
+# free OpenRouter → cursor:auto → paid Hermes (C8 + THINK_CURSOR_BEFORE_PAID).
 set -euo pipefail
 export PATH="${HOME}/.local/bin:${PATH}"
 REPO="${HOME}/agent-dump"
@@ -38,7 +39,11 @@ THINK_MAX_LANE_ATTEMPTS="${THINK_MAX_LANE_ATTEMPTS:-3}"
 # C8 paid policy — see agents/THINK_SECURITY_CHECKS.md §C8.
 # Scenario 1 (free exhausted): THINK_PAID_ON_FREE_EXHAUSTED (alias THINK_ALLOW_PAID_LAST_RESORT).
 # Scenario 2 (verified free fail): THINK_PAID_ON_VERIFIED_FREE_FAIL after THINK_PAID_FREE_FAIL_N.
+# Prefer Cursor Auto before burning paid Hermes when key present (default on).
+THINK_CURSOR_BEFORE_PAID="${THINK_CURSOR_BEFORE_PAID:-1}"
+CURSOR_PARALLEL="${CURSOR_PARALLEL:-1}"
 THINK_PAID_ESCALATE_PY="${REPO}/scripts/linuxbox/think-paid-escalate.py"
+CURSOR_TWIN_SH="${REPO}/scripts/linuxbox/cursor-twin-dispatch.sh"
 SELF="${HOME}/bin/agent-cycle-think-tick.sh"
 [[ -x "${SELF}" ]] || SELF="${REPO}/scripts/linuxbox/agent-cycle-think-tick.sh"
 
@@ -1213,6 +1218,30 @@ if [[ -z "${TERMINAL_TIMEOUT:-}" ]] || [[ "${TERMINAL_TIMEOUT}" -lt 240 ]]; then
   export TERMINAL_TIMEOUT=240
 fi
 : > "${LOG}"
+
+# Agent2 twin — same goal/context as this Hermes tick (non-blocking; never waits).
+if [[ "${CURSOR_PARALLEL}" == "1" && -f "${CURSOR_TWIN_SH}" ]]; then
+  {
+    echo ""
+    echo "======== cursor twin dispatch (parallel Hermes) ========"
+    bash "${CURSOR_TWIN_SH}" \
+      --source think \
+      --goal "${BLURB}" \
+      --task-id "${THINK_TASK_ID:-${TASK_ID:-}}" \
+      --prompt "You are Agent 2 (Cursor Auto) twin of Hermes think on potato.
+Workdir: ${REPO}. Same item Hermes is doing now — ONE concrete step then stop.
+Goal/blurb: ${BLURB}
+${THINK_TASK_ID:+Think task id: ${THINK_TASK_ID}}
+${LANE_FILE:+Lane file: ${LANE_FILE}}
+${LANE_ITEM:+Lane item: ${LANE_ITEM}}
+${TASK_ID:+User-task id: ${TASK_ID}}
+SUCCESS METRIC: ${THINK_SUCCESS_METRIC:-concrete DONE-when}
+VERIFY: ${THINK_VERIFY_CMD:-script/curl/file/checkbox}
+Do not wipe registries/regions-ui. Append [LINUX] Result to AI_GROUPCHAT.md." \
+      || true
+  } >> "${LOG}" 2>&1 || true
+fi
+
 # Toolsets: no browser/computer_use (C3). Cap turns so one stuck tool cannot burn 4+ minutes.
 # Free-model rotate: Hermes retries the same -m model 3×; outer loop advances on 429.
 # On shared free-models-per-day-high-balance, fast-probe remaining ids (no Hermes 3× thrash).
@@ -1536,6 +1565,35 @@ if [[ "${THINK_PAID_LAST_RESORT}" == "1" ]]; then
   fi
 fi
 
+# Prefer Cursor Auto over paid Hermes when key present (free → cursor:auto → paid).
+# Urgent Fix-this / [ops] still may use paid under C8; continuous boards offload.
+cursor_before_paid_gate() {
+  # Returns 0 = skip paid Hermes (Cursor preferred). 1 = allow paid.
+  [[ "${THINK_CURSOR_BEFORE_PAID}" == "1" ]] || return 1
+  local envf="${CURSOR_AGENT_ENV:-${HOME}/.cursor-agent.env}"
+  [[ -f "${envf}" ]] || envf="/home/$(id -un)/.cursor-agent.env"
+  grep -qE '^[[:space:]]*CURSOR_API_KEY=.+' "${envf}" 2>/dev/null || return 1
+  # Force-allow paid for explicit hermes-only assign.
+  if printf '%s' "${BLURB}" | grep -qiE 'assigned_lane=hermes|\[hermes\]'; then
+    return 1
+  fi
+  if [[ -f "${CURSOR_TWIN_SH}" ]]; then
+    date +%s > "${REPO}/agents/state/cursor-twin.force" 2>/dev/null || true
+    bash "${CURSOR_TWIN_SH}" \
+      --source "think-before-paid" \
+      --goal "${BLURB}" \
+      --task-id "${THINK_TASK_ID:-${TASK_ID:-}}" \
+      --prompt "C8: free chain exhausted or verified-fail. Prefer Cursor Auto over paid Hermes.
+Workdir: ${REPO}. Do ONE step for: ${BLURB}
+${LANE_FILE:+Lane: ${LANE_FILE} :: ${LANE_ITEM}}
+${TASK_ID:+Task: ${TASK_ID}}
+Metric: ${THINK_SUCCESS_METRIC:-concrete DONE}. Verify then stop." \
+      >> "${LOG}" 2>&1 || true
+  fi
+  date +%s > "${REPO}/agents/state/cursor-tick.force" 2>/dev/null || true
+  return 0
+}
+
 if [[ "${THINK_PAID_LAST_RESORT}" == "1" ]]; then
   {
     echo ""
@@ -1549,6 +1607,16 @@ if [[ "${THINK_PAID_LAST_RESORT}" == "1" ]]; then
       THINK_PAID_SCENARIO="${THINK_PAID_SCENARIO:-exhausted}"
     fi
   } >> "${LOG}"
+  if cursor_before_paid_gate; then
+    {
+      echo "======== THINK_CURSOR_BEFORE_PAID: skip paid Hermes; Cursor twin preferred ========"
+      echo "paid_model_would_have_been=${THINK_PAID_MODEL}"
+      echo "scenario=${THINK_PAID_SCENARIO}"
+    } >> "${LOG}"
+    USED_MODEL="cursor:auto"
+    focus idle "offloaded→Cursor (before paid): ${BLURB}" "${THINK_TASK_ID}"
+    rc=0
+  else
   USED_MODEL="${THINK_PAID_MODEL}"
   focus running "${BLURB} · PAID ${THINK_PAID_MODEL}" "${THINK_TASK_ID}"
   if [[ -f "${THINK_PAID_ESCALATE_PY}" && "${THINK_PAID_SCENARIO}" == "verified_fail" ]]; then
@@ -1562,6 +1630,7 @@ if [[ "${THINK_PAID_LAST_RESORT}" == "1" ]]; then
       --scenario verified_fail >> "${LOG}" 2>/dev/null || true
   fi
   rc="$(run_hermes_once "${THINK_PAID_MODEL}")"
+  fi
 else
   for _cand in "${_FREE_CHAIN[@]}"; do
     _cand="$(printf '%s' "${_cand}" | tr -d '[:space:]')"
@@ -1636,10 +1705,19 @@ PY
         echo ""
         echo "======== think PAID C8 scenario 1 after free exhaust: ${THINK_PAID_MODEL} ========"
       } >> "${LOG}"
+      if cursor_before_paid_gate; then
+        {
+          echo "======== THINK_CURSOR_BEFORE_PAID: skip paid after free exhaust ========"
+        } >> "${LOG}"
+        USED_MODEL="cursor:auto"
+        focus idle "offloaded→Cursor (before paid): ${BLURB}" "${THINK_TASK_ID}"
+        rc=0
+      else
       USED_MODEL="${THINK_PAID_MODEL}"
       focus running "${BLURB} · PAID ${THINK_PAID_MODEL}" "${THINK_TASK_ID}"
       # Clear 429 markers from LOG view for paid attempt — append-only; check paid section later
       rc="$(run_hermes_once "${THINK_PAID_MODEL}")"
+      fi
       REPO="${REPO}" THINK_PAID_MODEL="${THINK_PAID_MODEL}" FREE429_BLOCKED="${FREE429_BLOCKED}" python3 - <<'PY'
 import json, os
 from datetime import datetime, timezone

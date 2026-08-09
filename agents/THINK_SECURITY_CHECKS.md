@@ -127,16 +127,21 @@ Not “model said it failed.” Pixi `CHAT_UI_ALLOW_PAID_FALLBACK` is a separate
 Entire live free swap (`agents/model-budget/think-free-swap.json`) is 429/unavailable
 for this UTC day window (after mid-day re-probe). Then:
 
-1. **Prefer Cursor Auto** for continuous campaign/product boards when
-   `~/.cursor-agent.env` has a non-empty `CURSOR_API_KEY` (Agent 2). Think skips
-   those boards on the paid path — free → Cursor Auto → paid.
-2. Only then: one paid last-resort attempt for remaining Hermes-owned work
-   (urgent `[ops]` / Fix-this, or continuous boards if Cursor key is missing).
+1. **Prefer Cursor Auto** (`THINK_CURSOR_BEFORE_PAID=1`, default) when
+   `~/.cursor-agent.env` has a non-empty `CURSOR_API_KEY` (Agent 2). Think
+   **skips paid Hermes** and dispatches a Cursor twin via
+   `scripts/linuxbox/cursor-twin-dispatch.sh` — order is always
+   **free OpenRouter → `cursor:auto` → paid Hermes**. Never burn paid (DeepSeek /
+   405B-class) while Cursor Auto is idle/available.
+2. Only then (no Cursor key, or explicit hermes-only assign): one paid last-resort
+   attempt (`THINK_PAID_MODEL`, default DeepSeek — not 405B).
 
 | Env | Default | Meaning |
 |-----|---------|---------|
 | `THINK_PAID_ON_FREE_EXHAUSTED` | `1` | Allow scenario 1 |
 | `THINK_ALLOW_PAID_LAST_RESORT` | *(alias)* | Same as above (back-compat); set either to `0` to skip Hermes when free exhausted |
+| `THINK_CURSOR_BEFORE_PAID` | `1` | Prefer Cursor Auto twin; skip paid Hermes when key present |
+| `CURSOR_PARALLEL` | `1` | Dispatch Cursor twin with same task when Hermes starts |
 | `THINK_PAID_MODEL` | `deepseek/deepseek-v4-flash` | Paid id for both scenarios |
 
 ### Scenario 2 — Verified free failure

@@ -37,10 +37,30 @@ fi
 
 INTERVAL_SEC="${CURSOR_INTERVAL_SEC:-900}"
 STAMP_FILE="${REPO}/agents/state/cursor-tick.last"
+FORCE_FILE="${REPO}/agents/state/cursor-tick.force"
 STATE_DIR="${REPO}/agents/state"
 mkdir -p "${STATE_DIR}"
 
 now_epoch="$(date +%s)"
+if [[ -f "${FORCE_FILE}" ]]; then
+  rm -f "${FORCE_FILE}"
+  INTERVAL_SEC=0
+fi
+# When open Cursor-lane work exists, poll more often (5m effective) — idle is the bug.
+OPEN_N="$(python3 -c "
+import json
+from pathlib import Path
+p=Path('${REPO}')/'agents'/'user-tasks.json'
+try:
+  t=json.loads(p.read_text()).get('tasks') or []
+except Exception:
+  t=[]
+n=sum(1 for x in t if isinstance(x,dict) and str(x.get('status') or '').lower() in ('open','pending',''))
+print(n)
+" 2>/dev/null || echo 0)"
+if [[ "${OPEN_N}" -gt 0 && "${INTERVAL_SEC}" -gt 300 ]]; then
+  INTERVAL_SEC=300
+fi
 if [[ -f "${STAMP_FILE}" ]]; then
   last="$(tr -dc '0-9' < "${STAMP_FILE}" | head -c 12 || true)"
   if [[ -n "${last}" ]]; then
@@ -51,8 +71,14 @@ if [[ -f "${STAMP_FILE}" ]]; then
   fi
 fi
 
-# Already running?
-if bash "${REPO}/scripts/linuxbox/cursor-lane-status.sh" --json 2>/dev/null | grep -q '"running": true'; then
+# Already running? Missing status script must not abort the tick (set -e).
+_cursor_running=0
+if [[ -f "${REPO}/scripts/linuxbox/cursor-lane-status.sh" ]]; then
+  if bash "${REPO}/scripts/linuxbox/cursor-lane-status.sh" --json 2>/dev/null | grep -q '"running": true'; then
+    _cursor_running=1
+  fi
+fi
+if [[ "${_cursor_running}" -eq 1 ]]; then
   exit 0
 fi
 
@@ -72,7 +98,49 @@ TASK_ID="$(python3 -c "import json,sys; d=json.loads(sys.argv[1] or '{}'); t=d.g
 TASK_TITLE="$(python3 -c "import json,sys; d=json.loads(sys.argv[1] or '{}'); t=d.get('task') or {}; print((t.get('title') or '')[:200])" "${PICK_JSON}")"
 TASK_BODY="$(python3 -c "import json,sys; d=json.loads(sys.argv[1] or '{}'); t=d.get('task') or {}; print((t.get('body') or '')[:800])" "${PICK_JSON}")"
 
+# Empty queue → deterministic continuity seed (city lived-in + backlog) then re-pick.
+if [[ -z "${TASK_ID}" && -f "${REPO}/scripts/linuxbox/think-continuity-seed.py" ]]; then
+  python3 "${REPO}/scripts/linuxbox/think-continuity-seed.py" --repo "${REPO}" >/dev/null 2>&1 || true
+  PICK_JSON="$(python3 "${REPO}/scripts/linuxbox/cursor-pick-task.py" --repo "${REPO}" --json 2>/dev/null || echo '{}')"
+  TASK_ID="$(python3 -c "import json,sys; d=json.loads(sys.argv[1] or '{}'); t=d.get('task') or {}; print(t.get('id') or '')" "${PICK_JSON}")"
+  TASK_TITLE="$(python3 -c "import json,sys; d=json.loads(sys.argv[1] or '{}'); t=d.get('task') or {}; print((t.get('title') or '')[:200])" "${PICK_JSON}")"
+  TASK_BODY="$(python3 -c "import json,sys; d=json.loads(sys.argv[1] or '{}'); t=d.get('task') or {}; print((t.get('body') or '')[:800])" "${PICK_JSON}")"
+fi
+
+# Idle fill: no user-task → ponytail board OR stack self-improve (never sit idle).
 if [[ -z "${TASK_ID}" ]]; then
+  TWIN="${REPO}/scripts/linuxbox/cursor-twin-dispatch.sh"
+  IDLE_GOAL=""
+  IDLE_PROMPT=""
+  if [[ -f "${REPO}/agents/PONYTAIL_CLEANUP_BOARD.md" ]] \
+    && grep -qE '^[[:space:]]*[-*][[:space:]]*\[[[:space:]]\]' "${REPO}/agents/PONYTAIL_CLEANUP_BOARD.md" 2>/dev/null; then
+    IDLE_GOAL="ponytail-cleanup: one Backlog card from PONYTAIL_CLEANUP_BOARD.md"
+    IDLE_PROMPT="You are Agent 2 (Cursor Auto) idle-fill on potato.
+Read agents/PONYTAIL_CLEANUP_TASK.md + agents/PONYTAIL_CLEANUP_BOARD.md.
+Take ONE unchecked Backlog card. Fix/refine in place — NO file deletions.
+Verify (py_compile / bash -n). Move card to Done. Append [LINUX] Result to AI_GROUPCHAT.md."
+  elif [[ -f "${REPO}/agents/SELF_IMPROVE_PROGRESS.md" ]] \
+    && grep -qE '^[[:space:]]*[-*][[:space:]]*\[[[:space:]]\]' "${REPO}/agents/SELF_IMPROVE_PROGRESS.md" 2>/dev/null; then
+    IDLE_GOAL="self-improve: one open box from SELF_IMPROVE_PROGRESS.md (S2/S3)"
+    IDLE_PROMPT="You are Agent 2 (Cursor Auto) idle-fill — stack self-improve.
+Read agents/SELF_IMPROVE_PROGRESS.md. Do ONE unchecked Open box (prefer S2 then S3).
+Smallest correct implement+verify. Flip [ ]→[x] + Done note. Append [LINUX] Result."
+  elif [[ -f "${REPO}/agents/self-improvement-progress.md" ]] \
+    && grep -qE '^[[:space:]]*[-*][[:space:]]*\[[[:space:]]\]' "${REPO}/agents/self-improvement-progress.md" 2>/dev/null; then
+    IDLE_GOAL="education: one drill from self-improvement-progress.md"
+    IDLE_PROMPT="You are Agent 2 (Cursor Auto) idle-fill — human education lane.
+Read agents/SELF_IMPROVEMENT_TASK.md + agents/self-improvement-progress.md.
+One short free-first drill → reports/self-improvement/ or reports/education/.
+Flip one [ ]→[x]. No inbox spam. Append [LINUX] Result."
+  fi
+  if [[ -n "${IDLE_GOAL}" && -f "${TWIN}" ]]; then
+    date +%s > "${REPO}/agents/state/cursor-twin.force" 2>/dev/null || true
+    bash "${TWIN}" --source idle-fill --goal "${IDLE_GOAL}" --prompt "${IDLE_PROMPT}" \
+      || true
+    echo "${now_epoch}" > "${STAMP_FILE}"
+    echo "[cursor-tick] idle-fill twin: ${IDLE_GOAL}"
+    exit 0
+  fi
   echo "${now_epoch}" > "${STAMP_FILE}"
   exit 0
 fi
@@ -124,9 +192,19 @@ fi
 mkdir -p "${LOG_DIR}"
 OUTER_LOG="${LOG_DIR}/cursor-tick-$(date -u +%Y%m%dT%H%M%SZ).log"
 
+RUNNER="${REPO}/scripts/linuxbox/cursor-agent-run.sh"
+if [[ ! -f "${RUNNER}" ]]; then
+  mkdir -p "${LOG_DIR}"
+  echo "[cursor-tick] FAIL: missing ${RUNNER} (task=${TASK_ID}) — restore via push-linuxbox or SCP; do not stamp as success" >&2
+  echo "missing_runner $(date -u +%Y-%m-%dT%H:%M:%SZ) task=${TASK_ID}" >> "${STATE_DIR}/cursor-tick.errors"
+  # Do not advance stamp — next cron retry once file is restored
+  exit 1
+fi
+
 export CURSOR_SDK_AUTO_ONLY=1
 export CURSOR_AGENT_TIMEOUT_SEC="${CURSOR_AGENT_TIMEOUT_SEC:-1200}"
-nohup bash "${REPO}/scripts/linuxbox/cursor-agent-run.sh" "${PROMPT}" \
+export CURSOR_TASK_ID="${TASK_ID}"
+nohup bash "${RUNNER}" "${PROMPT}" \
   >> "${OUTER_LOG}" 2>&1 &
 echo $! > "${STATE_DIR}/cursor-tick.pid"
 echo "${now_epoch}" > "${STAMP_FILE}"

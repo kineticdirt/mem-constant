@@ -56,9 +56,24 @@ echo $!
 bash ~/agent-dump/scripts/linuxbox/cursor-lane-status.sh
 ```
 
+## Twin dispatch (2026-08-09)
+
+When Hermes think or a pod (e.g. `ponytail-cleanup`) starts an LLM item,
+`scripts/linuxbox/cursor-twin-dispatch.sh` fires Agent 2 with the **same goal**
+(`CURSOR_PARALLEL=1`). Not either/or — Hermes ∥ Cursor Auto.
+
+Routing for think / Fix-this / cleanup-eligible work:
+
+**free OpenRouter → `cursor:auto` → paid Hermes (C8 only)**
+
+- `THINK_CURSOR_BEFORE_PAID=1` — skip paid Hermes when Cursor key present; twin gets the work.
+- Idle Cursor tick fills from `PONYTAIL_CLEANUP_BOARD.md` or `SELF_IMPROVE_PROGRESS.md` when user-tasks are empty.
+- Kill-switch: `CURSOR_PARALLEL=0`. Memory gate inside twin dispatch (~500 MiB avail).
+
 ## Policy pointers
 
 - Think C8 paid: `agents/THINK_SECURITY_CHECKS.md` + `CLAUDE.md`
 - Cursor Auto-only: `CURSOR_SDK_AUTO_ONLY=1` in `cursor-agent-run.sh` / env
+- Twin: `scripts/linuxbox/cursor-twin-dispatch.sh`
 - Sibling plan (CLI lane history): `docs/plans/hermes-cursor-agent-lane-2026-07-29.md`
 - Away-from-PC Cloud Agents (future): `docs/plans/cursor-auto-away-from-pc-2026-07-29.md`

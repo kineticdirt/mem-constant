@@ -43,7 +43,7 @@ bash ~/agent-dump/scripts/linuxbox/cursor-agent-run.sh "Reply PING only — one 
 |------|--------|
 | Docs character-beta `cursor:auto` | Still OpenRouter-only (`linuxbox-docs-wiki.js`) |
 | Hermes `cursor` profile primary | Not added — Hermes cannot run Cursor skills natively; Hub dispatches CLI |
-| Think-tick auto-invoke on `[ops]` | Blocked by design — use Hub explicit pick or manual wrapper |
+| Think-tick Cursor twin (same goal) | **Shipped 2026-08-09** — `cursor-twin-dispatch.sh` + `CURSOR_PARALLEL=1`; paid gated by `THINK_CURSOR_BEFORE_PAID` |
 | Cloud Automations wired in repo | **Phase 2** — needs dashboard OAuth (human) |
 | `.cursor/environment.json` snapshot | Stub only; run Cloud Agents env setup on cursor.com |
 
