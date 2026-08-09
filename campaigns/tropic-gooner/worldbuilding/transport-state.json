@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-09T04:19:00Z",
+  "present_lock": 2019,
+  "title": "Transportation",
+  "blurb": "Green map lines = highways / freeways. Highway geometry is a separate map track (not edited here). Street texture lives in STREETS.md. Do not wipe region borders when drawing roads.",
+  "modes": [
+    { "id": "mode-highways", "mode": "Highways / freeways", "role": "Island spine", "map": "green lines · highways layer" },
+    { "id": "mode-streets", "mode": "Local streets", "role": "City block texture", "map": "STREETS.md · streets layer" },
+    { "id": "mode-cars", "mode": "Cars / scooters", "role": "Default PC movement", "map": "player routines" },
+    { "id": "mode-buses", "mode": "Buses", "role": "Cheap bay hops", "map": "transit-bus placeholder" },
+    { "id": "mode-rail", "mode": "Rail", "role": "Bulk / south belt", "map": "San Aurelio yards" },
+    { "id": "mode-boats", "mode": "Boats / ships", "role": "Marina, docks, ferry rumor", "map": "ports" },
+    { "id": "mode-walk", "mode": "Walking", "role": "District play", "map": "STREETS.md times" }
+  ],
+  "play_notes": [
+    "Off-peak Paradise ↔ Lujara under an hour; Carnival and storm nights are not",
+    "Quay alleys are not freeway on-ramps",
+    "Federal roads look maintained; county roads look loved or ignored"
+  ],
+  "highway_note": "SwitchBack corridor is the diegetic get-anywhere highway story. Bay ring links Paradise ↔ Porto Lujara ↔ Jackedsonville. Geometry edits belong on the map highways layer — World Transport only reports layer status.",
+  "highways_track": {
+    "layer_id": "highways",
+    "geometry_owner": "map",
+    "plan_note": "Separate map track; World UI does not draw roads."
+  },
+  "notes_path": "worldbuilding/TRANSPORT.md"
+}

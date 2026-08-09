@@ -1,3 +1,7 @@
+- **2026-08-09T04:19Z** — [PC] **Intent:** Urgent map black + DEV LOG broken — diagnose SyntaxError in map viewer after Dev calendar HUD; surgical fix tableslop-server.js map/devlog only; NEVER touch regions-ui.json. Coord with world-dashboard agent. Holder: `tableslop-map-black-devlog`.
+
+- **2026-08-09T04:19Z** — [PC] **Intent:** World editor bulk+detail dashboard D0–D4 (weather detail/bulk, regions/ag/transport state shell, cast/places multi-select, highways track note). NEVER touch regions-ui.json. Holder: `tableslop-world-dashboard`.
+
 - **2026-08-09T04:12Z** — [PC] **Result:** tableslop Dev calendar HUD shipped. Order: map blues → Radio/Phone/Sim/Cast → **WORLD** (neon pink) → REPORT → **dev log** (green). SoT `projects/tableslop/dev-calendar.json` (9 timeline / 5 features / 3 bugs). APIs GET public + POST editGate. Potato :8765 **200**; HTML has hud-world/hud-devlog; GET /api/dev-calendar JSON; POST unauth **401**; borders guard **PASS v25/660**. Hard-refresh map.tableslop.org. Holder: `tableslop-dev-log`.
 
 - **2026-08-09T04:09Z** — [PC] **Intent:** tableslop map HUD — reorder WORLD (neon pink) + REPORT after orange docks; add green **dev log** chip → Dev calendar panel (timeline/features/bugs); SoT projects/tableslop/dev-calendar.json + GET/POST /api/dev-calendar. NEVER touch regions-ui.json. Holder: `tableslop-dev-log`.

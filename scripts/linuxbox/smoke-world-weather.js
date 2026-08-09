@@ -82,7 +82,7 @@ async function main() {
 
   const world = await request(cookie, "/world");
   if (world.status !== 200) throw new Error("world status " + world.status);
-  for (const needle of ["weatherGenBtn", "sotDash", "Generate / refresh forecast", "/api/world/weather"]) {
+  for (const needle of ["weatherGenBtn", "sotDash", "weatherPlus1Btn", "sotDetail", "castBulkBar", "entBulkBar", "/api/world/weather"]) {
     if (!world.body.includes(needle)) throw new Error("world html missing " + needle);
   }
 
@@ -90,19 +90,37 @@ async function main() {
   const wj = JSON.parse(w.body);
   if (w.status !== 200 || !wj.cities || !wj.cities.paradise) throw new Error("weather bad: " + w.body.slice(0, 200));
 
+  const t0 = Date.now();
   const gen = await request(cookie, "/api/world/weather", "POST", {
+    action: "regenerate",
     generate: true,
     forecast_days: 7,
     base_version: wj.version,
   });
+  const genMs = Date.now() - t0;
   const gj = JSON.parse(gen.body);
   if (gen.status !== 200 || !gj.cities || !gj.cities["porto-lujara"]) {
     throw new Error("generate bad: " + gen.body.slice(0, 240));
   }
+  if (genMs > 1000) throw new Error("regen too slow: " + genMs + "ms");
+
+  const adv = await request(cookie, "/api/world/weather", "POST", {
+    action: "advance",
+    days: 1,
+    base_version: gj.version,
+  });
+  const aj = JSON.parse(adv.body);
+  if (adv.status !== 200 || !aj.diegetic_date) throw new Error("advance bad: " + adv.body.slice(0, 200));
 
   const regions = await request(cookie, "/api/world/summary?module=regions");
   const rj = JSON.parse(regions.body);
   if (regions.status !== 200 || !(rj.focus || []).length) throw new Error("regions summary bad");
+
+  const transport = await request(cookie, "/api/world/summary?module=transport");
+  const tj = JSON.parse(transport.body);
+  if (transport.status !== 200 || !tj.highways_layer || !tj.highways_layer.status) {
+    throw new Error("transport highways_layer bad: " + transport.body.slice(0, 240));
+  }
 
   const cast = await request(cookie, "/api/characters?include_hidden=1");
   const cj = JSON.parse(cast.body);
@@ -113,10 +131,16 @@ async function main() {
     "@" + (mej.username || "?") + " · " + mej.role,
     "weather",
     wj.diegetic_date,
+    "→",
+    aj.diegetic_date,
     wj.season,
+    "regen_ms",
+    genMs,
     "cities",
     Object.keys(wj.cities).join(","),
     "gen_v" + gj.version,
+    "hw",
+    tj.highways_layer.status,
     "cast v" + cj.version + " · " + cj.count + " rows"
   );
 }

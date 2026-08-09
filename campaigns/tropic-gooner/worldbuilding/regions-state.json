@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-09T04:19:00Z",
+  "present_lock": 2019,
+  "title": "Focus regions",
+  "blurb": "Island region digest. Borders live on the map (GM draw). Cards below are play-facing summaries — not the polygon editor.",
+  "focus": [
+    {
+      "id": "r01-paradise",
+      "name": "Paradise",
+      "bordered": "GM-drawn",
+      "identity": "Resort heart of the bay tri-city; the brochure",
+      "hook": "What's underneath the performance (Sasha's base)",
+      "status": "focus"
+    },
+    {
+      "id": "r02-porto-lujuria",
+      "name": "Porto Lujara",
+      "region_name": "Lujuria",
+      "bordered": "placeholder",
+      "identity": "Working port that parties; Carnaval town",
+      "hook": "The forecast economy — who knows the sweep schedule",
+      "status": "focus"
+    },
+    {
+      "id": "r03-crimson-quay",
+      "name": "Jackedsonville",
+      "region_name": "Crimson Quay",
+      "bordered": "GM-drawn",
+      "identity": "Casino city, rowdiest vice face",
+      "hook": "Handshake-deal order held up by lighting rigs",
+      "status": "focus"
+    }
+  ],
+  "watch": [
+    { "id": "r04", "name": "Villa Miel", "note": "Honey / shrimp / fertility cult cover" },
+    { "id": "r10", "name": "Lagooni Seika", "note": "Dry Contract — humidity feels wrong" },
+    { "id": "r08", "name": "Sierra Dorado", "note": "Federal mountain capital, cooler air" }
+  ],
+  "notes_path": "worldbuilding/REGIONS.md"
+}

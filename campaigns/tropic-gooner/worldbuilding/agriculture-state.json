@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-09T04:19:00Z",
+  "present_lock": 2019,
+  "title": "Agriculture & fishing",
+  "blurb": "Tourism is the money; food still has to move. Ice and cold trucks matter more than romance.",
+  "crops": [
+    { "id": "crop-sugarcane", "product": "Sugarcane", "where": "San Aurelio / south belt", "note": "Rum feedstock; rail yards nearby" },
+    { "id": "crop-honey", "product": "Honey", "where": "Villa Miel", "note": "Festival brand; cult cover" },
+    { "id": "crop-truck", "product": "Truck crops", "where": "Inland pockets", "note": "Hotels buy first" },
+    { "id": "crop-ornamentals", "product": "Ornamentals", "where": "Paradise supply", "note": "Boardwalk looks expensive" }
+  ],
+  "fishing": [
+    { "id": "fish-shrimp", "catch": "Day boats / shrimp", "where": "Villa Miel, Ruby Harbor", "note": "Friendly coast story" },
+    { "id": "fish-porto", "catch": "Working dock fish", "where": "Porto Lujara", "note": "Hotels + Ledger Row kitchens" },
+    { "id": "fish-yacht", "catch": "Yacht galley supply", "where": "Paradise marina", "note": "Price is the point" }
+  ],
+  "logistics": [
+    "Cold chain break hits vice and restaurants together",
+    "San Aurelio rail moves bulk; bay ring moves people and bags",
+    "Harvest festival weeks raise police tolerance and hunter noise"
+  ],
+  "notes_path": "worldbuilding/AGRICULTURE.md"
+}

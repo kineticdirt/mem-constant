@@ -291,6 +291,60 @@ function ensureWeatherState(campaignDir, lockFns) {
   return writeWeatherState(campaignDir, gen, lockFns);
 }
 
+/**
+ * Apply POST actions: regenerate | advance | set_date | patch_city.
+ * Returns next state object (caller writes + bumps version).
+ */
+function applyWeatherAction(campaignDir, cur, payload) {
+  const action = String(payload.action || (payload.generate ? "regenerate" : "") || "").trim();
+  const seed = String(payload.seed || (cur && cur.seed) || "isla-primavera-weather");
+  const days = clamp(Number(payload.forecast_days) || 7, 3, 7);
+  let baseDate = String(
+    payload.diegetic_date || (cur && cur.diegetic_date) || readDiegeticDate(campaignDir)
+  );
+
+  if (action === "advance") {
+    const n = Number(payload.days);
+    const delta = n === 7 ? 7 : 1;
+    baseDate = addDays(baseDate, delta);
+    return generateWeatherState(campaignDir, { seed, diegetic_date: baseDate, forecast_days: days });
+  }
+  if (action === "set_date" || action === "regenerate" || payload.generate) {
+    if (action === "set_date" && !payload.diegetic_date) throw new Error("diegetic_date required");
+    return generateWeatherState(campaignDir, { seed, diegetic_date: baseDate, forecast_days: days });
+  }
+  if (action === "patch_city") {
+    if (!cur || cur.error || !cur.cities) throw new Error("weather_missing");
+    const cityId = String(payload.city_id || payload.id || "").trim();
+    if (!cityId || !cur.cities[cityId]) throw new Error("city_not_found");
+    const city = Object.assign({}, cur.cities[cityId]);
+    const patch = payload.patch || {};
+    const current = Object.assign({}, city.current || {});
+    for (const key of [
+      "temp_f",
+      "humidity_pct",
+      "conditions",
+      "wind_mph",
+      "wind_dir",
+      "rain_chance_pct",
+      "festival_risk",
+      "crt_optics",
+      "flood_watch",
+    ]) {
+      if (patch[key] !== undefined) current[key] = patch[key];
+    }
+    if (patch.vibe !== undefined) city.vibe = String(patch.vibe);
+    city.current = current;
+    if (Array.isArray(city.forecast) && city.forecast[0]) {
+      city.forecast = city.forecast.slice();
+      city.forecast[0] = Object.assign({}, city.forecast[0], current, { date: current.date || city.forecast[0].date });
+    }
+    const cities = Object.assign({}, cur.cities, { [cityId]: city });
+    return Object.assign({}, cur, { cities, updated_at: new Date().toISOString() });
+  }
+  throw new Error("bad_weather_action");
+}
+
 module.exports = {
   CITIES,
   generateWeatherState,
@@ -299,4 +353,6 @@ module.exports = {
   ensureWeatherState,
   weatherStatePath,
   readDiegeticDate,
+  addDays,
+  applyWeatherAction,
 };

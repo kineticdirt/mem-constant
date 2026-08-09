@@ -13,11 +13,17 @@ const { TableslopAuth, EDIT_ROLES } = require("./tableslop-auth.js");
 const { writeRegistryFile, VersionConflictError } = require("./chars-registry-persist.js");
 const { acquire: acquireStateLock, release: releaseStateLock } = require("./multitask-lock");
 const {
-  generateWeatherState,
   readWeatherState,
   writeWeatherState,
   ensureWeatherState,
+  applyWeatherAction,
 } = require("./tableslop-world-weather.js");
+const {
+  readModuleState,
+  writeModuleState,
+  applyModulePatch,
+  readHighwaysLayerStatus,
+} = require("./tableslop-world-sot.js");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
@@ -58,13 +64,13 @@ const DEV_CALENDAR_JSON = path.join(REPO, "projects", "tableslop", "dev-calendar
 /** Same SoT as dashboard Chars — read-through only (writes stay on :8790). */
 const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
 const ENTITIES_JSON = path.join(CAMPAIGN_DIR, "wiki", "entities.json");
-const SOT_DASHBOARD_JSON = path.join(CAMPAIGN_DIR, "worldbuilding", "sot-dashboard.json");
 const WORLD_PAGE_ROOTS = ["story", "worldbuilding", "reports", "places", "characters", "Things and Places of Note", "Plot Lines"];
 const WEATHER_LOCK = {
   repoRoot: REPO,
   acquire: acquireStateLock,
   release: releaseStateLock,
 };
+const SOT_LOCK = WEATHER_LOCK;
 const FEEDBACK_DIR = path.join(REPO, "reports", "tableslop-feedback");
 const USER_TASKS_JSON = path.join(REPO, "agents", "user-tasks.json");
 const FEEDBACK_MAX_BYTES = 2.5 * 1024 * 1024;
@@ -394,7 +400,8 @@ function worldPageHtml() {
   .rel { display:flex; gap:6px; align-items:center; margin:6px 0; color:var(--muted); font-size:.74rem; }
   .rel button { flex:0 0 auto; }
   .dash-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
-  .dash-card { border:1px solid rgba(1,205,254,.35); border-radius:10px; background:linear-gradient(160deg,rgba(1,205,254,.08),rgba(185,103,255,.08)); padding:14px; }
+  .dash-card { border:1px solid rgba(1,205,254,.35); border-radius:10px; background:linear-gradient(160deg,rgba(1,205,254,.08),rgba(185,103,255,.08)); padding:14px; cursor:pointer; }
+  .dash-card.is-active { border-color:var(--sun); box-shadow:0 0 14px rgba(255,251,150,.25); }
   .dash-card h3 { margin:0 0 6px; font:700 .78rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--cyan); }
   .dash-card .city { font:700 1.15rem Orbitron,sans-serif; color:var(--sun); margin:0 0 4px; }
   .dash-card .metric { display:flex; justify-content:space-between; gap:8px; margin:4px 0; font-size:.8rem; color:var(--muted); }
@@ -407,6 +414,12 @@ function worldPageHtml() {
   .risk-moderate { color:var(--sun); }
   .risk-low { color:var(--lime); }
   .dash-meta { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; align-items:center; }
+  .bulk-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 12px; padding:10px; border:1px solid rgba(185,103,255,.28); border-radius:8px; background:rgba(5,2,8,.45); }
+  .bulk-bar .chip { margin:0; }
+  .detail-panel { margin-top:14px; border:1px solid rgba(255,251,150,.35); border-radius:10px; background:rgba(13,6,22,.92); padding:14px; }
+  .detail-panel h3 { margin:0 0 10px; font:700 .72rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--sun); }
+  .rost-row { display:grid; grid-template-columns:22px 1fr; gap:8px; align-items:center; }
+  .rost-row input[type=checkbox] { width:auto; margin:0; }
   .dash-table { width:100%; border-collapse:collapse; font-size:.78rem; margin-top:8px; }
   .dash-table th, .dash-table td { border-bottom:1px solid rgba(185,103,255,.2); padding:7px 6px; text-align:left; vertical-align:top; }
   .dash-table th { color:var(--purple); font:700 .68rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase; }
@@ -462,6 +475,14 @@ function worldPageHtml() {
         <div class="row">
           <input id="newName" placeholder="New character name"/>
           <button class="btn" id="addBtn" type="button" style="flex:0 0 auto">Add</button>
+        </div>
+        <div class="bulk-bar" id="castBulkBar">
+          <span class="chip" id="castBulkCount">0 selected</span>
+          <select id="bulkRole" style="flex:0 0 90px"><option value="">role…</option><option value="pc">pc</option><option value="npc">npc</option><option value="side">side</option><option value="gm">gm</option></select>
+          <input id="bulkStatus" placeholder="status" style="flex:1 1 90px"/>
+          <button class="btn" id="bulkHideBtn" type="button">Hide</button>
+          <button class="btn" id="bulkUnhideBtn" type="button">Unhide</button>
+          <button class="btn warn" id="bulkApplyBtn" type="button">Apply</button>
         </div>
         <div class="chip" id="regMeta">registry …</div>
       </div>
@@ -566,6 +587,12 @@ function worldPageHtml() {
             <select id="eNewKind" style="flex:0 0 104px"><option value="place">place</option><option value="org">org</option><option value="school">school</option><option value="faction">faction</option><option value="year">year</option></select>
             <button class="btn" id="eAddBtn" type="button" style="flex:0 0 auto">Add</button>
           </div>
+          <div class="bulk-bar" id="entBulkBar">
+            <span class="chip" id="entBulkCount">0 selected</span>
+            <select id="eBulkKind" style="flex:0 0 100px"><option value="">kind…</option><option value="place">place</option><option value="org">org</option><option value="school">school</option><option value="faction">faction</option><option value="year">year</option></select>
+            <input id="eBulkRegion" placeholder="region_id" list="regionList" style="flex:1 1 100px"/>
+            <button class="btn warn" id="eBulkApplyBtn" type="button">Apply</button>
+          </div>
           <div class="chip" id="entMeta">entities …</div>
         </div>
         <ul class="roster pad" id="entList"></ul>
@@ -630,11 +657,23 @@ function worldPageHtml() {
         <p id="sotBlurb" style="color:var(--muted);font-size:.82rem;line-height:1.45;margin:0 0 12px"></p>
         <div class="dash-meta">
           <span class="chip" id="sotMetaChip">…</span>
-          <button class="btn warn" id="weatherGenBtn" type="button" hidden>Generate / refresh forecast</button>
           <button class="btn" id="sotReloadBtn" type="button">Reload</button>
           <a class="btn" href="/" id="sotMapLink">← Map</a>
         </div>
+        <div class="bulk-bar" id="sotBulkBar" hidden>
+          <span class="chip">Bulk</span>
+          <button class="btn warn" id="weatherGenBtn" type="button" hidden>Regenerate</button>
+          <button class="btn" id="weatherPlus1Btn" type="button" hidden>+1 day</button>
+          <button class="btn" id="weatherPlus7Btn" type="button" hidden>+7 days</button>
+          <input id="weatherDateInput" type="date" hidden style="flex:0 0 auto;width:auto"/>
+          <button class="btn" id="weatherSetDateBtn" type="button" hidden>Set date</button>
+          <button class="btn warn" id="sotDetailSaveBtn" type="button" hidden>Save detail</button>
+        </div>
         <div id="sotDash" class="dash-grid"></div>
+        <div id="sotDetail" class="detail-panel" hidden>
+          <h3 id="sotDetailTitle">Detail</h3>
+          <div id="sotDetailBody"></div>
+        </div>
         <div class="status" id="sotStatus"></div>
         <details class="source" id="sotSource">
           <summary>Advanced · view source notes</summary>
@@ -690,6 +729,10 @@ function worldPageHtml() {
   let sotSha = '';
   let weatherState = null;
   let sotDash = null;
+  let sotSelectedId = null;
+  let sotSelectedList = null;
+  let castSelected = new Set();
+  let entSelected = new Set();
   const $ = (id) => document.getElementById(id);
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -766,9 +809,43 @@ function worldPageHtml() {
     $('saveBtn').onclick = save;
     $('reloadBtn').onclick = () => loadRegistry(active && active.id).catch((e) => status(String(e.message || e)));
     $('relAdd').onclick = addRel;
+    $('bulkHideBtn').onclick = () => applyCastBulk({ hidden: true });
+    $('bulkUnhideBtn').onclick = () => applyCastBulk({ hidden: false });
+    $('bulkApplyBtn').onclick = () => {
+      const patch = {};
+      if ($('bulkRole').value) patch.role = $('bulkRole').value;
+      if ($('bulkStatus').value.trim()) patch.status = $('bulkStatus').value.trim();
+      if (!Object.keys(patch).length) return status('pick role and/or status for bulk apply');
+      applyCastBulk(patch);
+    };
     for (const id of ['f_name','f_role','f_status','f_player','f_aliases','f_story','f_image','f_hidden','f_notes']) {
       $(id).addEventListener('input', () => status('unsaved changes'));
     }
+  }
+  function updateCastBulkCount() {
+    $('castBulkCount').textContent = castSelected.size + ' selected';
+  }
+  async function applyCastBulk(patch) {
+    const ids = Array.from(castSelected);
+    if (!ids.length) return status('select cast rows first');
+    if (!reg) return status('registry not loaded');
+    status('bulk saving…');
+    const out = await fetchJson('/api/world/characters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bulk: true, ids: ids, patch: patch, base_version: reg.version }),
+    }, 20000);
+    if (out.r.status === 409) {
+      status('version conflict — reload Cast, then retry');
+      return;
+    }
+    if (!out.r.ok) {
+      status('bulk failed: ' + (out.j.error || out.r.status));
+      return;
+    }
+    castSelected.clear();
+    status('bulk updated ' + (out.j.updated || ids.length) + ' · v' + out.j.version);
+    await loadRegistry(active && active.id);
   }
   async function loadRegistry(selectId) {
     const out = await fetchJson('/api/characters?include_hidden=1', null, 15000);
@@ -787,9 +864,18 @@ function worldPageHtml() {
     });
     $('roster').innerHTML = list.map((c) => {
       const face = c.image_url ? '<img src="' + esc(c.image_url) + '" alt="" loading="lazy"/>' : '<span class="face">' + esc(String(c.display_name || c.id).slice(0, 1).toUpperCase()) + '</span>';
-      return '<li><button type="button" class="rost' + (active && active.id === c.id ? ' is-active' : '') + '" data-id="' + esc(c.id) + '">' + face + '<span><strong>' + esc(c.display_name || c.id) + '</strong><span>' + esc([c.role, c.status, c.hidden ? 'hidden' : ''].filter(Boolean).join(' · ')) + '</span></span></button></li>';
+      const checked = castSelected.has(c.id) ? ' checked' : '';
+      return '<li class="rost-row"><input type="checkbox" data-bulk="' + esc(c.id) + '"' + checked + '/><button type="button" class="rost' + (active && active.id === c.id ? ' is-active' : '') + '" data-id="' + esc(c.id) + '">' + face + '<span><strong>' + esc(c.display_name || c.id) + '</strong><span>' + esc([c.role, c.status, c.hidden ? 'hidden' : ''].filter(Boolean).join(' · ')) + '</span></span></button></li>';
     }).join('') || '<li class="chip">No matches.</li>';
     $('roster').querySelectorAll('button[data-id]').forEach((b) => { b.onclick = () => select(b.getAttribute('data-id')); });
+    $('roster').querySelectorAll('input[data-bulk]').forEach((cb) => {
+      cb.onchange = () => {
+        const id = cb.getAttribute('data-bulk');
+        if (cb.checked) castSelected.add(id); else castSelected.delete(id);
+        updateCastBulkCount();
+      };
+    });
+    updateCastBulkCount();
     const relTo = $('relTo');
     relTo.innerHTML = '<option value="">relation target…</option>' + (reg.characters || []).map((c) => '<option value="' + esc(c.id) + '">' + esc(c.display_name || c.id) + '</option>').join('');
   }
@@ -1094,8 +1180,13 @@ function worldPageHtml() {
     $('docText').addEventListener('input', () => dstatus('unsaved changes'));
     $('sotSaveBtn').onclick = saveSot;
     $('sotReloadBtn').onclick = () => { if (activeSot) loadSot(activeSot); };
-    $('weatherGenBtn').onclick = generateWeather;
+    $('weatherGenBtn').onclick = () => weatherAction('regenerate');
+    $('weatherPlus1Btn').onclick = () => weatherAction('advance', 1);
+    $('weatherPlus7Btn').onclick = () => weatherAction('advance', 7);
+    $('weatherSetDateBtn').onclick = () => weatherAction('set_date');
+    $('sotDetailSaveBtn').onclick = saveSotDetail;
     $('sotText').addEventListener('input', () => sotStatus('unsaved note changes'));
+    $('eBulkApplyBtn').onclick = applyEntBulk;
     bindIngest();
   }
   function showMod(name) {
@@ -1120,17 +1211,29 @@ function worldPageHtml() {
     if (s === 'moderate') return 'risk-moderate';
     return 'risk-low';
   }
+  function setWeatherBulkVisible(on) {
+    $('sotBulkBar').hidden = !on;
+    $('weatherGenBtn').hidden = !on;
+    $('weatherPlus1Btn').hidden = !on;
+    $('weatherPlus7Btn').hidden = !on;
+    $('weatherDateInput').hidden = !on;
+    $('weatherSetDateBtn').hidden = !on;
+    $('sotDetailSaveBtn').hidden = !on;
+  }
   function renderWeatherDash(w) {
     weatherState = w;
     const cities = w && w.cities ? Object.values(w.cities) : [];
     $('sotMetaChip').textContent = (w.diegetic_date || '?') + ' · ' + (w.season || '?') + ' season · v' + (w.version || '?');
+    if ($('weatherDateInput') && w.diegetic_date) $('weatherDateInput').value = w.diegetic_date;
+    setWeatherBulkVisible(true);
     $('sotDash').innerHTML = cities.map((c) => {
       const cur = c.current || {};
       const forecast = (c.forecast || []).map((d) => {
         const label = String(d.date || '').slice(5);
         return '<div class="fday"><span>' + esc(label) + '</span><strong>' + esc(d.temp_f) + '°F</strong><span>' + esc(d.rain_chance_pct) + '% rain</span></div>';
       }).join('');
-      return '<article class="dash-card" data-city="' + esc(c.id) + '">' +
+      const activeCls = sotSelectedId === c.id ? ' is-active' : '';
+      return '<article class="dash-card' + activeCls + '" data-city="' + esc(c.id) + '">' +
         '<p class="city">' + esc(c.label) + '</p>' +
         '<div class="big">' + esc(cur.temp_f) + '°F</div>' +
         '<p style="margin:4px 0 10px;color:var(--muted)">' + esc(cur.conditions) + ' · ' + esc(c.vibe || '') + '</p>' +
@@ -1142,54 +1245,140 @@ function worldPageHtml() {
         (cur.flood_watch && cur.flood_watch !== 'none' ? '<div class="metric"><span>Flood watch</span><b class="risk-high">' + esc(cur.flood_watch) + '</b></div>' : '') +
         '<div class="forecast">' + forecast + '</div></article>';
     }).join('') || '<p class="chip">No weather cities.</p>';
+    $('sotDash').querySelectorAll('[data-city]').forEach((card) => {
+      card.onclick = () => selectWeatherCity(card.getAttribute('data-city'));
+    });
+    if (sotSelectedId && w.cities && w.cities[sotSelectedId]) selectWeatherCity(sotSelectedId);
+    else {
+      $('sotDetail').hidden = true;
+      sotSelectedId = null;
+    }
+  }
+  function selectWeatherCity(id) {
+    sotSelectedId = id;
+    sotSelectedList = 'weather';
+    const c = weatherState && weatherState.cities && weatherState.cities[id];
+    if (!c) return;
+    $('sotDash').querySelectorAll('[data-city]').forEach((el) => {
+      el.classList.toggle('is-active', el.getAttribute('data-city') === id);
+    });
+    const cur = c.current || {};
+    $('sotDetail').hidden = false;
+    $('sotDetailTitle').textContent = 'Detail · ' + (c.label || id);
+    $('sotDetailBody').innerHTML =
+      '<div class="row"><div><label>Temp °F</label><input id="wd_temp" value="' + esc(cur.temp_f) + '"/></div>' +
+      '<div><label>Humidity %</label><input id="wd_hum" value="' + esc(cur.humidity_pct) + '"/></div></div>' +
+      '<label>Conditions</label><input id="wd_cond" value="' + esc(cur.conditions) + '"/>' +
+      '<div class="row"><div><label>Wind mph</label><input id="wd_wind" value="' + esc(cur.wind_mph) + '"/></div>' +
+      '<div><label>Wind dir</label><input id="wd_wdir" value="' + esc(cur.wind_dir) + '"/></div></div>' +
+      '<div class="row"><div><label>Rain %</label><input id="wd_rain" value="' + esc(cur.rain_chance_pct) + '"/></div>' +
+      '<div><label>Festival risk</label><input id="wd_fest" value="' + esc(cur.festival_risk) + '"/></div></div>' +
+      '<label>CRT optics</label><input id="wd_crt" value="' + esc(cur.crt_optics) + '"/>' +
+      '<label>Vibe</label><input id="wd_vibe" value="' + esc(c.vibe || '') + '"/>' +
+      '<label>Flood watch</label><input id="wd_flood" value="' + esc(cur.flood_watch || 'none') + '"/>';
   }
   function renderRegionsDash(d) {
+    sotDash = d;
     const focus = (d && d.focus) || [];
     const watch = (d && d.watch) || [];
-    $('sotMetaChip').textContent = focus.length + ' focus · ' + watch.length + ' watch';
+    $('sotMetaChip').textContent = focus.length + ' focus · ' + watch.length + ' watch · v' + (d.version || '?');
+    setWeatherBulkVisible(false);
+    $('sotBulkBar').hidden = false;
+    $('sotDetailSaveBtn').hidden = false;
     let html = focus.map((r) => {
-      return '<article class="dash-card"><h3>' + esc(r.name) + (r.region_name ? ' · ' + esc(r.region_name) : '') + '</h3>' +
+      const activeCls = sotSelectedId === r.id && sotSelectedList === 'focus' ? ' is-active' : '';
+      return '<article class="dash-card' + activeCls + '" data-list="focus" data-id="' + esc(r.id) + '"><h3>' + esc(r.name) + (r.region_name ? ' · ' + esc(r.region_name) : '') + '</h3>' +
         '<div class="metric"><span>Border</span><b>' + esc(r.bordered) + '</b></div>' +
         '<p style="margin:8px 0;color:var(--text)">' + esc(r.identity) + '</p>' +
         '<p style="margin:0;color:var(--muted);font-size:.78rem">Hook: ' + esc(r.hook) + '</p></article>';
     }).join('');
     if (watch.length) {
-      html += '<article class="dash-card" style="grid-column:1/-1"><h3>On deck</h3><table class="dash-table"><thead><tr><th>Place</th><th>Note</th></tr></thead><tbody>' +
-        watch.map((w) => '<tr><td>' + esc(w.name) + '</td><td>' + esc(w.note) + '</td></tr>').join('') +
-        '</tbody></table></article>';
+      html += watch.map((w) => {
+        const activeCls = sotSelectedId === w.id && sotSelectedList === 'watch' ? ' is-active' : '';
+        return '<article class="dash-card' + activeCls + '" data-list="watch" data-id="' + esc(w.id) + '"><h3>Watch · ' + esc(w.name) + '</h3><p style="margin:0;color:var(--muted)">' + esc(w.note) + '</p></article>';
+      }).join('');
     }
     $('sotDash').innerHTML = html || '<p class="chip">No region summary.</p>';
+    $('sotDash').querySelectorAll('[data-id]').forEach((card) => {
+      card.onclick = () => selectSotItem(card.getAttribute('data-list'), card.getAttribute('data-id'));
+    });
   }
   function renderAgDash(d) {
-    $('sotMetaChip').textContent = ((d.crops || []).length) + ' crops · ' + ((d.fishing || []).length) + ' fleets';
-    let html = '<article class="dash-card" style="grid-column:1/-1"><h3>Crops &amp; land</h3><table class="dash-table"><thead><tr><th>Product</th><th>Where</th><th>Note</th></tr></thead><tbody>' +
-      (d.crops || []).map((c) => '<tr><td>' + esc(c.product) + '</td><td>' + esc(c.where) + '</td><td>' + esc(c.note) + '</td></tr>').join('') +
-      '</tbody></table></article>';
-    html += '<article class="dash-card" style="grid-column:1/-1"><h3>Fishing &amp; water</h3><table class="dash-table"><thead><tr><th>Catch</th><th>Where</th><th>Note</th></tr></thead><tbody>' +
-      (d.fishing || []).map((c) => '<tr><td>' + esc(c.catch) + '</td><td>' + esc(c.where) + '</td><td>' + esc(c.note) + '</td></tr>').join('') +
-      '</tbody></table></article>';
-    html += '<article class="dash-card" style="grid-column:1/-1"><h3>Logistics</h3><ul style="margin:0;padding-left:18px;color:var(--muted)">' +
+    sotDash = d;
+    $('sotMetaChip').textContent = ((d.crops || []).length) + ' crops · ' + ((d.fishing || []).length) + ' fleets · v' + (d.version || '?');
+    setWeatherBulkVisible(false);
+    $('sotBulkBar').hidden = false;
+    $('sotDetailSaveBtn').hidden = false;
+    let html = (d.crops || []).map((c) => {
+      const activeCls = sotSelectedId === c.id && sotSelectedList === 'crops' ? ' is-active' : '';
+      return '<article class="dash-card' + activeCls + '" data-list="crops" data-id="' + esc(c.id) + '"><h3>' + esc(c.product) + '</h3>' +
+        '<div class="metric"><span>Where</span><b>' + esc(c.where) + '</b></div>' +
+        '<p style="margin:8px 0 0;color:var(--muted);font-size:.78rem">' + esc(c.note) + '</p></article>';
+    }).join('');
+    html += (d.fishing || []).map((c) => {
+      const activeCls = sotSelectedId === c.id && sotSelectedList === 'fishing' ? ' is-active' : '';
+      return '<article class="dash-card' + activeCls + '" data-list="fishing" data-id="' + esc(c.id) + '"><h3>' + esc(c.catch) + '</h3>' +
+        '<div class="metric"><span>Where</span><b>' + esc(c.where) + '</b></div>' +
+        '<p style="margin:8px 0 0;color:var(--muted);font-size:.78rem">' + esc(c.note) + '</p></article>';
+    }).join('');
+    html += '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Logistics</h3><ul style="margin:0;padding-left:18px;color:var(--muted)">' +
       (d.logistics || []).map((x) => '<li style="margin:4px 0">' + esc(x) + '</li>').join('') + '</ul></article>';
     $('sotDash').innerHTML = html;
+    $('sotDash').querySelectorAll('[data-id]').forEach((card) => {
+      card.onclick = () => selectSotItem(card.getAttribute('data-list'), card.getAttribute('data-id'));
+    });
   }
   function renderTransportDash(d) {
-    $('sotMetaChip').textContent = ((d.modes || []).length) + ' modes · green = highways';
-    let html = '<article class="dash-card" style="grid-column:1/-1"><h3>Modes</h3><table class="dash-table"><thead><tr><th>Mode</th><th>Role</th><th>Map / SoT</th></tr></thead><tbody>' +
-      (d.modes || []).map((m) => '<tr><td>' + esc(m.mode) + '</td><td>' + esc(m.role) + '</td><td>' + esc(m.map) + '</td></tr>').join('') +
-      '</tbody></table></article>';
-    html += '<article class="dash-card"><h3>Highways</h3><p style="margin:0;color:var(--muted);font-size:.8rem;line-height:1.45">' + esc(d.highway_note || '') + '</p></article>';
-    html += '<article class="dash-card"><h3>Play notes</h3><ul style="margin:0;padding-left:18px;color:var(--muted)">' +
+    sotDash = d;
+    const hw = d.highways_layer || {};
+    $('sotMetaChip').textContent = ((d.modes || []).length) + ' modes · highways ' + (hw.status || '?') + ' · v' + (d.version || '?');
+    setWeatherBulkVisible(false);
+    $('sotBulkBar').hidden = false;
+    $('sotDetailSaveBtn').hidden = false;
+    let html = '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Highways layer (map track)</h3>' +
+      '<div class="metric"><span>Status</span><b>' + esc(hw.status || 'unknown') + '</b></div>' +
+      '<div class="metric"><span>Source</span><b>' + esc(hw.source == null ? '(null placeholder)' : hw.source) + '</b></div>' +
+      '<p style="margin:8px 0;color:var(--muted);font-size:.78rem;line-height:1.45">' + esc(hw.note || d.highway_note || '') + '</p>' +
+      '<a class="btn" href="' + esc(hw.map_url || 'https://map.tableslop.org/') + '">Open map · geometry track</a></article>';
+    html += (d.modes || []).map((m) => {
+      const activeCls = sotSelectedId === m.id && sotSelectedList === 'modes' ? ' is-active' : '';
+      return '<article class="dash-card' + activeCls + '" data-list="modes" data-id="' + esc(m.id) + '"><h3>' + esc(m.mode) + '</h3>' +
+        '<div class="metric"><span>Role</span><b>' + esc(m.role) + '</b></div>' +
+        '<p style="margin:8px 0 0;color:var(--muted);font-size:.78rem">' + esc(m.map) + '</p></article>';
+    }).join('');
+    html += '<article class="dash-card" style="cursor:default"><h3>Play notes</h3><ul style="margin:0;padding-left:18px;color:var(--muted)">' +
       (d.play_notes || []).map((x) => '<li style="margin:4px 0">' + esc(x) + '</li>').join('') + '</ul></article>';
     $('sotDash').innerHTML = html;
+    $('sotDash').querySelectorAll('[data-id]').forEach((card) => {
+      card.onclick = () => selectSotItem(card.getAttribute('data-list'), card.getAttribute('data-id'));
+    });
+  }
+  function selectSotItem(listKey, id) {
+    sotSelectedList = listKey;
+    sotSelectedId = id;
+    const rows = (sotDash && sotDash[listKey]) || [];
+    const row = rows.find((r) => r && String(r.id) === String(id));
+    if (!row) return;
+    $('sotDash').querySelectorAll('[data-id]').forEach((el) => {
+      el.classList.toggle('is-active', el.getAttribute('data-id') === id && el.getAttribute('data-list') === listKey);
+    });
+    $('sotDetail').hidden = false;
+    $('sotDetailTitle').textContent = 'Detail · ' + (row.name || row.product || row.catch || row.mode || id);
+    const fields = Object.keys(row).filter((k) => k !== 'id');
+    $('sotDetailBody').innerHTML = fields.map((k) => {
+      return '<label>' + esc(k) + '</label><input data-sot-field="' + esc(k) + '" value="' + esc(row[k] == null ? '' : row[k]) + '"/>';
+    }).join('');
   }
   async function loadSot(name) {
     const meta = SOT_MODS[name];
     if (!meta) return;
     activeSot = name;
+    sotSelectedId = null;
+    sotSelectedList = null;
     $('sotTitle').textContent = meta.title;
     $('sotBlurb').textContent = meta.blurb;
-    $('sotPathHint').textContent = 'Source notes (optional lore export)';
-    $('weatherGenBtn').hidden = meta.kind !== 'weather';
+    $('sotPathHint').textContent = 'Source path: ' + meta.path;
+    $('sotDetail').hidden = true;
     $('sotDash').innerHTML = '<p class="chip">Loading dashboard…</p>';
     sotStatus('loading…');
     try {
@@ -1220,25 +1409,91 @@ function worldPageHtml() {
     $('sotText').value = pageOut.j.content || '';
     sotStatus(pageOut.j.truncated ? 'truncated notes view' : '');
   }
-  async function generateWeather() {
-    sotStatus('generating…');
+  async function weatherAction(action, days) {
+    sotStatus(action + '…');
+    const body = {
+      action: action,
+      base_version: weatherState && weatherState.version,
+      seed: (weatherState && weatherState.seed) || 'isla-primavera-weather',
+      forecast_days: 7
+    };
+    if (action === 'advance') body.days = days || 1;
+    if (action === 'set_date') {
+      body.diegetic_date = $('weatherDateInput').value;
+      if (!body.diegetic_date) return sotStatus('pick a date');
+    }
+    if (action === 'regenerate') {
+      body.diegetic_date = (weatherState && weatherState.diegetic_date) || undefined;
+      body.generate = true;
+    }
     const out = await fetchJson('/api/world/weather', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }, 20000);
+    if (out.r.status === 409) return sotStatus('version conflict — reload Weather');
+    if (!out.r.ok) return sotStatus(action + ' failed: ' + (out.j.error || out.r.status));
+    renderWeatherDash(out.j);
+    sotStatus(action + ' ok · ' + (out.j.diegetic_date || '') + ' · v' + out.j.version);
+  }
+  async function saveSotDetail() {
+    const meta = activeSot && SOT_MODS[activeSot];
+    if (!meta) return;
+    if (meta.kind === 'weather') {
+      if (!sotSelectedId) return sotStatus('select a city card first');
+      const patch = {
+        temp_f: Number($('wd_temp').value),
+        humidity_pct: Number($('wd_hum').value),
+        conditions: $('wd_cond').value.trim(),
+        wind_mph: Number($('wd_wind').value),
+        wind_dir: $('wd_wdir').value.trim(),
+        rain_chance_pct: Number($('wd_rain').value),
+        festival_risk: $('wd_fest').value.trim(),
+        crt_optics: $('wd_crt').value.trim(),
+        flood_watch: $('wd_flood').value.trim(),
+        vibe: $('wd_vibe').value.trim()
+      };
+      sotStatus('saving city…');
+      const out = await fetchJson('/api/world/weather', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'patch_city',
+          city_id: sotSelectedId,
+          patch: patch,
+          base_version: weatherState && weatherState.version
+        })
+      }, 20000);
+      if (out.r.status === 409) return sotStatus('version conflict — reload');
+      if (!out.r.ok) return sotStatus('save failed: ' + (out.j.error || out.r.status));
+      renderWeatherDash(out.j);
+      selectWeatherCity(sotSelectedId);
+      return sotStatus('city saved · v' + out.j.version);
+    }
+    if (!sotSelectedId || !sotSelectedList) return sotStatus('select a card first');
+    const patch = {};
+    $('sotDetailBody').querySelectorAll('[data-sot-field]').forEach((inp) => {
+      patch[inp.getAttribute('data-sot-field')] = inp.value;
+    });
+    sotStatus('saving…');
+    const out = await fetchJson('/api/world/summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        generate: true,
-        base_version: weatherState && weatherState.version,
-        seed: (weatherState && weatherState.seed) || 'isla-primavera-weather',
-        diegetic_date: weatherState && weatherState.diegetic_date,
-        forecast_days: 7
+        module: meta.kind,
+        base_version: sotDash && sotDash.version,
+        list_key: sotSelectedList,
+        patch_item: { id: sotSelectedId, patch: patch }
       })
     }, 20000);
-    if (!out.r.ok) {
-      sotStatus('generate failed: ' + (out.j.error || out.r.status));
-      return;
-    }
-    renderWeatherDash(out.j);
-    sotStatus('forecast refreshed · ' + (out.j.updated_at || ''));
+    if (out.r.status === 409) return sotStatus('version conflict — reload');
+    if (!out.r.ok) return sotStatus('save failed: ' + (out.j.error || out.r.status));
+    sotDash = out.j;
+    if (meta.kind === 'regions') renderRegionsDash(out.j);
+    else if (meta.kind === 'agriculture') renderAgDash(out.j);
+    else if (meta.kind === 'transport') renderTransportDash(out.j);
+    selectSotItem(sotSelectedList, sotSelectedId);
+    sotStatus('detail saved · v' + out.j.version);
   }
   async function saveSot() {
     const meta = activeSot && SOT_MODS[activeSot];
@@ -1259,6 +1514,28 @@ function worldPageHtml() {
     }
     sotSha = out.j.sha256 || sotSha;
     sotStatus('notes saved · ' + (out.j.bytes || 0) + ' bytes');
+  }
+  function updateEntBulkCount() {
+    $('entBulkCount').textContent = entSelected.size + ' selected';
+  }
+  async function applyEntBulk() {
+    const ids = Array.from(entSelected);
+    if (!ids.length) return estatus('select places first');
+    const patch = {};
+    if ($('eBulkKind').value) patch.kind = $('eBulkKind').value;
+    if ($('eBulkRegion').value.trim()) patch.region_id = $('eBulkRegion').value.trim();
+    if (!Object.keys(patch).length) return estatus('pick kind and/or region_id');
+    estatus('bulk saving…');
+    const out = await fetchJson('/api/world/entities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bulk: true, ids: ids, patch: patch, base_version: entities && entities.version })
+    }, 20000);
+    if (out.r.status === 409) return estatus('version conflict — reload places');
+    if (!out.r.ok) return estatus('bulk failed: ' + (out.j.error || out.r.status));
+    entSelected.clear();
+    estatus('bulk updated ' + (out.j.updated || ids.length) + ' · v' + out.j.version);
+    await loadEntities(activeEnt && activeEnt.id);
   }
   function entById(id) {
     return (entities && entities.entities || []).find((e) => String(e.id) === String(id)) || null;
@@ -1292,9 +1569,18 @@ function worldPageHtml() {
       return !q || hay.includes(q);
     });
     $('entList').innerHTML = list.map((e) => {
-      return '<li><button type="button" class="rost' + (activeEnt && activeEnt.id === e.id ? ' is-active' : '') + '" data-id="' + esc(e.id) + '"><span class="face">' + esc(String(e.kind || '?').slice(0, 1).toUpperCase()) + '</span><span><strong>' + esc(e.name || e.id) + '</strong><span>' + esc([e.kind, e.region_id].filter(Boolean).join(' · ')) + '</span></span></button></li>';
+      const checked = entSelected.has(e.id) ? ' checked' : '';
+      return '<li class="rost-row"><input type="checkbox" data-bulk="' + esc(e.id) + '"' + checked + '/><button type="button" class="rost' + (activeEnt && activeEnt.id === e.id ? ' is-active' : '') + '" data-id="' + esc(e.id) + '"><span class="face">' + esc(String(e.kind || '?').slice(0, 1).toUpperCase()) + '</span><span><strong>' + esc(e.name || e.id) + '</strong><span>' + esc([e.kind, e.region_id].filter(Boolean).join(' · ')) + '</span></span></button></li>';
     }).join('') || '<li class="chip">No matches.</li>';
     $('entList').querySelectorAll('button[data-id]').forEach((b) => { b.onclick = () => selectEntity(b.getAttribute('data-id')); });
+    $('entList').querySelectorAll('input[data-bulk]').forEach((cb) => {
+      cb.onchange = () => {
+        const id = cb.getAttribute('data-bulk');
+        if (cb.checked) entSelected.add(id); else entSelected.delete(id);
+        updateEntBulkCount();
+      };
+    });
+    updateEntBulkCount();
   }
   function selectEntity(id) {
     activeEnt = entById(id);
@@ -6922,6 +7208,49 @@ function patchWorldCharacter(payload) {
   return { ok: true, id, version: written.version, updated_at: written.updated_at };
 }
 
+/** Bulk soft-patch only (hidden / status / role). Soft-hide only — never wipe registry. */
+function bulkWorldCharacters(payload) {
+  const ids = Array.isArray(payload.ids) ? payload.ids.map((x) => String(x)).filter(Boolean) : [];
+  if (!ids.length) throw new Error("ids required");
+  if (ids.length > 200) throw new Error("too many ids");
+  const patch = payload.patch && typeof payload.patch === "object" ? payload.patch : {};
+  const allowed = {};
+  if (patch.hidden !== undefined) allowed.hidden = patch.hidden === true;
+  if (patch.status !== undefined) allowed.status = cleanWorldText(patch.status, 60);
+  if (patch.role !== undefined) {
+    const role = String(patch.role || "").trim();
+    if (!["pc", "npc", "side", "gm"].includes(role)) throw new Error("bad role");
+    allowed.role = role;
+  }
+  if (!Object.keys(allowed).length) throw new Error("empty patch");
+  const raw = readCharactersRegistryRaw();
+  if (raw.error) throw new Error("registry_read_failed: " + raw.error);
+  raw.characters = Array.isArray(raw.characters) ? raw.characters : [];
+  const idSet = new Set(ids);
+  let updated = 0;
+  const now = new Date().toISOString();
+  for (const row of raw.characters) {
+    if (!row || !idSet.has(String(row.id))) continue;
+    if (allowed.hidden !== undefined) row.hidden = allowed.hidden;
+    if (allowed.status !== undefined) row.status = allowed.status;
+    if (allowed.role !== undefined) row.role = allowed.role;
+    row.updated_at = now;
+    updated += 1;
+  }
+  if (!updated) throw new Error("no_matching_ids");
+  const written = writeRegistryFile({
+    absPath: REGISTRY_JSON,
+    data: raw,
+    repoRoot: REPO,
+    campaignId: CAMPAIGN,
+    baseVersion: payload.base_version,
+    preserveUnknownIds: true,
+    lockHolder: `tableslop-world-bulk:${process.pid}`,
+    lockNote: "world page character bulk patch",
+  });
+  return { ok: true, updated, version: written.version, updated_at: written.updated_at };
+}
+
 /** Decode portrait data URL (png/jpeg/webp/gif). No URL fetch — client sends bytes. */
 function decodeIngestPortraitDataUrl(dataUrl) {
   const raw = String(dataUrl || "");
@@ -7192,6 +7521,38 @@ function patchWorldEntity(payload) {
 
   const written = writeEntitiesFile(raw, payload.base_version);
   return { ok: true, id, version: written.version, updated_at: written.updated_at };
+}
+
+/** Bulk patch kind / region_id only. */
+function bulkWorldEntities(payload) {
+  const ids = Array.isArray(payload.ids) ? payload.ids.map((x) => String(x)).filter(Boolean) : [];
+  if (!ids.length) throw new Error("ids required");
+  if (ids.length > 400) throw new Error("too many ids");
+  const patch = payload.patch && typeof payload.patch === "object" ? payload.patch : {};
+  const allowed = {};
+  if (patch.kind !== undefined) {
+    const kind = cleanWorldText(patch.kind, 40);
+    if (!kind) throw new Error("kind required");
+    allowed.kind = kind;
+  }
+  if (patch.region_id !== undefined) allowed.region_id = cleanWorldText(patch.region_id, 80) || null;
+  if (!Object.keys(allowed).length) throw new Error("empty patch");
+  const raw = readEntitiesRaw();
+  if (raw.error) throw new Error("entities_read_failed: " + raw.error);
+  raw.entities = Array.isArray(raw.entities) ? raw.entities : [];
+  const idSet = new Set(ids);
+  let updated = 0;
+  const now = new Date().toISOString();
+  for (const row of raw.entities) {
+    if (!row || !idSet.has(String(row.id))) continue;
+    if (allowed.kind !== undefined) row.kind = allowed.kind;
+    if (allowed.region_id !== undefined) row.region_id = allowed.region_id;
+    row.updated_at = now;
+    updated += 1;
+  }
+  if (!updated) throw new Error("no_matching_ids");
+  const written = writeEntitiesFile(raw, payload.base_version);
+  return { ok: true, updated, version: written.version, updated_at: written.updated_at };
 }
 
 function sha256Text(s) {
@@ -8113,7 +8474,11 @@ async function handleRequest(req, res) {
       const body = await readBody(req);
       if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
       const payload = JSON.parse(body || "{}");
-      sendJson(res, patchWorldCharacter(payload), 200, 0);
+      if (payload.bulk === true) {
+        sendJson(res, bulkWorldCharacters(payload), 200, 0);
+      } else {
+        sendJson(res, patchWorldCharacter(payload), 200, 0);
+      }
     } catch (err) {
       if (err && err.code === "version_conflict") {
         sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
@@ -8168,7 +8533,11 @@ async function handleRequest(req, res) {
       const body = await readBody(req);
       if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
       const payload = JSON.parse(body || "{}");
-      sendJson(res, patchWorldEntity(payload), 200, 0);
+      if (payload.bulk === true) {
+        sendJson(res, bulkWorldEntities(payload), 200, 0);
+      } else {
+        sendJson(res, patchWorldEntity(payload), 200, 0);
+      }
     } catch (err) {
       if (err && err.code === "version_conflict") {
         sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
@@ -8260,19 +8629,20 @@ async function handleRequest(req, res) {
         return;
       }
       let next;
-      if (payload.generate || !payload.cities) {
-        next = generateWeatherState(CAMPAIGN_DIR, {
-          seed: payload.seed,
-          diegetic_date: payload.diegetic_date,
-          forecast_days: payload.forecast_days,
-        });
-        if (cur && !cur.error && Number(cur.version) > 0) {
-          next.version = Number(cur.version) + 1;
-        }
-      } else {
+      const action = String(payload.action || "").trim();
+      if (action || payload.generate) {
+        next = applyWeatherAction(CAMPAIGN_DIR, cur && !cur.error ? cur : null, payload);
+      } else if (payload.cities) {
         next = Object.assign({}, cur && !cur.error ? cur : {}, payload, {
           version: cur && !cur.error ? Number(cur.version || 0) + 1 : 1,
         });
+      } else {
+        next = applyWeatherAction(CAMPAIGN_DIR, cur && !cur.error ? cur : null, Object.assign({}, payload, { action: "regenerate", generate: true }));
+      }
+      if (cur && !cur.error && Number(cur.version) > 0) {
+        next.version = Number(cur.version) + 1;
+      } else if (!next.version) {
+        next.version = 1;
       }
       const written = writeWeatherState(CAMPAIGN_DIR, next, WEATHER_LOCK);
       sendJson(res, written, 200, 0);
@@ -8293,24 +8663,44 @@ async function handleRequest(req, res) {
       return;
     }
     try {
-      if (!fs.existsSync(SOT_DASHBOARD_JSON)) {
-        sendJson(res, { error: "summary_missing" }, 404);
+      const block = readModuleState(CAMPAIGN_DIR, mod);
+      if (block && block.error) {
+        sendJson(res, block, block.error === "summary_missing" ? 404 : 500);
         return;
       }
-      const all = JSON.parse(fs.readFileSync(SOT_DASHBOARD_JSON, "utf8"));
-      const block = all[mod];
-      if (!block) {
-        sendJson(res, { error: "summary_missing" }, 404);
-        return;
+      if (mod === "transport") {
+        block.highways_layer = readHighwaysLayerStatus(CAMPAIGN_DIR);
       }
-      sendJson(
-        res,
-        Object.assign({ module: mod, version: all.version || 1, updated_at: all.updated_at || null }, block),
-        200,
-        0
-      );
+      sendJson(res, block, 200, 0);
     } catch (err) {
       sendJson(res, { error: (err && err.message) || "summary_failed" }, 500);
+    }
+    return;
+  }
+  if (url === "/api/world/summary" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      const mod = String(payload.module || "").trim();
+      if (!["regions", "agriculture", "transport"].includes(mod)) throw new Error("bad_module");
+      const cur = readModuleState(CAMPAIGN_DIR, mod);
+      if (cur && cur.error) throw new Error(cur.error);
+      if (payload.base_version != null && Number(cur.version) !== Number(payload.base_version)) {
+        sendJson(res, { error: "version_conflict", version: cur.version, updated_at: cur.updated_at }, 409);
+        return;
+      }
+      const next = applyModulePatch(cur, payload);
+      const written = writeModuleState(CAMPAIGN_DIR, mod, next, SOT_LOCK);
+      if (mod === "transport") written.highways_layer = readHighwaysLayerStatus(CAMPAIGN_DIR);
+      sendJson(res, written, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "summary_save_failed" }, 400);
     }
     return;
   }
