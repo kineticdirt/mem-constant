@@ -6,7 +6,7 @@
 **Tone:** cold European frontier — overcast, mildew, mud, closed mouths. **Not** Tropic / Isla / NYC.
 
 **Discord SoT (read first):** [`../reports/discord-swamp-scene-analysis.md`](../reports/discord-swamp-scene-analysis.md)  
-Also: [`../worldbuilding/swamp/HALKIN-GAUL.md`](../worldbuilding/swamp/HALKIN-GAUL.md) · [`APPROACH-AND-EDGES.md`](../worldbuilding/swamp/APPROACH-AND-EDGES.md) · [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) **[proposal]** · [`../story/halkin-gaul-arrival.md`](../story/halkin-gaul-arrival.md) · [`../characters/`](../characters/) · [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md)
+Also: [`../worldbuilding/swamp/HALKIN-GAUL.md`](../worldbuilding/swamp/HALKIN-GAUL.md) · [`APPROACH-AND-EDGES.md`](../worldbuilding/swamp/APPROACH-AND-EDGES.md) · [`../worldbuilding/ostwald-march.md`](../worldbuilding/ostwald-march.md) **[proposal name]** · [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) **[optional tool]** · [`../story/halkin-gaul-arrival.md`](../story/halkin-gaul-arrival.md) · [`../characters/`](../characters/) · [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md)
 
 **Tag legend:** **[canon]** Discord-locked · **[proposal]** promote/cut · **[table talk]** player theory only.
 
@@ -68,11 +68,23 @@ Surface hazards the town might admit **[proposal]:** fever, lost carts, sinkhole
 
 ## 4. Cast at session start
 
-**Present [canon ambient]:** pipe-smokers on steps · guard shack (unnamed) · SorePunks PCs (Vyllynn, Fuyuko+Natsuki, Ata, Leanora, Camila, Gwenevere — see `characters/`; **Blaire** early departure — don’t assume present).
+**Present [canon ambient]:** pipe-smokers on steps · guard shack · SorePunks PCs (Vyllynn, Fuyuko+Natsuki, Ata, Leanora, Camila, Gwenevere — see `characters/`; **Blaire** early departure — don’t assume present).
 
 **Off-screen [canon]:** SmithsVille guildmaster · Chelcins (Kaelen, Elara, Ghorgash; Vesper dead) · Blackdoor staff.
 
-**No named Halkin NPCs in Discord** — clerk/reeve/settler faces are **[proposal]** if needed. If someone talks freely, they are wrong, scared, or selling.
+**Named faces for this scene [proposal sheets]** — Discord had none; use these, don’t fork:
+
+| Sheet | Where | Use |
+|-------|-------|-----|
+| [`halden-crowe`](../characters/halden-crowe.md) | Hall | Incomplete lists; discretion test |
+| [`briar-moss`](../characters/briar-moss.md) | Guard shack | Official list; company stone; soft tip |
+| [`merrin-peat`](../characters/merrin-peat.md) | Rise / after steps | Cousin missing; boots clue |
+| [`aldric-fenn`](../characters/aldric-fenn.md) | Hall / lodging | Helpful denier (“fever/bandits”) |
+| [`tamsin-reed`](../characters/tamsin-reed.md) | Off-square | Defector chin-point / night meet |
+| [`veyra-quills`](../characters/veyra-quills.md) / [`sile-mire`](../characters/sile-mire.md) | Wet edge | Ward scars / knit-cap figure (glimpse) |
+| [`caelwen-ash`](../characters/caelwen-ash.md) / [`branek-holt`](../characters/branek-holt.md) | Elsewhere | Name later; horn/drive pressure only |
+
+If someone talks freely, they are wrong, scared, or selling — except Tamsin/Merrin fragments when earned.
 
 ---
 
@@ -102,24 +114,24 @@ This session = **social + investigation**. Combat is optional late spice only if
 ### Beat C — Walk the rise (afternoon → dusk)
 
 6. Count houses too close to soft ground. Shutter that never latches. Smoke where there shouldn’t be — or none where there should.  
-7. Priority fight at table: someone wants a **beast** killed in the reeds; someone else wants a **quiet cousin search**. Guild said *several* problems.
+7. Priority fight at table: someone wants a **beast** killed in the reeds; someone else wants a **quiet cousin search**. Guild said *several* problems — the beast may be a **herded proxy** (political tool), not MotW.
 
-**Win:** one physical anomaly (cold latch, wrong smoke, neat belongings later).
+**Win:** one physical anomaly (herded kill pattern, thorn-scar, wrong smoke, neat belongings later).
 
-**Checks:** Perception / Investigation · Stealth if entering a shuttered house.
+**Checks:** Perception / Investigation · Survival (herd vs scramble) · Stealth if entering a shuttered house.
 
 ### Beat D — Fingerpost / wet edge (first hard proof)
 
-8. Survey wooden posts into bog. One points to a cut locals won’t name **[proposal]**.  
-9. **Default climax for this session:** neat pile of boots/belts (no bones) **or** frost-scarred latch — proof of *method*, not identity of killer.
+8. Survey wooden posts into bog. One points to a cut locals won’t name **[proposal]**. Under mildew: **thorn-scored ward** if they look hard.  
+9. **Default climax for this session:** proof of *method* — herded beast drive, neat boots/belts, **or** frost latch if Cold-Ledger tool is on — **not** the polity’s name yet.
 
-**Win:** party can argue undead vs hag vs mud-dump with evidence. Stop here unless table hungry.
+**Win:** party can argue hag vs undead vs mud-dump vs **organized pressure** with evidence. Stop here unless table hungry.
 
-**Checks:** Survival / Nature · CON vs wet exposure optional.
+**Checks:** Survival / Nature · Investigation (ward) · CON vs wet exposure optional.
 
 ### Beat E — Soft scare only (optional)
 
-10. Cold on breath / second shadow / latch frost — enough for **[table talk]** theories. **Not** a full wraith fight unless you choose NEXT-ARC early haunt.
+10. Horn-token glint / second shadow / latch frost / distant driven howl — enough for **[table talk]** theories. **Not** a full wraith fight or Ostwald name-drop unless you escalate early.
 
 ### Beat F — Exit hooks (end session)
 
@@ -160,25 +172,28 @@ This session = **social + investigation**. Combat is optional late spice only if
 ## ⚠ GM-ONLY — secrets (do not read aloud)
 
 <details>
-<summary>Spoilers — first-session secrets + optional spine</summary>
+<summary>Spoilers — first-session secrets + political spine</summary>
 
-**What Discord does *not* lock:** cause of disappearances; who hired the guild; evidence left by vanishings; Blackdoor ↔ Halkin link. Fill only via **[proposal]** / `define-with-gm.md`.
+**Cause-class [GM verbal 2026-08-09]:** deaths/disappearances = **political strife** with a neighboring multiethnic semi-evil **druid-streak** polity (working name **Ostwald March**). SmithsVille frontier push = encroachment; Halkin rise = toehold. Beasts/wards/blight/bound spirits = **tools**, not MotW root. Brief: [`../worldbuilding/ostwald-march.md`](../worldbuilding/ostwald-march.md).
 
-**Default next-arc spine [proposal — not played]:** wraith (“Cold Ledger”) + living necromancer (“Mire Binder”). Full clue ladder, escalation, foil, adult NC seeds → [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md). Do **not** dump this as table fact at hall steps.
+**What Discord still does not lock:** polity proper name; who hired the guild; exact evidence pattern; Blackdoor ↔ Ostwald link.
+
+**Optional subordinate spine [proposal — not played]:** wraith (“Cold Ledger”) + living necromancer (“Mire Binder”) in [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) — keep as **Ostwald tool**, **false trail**, or **cut**. Do **not** dump as table fact at hall steps.
 
 **Secrets useful *this* session:**
 
-1. Smokers know a dusk cut exists; they won’t gift it to loud strangers.  
-2. Fancy guard stone = settler-company money / priority skew — red herring, not the killer (unless you twist).  
+1. Smokers know a dusk cut exists; they won’t gift it to loud strangers — some fear **green law**, not only “hags.”  
+2. Fancy guard stone = **settler-company / SmithsVille capital** — money trail toward charter politics (silence benefit), not “the killer’s lair.”  
 3. Hag-in-reeds = rumor fog; empty/decoy hut if they chase.  
-4. Blackdoor sulfur-stab ≠ disappearance tool by default (fork A/B/C in define-with-gm). Party already doubts “serial stabbing demon” = swamp culprit (Prim 2026-07-26).  
-5. No focus object / binder dugout in the hall — later arc.
+4. “Monster” complaints may be **herded** Ostwald proxies — Survival can show drive-pattern.  
+5. Blackdoor sulfur-stab ≠ default disappearance tool (fork in define-with-gm). Party already doubts “serial stabbing demon” = swamp culprit (Prim 2026-07-26).  
+6. No Ostwald name plaque in the hall — later proof only.
 
-**Combat [proposal, demoted]:** peat-walkers or haunt pressure only if party idle-comfort stalls or you want Day-3 escalation early. This card’s success metric is **evidence**, not a swamp fight XP.
+**Combat [proposal, demoted]:** herded beast or peat-walker pressure only if idle-comfort stalls or you escalate early. Success metric is **evidence of organized pressure**, not swamp-fight XP.
 
-**Adult:** Room Clearing / banter adult loot is Blackdoor-era export texture — keep out of player-facing swamp lore unless intentional. NEXT-ARC Seeds A–E optional 18+; arrival session can stay non-sexual.
+**Adult:** Blackdoor Room Clearing texture stays out of player-facing swamp lore unless intentional. NEXT-ARC Seeds A–E optional 18+; arrival session can stay non-sexual.
 
-**Fail-soft:** lodge and party without searching wet → overnight soft disappearance; punish idle comfort, not curiosity.
+**Fail-soft:** lodge without searching wet → overnight soft disappearance (Ostwald keeps pressure on); punish idle comfort, not curiosity.
 
 </details>
 
@@ -186,14 +201,15 @@ This session = **social + investigation**. Combat is optional late spice only if
 
 ## 8. Open questions for GM
 
-1. Promote/cut Cold Ledger / Mire Binder?  
-2. Blackdoor ↔ Binder fork A / B / C?  
-3. Who hired the guild?  
-4. Adult NC on / fade / off?  
-5. Blackdoor spelling; kingdom name; boglin = goblin slang only?  
-6. Stop after Beats A–C or push to Beat D hard clue?
+1. Keep / rename **Ostwald March**?  
+2. Cold Ledger / Mire Binder = Ostwald tool · false trail · cut?  
+3. Blackdoor ↔ Ostwald fork?  
+4. Who hired the guild?  
+5. Adult NC on / fade / off?  
+6. Blackdoor spelling; kingdom name; boglin = goblin slang only?  
+7. Stop after Beats A–C or push to Beat D hard clue?
 
-Worksheet: [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md).
+Worksheet: [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md) §F.
 
 ---
 

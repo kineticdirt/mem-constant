@@ -1,28 +1,34 @@
-# Next arc — Halkin-Gaul (wraith + necromancer)
+# Next arc — Halkin-Gaul (tools under political strife)
 
-**Status:** GM prep draft **[proposal]** unless tagged **[canon]**  
+**Status:** GM prep draft **[proposal]** unless tagged **[canon]** / **[GM verbal]**  
 **Play clock:** party at town-hall steps (Discord cliffhanger `#main-rp` 2026-07-26)  
 **Portal:** https://campaigns.tableslop.org/c/eurosluts  
-**Citations:** `analysis/discord-swamp-extract.md`, `HALKIN-GAUL.md`, `APPROACH-AND-EDGES.md`  
+**Citations:** `analysis/discord-swamp-extract.md`, `HALKIN-GAUL.md`, `APPROACH-AND-EDGES.md`, `../ostwald-march.md`  
 **Adult content:** this file includes **explicit NC** encounter seeds (all involved **18+**). Tone-gate at table; each seed has TW + fade-to-black.
 
 ---
 
-## Premise [proposal on canon job]
+## Premise
 
 **[canon]** Guild brief: investigate Halkin-Gaul — monsters + disappearances; discretion; thin intel; ~month; 1000 gp / 200 up front.
 
-**[proposal — culprit spine]** The disappearances are **wraith murders** (undead spirit that drains and leaves little corpse). The wraith is not a free storm. A living **necromancer** in the basin **bound / rides / feeds** the spirit and can **summon more undead** when pressured. Party job splits:
+**[GM verbal 2026-08-09 — cause-class]** Root cause = **political strife** with neighboring multiethnic semi-evil **druid-streak** polity (working name **Ostwald March**). SmithsVille frontier = encroachment; Halkin rise = toehold. Full map: [`../ostwald-march.md`](../ostwald-march.md).
 
-1. **Investigate** — prove it is a wraith (not hag, not mud-dump bandits, not “swamp people”).
-2. **Foil** — break the necromancer’s hold and stop the summons loop.
-3. Optional: decide whether Blackdoor’s sulfur-stab is related pressure or a separate blade.
+**[proposal — subordinate tools]** The earlier **wraith + necromancer** spine below is **not** MotW root. Promote it only as:
 
-Do not announce the spine in hall. Let the table earn it.
+| Mode | Meaning |
+|------|---------|
+| **Ostwald tool** (default if kept) | Cold Ledger / Mire Binder = deniable green-war weapons run by circle specialists |
+| **False trail** | Looks like undead local horror; politics is the real engine |
+| **Cut** | Drop Binder/Ledger; use herded beasts, wards, blight, live agents only |
+
+Party job still splits into investigate → prove method → foil the pressure (circle agent, hunt captain, or Binder if kept).
+
+Do not announce Ostwald or Binder in hall. Let the table earn it.
 
 ---
 
-## Antagonists [proposal]
+## Antagonists [proposal — optional tools under Ostwald]
 
 ### The wraith — “Cold Ledger” (working name; rename on first local whisper)
 
@@ -214,15 +220,16 @@ Partial stall (party investigates but avoids wet): still advance Day 2–3 threa
 
 ## Open locks still needing GM
 
-1. Promote or cut **Cold Ledger / Mire Binder** names and Binder’s public cover face.  
-2. Blackdoor ↔ Binder fork **A / B / C**.  
-3. Who hired the guild (hall / company / anonymous)?  
-4. Adult NC lines: which of Seeds A–E are **on / fade-only / off**?  
-5. Is “boglin” only Fenrir goblin slang?  
-6. Any post–2026-07-26 Discord or DMs that override this draft?  
-7. Kingdom/duchy name for periphery?
+1. Keep / rename **Ostwald March**; polity name on-screen timing.  
+2. Cold Ledger / Mire Binder: **Ostwald tool** · false trail · cut; Binder’s public cover face.  
+3. Blackdoor ↔ Ostwald / Binder fork **A / B / C**.  
+4. Who hired the guild (settler factor default / hall / company / anonymous)?  
+5. Adult NC lines: which of Seeds A–E are **on / fade-only / off**?  
+6. Is “boglin” only Fenrir goblin slang?  
+7. Any post–2026-07-26 Discord or DMs that override this draft?  
+8. Kingdom/duchy name for periphery (SmithsVille’s side)?
 
-Mark promotes in `LOCKS.md` with Discord timestamp or `GM verbal YYYY-MM-DD`.
+Mark promotes in `LOCKS.md` with Discord timestamp or `GM verbal YYYY-MM-DD`. See also `../../analysis/define-with-gm.md` §F.
 
 ---
 
@@ -230,8 +237,9 @@ Mark promotes in `LOCKS.md` with Discord timestamp or `GM verbal YYYY-MM-DD`.
 
 | File | Role |
 |------|------|
+| `../ostwald-march.md` | **Primary** neighbor / political cause brief |
 | `HALKIN-GAUL.md` | Town bible (arrival SoT) |
 | `APPROACH-AND-EDGES.md` | Road geography |
-| `NEXT-ARC-HALKIN-GAUL.md` | This arc spine |
+| `NEXT-ARC-HALKIN-GAUL.md` | Optional tool spine (this file) |
 | `../../analysis/timeline.md` | Event timeline |
 | `../../analysis/define-with-gm.md` | GM decision worksheet |

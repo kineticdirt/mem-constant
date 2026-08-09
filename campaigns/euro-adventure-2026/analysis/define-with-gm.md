@@ -21,11 +21,11 @@ GM wrote: “The blackdoor in.”
 
 ### Q2 — Who sent the Halkin job?
 - [ ] **A** Town hall / reeve  
-- [ ] **B** Merchant / factor  
+- [ ] **B** Merchant / settler factor (SmithsVille)  
 - [ ] **C** Church  
 - [ ] **D** Anonymous purse  
 - [ ] **E** Other: _______________  
-- [proposal] leave **unknown to party**; reveal later if useful
+- [proposal] **B** (aligns with political silence — see §F Q19)
 
 **Evidence:** brief names problems + pay only — **no client** in export.
 
@@ -113,15 +113,16 @@ Empty in export — intentional unused?
 
 ---
 
-## C. Next-arc spine (optional — from `NEXT-ARC-HALKIN-GAUL.md`)
+## C. Next-arc tools (optional — from `NEXT-ARC-HALKIN-GAUL.md`)
 
-Only if you want a culprit class now:
+**Cause-class is already LOCK (GM verbal 2026-08-09):** political strife with neighboring druid-streak polity — see §F.  
+Only if you want optional undead/necromancer **tools**:
 
 | # | Prompt | Choices |
 |---|--------|---------|
-| 14 | Culprit spine | wraith+necromancer · wraith-only · necromancer-only · other ____ · undecided |
+| 14 | Cold Ledger / Mire Binder | Ostwald tool · false trail · cut · undecided |
 | 15 | Names Cold Ledger / Mire Binder | keep · rename ____ · undecided |
-| 16 | Blackdoor fork | unrelated · Binder-hired knife · apprentice stabbed Vesper |
+| 16 | Blackdoor fork | unrelated · Ostwald/Binder-hired knife · apprentice stabbed Vesper · rival guild |
 | 17 | Adult NC seeds (18+) | review NEXT-ARC §Adult — On / Fade / Off per seed |
 
 All **[proposal]** until you pick.
@@ -130,13 +131,47 @@ All **[proposal]** until you pick.
 
 ## D. Already LOCK (do not re-ask)
 
-SmithsVille · Fenrir Hills goblins · Halkin job terms (pay/time/discretion) · Camila road join · Chelcins + Vesper murder · approach mountains→bog · Halkin town description · play clock at town hall · cast list in `players-characters.md`.
+SmithsVille · Fenrir Hills goblins · Halkin job terms (pay/time/discretion) · Camila road join · Chelcins + Vesper murder · approach mountains→bog · Halkin town description · play clock at town hall · cast list in `players-characters.md` · **cause-class = political neighbor strife** (GM verbal 2026-08-09).
 
 ---
 
 ## E. How to promote
 
 1. Tick options above (chat reply is enough).  
-2. Strip **[proposal]** in the matching swamp file.  
+2. Strip **[proposal]** in the matching swamp / nation file.  
 3. Add `LOCKS.md` line: `GM verbal YYYY-MM-DD` or Discord stamp.  
 4. Campaign rename (#8) only: set tracker `title` + `name_pending: false`.
+
+---
+
+## F. Neighbor polity (Ostwald March) — open choices
+
+Discord never named the neighbor. Working prep name: **Ostwald March** (`worldbuilding/ostwald-march.md`).
+
+### Q18 — Polity name
+- [ ] **A** Lock **Ostwald March** as table name  
+- [ ] **B** Rename: _______________  
+- [ ] **C** Keep unnamed on-screen longer (prep name GM-only)  
+- [proposal] **C** or **B** until you like the sound
+
+### Q19 — Who hired the guild?
+- [ ] **A** Settler company / merchant factor (SmithsVille) — **default**  
+- [ ] **B** Town hall / reeve  
+- [ ] **C** Church  
+- [ ] **D** Anonymous purse  
+- [ ] **E** Other: _______________  
+- [proposal] **A**
+
+### Q20 — Missing people fate
+- [ ] **A** All dead  
+- [ ] **B** Mix — some alive as Ostwald wards / labor / converts  
+- [ ] **C** Undecided  
+- [proposal] **B** (gives rescue hooks without soft MotW)
+
+### Q21 — Ata vs Ostwald druids
+- [ ] **A** Unrelated circles  
+- [ ] **B** Distant kin — political tension  
+- [ ] **C** Ostwald rejects ferals like Ata  
+- [proposal] leave flexible until first rite clue
+
+**Story pointer:** `story/halkin-gaul-arrival.md` §4 · §9.

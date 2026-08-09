@@ -45,10 +45,19 @@ Export snapshot: **2026-08-09** re-ingest (same play ceiling as 2026-08-02 — l
 
 *(Still thin in export — UNCONFIRMED beyond 5e-shaped play and lewd table tone.)*
 
-## Explicitly not locked
+## Explicitly not locked (Discord)
 
-- True cause of Halkin-Gaul disappearances
+- Polity proper name (working prep name **Ostwald March** is **[proposal]** only)
 - Link (or not) between Blackdoor murder and swamp vanishings
-- Kingdom/duchy proper name
+- Kingdom/duchy proper name (SmithsVille’s side)
 - Map coordinates
+- Whether Cold Ledger / Mire Binder tools are kept
 - Any content only in DMs or post–**2026-07-26** Discord (re-ingest 2026-08-09 still empty after arrival)
+
+## GM verbal locks (human, not Discord)
+
+| Lock | Source |
+|------|--------|
+| Cause-class of Halkin deaths/disappearances = **political strife** with a neighboring multiethnic **semi-evil** polity that has a **druid streak** and treats **SmithsVille / frontier settlement (incl. Halkin-Gaul)** as **encroachment**; beasts/wards/etc. are tools of that conflict, not MotW root | GM verbal via Cursor ask **2026-08-09** (holder `euro-neighbor-strife`) |
+
+Detail brief (still proposal on names/circles): `worldbuilding/ostwald-march.md`.

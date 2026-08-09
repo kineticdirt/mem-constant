@@ -72,9 +72,10 @@ Wood + artisanal stone. Stands apart visually.
 | Role | Status | Notes |
 |------|--------|-------|
 | Pipe-smokers on hall steps | [canon] present | First social filter |
-| Guard presence | [canon] shack exists | Names **[proposal]** |
-| Town clerk / reeve | **[proposal]** | Who hired the guild remotely? |
-| Settler families | **[proposal]** | “Settling the swamps” implies newcomers vs older bog folk |
+| Guard presence | [canon] shack exists | Names → **Briar Moss** **[proposal]** |
+| Town clerk / reeve | **[proposal]** | **Halden Crowe** — incomplete lists; company silence |
+| Settler families | **[proposal]** | **Merrin Peat** = scared clue-dropper |
+| Ostwald faces | **[proposal]** | See `characters/INDEX.md` + `../ostwald-march.md` |
 
 **[proposal]** Do not invent a friendly innkeeper who explains the plot. If you need a talkative NPC, make them wrong, scared, or selling something.
 
@@ -83,6 +84,12 @@ Wood + artisanal stone. Stands apart visually.
 **Chelcins** want a remote branch in the far reaches (recruitment + quest issue). Met on the road at Blackdoor Inn: Kaelen, Elara, Ghorgash; **Vesper dead**. They offered cooperation / lodging *in principle* before the murder scrambled everything. Whether any Chelcins reach Halkin-Gaul after Blackdoor is **unconfirmed in export**.
 
 Party banner: **SorePunks** (placeholder name, small shop). Discretion means they should not announce guild glory in the square.
+
+### Neighbor pressure [GM verbal cause-class; detail proposal]
+
+**[GM verbal 2026-08-09]** Deaths/vanishings = political strife with a multiethnic semi-evil **druid-streak** neighbor that reads SmithsVille settlement (and Halkin’s plaster rise) as **encroachment**. Working name **Ostwald March** — see [`../ostwald-march.md`](../ostwald-march.md). Do not name them at hall steps.
+
+**[proposal]** Settler company paid for nicer guard stone and benefits from silence. Ostwald benefits from “monster” cover. Beasts/wards = tools.
 
 ### Prior road complication [canon — separate place]
 
@@ -101,7 +108,7 @@ until you decide. Do not silently merge them into one neat mystery.
 
 **[proposal — times]** From the mountain saddle down into the basin: half a day of careful carting in fair weather; longer if a wheel finds a false shelf. Hall → deep reed flat: an hour walk if you know the posts; overnight if you do not. Night travel in the wet is how disappearances stay disappearances.
 
-**[proposal — wildlife / threats]** Leave the *true* monster list blank until you pick a culprit class. Surface threats the town might admit: fever from standing water, lost carts, opportunistic bandits on the stone road, bog sinkholes. Player **[table talk]** list (hag / undead / “swamp people”) stays available as *rumor texture*, not confirmation.
+**[proposal — wildlife / threats]** Surface threats the town might admit: fever from standing water, lost carts, opportunistic bandits on the stone road, bog sinkholes. **True pressure** is Ostwald’s deniable toolkit (herded beasts, wards, optional bound spirit) — see `../ostwald-march.md`. Player **[table talk]** list (hag / undead / “swamp people”) stays available as *rumor texture*, not confirmation.
 
 ---
 
@@ -118,14 +125,15 @@ until you decide. Do not silently merge them into one neat mystery.
 
 ## Open questions for GM
 
-Worksheet (locks vs open + portal name decisions): `../../analysis/define-with-gm.md`.
+Worksheet (locks vs open + portal name decisions): `../../analysis/define-with-gm.md` (§F neighbor).
 
 1. Confirm inn spelling/name: **Blackdoor Inn** (from “The blackdoor in.”)?
-2. Who sent the job to the guildmaster — town hall, merchant factor, church, anonymous purse?
+2. Who sent the job to the guildmaster — settler factor (default), town hall, merchant, church, anonymous purse?
 3. Are disappearances **quiet absences**, or do belongings / carts / blood ever turn up?
-4. Is the Blackdoor sulfur-stab **linked**, **copycat pressure**, or **unrelated** to Halkin-Gaul?
-5. Kingdom / duchy name for the frontier beyond “periphery regions”?
-6. Any map sketch, private notes, or post–2026-07-26 Discord that should override this draft? (Re-ingest 2026-08-09: still no later `#main-rp`.)
-7. Lock “boglin” as slang/typo for **goblin** (Fenrir Hills / early board), not a swamp species? — **[proposal] yes** (Mar 8 + May 24).
+4. Is the Blackdoor sulfur-stab **linked** to Ostwald, **copycat**, or **unrelated**?
+5. Keep / rename **Ostwald March**; kingdom/duchy name on SmithsVille’s side?
+6. Cold Ledger / Mire Binder = Ostwald tool · false trail · cut?
+7. Any map sketch, private notes, or post–2026-07-26 Discord that should override this draft? (Re-ingest 2026-08-09: still no later `#main-rp`.)
+8. Lock “boglin” as slang/typo for **goblin** (Fenrir Hills / early board), not a swamp species? — **[proposal] yes** (Mar 8 + May 24).
 
-Mark promotes by stripping **[proposal]** and adding a line to `LOCKS.md` with a Discord timestamp or “GM verbal YYYY-MM-DD”. **Do not** invent answers while GM is away. Tick choices in `analysis/define-with-gm.md`.
+Mark promotes by stripping **[proposal]** and adding a line to `LOCKS.md` with a Discord timestamp or “GM verbal YYYY-MM-DD”. Tick choices in `analysis/define-with-gm.md`.

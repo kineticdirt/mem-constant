@@ -17,13 +17,14 @@
   "session_ready": {
     "as_of": "2026-08-09",
     "bundle": [
-      "campaigns/euro-adventure-2026/story/halkin-gaul-arrival.md (current Story — hall steps cliffhanger)",
+      "campaigns/euro-adventure-2026/story/halkin-gaul-arrival.md (current Story — political neighbor spine)",
+      "campaigns/euro-adventure-2026/worldbuilding/ostwald-march.md (neighbor brief [proposal name])",
       "campaigns/euro-adventure-2026/scenes/swamp-scene.md (playable scene card)",
       "campaigns/euro-adventure-2026/reports/discord-swamp-scene-analysis.md (Discord SoT analysis)",
-      "campaigns/euro-adventure-2026/worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md (GM [proposal] only)"
+      "campaigns/euro-adventure-2026/worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md (optional tools under Ostwald)"
     ],
     "blocking": [
-      "GM define-with-gm worksheet (swamp Qs + portal name)",
+      "GM define-with-gm §F (Ostwald name / client / tool mode)",
       "No play after 2026-07-26 in bot export"
     ]
   },
@@ -31,12 +32,17 @@
     {
       "label": "Story · Halkin-Gaul arrival",
       "path": "campaigns/euro-adventure-2026/story/halkin-gaul-arrival.md",
-      "note": "Current Story — #main-rp 2026-07-26 cliffhanger"
+      "note": "Current Story — political neighbor strife spine; hall-steps cliffhanger"
+    },
+    {
+      "label": "Neighbor · Ostwald March",
+      "path": "campaigns/euro-adventure-2026/worldbuilding/ostwald-march.md",
+      "note": "GM brief — multiethnic druid-streak neighbor [proposal name]"
     },
     {
       "label": "Characters index",
       "path": "campaigns/euro-adventure-2026/characters/INDEX.md",
-      "note": "7 PC sheets (design-doc drafts from #sheets)"
+      "note": "7 PCs + 6 Ostwald NPCs + 3 Halkin locals (NPC sheets [proposal])"
     },
     {
       "label": "Discord swamp analysis",
@@ -61,12 +67,12 @@
     {
       "label": "Define with GM",
       "path": "campaigns/euro-adventure-2026/analysis/define-with-gm.md",
-      "note": "Swamp Qs + portal + next-arc locks"
+      "note": "Swamp Qs + portal + Ostwald §F + tool locks"
     },
     {
-      "label": "Next arc prep",
+      "label": "Next arc tools",
       "path": "campaigns/euro-adventure-2026/worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md",
-      "note": "Wraith/necromancer [proposal] — not LOCK"
+      "note": "Optional Cold Ledger/Binder under Ostwald — not MotW root"
     },
     {
       "label": "Swamp bible",
@@ -76,7 +82,7 @@
     {
       "label": "LOCKS",
       "path": "campaigns/euro-adventure-2026/LOCKS.md",
-      "note": "Discord-only locked facts"
+      "note": "Discord locks + GM verbal cause-class"
     },
     {
       "label": "Discord export",
