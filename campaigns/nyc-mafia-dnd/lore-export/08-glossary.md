@@ -45,12 +45,8 @@
 - **Marker** — a debt owed. The Ledger and Auntie Mei both collect.
 - **Operator** — a freelance underworld professional. What you are.
 - **Bootleg bands** — unlicensed healing, $45 copper-wire wrists.
-- **The Below** — the collapsed demiplane under the city. Non-Euclidean, lawless, humid, inhabited.
-- **Bone Reach** — the deep Kowalski disposal trenches in the Below.
-- **The Echo** — the Below's collective memory of the dead. Whispers, slang, moods.
-- **Drift-rats** — Below vermin. Eat magic, not flesh. Rowan-chalk repels.
-- **The Chattering** — tiny toothy elementals in the corpse pits. Trade rumors for bone.
-- **The Sleeper in the Hollow** — the large dormant thing under the Brooklyn docks. Not a vampire. Do not cult.
+- **The Below** — the tunnels and folded dark under the city. Lawless, mapped wrong, taxed at the door. Don't.
+- **Bone Reach** — somewhere under Staten Island. Don't.
 
 ## The fringe
 

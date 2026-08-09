@@ -35,12 +35,14 @@ Real, known, and unlicensed. They don't get salon permits without a human front 
 
 **What the street knows:**
 
-- They **rent**. The Valenti family rents crypt shelves in the sealed IRT side tunnels east of Court Street — cold storage, $200 a month, no questions. A vampire who pays is a tenant, not a monster.
-- They **feed** through brokers. Night markets on Orchard Street and in the Brighton Beach alleys sell blood — licensed stalls sell the legal kind, unlicensed stalls sell worse. Failed product gets dumped in the storm drains, where the drift-rats compete for it.
+- They **rent**. When the surface gets hot, a vampire goes to ground somewhere the city doesn't map — and someone down there collects. The word on Orchard Street is that below-ground cold storage has a waiting list. A vampire who pays is a tenant, not a monster.
+- They **feed** through brokers. The night markets on Orchard Street and in the Brighton Beach alleys sell blood — licensed stalls sell the legal kind, unlicensed stalls sell worse. Watch what you buy after 1 a.m.
 - They **pass**. Midtown money covers a lot. The tell is never the fangs — it's the paperwork. The parish registry doesn't have them.
 - They don't run the families, and the families don't let them. A vampire capo is a fairy tale. A vampire *tenant* is a line item.
 
-**Repellents, street grade:** garlic braids ($0.10), silver chalk ($0.25), a rowan line — same chalk operators use against drift-rats.
+> **GM gap:** the sources don't define vampire turning rules, clan structure, or any named vampires. If a player asks, the table answer is "ask the GM."
+
+**Repellents, street grade:** garlic braids ($0.10), silver chalk ($0.25), a rowan line — the same chalk operators use for Below vermin.
 
 ---
 
@@ -50,12 +52,14 @@ Not cursed romantics — **crews**. The city uses them where it needs something 
 
 **What the street knows:**
 
-- They **work**. Lycan crews run the garbage routes and the sprawl-edge hauls. In the Below, Kowalski's Bone Reach pits have lycan scavenger crews who trade bones for Below passage.
+- They **work**. Lycan crews run the garbage routes and the sprawl-edge hauls — strong, nocturnal, deniable. Down by the disposal pits people say some crews trade what they find for passage further down. Nobody writes that part down.
 - They **make the papers** upstate. Adirondack lycan headlines sell papers and justify budgets. Downstate, the same person is a sanitation worker with a condition.
 - The **Palisades caves** are druid cover and lycan territory at once — which is convenient for anyone who wants a raid to look like a conservation issue.
 - Russian Brighton Beach is full of shifters — swiftstride and wildhunt blood that the old country always knew about. The neighborhood treats it as a family matter, not a curse. Cold-iron amulets on the samovar table are for *hexes*, not relatives.
 
 **The distinction the street draws:** a shifter is a neighbor. A lycan is a worker. A werewolf is what the Tribune calls it when a body shows up.
+
+> **GM gap:** no canon on lycan pack structure, infection, or how a shifter's license differs from a lycan's status. If a player wants to play one, that's a GM conversation.
 
 ---
 
@@ -67,9 +71,9 @@ This is the one that scares the Commission, the OCU, and the FSA equally, becaus
 
 **What the street knows:**
 
-- **Runaway cores** escape into the Below. Some form a rogue collective. That's the nightmare scenario the FSA's shoot-to-scrap policy exists for.
+- **Runaway cores** are the headline everyone pretends is an accident. A loader that keeps stacking after the foreman goes home. A foundry line that won't stop. The FSA's shoot-to-scrap policy exists because the foundries keep swearing it's contained, and it keeps not being.
 - **The glitch is the tell.** Near an active core, subway signals lie, doors stick, and the schedule repeats a stop that isn't on the map. If your train keeps stopping at a station that doesn't exist, get off at the next real one.
-- **Smuggled cores** are the family's hottest cargo — automatic federal conviction, which is why Kowalski melts them in acid or drops them in the deep landfill.
+- **Smuggled cores** are the family's hottest cargo — automatic federal conviction, which is why the disposal end of that trade is so well paid.
 - **The horror is category violation** — a thing that lives, and obeys economics, without being human or properly dead. The FSA doesn't raid a lab coat. It raids a core that *breathes*.
 
 **Not supercomputers.** A construct can't reconcile a ledger. It can lift the ledger's building off its foundation. Keep the lanes straight.
@@ -78,25 +82,18 @@ This is the one that scares the Commission, the OCU, and the FSA equally, becaus
 
 ## The Below — the city's folded-in dark
 
-Not a subway tunnel. Not hell. A **collapsed demiplane folded into the bedrock** during the 1800s water and transit excavations. Walk four blocks down a brick corridor in Brooklyn, exit a storm drain on Canal Street. Dark, damp, brick arches, rusted pipes, abandoned steam chambers. Smells of stagnant water, wet coal, ozone.
+The honest answer is that nobody who talks about the Below knows the whole of it, and the people who do know don't talk. What follows is street say-so. Treat all of it as true and none of it as reliable.
 
-**The law down there:** none. No OCU, no auditors. But cast a loud spell near an access grate and you ring the guild seismographs on the surface — the heat finds the entrance.
+**What everyone agrees on:** it's down there. Old tunnels, water mains, sealed platforms, and spaces that don't line up with the streets above. The families tax the ways in. People go down for a job and come back wrong, or rich, or not at all. There is no law in it — no OCU, no auditors — but cast something loud near a way in and the guild seismographs on the surface ring, and the heat finds the entrance.
 
-**Known access points** (the families guard all of them):
+**What the old hands say:**
 
-| Access | Location | Family | Use |
-|--------|----------|--------|-----|
-| Court Street Station | Brooklyn | Valenti | Abandoned platform — hot cores and crates that can't see daylight |
-| Canal Street Overflow | Manhattan | Chen-Okafor | Storm junction — diviners monitor Below traffic |
-| Stapleton Water Tunnel | Staten Island | Kowalski | 1870s water main — deep disposal into the Bone Reach |
-| The Dead Stop | Midtown, under Grand Central | **Sealed — FSA** | Iron vault door, seven federal wards, "NO ENTRY — HIGH VOLTAGE." Nobody opens it. |
+- **The geometry goes wrong.** A corridor that's four blocks one way and a storm drain the other. Don't trust a map. Don't trust the last corner you turned.
+- **The rats drink magic.** Pale things with too many legs, drawn to your foci and your elixirs, not your blood. A chalk line and a prayer keep them off — rowan and silver, the operator's friend.
+- **The pipes remember.** Down deep you hear voices — dead transit men, missing persons, the disappeared. Old slang, old schedules. Sometimes they point you home. Sometimes they don't. Leave a copper coin on a rail; say a dead man's name; see what the dark is in the mood for.
+- **Something under the docks gets fed.** The dock crews don't discuss it. The stone has a heartbeat if you stand still long enough. Whatever it is, it isn't a vampire, and the people who get curious about it stop being curious.
 
-**What's down there** (the street version — the deep truth is the campaign's business):
-
-- **Drift-rats.** Six-legged pale cat-sized things, hunt in packs, eat *magic* not flesh — they swarm your foci and your elixirs. Rowan-chalk line on the floor keeps them back.
-- **The Echo.** The overlapping memories of dead transit workers, missing persons, and disposal victims. Whispers in the pipes, shifting shadows. Speaks in 1920s slang and old schedules. Not hostile — disorienting. It'll guide you out or lead you in circles depending on its mood. Responds to a copper coin, a pinch of tobacco, or a dead person's name.
-- **The Chattering.** Tiny toothy elementals in the Kowalski corpse pits, clicking constantly. They trade rumors the dead whispered before dissolving, for fresh bone and scrap.
-- **The Sleeper in the Hollow.** Something massive and dormant in the bedrock under the Brooklyn docks. It doesn't move or speak; it makes the stone vibrate. The Valentis dump organic waste near it, and it occasionally returns warded objects wrapped in dried membrane. **It is not a vampire.** It attracts fringe cults. Do not be a fringe cult.
+**What the GM wants you to know going in:** the Below is real, it's dangerous, and the campaign will take you there when it's ready. What it actually *is* — the shape of it, the names of what's in it, who really controls the doors — is exactly the kind of thing your character does not know yet.
 
 ---
 
@@ -104,9 +101,9 @@ Not a subway tunnel. Not hell. A **collapsed demiplane folded into the bedrock**
 
 **Necromancy is not casual.** Raising the dead is a massive scandal and a federal crime. But the dead are *useful*, so the city built institutions around them:
 
-- **Ghost witnesses.** A priest can summon a murder victim for one question. It's messy in court. The Moretti answer is *gentle repose* — "consigned to the parish registry" — which is why control of the burial registry is power.
-- **Bound-labor wards.** Pre-Emancipation contract magic is still buried in the Below's disposal routes. The OCU calls it "heritage necromancy," not history.
-- **Bone phones.** The Moretti basement runs one — a speaking-tube wired to a human skull that channels whispers from the deceased. That's the kind of thing the Grey sells and the Street pretends not to buy.
+- **Ghost witnesses.** A priest can summon a murder victim for one question. It's messy in court. The families that control the burial registry and the funeral-home network control what the dead can say — "consigned to the parish registry" means the ghost is no longer available. That's why that control is power.
+- **Bound-labor wards.** Pre-Emancipation contract magic lingers in old routes and old deeds. The OCU calls it "heritage necromancy," not history.
+- **Bone phones.** Somewhere in Little Italy there's a speaking-tube wired to a human skull that channels whispers from the deceased. That's the kind of thing the Grey sells and the Street pretends not to buy.
 
 ---
 

@@ -8,12 +8,11 @@
 
 The five families hold a quarterly sit-down in a private room at an Ashford-owned hotel. The one standing rule that matters to you: **no magic hits on civilians without a vote.** It's broken often enough that everyone remembers why it exists.
 
-Current friction — the shape of the city's grudges:
+Current friction — the shape of the city's grudges, as the street tells it:
 
 - **Valenti ↔ Chen-Okafor:** business. Docks clear Queens' imports; Queens finances dock foundries.
 - **Moretti ↔ Chen-Okafor:** active turf war over Lower East Side numbers routes.
 - **Kowalski ↔ Moretti:** a religious grudge — Moretti chaplains say Kowalski disposal desecrates the dead; Kowalski says Moretti ghosts spy on their routes.
-- **Valenti ↔ Ashford:** quiet rivalry over a Midtown speaking-tube hub both families want.
 - **Kowalski ↔ Valenti:** poaching — harbor smuggling routes and who gets to dump construct scrap in Jersey.
 
 ---
@@ -84,7 +83,7 @@ Current friction — the shape of the city's grudges:
 | Name | Role | What the street knows |
 |------|------|----------------------|
 | **Julian Ashford** | Boss | Wealthy, elegant, never raises his voice even when ordering a hit. Portrait in his office has eyes that follow you. Believes every transaction is a contract and every contract has a price paid in future favors. |
-| **Julian Cross** | Operations | "Cross Consulting" cards, rimless glasses, calm over lobby piano. Knows every active pact and three audit-desk clerks on retainer. Has a daughter who doesn't know what he does. |
+| **Julian Cross** | Operations | "Cross Consulting" cards, rimless glasses, calm over lobby piano. The man who handles the details Julian Ashford doesn't touch. |
 | **"Quill"** | Enforcer | Fiend-pact. Amber eyes, a shadow that fidgets when he stands still. Raven familiar with one glass eye. Fights to disable, not kill — dead men can't sign contracts. |
 | **Delia Park** | Forger | Looks like a Midtown clerk because she is one. Encyclopedic memory for numbers. Gambling debt held through a Valenti front — which makes her flippable if someone offers an exit. |
 
@@ -112,15 +111,17 @@ Two agencies out of Foley Square, and they do not like each other:
 
 ### Evidence — what actually convicts you
 
-| Evidence | Weight in court | How the families beat it |
-|----------|----------------|--------------------------|
-| **Ward residue** (glowing dust matched to your magical signature) | Strong | Hire a ward-breaker to scrub it with silver chalk and rowan vinegar before the OCU arrives |
-| **Tube recording** (sealed wax cylinder of a spliced conversation) | Very strong | Ashford lawyers challenge the warrant; a bribed clerk drops the cylinder on a radiator |
-| **Bound ghost witness** (a priest summons the victim for one question) | Messy | Moretti chaplains put the corpse under *gentle repose* — "consigned to the parish registry" |
-| **Construct core** (unlicensed, autonomous) | Automatic conviction | Kowalski drops it in an acid bath or the deep end of the landfill |
-| **Scry-capture plate** (bound-light image with guild seal) | Very strong | Swap the glyph, shatter the plate, forge the living-ink |
+The courts admit magic under strict federal guidelines. What you need to know as a working operator:
 
-Machine testimony is **not** admissible. Brass calculating engines are folklore, not witnesses. Nobody in this city trusts a number nobody swore to.
+| Evidence | Weight in court |
+|----------|----------------|
+| **Ward residue** (glowing dust matched to your magical signature) | Strong |
+| **Tube recording** (sealed wax cylinder of a spliced conversation) | Very strong |
+| **Bound ghost witness** (a priest summons the victim for one question) | Messy |
+| **Construct core** (unlicensed, autonomous) | Automatic conviction |
+| **Scry-capture plate** (bound-light image with guild seal) | Very strong |
+
+Machine testimony is **not** admissible. Brass calculating engines are folklore, not witnesses. Nobody in this city trusts a number nobody swore to. How the families work around each tier is their trade secret — the point for you is that every one of these can be beaten by someone who knows what they're doing, which is why you hire a cleaner instead of running.
 
 ### The Felony Stack (what you personally face)
 
@@ -146,7 +147,7 @@ Street-level Ledger faces your crew might already know:
 | Name | Where | What they do |
 |------|-------|--------------|
 | **Mickey "The Needle" Fusco** | Sea Wolf Tattoo, Red Hook | Ward-glyph tattoos that hold six months if you stay out of Midtown scrub-wards. His brass-and-spring prosthetic arm ticks in quiet rooms — a Valenti "gift" he can't take off. Nervous, talks to himself over the needle. First friendly face when a job goes sideways. |
-| **Eddie Trillo** | Transit lockers, pier meets | Freelance courier for high-value cargo. Stocky, green coat, gold tooth, winged-coin tattoo. Loyal to the contract, not the family. |
+| **Eddie Trillo** | Transit lockers, pier meets | Freelance courier for high-value cargo. Stocky, green coat, gold tooth, winged-coin tattoo. Reliable, discreet, expensive. |
 | **Auntie Mei** | Golden Dragon Mahjong, Flushing | Diviner and broker. Warm, maternal, ruthless on unpaid markers. Knows everyone's real name and mother's address. Collects favors when the piano stops. |
 | **Harlow "Cipher" Duvall** | A dock loft with salt lines on every threshold | Unbinds what shouldn't have been bound. Cynical, cash up front, tiered prices. Ashford wants her on retainer; she refuses ownership. |
 | **Manny "The Bookkeeper" Reyes** | Valenti, invisible | Soft, diner-booth suit, anvil tie clip. The accountant who handles the paper. Precise, and terrified. |

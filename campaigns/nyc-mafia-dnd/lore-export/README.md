@@ -22,7 +22,11 @@ Keep these **out** of any player-facing copy. They live in GM-only docs:
 
 - What the Blue Note ledger **actually is** / the twist (`story/heist-blue-note-job.md` §5, `story/session-01-run-sheet.md`).
 - Session-1 complications, escape legs, endings, clocks (`story/heist-blue-note-job.md` §4–6, run-sheet).
-- The Bone Index deeper layer / the Below's late-campaign truth (`reports/2026-08-01-the-below.md` beyond §4 surface flavor).
+- The **Below access-point table** (Court Street / Canal Overflow / Stapleton / Dead Stop) and its controlling families — players get the Below as **street rumor only** until arc 2.
+- The Below's named entities (the Echo, the Chattering, the Sleeper in the Hollow) and their mechanics — players get "the pipes remember" / "the rats drink magic" / "something under the docks gets fed," not names.
+- The Valenti crypt-shelf price ($200/mo) — it points at the access map.
+- NPC GM levers — Julian Cross's "knows every pact / clerks on retainer," Eddie Trillo's parallel contract, Rosa's binder knowledge, Sal's forged papers, Gutter's nightmares.
+- The Bone Index deeper layer / the Below's late-campaign truth (`reports/2026-08-01-the-below.md` beyond surface flavor).
 - GM-only session-1 readiness checklists (`story/session-zero-discord.md` GM section).
 - Private character GM notes (`characters/*.md` private blocks).
 
@@ -30,7 +34,7 @@ If you add to the pack, re-run the scan:
 
 ```bash
 cd campaigns/nyc-mafia-dnd/lore-export
-grep -rniE 'ledger actually|what the ledger|bone index|run.sheet|escape leg|complication|G-5|session-01-run' *.md
+grep -rniE 'ledger actually|what the ledger|bone index|spirit-ledger|reactive script|rogue collective|crypt shel|Court Street Station|Canal Street Overflow|Stapleton|Dead Stop|run.sheet|escape leg|complication|G-5|Julian Cross|Trillo|the Echo|Chattering|Sleeper in' *.md
 ```
 
 Any hit outside this README is a leak.
