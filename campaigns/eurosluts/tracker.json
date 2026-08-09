@@ -1,7 +1,7 @@
 {
   "id": "eurosluts",
   "title": "Euro Campaign",
-  "subtitle": "Working table name pending (was Eurosluts) · Discord-managed · play clock: Halkin-Gaul arrival",
+  "subtitle": "Working table name pending · Discord-managed · play clock: Halkin-Gaul town-hall steps",
   "status": "active",
   "name_pending": true,
   "player_facing": true,
@@ -12,9 +12,42 @@
     "channel_id": "1495469564060893254",
     "early_channel_id": "1477735120252178453",
     "sheets_channel_id": "1475174763533176844",
-    "notes": "Activity probe = #main-rp (primary play). Early SmithsVille + interviews = #campaign-rp. Path slug eurosluts unchanged; display name still pending."
+    "notes": "Probe = #main-rp (swamp/Halkin play). #campaign-rp = SmithsVille intake ONLY — not swamp. Path slug eurosluts; display name pending."
+  },
+  "session_ready": {
+    "as_of": "2026-08-09",
+    "bundle": [
+      "campaigns/euro-adventure-2026/story/halkin-gaul-arrival.md (current Story — hall steps cliffhanger)",
+      "campaigns/euro-adventure-2026/scenes/swamp-scene.md (playable scene card)",
+      "campaigns/euro-adventure-2026/reports/discord-swamp-scene-analysis.md (Discord SoT analysis)",
+      "campaigns/euro-adventure-2026/worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md (GM [proposal] only)"
+    ],
+    "blocking": [
+      "GM define-with-gm worksheet (swamp Qs + portal name)",
+      "No play after 2026-07-26 in bot export"
+    ]
   },
   "resources": [
+    {
+      "label": "Story · Halkin-Gaul arrival",
+      "path": "campaigns/euro-adventure-2026/story/halkin-gaul-arrival.md",
+      "note": "Current Story — #main-rp 2026-07-26 cliffhanger"
+    },
+    {
+      "label": "Characters index",
+      "path": "campaigns/euro-adventure-2026/characters/INDEX.md",
+      "note": "7 PC sheets (design-doc drafts from #sheets)"
+    },
+    {
+      "label": "Discord swamp analysis",
+      "path": "campaigns/euro-adventure-2026/reports/discord-swamp-scene-analysis.md",
+      "note": "Channel map + arrival canon (sibling euro-discord-analyze)"
+    },
+    {
+      "label": "Swamp scene card",
+      "path": "campaigns/euro-adventure-2026/scenes/swamp-scene.md",
+      "note": "GM-ready playable arrival scene"
+    },
     {
       "label": "Event timeline",
       "path": "campaigns/euro-adventure-2026/analysis/campaign-timeline.md",
@@ -28,12 +61,12 @@
     {
       "label": "Define with GM",
       "path": "campaigns/euro-adventure-2026/analysis/define-with-gm.md",
-      "note": "7 swamp Qs + portal + next-arc locks"
+      "note": "Swamp Qs + portal + next-arc locks"
     },
     {
       "label": "Next arc prep",
       "path": "campaigns/euro-adventure-2026/worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md",
-      "note": "Wraith/necromancer [proposal] — not LOCK yet"
+      "note": "Wraith/necromancer [proposal] — not LOCK"
     },
     {
       "label": "Swamp bible",
@@ -51,31 +84,31 @@
       "note": "Re-ingest 2026-08-09 · no play after 2026-07-26"
     }
   ],
-  "updated_at": "2026-08-09T15:25:00.000Z",
+  "updated_at": "2026-08-09T16:20:00.000Z",
   "pcs": [
     {
       "id": "vyllynn-alword",
       "name": "Vyllynn Alword",
       "player": "Yuki",
       "role": "Artificer (Artillerist)",
-      "notes": "Sheets + #main-rp",
-      "sheet": ""
+      "notes": "Sheets + #main-rp · Discord 1397336508150841529",
+      "sheet": "campaigns/euro-adventure-2026/characters/vyllynn-alword.md"
     },
     {
       "id": "fuyuko",
       "name": "Fuyuko (Natsuki)",
       "player": "Ren",
       "role": "Oni bodyguard",
-      "notes": "Sheets + interview thread",
-      "sheet": ""
+      "notes": "Sheets + interview · Discord 240116077130940416",
+      "sheet": "campaigns/euro-adventure-2026/characters/fuyuko.md"
     },
     {
       "id": "ata",
       "name": "Ata",
       "player": "Thesaurus",
       "role": "Druid (feral exile)",
-      "notes": "Sheets + #main-rp",
-      "sheet": ""
+      "notes": "Sheets + #main-rp · Discord 471376523065032724",
+      "sheet": "campaigns/euro-adventure-2026/characters/ata.md"
     },
     {
       "id": "leanora",
@@ -83,7 +116,7 @@
       "player": "DementedOne",
       "role": "Aasimar cleric (Tyr at table)",
       "notes": "Sheets + #main-rp",
-      "sheet": ""
+      "sheet": "campaigns/euro-adventure-2026/characters/leanora.md"
     },
     {
       "id": "camila",
@@ -91,39 +124,39 @@
       "player": "Prim",
       "role": "Rogue / Crimson Marauder",
       "notes": "Joined on swamp road",
-      "sheet": ""
+      "sheet": "campaigns/euro-adventure-2026/characters/camila-de-lanzarote.md"
     },
     {
       "id": "gwenevere",
       "name": "Gwenevere",
       "player": "Uni",
       "role": "Serpentine acolyte / archaeologist",
-      "notes": "Earlier arcs + swamp travel",
-      "sheet": ""
+      "notes": "After Blaire departure · swamp travel",
+      "sheet": "campaigns/euro-adventure-2026/characters/gwenevere.md"
     },
     {
       "id": "blaire-blakely",
       "name": "Blaire Blakely",
       "player": "(sheets)",
-      "role": "Wild Magic sorcerer",
-      "notes": "Early guild / interview line",
-      "sheet": ""
+      "role": "Wild Magic sorcerer (departed)",
+      "notes": "Early guild only · Discord 1158756142802026647 · not at Halkin",
+      "sheet": "campaigns/euro-adventure-2026/characters/blaire-blakely.md"
     }
   ],
   "schedule": [
     {
       "id": "sess-next",
       "when": "See Discord #main-rp",
-      "title": "Next session — Halkin-Gaul town hall",
+      "title": "Next session — Halkin-Gaul town hall steps",
       "location": "Discord Guild Hall / #main-rp",
-      "notes": "Play clock: arrived 2026-07-26; no later posts in 2026-08-09 export."
+      "notes": "Play clock: arrived 2026-07-26 19:59; no later posts in 2026-08-09 export. Story: story/halkin-gaul-arrival.md"
     }
   ],
   "availability": [
     {
       "person": "Table",
       "windows": "Post in Discord #main-rp (Guild Hall)",
-      "notes": "Early channel #campaign-rp is SmithsVille intake/interviews (mostly 2026-03-01)."
+      "notes": "#campaign-rp is SmithsVille intake only — not swamp play."
     }
   ],
   "inventory": [
