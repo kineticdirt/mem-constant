@@ -454,3 +454,7 @@
 ## 2026-08-08 21:50 ET — [PC] Result: Isla + NYC drugs/vice worldbuilding drafts
 
 [PC] Result: Isla `worldbuilding/DRUGS.md` + wiki entities (RG's, pharmacies, Humidor/Float Barn 7/Bench Street, Night Ledger) + places-directory rows + LORE-BIBLE pointer + vice-theory 004 (cold-chain angle). NYC `worldbuilding/details/vice-and-intoxicants.md` + README/reports/nightlife cross-links. No characters-registry touch. Holders: `isla-drugs-worldbuild` · `nyc-drugs-worldbuild`. Awaiting GM promote of [proposal] venues/chems.
+
+## 2026-08-08 21:55 ET — [PC] Result: drugs/vice drafts pushed + bundled
+
+[PC] Result: GM approved Isla+NYC drugs/vice drafts. Pushed `75e2db6..7b82d61` to `linuxbox` `master:main` (tip `7b82d61` Worldbuild drugs/vice…). Potato `push-linuxbox-git-bundle.sh` apply `d7879ca4 → 7b82d613` verify-runtime-state PASS / GM borders PASS.
