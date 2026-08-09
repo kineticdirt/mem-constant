@@ -1,0 +1,7 @@
+name: pepper-quill-cursor
+version: 1.0.0
+description: "Pepper Quill NYC Discord Q&A — Cursor Auto primary responder; Hermes DeepSeek fallback. Encodes Discord reply/parent context."
+author: agent-dump
+kind: standalone
+provides_hooks:
+  - pre_gateway_dispatch

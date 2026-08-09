@@ -140,17 +140,21 @@ Stock `tirith` aarch64 builds need **glibc ≥ 2.32**. Le Potato Bullseye is **g
 
 Hardline + `detect_dangerous_command` remain. Re-enable real Tirith only with a glibc-compatible binary.
 
-- Model for this profile after configure: **`deepseek/deepseek-v4-flash`**
+- Model for this profile after configure: **`deepseek/deepseek-v4-flash`** (Hermes fallback / Tropic / non-Cursor paths)
+- **NYC Q&A dual-lane:** **Cursor Auto = primary** (`pepper-quill-cursor` plugin → `cursor-agent-run.sh`); Hermes DeepSeek = secondary/fallback. SoT: `campaigns/nyc-mafia-dnd/reports/pepper-quill-discord-dual-lane.md`. Install: `install-pepper-quill-cursor-primary.sh`
 - Soul / channel prompts: `campaigns/nyc-mafia-dnd/SOUL-discord-qa.md`
   - Display name / persona: **Pepper Quill** (silent sentinel; female GM-helper; can roast; adaptive length)
   - NYC listen only: `general-ooc-ba`, `general`, `rolly-poley`, `lore-dump`, `campaign-discussion-lore`, `dm-screen` — **exclude** `art`, `characters-ba` (Tropic allowlist kept)
   - **@mention required** on Big Apples (Tropic free-response kept)
   - **Always obey** Discord user `wholesome.man` (`265909664590331915`)
-  - `display.tool_progress: all` (+ `display.platforms.discord`) — tool lines show in channel
+  - **Reply context:** adapter fetches unresolved parents; `reply_to_text` = Author+body; `[Discord meta]` in channel_context (mentions, channel, guild, message link)
+  - `display.tool_progress: all` — useful tool lines OK; **`file` toolset disabled** so no `🔍 search_files` clutter on OOC asks
+  - OOC/IRL → `web_search`; answer the replied-to question (not Discord nick lore)
+  - Reactions: temporary **✅** while working, cleared when reply posts (no stuck 👀)
   - `group_sessions_per_user: false` + `display.busy_input_mode: queue` — one reply can cover several speakers
-  - Shutdown/restart notices: **owner DM only** (`scripts/linuxbox/apply-hermes-shutdown-owner-dm.sh`) — not guild/home
+  - Shutdown/restart notices: **owner DM only** via `create_dm` (`apply-hermes-shutdown-owner-dm.sh` v3; never guild/home)
   - Scope apply: `scripts/linuxbox/apply-pepper-quill-discord-scope.sh`
-  - `disabled_toolsets: [terminal, session_search]`; lore stub inject from `lore-export/` into channel_prompts
+  - `disabled_toolsets: [terminal, session_search, file]`
   - Rules stack: **D&D 5e external baseline** + **NYC homebrew internal**
 - SoT ids: `campaigns/nyc-mafia-dnd/discord.json`
 - **Ingest (track player activity):** `bash ~/agent-dump/scripts/linuxbox/nyc-discord-ingest.sh` → `campaigns/nyc-mafia-dnd/discord-export/` — runbook `campaigns/nyc-mafia-dnd/reports/discord-ingest-runbook.md`

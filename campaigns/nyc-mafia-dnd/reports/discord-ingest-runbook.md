@@ -2,7 +2,7 @@
 
 **Category:** `1528215677272330300` (Big Apples)  
 **Guild:** `1012888284222988409`  
-**Live Q&A:** same bot `AI_RP_Master` / Hermes profile `hunter-reckoning` (DeepSeek V4 Flash) — see `docs/agents/discord-hunter-linuxbox.md` § NYC.
+**Live Q&A:** bot `AI_RP_Master` / Hermes profile `hunter-reckoning` — **Cursor Auto primary** for NYC listen answers; Hermes DeepSeek secondary/fallback. Dual-lane SoT: `reports/pepper-quill-discord-dual-lane.md`. Gateway listen/allowlist still Hermes.
 
 ## Why
 
@@ -33,7 +33,9 @@ crontab -l | grep -q nyc-discord-ingest || (
 
 ## Agent read path
 
-- Hermes Discord soul: `campaigns/nyc-mafia-dnd/SOUL-discord-qa.md` (female GM helper; 5e external + NYC homebrew; GM `265909664590331915` always obeyed)
+- Hermes Discord soul: `campaigns/nyc-mafia-dnd/SOUL-discord-qa.md` (Pepper Quill; reply-parent + Discord meta encoding; Cursor Auto primary)
+- Dual-lane: `campaigns/nyc-mafia-dnd/reports/pepper-quill-discord-dual-lane.md`
+- Ops: `docs/agents/discord-hunter-linuxbox.md` § NYC
 - Slash: `/skill what-do-i-know`, `/skill archive` (skills under `hermes-skills/`)
 - Think / Cursor: prefer latest `discord-export/**/messages.md` + `characters-ba` for sheet tracking
 - Do **not** commit `discord-export/` or `.env`
