@@ -142,12 +142,16 @@ Hardline + `detect_dangerous_command` remain. Re-enable real Tirith only with a 
 
 - Model for this profile after configure: **`deepseek/deepseek-v4-flash`**
 - Soul / channel prompts: `campaigns/nyc-mafia-dnd/SOUL-discord-qa.md`
-  - Female GM-helper personality; sharp backtalk if players get uppity; **always obey** Discord user `wholesome.man` (`265909664590331915`)
+  - Female GM-helper; adaptive short replies; **@mention required** on Big Apples (Tropic free-response kept)
+  - **Always obey** Discord user `wholesome.man` (`265909664590331915`)
+  - `display.tool_progress: off` (+ `display.platforms.discord`) — no `search_files` / `session_search` spam in channel
+  - `disabled_toolsets: [terminal, session_search]`; lore stub inject from `lore-export/` into channel_prompts
   - Rules stack: **D&D 5e external baseline** + **NYC homebrew internal**
 - SoT ids: `campaigns/nyc-mafia-dnd/discord.json`
 - **Ingest (track player activity):** `bash ~/agent-dump/scripts/linuxbox/nyc-discord-ingest.sh` → `campaigns/nyc-mafia-dnd/discord-export/` — runbook `campaigns/nyc-mafia-dnd/reports/discord-ingest-runbook.md`
 - Home channel: `DISCORD_HOME_CHANNEL=1528215752576995580` (`#general-ooc-ba`) — stops home-channel nags
 - Env: expand `DISCORD_ALLOWED_USERS` to all Big Apples players; `DISCORD_ALLOW_BOTS=none`
+- Quiet refresh (no restart): `bash scripts/linuxbox/apply-nyc-gateway-security-fix.sh`
 
 ### Role slash helpers (Hermes `/skill`)
 

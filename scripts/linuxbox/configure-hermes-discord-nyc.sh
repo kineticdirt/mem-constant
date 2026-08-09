@@ -139,6 +139,8 @@ keys = {
     "DISCORD_ALLOWED_CHANNELS",
     "DISCORD_FREE_RESPONSE_CHANNELS",
     "DISCORD_REQUIRE_MENTION",
+    "DISCORD_THREAD_REQUIRE_MENTION",
+    "DISCORD_IGNORE_NO_MENTION",
     "DISCORD_AUTO_THREAD",
     "DISCORD_NO_THREAD_CHANNELS",
     "DISCORD_NYC_CATEGORY_ID",
@@ -148,10 +150,14 @@ lines = env_path.read_text(encoding="utf-8").splitlines()
 out = [ln for ln in lines if ln.split("=", 1)[0] not in keys]
 csv = ",".join(union)
 nyc_csv = ",".join(nyc)
+# Tropic stays free-response; Big Apples requires @mention (quieter OOC)
+tropic_free = [c for c in union if c not in set(nyc)]
 out += [
     f"DISCORD_ALLOWED_CHANNELS={csv}",
-    f"DISCORD_FREE_RESPONSE_CHANNELS={csv}",
-    "DISCORD_REQUIRE_MENTION=false",
+    f"DISCORD_FREE_RESPONSE_CHANNELS={','.join(tropic_free)}",
+    "DISCORD_REQUIRE_MENTION=true",
+    "DISCORD_THREAD_REQUIRE_MENTION=true",
+    "DISCORD_IGNORE_NO_MENTION=true",
     "DISCORD_AUTO_THREAD=false",
     f"DISCORD_NO_THREAD_CHANNELS={csv}",
     "DISCORD_NYC_CATEGORY_ID=1528215677272330300",
@@ -203,16 +209,29 @@ if not any(isinstance(x, dict) and "kimi" in str(x.get("model", "")).lower() for
 data["fallback_providers"] = fb
 
 discord = data.setdefault("discord", {})
-discord["require_mention"] = False
+discord["require_mention"] = True
+discord["thread_require_mention"] = True
+discord["ignore_no_mention"] = True
 discord["allowed_channels"] = csv
-discord["free_response_channels"] = csv
+discord["free_response_channels"] = ",".join(tropic_free)
 discord["auto_thread"] = False
 discord["no_thread_channels"] = csv
+# Quiet tool chatter on Discord
+display = data.setdefault("display", {})
+display["tool_progress"] = "off"
+display["interim_assistant_messages"] = False
+display.setdefault("platforms", {}).setdefault("discord", {})["tool_progress"] = "off"
+# Restrict tool rabbit holes
+agent = data.setdefault("agent", {})
+disabled = list(agent.get("disabled_toolsets") or [])
+for ts in ("terminal", "session_search"):
+    if ts not in disabled:
+        disabled.append(ts)
+agent["disabled_toolsets"] = disabled
 # per-channel prompts: every Big Apples channel id → NYC soul
 prompts = discord.get("channel_prompts") or {}
 if not isinstance(prompts, dict):
     prompts = {}
-# drop stale numeric keys; set string keys for NYC
 for cid in nyc:
     prompts[str(cid)] = soul
 discord["channel_prompts"] = prompts
@@ -225,8 +244,8 @@ cfg_path.write_text(
 )
 print(f"backup {bak}")
 print(f"model -> {model} (prev {prev_default})")
-print(f"allowed/free channels ({len(union)}): {csv}")
-print(f"nyc channel_prompts: {len(nyc)}")
+print(f"allowed ({len(union)}); free_response tropic-only ({len(tropic_free)})")
+print(f"nyc channel_prompts: {len(nyc)} require_mention=true tool_progress=off")
 print(f"nyc_only={nyc_only}")
 PY
 
@@ -234,11 +253,8 @@ echo ""
 echo "Config written. Do NOT restart the gateway mid-conversation — players see"
 echo "'Gateway shutting down' and turns die. Restart only when Discord is idle:"
 echo "  systemctl --user restart hermes-gateway-hunter-reckoning"
-echo "  systemctl --user is-active hermes-gateway-hunter-reckoning"
-echo "Prefer: leave gateway running; next natural restart picks this up."
+echo "Prefer: bash scripts/linuxbox/apply-nyc-gateway-security-fix.sh (no restart)."
 echo ""
-echo "Smoke: post in #general-ooc-ba (no @mention required). Expect DeepSeek Flash lore answer."
+echo "Smoke: @AI_RP_Master in #general-ooc-ba. Casual chatter / emoji without @ = ignored."
 echo "Note: DISCORD_ALLOWED_USERS still gates who can talk; add player IDs if needed."
-echo "Tirith note: potato Bullseye (glibc 2.31) cannot run stock tirith binaries"
-echo "(they need glibc ≥2.32). Keep security.tirith_enabled=false on hunter;"
-echo "hardline + dangerous-command guards still apply. See discord-hunter-linuxbox.md."
+echo "Tirith note: potato Bullseye (glibc 2.31) — keep security.tirith_enabled=false on hunter."
