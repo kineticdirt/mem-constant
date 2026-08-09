@@ -1,3 +1,11 @@
+- **2026-08-09T02:12Z** — [PC] **Result:** (1) Deleted older lore threads Spell-Tech/Families/Fringe (200). History H1–H6 remain. (2) Wired NYC Big Apples `1528215677272330300` into hunter-reckoning Discord (union with Tropic channels): model `deepseek/deepseek-v4-flash`, free-response + channel_prompts from `SOUL-discord-qa.md`, script `configure-hermes-discord-nyc.sh`, gateway active. ALLOWED_USERS +Mina/hiatus/GM. Smoke: post in #general-ooc-ba. Holder: `nyc-discord-hermes-qa`.
+
+- **2026-08-09T02:05Z** — [PC] **Intent:** (1) DELETE older Discord lore threads Spell-Tech/Families/Fringe; (2) wire Hermes to Big Apples category `1528215677272330300` only for NYC Q&A on DeepSeek V4 Flash. Holder: `nyc-discord-hermes-qa`.
+
+- **2026-08-09T01:55Z** — [PC] **Result:** Discord lore update — DELETED Stack (1535826690486308884) + Heisters (1535826722954412204). Posted H1–H6 history series in `#campaign-discussion-lore`: How to read · Deep Past/Harbor · Spell-Industry · Rails/Present · Demographics · Manufacturing (ids 1535828501…1535828567). Kept Spell-Tech / Families / Fringe. Drafts in `lore-export/discord-drafts/`. Holder: `nyc-discord-history-plan`.
+
+- **2026-08-09T01:53Z** — [PC] **Intent:** Discord lore — DELETE heisters thread; REPLACE old Stack with H1–H6 history/demographics/manufacturing series in `#campaign-discussion-lore`. Keep Spell-Tech, Families, Fringe. Holder: `nyc-discord-history-plan`.
+
 - **2026-08-09T01:52Z** — [PC] **Intent:** Plan Discord posting for NYC history textbook (no send yet) — thread map, keep/soft/delete prior posts, wait GM sign-off. Holder: `nyc-discord-history-plan`.
 
 - **2026-08-09T01:51Z** — [PC] **Result:** NYC history textbook landed — `campaigns/nyc-mafia-dnd/lore-export/09-history-textbook.md` (~358 lines): Parts I–V history (deep past→harbor→~300y spell-industry→gilded rail→present stack); Part VI demographics (visibility + peoples tables + family blood); Part VII manufacturing (foundries/rail/capsules/optics/healing/vice/wages); 〔proposal〕 lines + Appendix B open questions for GM. Updated `00-START-HERE`, README, `LORE-DUMP.md`. Zip refresh: `Downloads/big-apples-lore.zip`. **Awaiting GM review before Discord**; soften/replace heisters forum post still pending. Holder: `nyc-history-textbook`.

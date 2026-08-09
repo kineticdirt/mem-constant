@@ -111,3 +111,19 @@ The **hunter-reckoning** pod scheduler tick reads these exports + live Discord v
 | OOM on 2 GB | One gateway only — don't run default + hunter gateways together |
 
 See also: `campaigns/tropic-gooner/reports/discord-ingest-runbook.md`
+
+## NYC / Big Apples (same bot)
+
+NYC Mafia × D&D uses category **`1528215677272330300`** (Big Apples) on the **same** `AI_RP_Master` bot / `hunter-reckoning` gateway (one Discord token).
+
+```bash
+bash ~/agent-dump/scripts/linuxbox/configure-hermes-discord-nyc.sh
+# optional: listen ONLY Big Apples (drops Tropic channel ids from allowlist)
+# bash ~/agent-dump/scripts/linuxbox/configure-hermes-discord-nyc.sh --nyc-only
+systemctl --user restart hermes-gateway-hunter-reckoning
+```
+
+- Model for this profile after configure: **`deepseek/deepseek-v4-flash`**
+- Soul / channel prompts: `campaigns/nyc-mafia-dnd/SOUL-discord-qa.md`
+- SoT ids: `campaigns/nyc-mafia-dnd/discord.json`
+

@@ -1,0 +1,145 @@
+{
+  "_doc": "Hermes agent pods on linuxbox (2 GB). Not Kubernetes — logical pods via Hermes profiles + scheduler. Two OpenRouter accounts: RP $7/day, ops $7/day (policy in agents/model-budget/config.json; enforce key limits in OpenRouter).",
+  "budget_pools": {
+    "rp": {
+      "daily_usd": 5,
+      "openrouter_env": "OPENROUTER_API_KEY_RP",
+      "profiles": ["hunter-reckoning", "spacequest", "nyc-mafia-dnd", "tropic-gooner"],
+      "model_default": "nousresearch/hermes-4-70b",
+      "notes": "Roleplay / worldbuilding / Discord ingest. Never point fast-lane crons here."
+    },
+    "ops": {
+      "daily_usd": 5,
+      "openrouter_env": "OPENROUTER_API_KEY_OPS",
+      "profiles": ["think", "code", "meta"],
+      "model_default_ops": "nousresearch/hermes-4-70b",
+      "model_default_code": "z-ai/glm-5.2",
+      "notes": "Dashboard, maintenance, user tasks, code-discovery, Mazda3 inbox routing."
+    },
+    "free": {
+      "daily_usd": 0,
+      "profiles": ["fast"],
+      "model_default": "poolside/laguna-xs-2.1:free",
+      "model_fallbacks": [
+        "qwen/qwen3-next-80b-a3b-instruct:free",
+        "deepseek/deepseek-v4-flash"
+      ]
+    }
+  },
+  "pods": [
+    {
+      "name": "hunter-reckoning",
+      "pool": "rp",
+      "description": "WoD Hunter layer — Isla Primavera chronicle (Sasha, threats, Discord RP). Separate agent identity from ops.",
+      "workdir": "/home/abhinav/agent-dump",
+      "terminal_cwd": "/home/abhinav/agent-dump/campaigns/tropic-gooner",
+      "task_spec": "agents/HUNTER_RECKONING_TASK.md",
+      "progress": "campaigns/tropic-gooner/reports/progress-hunter.md",
+      "schedule": "every 5m",
+      "gateway": false,
+      "model": "nousresearch/hermes-4-70b"
+    },
+    {
+      "name": "spacequest",
+      "pool": "rp",
+      "description": "SpaceQuest worldbuilding lane.",
+      "task_spec": "agents/SPACEQUEST_WORLDBUILDING_TASK.md",
+      "progress": "campaigns/spacequest/reports/progress.md",
+      "schedule": "every 5m",
+      "gateway": false,
+      "model": "nousresearch/hermes-4-70b"
+    },
+    {
+      "name": "nyc-mafia-dnd",
+      "pool": "rp",
+      "description": "NYC Mafia × D&D campaign lane.",
+      "task_spec": "agents/NYC_MAFIA_DND_TASK.md",
+      "progress": "campaigns/nyc-mafia-dnd/reports/progress.md",
+      "schedule": "every 5m",
+      "gateway": false,
+      "model": "nousresearch/hermes-4-70b"
+    },
+    {
+      "name": "tropic-gooner",
+      "pool": "rp",
+      "description": "Island setting / map / orgs (non-Hunter geography). Hunter pod owns Hunter-layer ticks.",
+      "task_spec": "agents/TROPIC_GOONER_TASK.md",
+      "progress": "campaigns/tropic-gooner/reports/progress.md",
+      "schedule": "every 10m",
+      "gateway": false,
+      "model": "nousresearch/hermes-4-70b"
+    },
+    {
+      "name": "fast",
+      "pool": "free",
+      "description": "Control-plane hygiene: git pull, inbox ack, IDLE. No RP or coding.",
+      "schedule": "every 30s",
+      "gateway": false,
+      "model": "qwen/qwen3-next-80b-a3b-instruct:free"
+    },
+    {
+      "name": "think",
+      "pool": "ops",
+      "description": "Ops lane rotation: dashboard backlog, maintenance, user tasks, code-discovery (see agents/CURRENT_TASK.md).",
+      "task_spec": "agents/CURRENT_TASK.md",
+      "schedule": "every 1m",
+      "gateway": true,
+      "model": "nousresearch/hermes-4-70b"
+    },
+    {
+      "name": "code",
+      "pool": "ops",
+      "description": "Coding + refactors (GLM-5.2). Kanban assignee or on-demand.",
+      "schedule": "on-demand",
+      "gateway": false,
+      "model": "z-ai/glm-5.2"
+    },
+    {
+      "name": "ponytail-cleanup",
+      "profile": "code",
+      "pool": "ops",
+      "description": "Ponytail fix/refine lane — board-driven; no file deletions.",
+      "task_spec": "agents/PONYTAIL_CLEANUP_TASK.md",
+      "progress": "agents/PONYTAIL_CLEANUP_BOARD.md",
+      "schedule": "every 15m",
+      "gateway": false,
+      "model": "z-ai/glm-5.2"
+    },
+    {
+      "name": "meta",
+      "pool": "ops",
+      "description": "Dashboard UI/server (GLM-5.2). Playwright legibility checks.",
+      "task_spec": "agents/LINUXBOX_DASHBOARD_TASK.md",
+      "schedule": "on-demand",
+      "gateway": false,
+      "model": "z-ai/glm-5.2"
+    }
+  ],
+  "concurrency": {
+    "max_simultaneous_workers": 1,
+    "notes": "2 GB ARM — one LLM worker at a time; RP pods alternate via staggered crons or kanban dispatcher after Hermes upgrade."
+  },
+  "discord": {
+    "category_id": "1137592539076120666",
+    "campaign_env": "campaigns/tropic-gooner/.env",
+    "live_profile": "hunter-reckoning",
+    "configure_script": "scripts/linuxbox/configure-hermes-discord-hunter.sh",
+    "docs": "docs/agents/discord-hunter-linuxbox.md",
+    "nyc": {
+      "campaign_id": "nyc-mafia-dnd",
+      "category_id": "1528215677272330300",
+      "category_name": "Big Apples",
+      "model": "deepseek/deepseek-v4-flash",
+      "configure_script": "scripts/linuxbox/configure-hermes-discord-nyc.sh",
+      "soul": "campaigns/nyc-mafia-dnd/SOUL-discord-qa.md",
+      "notes": "Union Big Apples into hunter Discord listen; NYC channel_prompts; shared AI_RP bot (one gateway)."
+    }
+  },
+  "scheduler_offsets_sec": {
+    "spacequest": 120,
+    "nyc-mafia-dnd": 240,
+    "tropic-gooner": 360,
+    "hunter-reckoning": 0,
+    "ponytail-cleanup": 480
+  }
+}

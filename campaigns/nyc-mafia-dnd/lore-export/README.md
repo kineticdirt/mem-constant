@@ -13,8 +13,9 @@ Player-facing lore pack for NYC Mafia × D&D. Drop the numbered files on the tab
 | `04-magic-and-tech.md` | Named brands (Valenti-6, Pemberton/Harlan/Vandermeer, Glow-Gin, verity-lantern), arms catalog, rail, guilds | `SETTING-ARMS.md`, `SETTING-SPELL-TECH-TREE.md`, `SETTING-GILDED-INDUSTRY.md`, `SETTING-SCRY-PRESS.md`, `worldbuilding/details/capsule-arms.md`, `city-economics.md` |
 | `05-city-and-nightlife.md` | Borough grain, named clubs, transit, wages, papers | `SETTING-URBAN-FRINGE.md`, `borough-city-build.md`, `nightlife-culture.md`, `reports/2026-08-01-locations.md` |
 | `06-fringe-and-monsters.md` | Vampires, werewolves, constructs, the Below, undead, druids | `SETTING-URBAN-FRINGE.md`, `reports/2026-08-01-the-below.md`, `SETTING-CAPABILITY-ASYMMETRY.md` |
-| `07-crew-and-table.md` | Heist frame, seats, leash, session zero, table rules | `story/crew-start-heisters.md`, `story/session-zero-discord.md`, `reports/_session/2026-08-01-pc-roles.md` |
+| `07-crew-and-table.md` | Optional table frame, seats, leash, session zero | `story/crew-start-heisters.md`, `story/session-zero-discord.md`, `reports/_session/2026-08-01-pc-roles.md` |
 | `08-glossary.md` | All terms | all of the above |
+| `09-history-textbook.md` | Full history (fantasy→present stack), demographics, manufacturing | locks + SETTING-* + economics/nightlife/borough reports |
 
 ## Spoiler firewall — what is deliberately NOT in the pack
 
@@ -43,5 +44,5 @@ Any hit outside this README is a leak.
 
 ```bash
 cd campaigns/nyc-mafia-dnd/lore-export
-cat 00-START-HERE.md 01-world.md 02-families.md 03-peoples.md 04-magic-and-tech.md 05-city-and-nightlife.md 06-fringe-and-monsters.md 07-crew-and-table.md 08-glossary.md > LORE-DUMP.md
+cat 00-START-HERE.md 01-world.md 02-families.md 03-peoples.md 04-magic-and-tech.md 05-city-and-nightlife.md 06-fringe-and-monsters.md 07-crew-and-table.md 08-glossary.md 09-history-textbook.md > LORE-DUMP.md
 ```
