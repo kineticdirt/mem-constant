@@ -47,6 +47,7 @@ Active SoT for the **1950s–60s culture × late-1800s spell-tech** canon. Super
 |------|-------------|
 | **`../worldbuilding/details/city-economics.md`** | Streets, prices, trades. |
 | **`../worldbuilding/details/nightlife-culture.md`** | Clubs, vice, jazz. |
+| **`../worldbuilding/details/vice-and-intoxicants.md`** | Intoxicants bible — spirits, Blues, routes, architecture. |
 | **`../worldbuilding/details/capsule-arms.md`** | Capsule catalog. |
 | **`../worldbuilding/strokes/borough-city-build.md`** | Borough grain and turf strokes. |
 | **`../worldbuilding/SALVAGE-NOTES.md`** | Scaled ideas from `_trash/`. |

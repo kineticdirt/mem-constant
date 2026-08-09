@@ -17,6 +17,8 @@
 | **Gilded Anchor Yacht Club** | Marina | PRI-0601 | Philanthropy galas; after-hours hunger |
 | **PIU South Campus** | University | PRI-0502 | Hospitality program interns staff PRI-0106 fronts |
 | **Paradise CRT Substation** | Police | PRI-0402 | Riot crates; festival deployments |
+| **The Humidor Annex** *[proposal]* | Reseal / grade | — | Marina White Sand humidity room; cigar-shop front · `worldbuilding/DRUGS.md` |
+| **Casa Pharmacy #43** | Pharmacy | PRI-0102 | RG's-family counter; "wristband optional" |
 
 ### R2 Porto Lujara *(alias Porto Lujuria)*
 *(vibes.png / INDEX: **Porto Lujara** — alias Lujuria is Misc Notes / older spelling only)*
@@ -27,6 +29,8 @@
 | **Night Ledger Offices** | Office | PRI-0304 | Club books; CRT overtime predictions |
 | **CCC Culinary Annex** | College | — | Toga-adjacent catering gig potential |
 | **Lujara Docks** *(was Lujuria Docks)* | Port | PRI-0107, PRI-0204 | Party cruise unload |
+| **La Pharmacy #120** | Pharmacy | PRI-0102 | Cash-only compounding near Ledger Row |
+| **Float Barn 7** *[proposal]* | Carnaval barn | PRI-0402 adjacent | Off-season empty; parade week T1 staging · `worldbuilding/DRUGS.md` |
 
 ### R3 Jackedsonville *(alias Crimson Quay)*
 *(vibes.png / INDEX: **Jackedsonville** — lore aliases Crimson Quay / Crimzon Quay)*
@@ -38,6 +42,8 @@
 | **The Red Mirror** | Bar | PRI-0205 | Ellaine/Red bar scene analog |
 | **Renta-Girl Alley cluster** | Vice | PRI-0106 | Licensed/unlicensed blur |
 | **Nelly's Book Nook** *(GM name)* | Bookstore | PRI-0704 | Canon RP: research, Lena wheelchair return |
+| **El Pharmacy #35** | Pharmacy | PRI-0102 | Noon shutters; Quay Dust rumor after dark |
+| **Bench Street Reseal** *[proposal]* | Press / bag | Quay margin | Behind Neon Flux; Quay Dust · `worldbuilding/DRUGS.md` |
 
 ### R4 Villa Miel
 

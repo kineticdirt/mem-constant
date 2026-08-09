@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "campaign": "tropic-gooner",
+  "setting": "Isla Primavera",
+  "updated_at": "2026-08-08",
+  "entities": [
+    {
+      "id": "school-piu-south",
+      "kind": "school",
+      "name": "PIU South Campus",
+      "aliases": ["PIU South", "PIU", "PIU South Campus Gate"],
+      "location": "Paradise · south campus / hospitality track",
+      "region_id": "r01-paradise",
+      "facts": [
+        "Hospitality interns in pressed linen staff hotel front desks.",
+        "Shuttle loop and the good empanada cart at the gate."
+      ],
+      "when": null,
+      "related_ids": ["place-boardwalk", "year-festival-baseline"]
+    },
+    {
+      "id": "school-ccc",
+      "kind": "school",
+      "name": "Coastal Community College",
+      "aliases": ["CCC", "Coastal Community College"],
+      "location": "Paradisio County · community college",
+      "region_id": null,
+      "facts": ["Local two-year track; see Things and Places notes."],
+      "when": null,
+      "related_ids": []
+    },
+    {
+      "id": "place-boardwalk",
+      "kind": "place",
+      "name": "Boardwalk Strip",
+      "aliases": ["Boardwalk", "the Strip"],
+      "location": "Paradise · middle bay tourist face",
+      "region_id": "r01-paradise",
+      "facts": ["Wristbands, taffy, festival crates staged for CRT optics."],
+      "when": null,
+      "related_ids": ["school-piu-south"]
+    },
+    {
+      "id": "place-quay",
+      "kind": "place",
+      "name": "The Quay",
+      "aliases": ["Quay", "Crimson Quay ferry"],
+      "location": "Jackedsonville / Crimson Quay · ferry front",
+      "region_id": "r03-crimson-quay",
+      "facts": ["Ferry-town handshake with the bay."],
+      "when": null,
+      "related_ids": []
+    },
+    {
+      "id": "org-cidance",
+      "kind": "org",
+      "name": "CiDance",
+      "aliases": ["CiDance Paradise", "CiDance Tower"],
+      "location": "Paradise · CiDance Tower District",
+      "region_id": "r01-paradise",
+      "facts": ["Hotel towers; buffet below, companion packages above Floor 14."],
+      "when": null,
+      "related_ids": ["place-boardwalk"]
+    },
+    {
+      "id": "year-festival-baseline",
+      "kind": "year",
+      "name": "2019",
+      "aliases": ["2019"],
+      "location": null,
+      "region_id": null,
+      "facts": [
+        "Baseline festival / tourism year for boardwalk optics (seed — expand in play).",
+        "Use related place/school links for who was where."
+      ],
+      "when": { "y": 2019, "m": null, "d": null },
+      "related_ids": ["place-boardwalk", "school-piu-south"]
+    },
+    {
+      "id": "org-rgs-pharmacy",
+      "kind": "org",
+      "name": "RG's Pharmacy",
+      "aliases": ["RG's", "RGs Pharmacy"],
+      "location": "Paradisio County · multi-counter",
+      "region_id": null,
+      "facts": [
+        "Licensed T0/T1 wellness compounding; don't-ask-don't-tell on harder referrals.",
+        "See worldbuilding/DRUGS.md and island-vice-and-enforcement.md."
+      ],
+      "when": null,
+      "related_ids": ["place-casa-pharmacy-43", "place-la-pharmacy-120", "place-el-pharmacy-35"]
+    },
+    {
+      "id": "place-casa-pharmacy-43",
+      "kind": "place",
+      "name": "Casa Pharmacy #43",
+      "aliases": ["Casa pharmacy #43"],
+      "location": "Paradise",
+      "region_id": "r01-paradise",
+      "facts": ["Neighborhood RG's-family counter; map note: wristband optional."],
+      "when": null,
+      "related_ids": ["org-rgs-pharmacy", "place-boardwalk"]
+    },
+    {
+      "id": "place-la-pharmacy-120",
+      "kind": "place",
+      "name": "La Pharmacy #120",
+      "aliases": ["La pharmacy #120"],
+      "location": "Porto Lujara · near Ledger Row",
+      "region_id": "r02-porto-lujuria",
+      "facts": ["Cash-only compounding counter near Night Ledger offices."],
+      "when": null,
+      "related_ids": ["org-rgs-pharmacy", "org-night-ledger"]
+    },
+    {
+      "id": "place-el-pharmacy-35",
+      "kind": "place",
+      "name": "El Pharmacy #35",
+      "aliases": ["El pharmacy #35"],
+      "location": "Jackedsonville / Crimson Quay",
+      "region_id": "r03-crimson-quay",
+      "facts": ["Shutters at noon; after-dark Quay Dust rumor (proposal street chem)."],
+      "when": null,
+      "related_ids": ["org-rgs-pharmacy", "place-quay"]
+    },
+    {
+      "id": "place-humidor-annex",
+      "kind": "place",
+      "name": "The Humidor Annex",
+      "aliases": ["Humidor Annex"],
+      "location": "Paradise · Marina service alley",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Cigar-shop front; humidity room for marina-grade White Sand reseal.",
+        "Detail in worldbuilding/DRUGS.md."
+      ],
+      "when": null,
+      "related_ids": ["org-cidance", "place-boardwalk"]
+    },
+    {
+      "id": "place-float-barn-7",
+      "kind": "place",
+      "name": "Float Barn 7",
+      "aliases": ["Float Barn 7", "Barn 7"],
+      "location": "Porto Lujara · Carnaval Route",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "[proposal] Off-season empty shells; Carnaval week cash T1 staging before the look-away."
+      ],
+      "when": null,
+      "related_ids": ["org-night-ledger"]
+    },
+    {
+      "id": "place-bench-street-reseal",
+      "kind": "place",
+      "name": "Bench Street Reseal",
+      "aliases": ["Bench Street", "Bench Reseal"],
+      "location": "Jackedsonville · behind Neon Flux",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "[proposal] Quay Dust press and bag room; galvanized door painted coral."
+      ],
+      "when": null,
+      "related_ids": ["place-quay"]
+    },
+    {
+      "id": "org-night-ledger",
+      "kind": "org",
+      "name": "Night Ledger",
+      "aliases": ["Night Ledger Offices", "Ledger Row"],
+      "location": "Porto Lujara · Ledger Row",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "Off-books club arithmetic; CRT overtime / raid forecasts — not a street dealer.",
+        "PRI-0304."
+      ],
+      "when": null,
+      "related_ids": ["place-la-pharmacy-120", "place-float-barn-7"]
+    }
+  ]
+}

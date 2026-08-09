@@ -14,6 +14,7 @@ Urban fantasy TTRPG: **New York organized crime** (families, crews, rackets) whe
 | `story/` | Premise, factions, tone, arc hooks |
 | `reports/` | Play docs — **canonical `2026-08-01-*.md`** |
 | `worldbuilding/` | Strokes, details, vignettes, drip (Phase G flesh) |
+| `worldbuilding/details/vice-and-intoxicants.md` | Bathtub spirits, Blues, supply routes/architecture (extends nightlife) |
 | `map/` | GM utility wire-mesh map — `map/nyc-wire-mesh.html` (pins in browser localStorage) |
 
 ## Start here (play)

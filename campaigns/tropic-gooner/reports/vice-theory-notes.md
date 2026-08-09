@@ -90,3 +90,25 @@ Zoning laws pass when **someone needs to see order** (health board, Navy, EU com
 *Fictional source:* PIU seminar handout — "Comparative Zoning of Vice Economies," Prof. M. Reyes (guest), marked **DRAFT — do not cite in Ash List**.
 
 ---
+
+## 004 — Cold-chain as moral laundering (YouTuber persona) — PC 2026-08-08
+
+**Working title:** *Why the shrimp truck is more important than the dealer*
+
+**New angle (not a rehash of 001–003 zoning):** prior notes explained *why the law draws a sidewalk line*. This slice asks **why import prefers produce temperatures**.
+
+**Theory:** Paradisio's T1/T2 pipe is not "hidden in crime castles." It is **hidden in logistics that already smell honest** — IFC cold-chain, Carnaval float shells, hotel linen closets. The county criminalizes the Instagram angle and taxes the reefer seal.
+
+**Real rhyme:** port cities worldwide learned that **manifest fiction** beats alley theater. A viral boardwalk clip costs a cruise berth. A short crate count is a dock argument.
+
+**Map to island (2019 present):**
+
+- **Lujara Docks** = primary import node (canon texture).
+- **Humidor Annex / Bench Street / Float Barn 7** = reseal architecture proposals in `worldbuilding/DRUGS.md`.
+- **Night Ledger** sells the raid weather, not the brick — arithmetic as a vice product.
+
+**Counter:** Base Fuerte Luna MP does not care about produce seals. Federal buffer is the one surface where logistics theater fails.
+
+**Open:** keep proposal venues, or fold reseal into unnamed "marina service alleys" only?
+
+---

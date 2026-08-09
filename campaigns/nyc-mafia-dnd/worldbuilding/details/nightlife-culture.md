@@ -62,6 +62,8 @@ Carrying an instrument case in Midtown Manhattan requires an **Entertainment Lic
 
 ## 3. Underworld Vice: Alcohol & Reagents
 
+**Expanded bible:** routes, architecture, family lanes, and proposal chems live in `vice-and-intoxicants.md`. Prices below stay the street floor.
+
 ### Licensed Spirits vs. Tenement Alchemy
 * **FAB-Audited Spirits:** Legitimate alcohol, taxed and stamped. Safe but highly expensive ($1.00 for a glass of beer).
 * **Bathtub Elixirs (Moretti & Valenti Stills):**

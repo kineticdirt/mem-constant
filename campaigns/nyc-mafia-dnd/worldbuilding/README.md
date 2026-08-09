@@ -24,7 +24,7 @@ Promote → story/ (human only)
 | Path | Purpose |
 |------|---------|
 | `strokes/` | Broad strokes + justification; `status: draft \| locked \| superseded` |
-| `details/` | Device/place fills after lock |
+| `details/` | Device/place fills after lock (incl. `vice-and-intoxicants.md`) |
 | `vignettes/<stroke-slug>/` | Self-contained proof stories |
 | `drip/` | Steer-option packs when GM picks drip direction |
 | `legacy-reskin/` | Period reskins of superseded potato `reports/` |

@@ -442,3 +442,15 @@
 [PC] Intent: GM correction — tableslop should not link out to Hub Chars, and `/world` must be a world editor, not a cast-only page. Changes: remove Hub Chars from the `/world` header; add module nav (Cast / Places / Stories & notes); add Places editor backed by `campaigns/tropic-gooner/wiki/entities.json` with version check + multitask lock + revision backup; add Stories & notes markdown editor for whitelisted campaign roots with sha256 conflict check + `.bak` backup. Deploy `tableslop-server.js`, restart `linuxbox-tableslop`, verify anon gates and route markers. Holder: `tableslop-world-real-editor`.
 
 [PC] Result: `/world` is now a real world editor, not cast-only. Commit `d7879ca` pushed to Linuxbox `main` and bundled; runtime verify PASS, GM borders guard PASS. Live checks: `linuxbox-tableslop` active; `/` = 200; anon `/world` = 302 → login; anon `GET/POST /api/world/entities` and `/api/world/page(s)` = 401 `login required to edit`; remote `tableslop-server.js` sha256 `b751d659…d54c` matches PC. Hub Chars link removed from tableslop. Hard-refresh `/world`: header modules are Cast / Places / Stories & notes.
+
+## 2026-08-08 21:30 ET — [PC] Intent: flesh Isla Primavera drugs / vice concrete worldbuilding
+
+[PC] Intent: GM asks for drugs-and-whatnot world flesh — concrete/technical, history, places, distances, architecture, what influenced what — simplified English, good style. Write `worldbuilding/DRUGS.md` (proposal-tagged), seed key places into wiki entities + places-directory, pointer from lore bible. Holder: `isla-drugs-worldbuild`.
+
+## 2026-08-08 21:35 ET — [PC] Intent: extend drugs/vice worldbuild to NYC Mafia × D&D
+
+[PC] Intent: same GM ask — parallel durable vice/intoxicants doc for NYC (Barry-dry, no calendar year, spell-tech intoxicants). Cross-link from NYC README / reports index / nightlife. Holder: `nyc-drugs-worldbuild` (pairs with `isla-drugs-worldbuild`).
+
+## 2026-08-08 21:50 ET — [PC] Result: Isla + NYC drugs/vice worldbuilding drafts
+
+[PC] Result: Isla `worldbuilding/DRUGS.md` + wiki entities (RG's, pharmacies, Humidor/Float Barn 7/Bench Street, Night Ledger) + places-directory rows + LORE-BIBLE pointer + vice-theory 004 (cold-chain angle). NYC `worldbuilding/details/vice-and-intoxicants.md` + README/reports/nightlife cross-links. No characters-registry touch. Holders: `isla-drugs-worldbuild` · `nyc-drugs-worldbuild`. Awaiting GM promote of [proposal] venues/chems.

@@ -217,6 +217,12 @@ For the record, so nobody "resolves" these by accident:
 
 ---
 
+## Related bibles in this folder
+
+- **`DRUGS.md`** — intoxicants, supply nodes, routes, architecture of the trade (2019 present; [proposal] marked). Frame law still lives in `reports/island-vice-and-enforcement.md`.
+
+---
+
 ## How to use this bible
 
 - **What's canon vs proposal** is marked inline per the Canon status section. When in doubt, treat anything without a source file behind it as a proposal.
