@@ -594,7 +594,7 @@
 
 - **2026-08-09T17:31Z** — [PC] **Intent:** Euro Halkin-Gaul deaths = political strife with multiethnic semi-evil druid-streak neighbor (Smithville = encroachment). Extend story + scene GM secrets + one nation brief; no wipe of Discord SoT. Holder: `euro-neighbor-strife`.
 
-- **2026-08-09T17:50Z** — [PC] **Result:** Euro conflict NPC sheets (holder `euro-conflict-npc-sheets`). Set B under `characters/npcs/`: merris-peatwhisper, brannoc-horndrive, silea-antlerseal, jorik-saltreed, elma-voss-green, tove-ward-mire (+ README). INDEX merged with sibling Set A at `characters/` root (no filename clobber; disambiguate merrin≠merris, sile≠silea, branek≠brannoc). Local commit next. Coord `euro-neighbor-strife`.
+- **2026-08-09T17:50Z** — [PC] **Result:** Euro conflict NPC sheets (holder `euro-conflict-npc-sheets`). Set B under `characters/npcs/`: merris-peatwhisper, brannoc-horndrive, silea-antlerseal, jorik-saltreed, elma-voss-green, tove-ward-mire (+ README). INDEX merged with sibling Set A. Landed in local commit `519f745` (sibling commit included npcs/). Coord `euro-neighbor-strife`.
 - **2026-08-09T17:40Z** — [PC] **Intent:** Euro conflict NPC sheets (Ostwald March faces) — 5+ design-doc NPCs under `characters/npcs/`; INDEX merge; do not clobber PC sheets or sibling story/scene/ostwald-march. Holder: `euro-conflict-npc-sheets`. Coord with `euro-neighbor-strife`.
 - **2026-08-09T17:34Z** — [PC] **Intent:** Euro neighbor-strife — PRIORITY ship 4–6 Ostwald/Halkin NPC sheets (design-doc) under characters/; light story/scene refs; soft-add only. Holder: `euro-neighbor-strife`.
 
