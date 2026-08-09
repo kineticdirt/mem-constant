@@ -2,32 +2,36 @@
   "version": 1,
   "campaign": "tropic-gooner",
   "setting": "Isla Primavera",
-  "updated_at": "2026-08-08",
+  "updated_at": "2026-08-09",
   "entities": [
     {
       "id": "school-piu-south",
       "kind": "school",
       "name": "PIU South Campus",
       "aliases": ["PIU South", "PIU", "PIU South Campus Gate"],
-      "location": "Paradise · south campus / hospitality track",
+      "location": "Paradise · Intern Loop / hospitality track",
       "region_id": "r01-paradise",
       "facts": [
         "Hospitality interns in pressed linen staff hotel front desks.",
-        "Shuttle loop and the good empanada cart at the gate."
+        "Shuttle loop and the good empanada cart at the gate.",
+        "Street detail: worldbuilding/STREETS.md · Intern Loop."
       ],
       "when": null,
-      "related_ids": ["place-boardwalk", "year-festival-baseline"]
+      "related_ids": ["place-boardwalk", "place-intern-loop", "year-festival-baseline"]
     },
     {
       "id": "school-ccc",
       "kind": "school",
       "name": "Coastal Community College",
-      "aliases": ["CCC", "Coastal Community College"],
-      "location": "Paradisio County · community college",
-      "region_id": null,
-      "facts": ["Local two-year track; see Things and Places notes."],
+      "aliases": ["CCC", "Coastal Community College", "CCC Culinary Annex"],
+      "location": "Porto Lujara · Annex Hill Road (culinary annex)",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "Local two-year track; culinary annex above the port.",
+        "Street detail: worldbuilding/STREETS.md · Annex Hill Road."
+      ],
       "when": null,
-      "related_ids": []
+      "related_ids": ["place-annex-hill-road", "place-ledger-row"]
     },
     {
       "id": "place-boardwalk",
@@ -36,45 +40,280 @@
       "aliases": ["Boardwalk", "the Strip"],
       "location": "Paradise · middle bay tourist face",
       "region_id": "r01-paradise",
-      "facts": ["Wristbands, taffy, festival crates staged for CRT optics."],
+      "facts": [
+        "Wristbands, taffy, festival crates staged for CRT optics.",
+        "Galaxy Fitness and Java Jump flagship on the local end."
+      ],
       "when": null,
-      "related_ids": ["school-piu-south"]
+      "related_ids": ["school-piu-south", "org-galaxy-fitness", "org-java-jump", "place-live-dream-blvd"]
+    },
+    {
+      "id": "place-live-dream-blvd",
+      "kind": "place",
+      "name": "Live Dream Boulevard",
+      "aliases": ["Dream Blvd", "Live Dream Blvd"],
+      "location": "Paradise · bay frontage toward CiDance towers",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Booster-era artery named for the city slogan; locals shorten it.",
+        "CiDance street entrance and Paradise Dick's flagship sit here.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["org-cidance", "place-boardwalk", "org-dicks-grocery"]
+    },
+    {
+      "id": "place-anchor-way",
+      "kind": "place",
+      "name": "Anchor Way",
+      "aliases": ["Anchor Way"],
+      "location": "Paradise · marina approach",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Named approach to Gilded Anchor Yacht Club slips.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-marina-service-alley", "org-cidance"]
+    },
+    {
+      "id": "place-intern-loop",
+      "kind": "place",
+      "name": "Intern Loop",
+      "aliases": ["PIU Intern Loop"],
+      "location": "Paradise · PIU South edge",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] One-way shuttle loop for hospitality students changing into hotel uniforms.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["school-piu-south", "place-casa-pharmacy-43"]
+    },
+    {
+      "id": "place-marina-service-alley",
+      "kind": "place",
+      "name": "Marina Service Alley",
+      "aliases": ["Marina service alley"],
+      "location": "Paradise · behind yacht fence",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Corrugated sheds; Humidor Annex and Bayline Chandlery.",
+        "Detail: worldbuilding/STREETS.md · DRUGS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-humidor-annex", "place-bayline-chandlery", "place-anchor-way"]
+    },
+    {
+      "id": "place-calle-san-aurelio",
+      "kind": "place",
+      "name": "Calle San Aurelio",
+      "aliases": ["San Aurelio Street"],
+      "location": "Paradise · inland pastel row",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Older residential; Mercado del Sueño corner bodega.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-mercado-del-sueno"]
     },
     {
       "id": "place-quay",
       "kind": "place",
       "name": "The Quay",
-      "aliases": ["Quay", "Crimson Quay ferry"],
-      "location": "Jackedsonville / Crimson Quay · ferry front",
+      "aliases": ["Quay", "Quay Street", "Quay Front", "Crimson Quay ferry"],
+      "location": "Jackedsonville / Crimson Quay · harborfront clubs",
       "region_id": "r03-crimson-quay",
-      "facts": ["Ferry-town handshake with the bay."],
+      "facts": [
+        "Neon Flux anchor; Quay Nights fills the street in spring.",
+        "Street detail: worldbuilding/STREETS.md · Quay Street / Quay Front."
+      ],
       "when": null,
-      "related_ids": []
+      "related_ids": ["org-neon-flux", "place-bench-street-reseal", "place-el-pharmacy-35"]
+    },
+    {
+      "id": "place-carpet-mile",
+      "kind": "place",
+      "name": "Carpet Mile",
+      "aliases": ["The Row", "Casino Row"],
+      "location": "Jackedsonville · casino strip",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "[proposal nickname] Continuous casino frontage; locals say carpet names.",
+        "Crimson Oasis and Red Fortune; Dick's never-sleep grocery.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-quay", "org-dicks-grocery"]
+    },
+    {
+      "id": "place-main-street-jacked",
+      "kind": "place",
+      "name": "Main Street (Jackedsonville)",
+      "aliases": ["Main Street market", "Main Street"],
+      "location": "Jackedsonville · daytime market",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "Fusion stalls, grill smoke; Mar de Sabores and Bodega Roja.",
+        "Detail: worldbuilding/STREETS.md · LORE-BIBLE Main Street market."
+      ],
+      "when": null,
+      "related_ids": ["place-mar-de-sabores", "place-bodega-roja", "place-book-nook-block"]
+    },
+    {
+      "id": "place-book-nook-block",
+      "kind": "place",
+      "name": "Book Nook Block",
+      "aliases": ["Book Nook strip"],
+      "location": "Jackedsonville · gray retail strip",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "Legal retail by day; stranger tabs after dark.",
+        "Nelly's Book Nook keeps late hours."
+      ],
+      "when": null,
+      "related_ids": ["place-nellys-book-nook", "place-main-street-jacked"]
+    },
+    {
+      "id": "place-ledger-row",
+      "kind": "place",
+      "name": "Ledger Row",
+      "aliases": ["Ledger Row"],
+      "location": "Porto Lujara · office strip",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "Fluorescent club-book offices; Night Ledger; La Pharmacy #120.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["org-night-ledger", "place-la-pharmacy-120", "place-muelle-road"]
+    },
+    {
+      "id": "place-muelle-road",
+      "kind": "place",
+      "name": "Muelle Road",
+      "aliases": ["Dock road", "Lujara dock road"],
+      "location": "Porto Lujara · Lujara Docks access",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "[proposal] Cargo and party-cruise unload; IFC cold-chain; Café Marejada.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-ledger-row", "place-cafe-marejada", "place-float-barn-7"]
+    },
+    {
+      "id": "place-avenida-carnaval",
+      "kind": "place",
+      "name": "Avenida del Carnaval",
+      "aliases": ["Carnaval Route", "Carnaval Avenue"],
+      "location": "Porto Lujara · waterfront parade street",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "[proposal formal name] Canon Carnaval Route; float barns; CRT sweep after.",
+        "Float Barn 7 on this face."
+      ],
+      "when": null,
+      "related_ids": ["place-float-barn-7", "place-muelle-road"]
+    },
+    {
+      "id": "place-annex-hill-road",
+      "kind": "place",
+      "name": "Annex Hill Road",
+      "aliases": ["Annex Hill"],
+      "location": "Porto Lujara · CCC culinary annex approach",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "[proposal] Switchback and stairs for culinary students.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["school-ccc", "place-ledger-row"]
+    },
+    {
+      "id": "place-bench-street",
+      "kind": "place",
+      "name": "Bench Street",
+      "aliases": ["Bench Street"],
+      "location": "Jackedsonville · behind Neon Flux",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "[proposal] Alley street for reseal, speakeasies, Renta-Girl stairwells.",
+        "Bench Street Reseal door painted coral."
+      ],
+      "when": null,
+      "related_ids": ["place-bench-street-reseal", "place-quay", "org-neon-flux"]
     },
     {
       "id": "org-cidance",
       "kind": "org",
       "name": "CiDance",
       "aliases": ["CiDance Paradise", "CiDance Tower"],
-      "location": "Paradise · CiDance Tower District",
+      "location": "Paradise · Live Dream Boulevard / CiDance Tower District",
       "region_id": "r01-paradise",
-      "facts": ["Hotel towers; buffet below, companion packages above Floor 14."],
+      "facts": [
+        "Hotel towers; buffet below, companion packages above Floor 14.",
+        "Street: Live Dream Boulevard (proposal name) per STREETS.md."
+      ],
       "when": null,
-      "related_ids": ["place-boardwalk"]
+      "related_ids": ["place-boardwalk", "place-live-dream-blvd"]
     },
     {
-      "id": "year-festival-baseline",
-      "kind": "year",
-      "name": "2019",
-      "aliases": ["2019"],
-      "location": null,
+      "id": "org-galaxy-fitness",
+      "kind": "org",
+      "name": "Galaxy Fitness",
+      "aliases": ["Galaxy Fitness Paradise"],
+      "location": "Paradise · Boardwalk Strip",
+      "region_id": "r01-paradise",
+      "facts": [
+        "Flagship gym on Boardwalk Strip; Ellaine workplace (canon).",
+        "Deep-dive: reports/places/galaxy-fitness.md."
+      ],
+      "when": null,
+      "related_ids": ["place-boardwalk", "org-java-jump"]
+    },
+    {
+      "id": "org-java-jump",
+      "kind": "org",
+      "name": "Java Jump",
+      "aliases": ["Java Jump flagship"],
+      "location": "Paradise · Boardwalk Strip",
+      "region_id": "r01-paradise",
+      "facts": [
+        "Flagship café; white-collar mornings; introductions more than product.",
+        "See DRUGS.md and STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-boardwalk", "org-galaxy-fitness"]
+    },
+    {
+      "id": "org-neon-flux",
+      "kind": "org",
+      "name": "Neon Flux",
+      "aliases": ["Neon Flux club"],
+      "location": "Jackedsonville · Quay Street / Quay Front",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "Quay Nights anchor room; VIP booths for private T1 dose.",
+        "Deep-dive: reports/places/neon-flux.md."
+      ],
+      "when": null,
+      "related_ids": ["place-quay", "place-bench-street"]
+    },
+    {
+      "id": "org-dicks-grocery",
+      "kind": "org",
+      "name": "Dick's Grocery",
+      "aliases": ["Dick's", "Dicks Grocery"],
+      "location": "Paradisio County · multi-store (Paradise Dream Blvd; Jacked Carpet Mile)",
       "region_id": null,
       "facts": [
-        "Baseline festival / tourism year for boardwalk optics (seed — expand in play).",
-        "Use related place/school links for who was where."
+        "Blunt corporate grocery chain; PRI-0105.",
+        "Street placement: worldbuilding/STREETS.md."
       ],
-      "when": { "y": 2019, "m": null, "d": null },
-      "related_ids": ["place-boardwalk", "school-piu-south"]
+      "when": null,
+      "related_ids": ["place-live-dream-blvd", "place-carpet-mile"]
     },
     {
       "id": "org-rgs-pharmacy",
@@ -95,29 +334,29 @@
       "kind": "place",
       "name": "Casa Pharmacy #43",
       "aliases": ["Casa pharmacy #43"],
-      "location": "Paradise",
+      "location": "Paradise · near Intern Loop",
       "region_id": "r01-paradise",
       "facts": ["Neighborhood RG's-family counter; map note: wristband optional."],
       "when": null,
-      "related_ids": ["org-rgs-pharmacy", "place-boardwalk"]
+      "related_ids": ["org-rgs-pharmacy", "place-boardwalk", "place-intern-loop"]
     },
     {
       "id": "place-la-pharmacy-120",
       "kind": "place",
       "name": "La Pharmacy #120",
       "aliases": ["La pharmacy #120"],
-      "location": "Porto Lujara · near Ledger Row",
+      "location": "Porto Lujara · Ledger Row",
       "region_id": "r02-porto-lujuria",
       "facts": ["Cash-only compounding counter near Night Ledger offices."],
       "when": null,
-      "related_ids": ["org-rgs-pharmacy", "org-night-ledger"]
+      "related_ids": ["org-rgs-pharmacy", "org-night-ledger", "place-ledger-row"]
     },
     {
       "id": "place-el-pharmacy-35",
       "kind": "place",
       "name": "El Pharmacy #35",
       "aliases": ["El pharmacy #35"],
-      "location": "Jackedsonville / Crimson Quay",
+      "location": "Jackedsonville · off Quay Street",
       "region_id": "r03-crimson-quay",
       "facts": ["Shutters at noon; after-dark Quay Dust rumor (proposal street chem)."],
       "when": null,
@@ -128,37 +367,140 @@
       "kind": "place",
       "name": "The Humidor Annex",
       "aliases": ["Humidor Annex"],
-      "location": "Paradise · Marina service alley",
+      "location": "Paradise · Marina Service Alley",
       "region_id": "r01-paradise",
       "facts": [
         "[proposal] Cigar-shop front; humidity room for marina-grade White Sand reseal.",
-        "Detail in worldbuilding/DRUGS.md."
+        "Detail in worldbuilding/DRUGS.md · STREETS.md."
       ],
       "when": null,
-      "related_ids": ["org-cidance", "place-boardwalk"]
+      "related_ids": ["org-cidance", "place-marina-service-alley", "place-bayline-chandlery"]
+    },
+    {
+      "id": "place-bayline-chandlery",
+      "kind": "place",
+      "name": "Bayline Chandlery",
+      "aliases": ["Bayline"],
+      "location": "Paradise · Marina Service Alley",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Slip fuel, ice, boat linen; next to Humidor Annex.",
+        "Detail: worldbuilding/STREETS.md."
+      ],
+      "when": null,
+      "related_ids": ["place-marina-service-alley", "place-humidor-annex"]
+    },
+    {
+      "id": "place-mercado-del-sueno",
+      "kind": "place",
+      "name": "Mercado del Sueño",
+      "aliases": ["Mercado del Sueno"],
+      "location": "Paradise · Calle San Aurelio",
+      "region_id": "r01-paradise",
+      "facts": [
+        "[proposal] Corner bodega; ice, phone cards, Dick's house rice when the flagship is crowded."
+      ],
+      "when": null,
+      "related_ids": ["place-calle-san-aurelio", "org-dicks-grocery"]
     },
     {
       "id": "place-float-barn-7",
       "kind": "place",
       "name": "Float Barn 7",
       "aliases": ["Float Barn 7", "Barn 7"],
-      "location": "Porto Lujara · Carnaval Route",
+      "location": "Porto Lujara · Avenida del Carnaval",
       "region_id": "r02-porto-lujuria",
       "facts": [
         "[proposal] Off-season empty shells; Carnaval week cash T1 staging before the look-away."
       ],
       "when": null,
-      "related_ids": ["org-night-ledger"]
+      "related_ids": ["org-night-ledger", "place-avenida-carnaval"]
+    },
+    {
+      "id": "place-cafe-marejada",
+      "kind": "place",
+      "name": "Café Marejada",
+      "aliases": ["Cafe Marejada", "dock coffee"],
+      "location": "Porto Lujara · Muelle Road",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "[proposal] 24h dock café; open ~04:00 for dock coffee before cruise horns."
+      ],
+      "when": null,
+      "related_ids": ["place-muelle-road"]
+    },
+    {
+      "id": "place-tienda-lujara",
+      "kind": "place",
+      "name": "Tienda Lujara",
+      "aliases": ["Tienda Lujara"],
+      "location": "Porto Lujara · Calle de las Abuelas",
+      "region_id": "r02-porto-lujuria",
+      "facts": [
+        "[proposal] Hillside corner store still holding against condo buyouts."
+      ],
+      "when": null,
+      "related_ids": ["place-muelle-road"]
     },
     {
       "id": "place-bench-street-reseal",
       "kind": "place",
       "name": "Bench Street Reseal",
-      "aliases": ["Bench Street", "Bench Reseal"],
-      "location": "Jackedsonville · behind Neon Flux",
+      "aliases": ["Bench Reseal"],
+      "location": "Jackedsonville · Bench Street behind Neon Flux",
       "region_id": "r03-crimson-quay",
       "facts": [
         "[proposal] Quay Dust press and bag room; galvanized door painted coral."
+      ],
+      "when": null,
+      "related_ids": ["place-quay", "place-bench-street", "org-neon-flux"]
+    },
+    {
+      "id": "place-mar-de-sabores",
+      "kind": "place",
+      "name": "Mar de Sabores",
+      "aliases": ["Mar de Sabores"],
+      "location": "Jackedsonville · Main Street",
+      "region_id": "r03-crimson-quay",
+      "facts": ["Sit-down catch of the day for people who sit down (LORE-BIBLE)."],
+      "when": null,
+      "related_ids": ["place-main-street-jacked", "place-bodega-roja"]
+    },
+    {
+      "id": "place-bodega-roja",
+      "kind": "place",
+      "name": "Bodega Roja",
+      "aliases": ["Bodega Roja"],
+      "location": "Jackedsonville · Main Street",
+      "region_id": "r03-crimson-quay",
+      "facts": ["Sandwiches under digital billboards for people who don't sit down."],
+      "when": null,
+      "related_ids": ["place-main-street-jacked", "place-mar-de-sabores"]
+    },
+    {
+      "id": "place-nellys-book-nook",
+      "kind": "place",
+      "name": "Nelly's Book Nook",
+      "aliases": ["Book Nook", "Nelly's bookstore"],
+      "location": "Jackedsonville · Book Nook Block",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "Late hours; research rabbit holes; true-crime tip jar (LORE-BIBLE).",
+        "City placement still open in LORE-BIBLE Q6 — kept Jackedsonville here."
+      ],
+      "when": null,
+      "related_ids": ["place-book-nook-block"]
+    },
+    {
+      "id": "place-quay-cordage",
+      "kind": "place",
+      "name": "Quay Cordage",
+      "aliases": ["Quay Cordage chandler"],
+      "location": "Jackedsonville · Slip Shed Road",
+      "region_id": "r03-crimson-quay",
+      "facts": [
+        "[proposal] Harbor chandler; ice and generator adjacency for Quay Nights.",
+        "Detail: worldbuilding/STREETS.md."
       ],
       "when": null,
       "related_ids": ["place-quay"]
@@ -167,7 +509,7 @@
       "id": "org-night-ledger",
       "kind": "org",
       "name": "Night Ledger",
-      "aliases": ["Night Ledger Offices", "Ledger Row"],
+      "aliases": ["Night Ledger Offices"],
       "location": "Porto Lujara · Ledger Row",
       "region_id": "r02-porto-lujuria",
       "facts": [
@@ -175,7 +517,21 @@
         "PRI-0304."
       ],
       "when": null,
-      "related_ids": ["place-la-pharmacy-120", "place-float-barn-7"]
+      "related_ids": ["place-la-pharmacy-120", "place-float-barn-7", "place-ledger-row"]
+    },
+    {
+      "id": "year-festival-baseline",
+      "kind": "year",
+      "name": "2019",
+      "aliases": ["2019"],
+      "location": null,
+      "region_id": null,
+      "facts": [
+        "Baseline festival / tourism year for boardwalk optics (seed — expand in play).",
+        "Use related place/school links for who was where."
+      ],
+      "when": { "y": 2019, "m": null, "d": null },
+      "related_ids": ["place-boardwalk", "school-piu-south"]
     }
   ]
 }

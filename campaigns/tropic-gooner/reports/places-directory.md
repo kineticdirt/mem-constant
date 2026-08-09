@@ -7,43 +7,55 @@
 ## By region
 
 ### R1 Paradise
-*(vibes.png / INDEX: **Paradise** — Sasha base; no alias on art)*
+*(vibes.png / INDEX: **Paradise** — Sasha base; no alias on art)*  
+*Street map: `worldbuilding/STREETS.md` (Boardwalk Strip, Live Dream Blvd, Anchor Way, Intern Loop, Marina Service Alley).*
 
 | Place | Type | Faction tie | Hook |
 |-------|------|-------------|------|
-| **Galaxy Fitness** | Gym | — | Ellaine trains; commission + min wage; OF crossover clientele · deep-dive `reports/places/galaxy-fitness.md` |
-| **Java Jump** (flagship) | Café | PRI-0101 nearby | White-collar morning; deal meetings |
-| **CiDance Paradise Tower** | Hotel | PRI-0101 | Buffet lunch; discreet floors |
-| **Gilded Anchor Yacht Club** | Marina | PRI-0601 | Philanthropy galas; after-hours hunger |
-| **PIU South Campus** | University | PRI-0502 | Hospitality program interns staff PRI-0106 fronts |
-| **Paradise CRT Substation** | Police | PRI-0402 | Riot crates; festival deployments |
-| **The Humidor Annex** *[proposal]* | Reseal / grade | — | Marina White Sand humidity room; cigar-shop front · `worldbuilding/DRUGS.md` |
-| **Casa Pharmacy #43** | Pharmacy | PRI-0102 | RG's-family counter; "wristband optional" |
+| **Galaxy Fitness** | Gym | — | Boardwalk Strip · Ellaine trains; commission + min wage; OF crossover · deep-dive `reports/places/galaxy-fitness.md` |
+| **Java Jump** (flagship) | Café | PRI-0101 nearby | Boardwalk Strip · white-collar morning; deal meetings |
+| **CiDance Paradise Tower** | Hotel | PRI-0101 | Live Dream Boulevard · buffet lunch; discreet floors |
+| **Gilded Anchor Yacht Club** | Marina | PRI-0601 | Anchor Way · philanthropy galas; after-hours hunger |
+| **PIU South Campus** | University | PRI-0502 | Intern Loop · hospitality interns staff PRI-0106 fronts |
+| **Paradise CRT Substation** | Police | PRI-0402 | Substation Lane · riot crates; festival deployments |
+| **The Humidor Annex** *[proposal]* | Reseal / grade | — | Marina Service Alley · White Sand humidity; cigar-shop front · `DRUGS.md` / `STREETS.md` |
+| **Casa Pharmacy #43** | Pharmacy | PRI-0102 | near Intern Loop · RG's-family; "wristband optional" |
+| **Bayline Chandlery** *[proposal]* | Chandler | — | Marina Service Alley · slip fuel/ice/linen · `STREETS.md` |
+| **Mercado del Sueño** *[proposal]* | Bodega | — | Calle San Aurelio · neighborhood ice/phone cards · `STREETS.md` |
+| **Dick's Grocery** (Paradise) | Grocery | PRI-0105 | Live Dream Boulevard · tourist parking deck |
 
 ### R2 Porto Lujara *(alias Porto Lujuria)*
-*(vibes.png / INDEX: **Porto Lujara** — alias Lujuria is Misc Notes / older spelling only)*
+*(vibes.png / INDEX: **Porto Lujara** — alias Lujuria is Misc Notes / older spelling only)*  
+*Street map: `worldbuilding/STREETS.md` (Avenida del Carnaval, Muelle Road, Ledger Row, Annex Hill Road).*
 
 | Place | Type | Faction tie | Hook |
 |-------|------|-------------|------|
-| **Carnaval Route** (waterfront) | Event space | PRI-0402, PRI-0605 | Annual parade; sweep afterward |
-| **Night Ledger Offices** | Office | PRI-0304 | Club books; CRT overtime predictions |
-| **CCC Culinary Annex** | College | — | Toga-adjacent catering gig potential |
-| **Lujara Docks** *(was Lujuria Docks)* | Port | PRI-0107, PRI-0204 | Party cruise unload |
-| **La Pharmacy #120** | Pharmacy | PRI-0102 | Cash-only compounding near Ledger Row |
-| **Float Barn 7** *[proposal]* | Carnaval barn | PRI-0402 adjacent | Off-season empty; parade week T1 staging · `worldbuilding/DRUGS.md` |
+| **Carnaval Route** (waterfront) | Event space | PRI-0402, PRI-0605 | Avenida del Carnaval · annual parade; sweep afterward |
+| **Night Ledger Offices** | Office | PRI-0304 | Ledger Row · club books; CRT overtime predictions |
+| **CCC Culinary Annex** | College | — | Annex Hill Road · catering gigs into unnamed suites |
+| **Lujara Docks** *(was Lujuria Docks)* | Port | PRI-0107, PRI-0204 | Muelle Road · party cruise unload; IFC cold-chain |
+| **La Pharmacy #120** | Pharmacy | PRI-0102 | Ledger Row · cash-only compounding |
+| **Float Barn 7** *[proposal]* | Carnaval barn | PRI-0402 adjacent | Avenida del Carnaval · off-season empty; parade week T1 · `DRUGS.md` |
+| **Café Marejada** *[proposal]* | Dock café | — | Muelle Road · 04:00 dock coffee · `STREETS.md` |
+| **Tienda Lujara** *[proposal]* | Corner store | — | Calle de las Abuelas · hill holdout shop · `STREETS.md` |
 
 ### R3 Jackedsonville *(alias Crimson Quay)*
-*(vibes.png / INDEX: **Jackedsonville** — lore aliases Crimson Quay / Crimzon Quay)*
+*(vibes.png / INDEX: **Jackedsonville** — lore aliases Crimson Quay / Crimzon Quay)*  
+*Street map: `worldbuilding/STREETS.md` (Carpet Mile / The Row, Quay Street, Main Street, Bench Street, Book Nook Block).*
 
 | Place | Type | Faction tie | Hook |
 |-------|------|-------------|------|
-| **Crimson Oasis Casino** | Casino | PRI-0602 | VIP backrooms |
-| **Neon Flux** | Club | PRI-0201 | Quay Nights anchor · deep-dive `reports/places/neon-flux.md` |
-| **The Red Mirror** | Bar | PRI-0205 | Ellaine/Red bar scene analog |
-| **Renta-Girl Alley cluster** | Vice | PRI-0106 | Licensed/unlicensed blur |
-| **Nelly's Book Nook** *(GM name)* | Bookstore | PRI-0704 | Canon RP: research, Lena wheelchair return |
-| **El Pharmacy #35** | Pharmacy | PRI-0102 | Noon shutters; Quay Dust rumor after dark |
-| **Bench Street Reseal** *[proposal]* | Press / bag | Quay margin | Behind Neon Flux; Quay Dust · `worldbuilding/DRUGS.md` |
+| **Crimson Oasis Casino** | Casino | PRI-0602 | Carpet Mile (The Row) · VIP backrooms |
+| **Neon Flux** | Club | PRI-0201 | Quay Street · Quay Nights anchor · deep-dive `reports/places/neon-flux.md` |
+| **The Red Mirror** | Bar | PRI-0205 | Quay Front · Ellaine/Red bar scene analog |
+| **Renta-Girl Alley cluster** | Vice | PRI-0106 | Bench Street / alleys · licensed/unlicensed blur |
+| **Nelly's Book Nook** *(GM name)* | Bookstore | PRI-0704 | Book Nook Block · research, Lena wheelchair return |
+| **El Pharmacy #35** | Pharmacy | PRI-0102 | off Quay Street · noon shutters; Quay Dust rumor after dark |
+| **Bench Street Reseal** *[proposal]* | Press / bag | Quay margin | Bench Street · Quay Dust · `DRUGS.md` / `STREETS.md` |
+| **Mar de Sabores** | Restaurant | — | Main Street · sit-down catch of the day |
+| **Bodega Roja** | Bodega / counter | — | Main Street · sandwiches under digital billboards |
+| **Quay Cordage** *[proposal]* | Chandler | — | Slip Shed Road · ice/power last-mile · `STREETS.md` |
+| **Dick's Grocery** (Jacked) | Grocery | PRI-0105 | Carpet Mile · never-sleep microwave meals |
 
 ### R4 Villa Miel
 
