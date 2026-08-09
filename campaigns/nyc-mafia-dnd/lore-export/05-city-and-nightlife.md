@@ -1,72 +1,117 @@
-# 05 — The City & The Night
-
-*Where you are, where you drink, how you get there, and what it costs.*
+# 05 — Boroughs, Night, and Getting Across Town
 
 ---
 
-## The shape of it
+## The shape of the skyline
 
-Five boroughs plus the Jersey commuter belt — Hoboken, Bayonne, Newark. No steel towers; the skyline is brick, stone, guild spires, and factory stacks, mostly 4–8 stories, with the occasional 12-story limestone cliff on a Midtown avenue. Sprawl rings the boroughs — wood bungalows and brick duplexes on old farm lines, not a suburbia anyone planned.
+Brick. Stone. Guild spires. Factory stacks. Mostly four to eight stories; Midtown gets the occasional twelve-story limestone cliff. No steel curtain-walls. No interstate belt — smuggling uses **Grand Concourse**, **Queens Blvd**, the Sunset Park shore road, and the Jersey **Commuter Causeway** (toll). Parkways take cars; trucks get policed. Bridges and the Holland Tunnel are OCU ward-sniffer choke points.
 
-**Arterials, not interstates.** Grand Concourse, Queens Boulevard, the Sunset Park shore road, the Jersey Commuter Causeway (toll). Parkways take cars and police the trucks. Smuggling runs on arterials and night freight rail, because there's no interstate belt to disappear onto.
+Sprawl is lot-by-lot bungalows and duplexes on old farm lines — Queens, Nassau, the outer edges — not a planned suburb.
+
+---
+
+## Manhattan
+
+**Midtown / Ashford corridor.** Polite denial. Limestone fronts, corporate offices, luxury hotels. **Grand Central ward-hall** is the ley-rail cathedral: brass concourse, Vandermeer tube trunk under the floor, a schedule board that lies when automata cores pass within three blocks. Speaking-tubes are pneumatic mail. Unseen servants work the freight lifts.
+
+**Little Italy.** Mulberry social clubs, parish basements, funeral homes that smell like lilies and wax. Moretti turf. Protection dressed as parish charity.
+
+**Yorkville.** German-elf optics. Quiet bakeries, brass foundry depots, licensed pulse scopes. They hate automata the way a watchmaker hates a brick.
+
+**West Chelsea / the Village.** French half-elf and genasi basement salons. Perfume, poetry, pocket capsule-derringers, glamour that slips on live iron.
+
+**Lower East Side.** Erkling printing shops, Goddart ledgers, radical Yiddish sheets, copper restoration bands, elixir stills. Pushcarts. Open magic.
+
+**Harlem.** Human-majority, elf patrons on Striver's Row, half-orc bouncers reading paperbacks outside the clubs. Instruments as foci. Rent parties. Independent numbers kings who do not answer to Flushing unless they want to.
+
+---
+
+## Brooklyn
+
+**Red Hook.** Pier 7 — steam cranes, warded warehouses, Valenti union hall. Night shift deploys eight-foot construct loaders when inspectors sleep. **Anchor & Anvil** on Conover St: goliath and orc longshoremen, warded stout at $0.20 a pint.
+
+**Greenpoint.** Polish-dwarf and gnome foundry belt. Valenti-6 cylinder chambers. Pneumatic slings in basement shops. Boiler repair and unlicensed construct assembly.
+
+**Brighton Beach.** Russian shifter and orc cold-iron depots. Fur coats. Offshore boats. Cold-iron ammo at $10 a box.
+
+---
+
+## Queens
+
+**Flushing.** Chen-Okafor lending faces on Main Street. Mahjong behind the grille. Jade coin diviners upstairs. Kenku runners who repeat a capo's order in the capo's own voice.
+
+**Astoria.** Greek triton and sea-elf waterfront. Sponge imports, ferry cavities under the hull, a standing feud with Portuguese Ironbound crews older than anyone's grandfather.
+
+**Jamaica.** Ley-rail choke. Pemberton branches, Harlan freight yards, ice cars with reagent slots, Chen-Okafor divination kiosks on the platform.
+
+---
+
+## The Bronx, Staten Island, Jersey
+
+**South Bronx.** Puerto Rican lizardfolk and genasi corridor. Contested elevated lines and Grand Concourse smuggling. **El Coquí** on East 138th — root-tincture rum at $0.35 after a shift on the el.
+
+**Staten Island / Fresh Kills.** Kowalski municipal cover. Sanitation trucks with *gentle repose* bells. Heavy loads vanish for $50. Quiet row houses. Don't ask about basements.
+
+**Bayonne tank farm.** Night headlights in fog. Valenti handoffs of Jersey artificer crates to Manhattan runners.
+
+**Iron Rail Diner (Hoboken).** Twenty-four hours. Grease, coffee, coal soot. Neutral Ledger table. Next to the terminal.
+
+**Palisades.** Welsh firbolg lumber, Green Cord cells under PCL hiking cover, lycan night routes. FSA Green Desk raids are political — unless a steam main actually blows.
+
+---
+
+## Where the night actually happens
+
+| Venue | Where | What it is |
+|-------|-------|------------|
+| **The Blue Note** | W 52nd | Bebop front; licensed if you don't look downstairs. Moretti/Chen-Okafor split the headache. $2.50 cocktail; $15 "holy water" shot in back. Your campaign opens here. |
+| **The Velvet Horn** | W 52nd | French half-elf glamour; *silence* wards in the walls; Glow-Gin at $0.75. You forget what you said. That's the point. |
+| **The Onyx Foundry** | W 52nd | German-elf optics money. Licensed telescope lenses on display. Imported pilsner $1.50. No automata past the door. |
+| **The Savoy Salon** | Lenox Ave | Harlem ballroom; high-elf minority; illusion auroras over dancers. Federal inspectors bribed with optical focuses. |
+| **Minton's Parish** | W 118th | Moretti-protected bebop. Sax as enchantment focus. Weekly spirit sweep $5 — keeps clerk-ghosts out of the cellar. |
+| **Cafe Palermo** | Mulberry | Espresso, anise, Mending-Rye $0.50, *cure* vials in butcher paper $15. Tommy's people at the back tables. |
+| **The Jade Dragon** | Pell St | Chinatown mahjong basement under a dragonborn front. River-spirit incense $5 — temp hit points, harbor smell for a day. |
+| **Sea Wolf Tattoo** | Red Hook | Mickey "The Needle" Fusco. Ward-glyph ink (~6 months outside Midtown scrub-wards). Ticking prosthetic arm. First friendly face when a job goes sideways. |
+| **San Gennaro Social Club** | Mulberry | Moretti face. Floor wax, espresso. Dead registered downstairs. |
+| **Golden Dragon Mahjong** | Flushing | Chen-Okafor face. Tiles in back, diviners up. Auntie Mei collects when the piano stops. |
+
+Swing Street (West 52nd) and Harlem are where Midtown money, federal auditors, and family rackets drink in the same room and pretend the other tables aren't listening.
+
+---
 
 ## Getting around
 
-**Subway.** Brass-and-brick, not a modern metro — steam-assist grades, continual-flame platform lamps, guild ward strips on the rails. IRT-style elevated legs in the Bronx, deep IND tubes in Manhattan and Brooklyn. It lurches. The windows fog. Near an active construct core the signals lie and the schedule invents a stop.
+**Subway.** Brass-and-brick. Steam-assist grades. Continual-flame platforms (gas backup in outer Bronx). IRT els uptown; IND tubes under Manhattan/Brooklyn. It lurches. Windows fog. Near a hot core the signals invent a stop — get off at the next real one.
 
-| Fare | What |
-|------|------|
-| $0.15 | Token, working stiff |
-| $0.25 | Late-night ward-car — brighter lamps, OCU spot-checks |
-| $2.00 | "Family" bribe to skip the cargo search at Court Street |
+| Fare | Meaning |
+|------|---------|
+| $0.15 | Token |
+| $0.25 | Late-night ward-car (brighter lamps, OCU spot-checks) |
+| $2.00 | Bribe to skip cargo search at certain stations |
 
-**Cabs** are motorized carriages in the literal sense — early chassis, steam or weak-electric assist, and a horse for when the engine sulks.
+**Cabs** are motorized carriages — steam or weak-electric assist, horse when the engine sulks. Hack license $1.50–$2.50 midtown↔docks at 12–18 mph. Jitney $0.75 flat, may pick up strangers. Guild courier cab $3 + $0.25/min. Family black car: a favor, no meter.
 
-| Type | Feel | Midtown ↔ docks |
-|------|------|-----------------|
-| Hack license (warded carriage) | Slow, 12–18 mph | $1.50–$2.50 metered; $5.00 for illegal ward-boost speed |
-| Unlicensed jitney | Faster, no insurance, may stop for other fares | $0.75 flat |
-| Guild courier cab | Speaking-tube to dispatch, reliable | $3.00 base + $0.25/min waiting |
-| Family black car | Armored brass, driver doesn't talk | A favor, not cash |
+**Ferry.** Dock priests do water-walk and calm-wave rites so river spirits don't tip the boat. Kowalski garbage barges are never *just* garbage.
 
-**Fire** is dual-track: city steam-pump companies for ordinary brick fires, and contracted magic brigades — the Iron Ladder Guild's warded ladders, Temple Hose clerics with *create water* on Moretti-contract blocks, the Foundry Brigade's cold-iron anti-construct foam on Valenti contracts. Engine in 8–12 minutes; a pre-paid ward building gets the magic brigade in 5–8. *"The building's on fire." "Call the church." "We did. They're billing us."*
+**Fire.** Engine Company steam pumps (8–12 min) vs magic brigades — Iron Ladder Guild, Temple Hose on Moretti-contract blocks, Foundry Brigade cold-iron foam on Valenti docks. Prepaid ward buildings get the magic crew in 5–8. Who arrives first is ward politics.
 
-## The news — scry-press
+---
 
-No photographs, no TV. Mass news images are **projection tokens** — a glyph-indexed print you hold up to a newsstand **verity-lantern** to see the picture. Archival evidence is a **bound-light plate** with a guild seal. Luxury is **living ink**. Evening editions come off scry pools and clerk pools — no wirephoto. Rare and expensive **image-deny** work can keep your face out of a capture. The *Tribune* whispers about foreign artificers and rogue automata; the terror headlines always land the week before a bond vote.
+## Money, wages, paper
 
-## Money — what things cost
+| Role | Rough pay |
+|------|-----------|
+| Unskilled tenement labor | $4–$6 / day |
+| Union longshoreman / dwarf boiler-smith | $10–$15 / day |
+| OCU detective, first grade | ~$18 / day |
+| Ledger operator on a successful job | $50–$100 |
 
-| Thing | Price |
-|-------|-------|
-| Subway token | $0.15 |
-| Garlic braid (fringe repellent) | $0.10 |
-| Silver chalk / rowan line | $0.25 |
-| Bootleg *lesser restoration* band (copper wrist) | $45.00 |
-| Back-room salon, bullet-hole close | hundreds, plus a favor |
-| *Raise dead* | politics, not a price |
-| Ward-glyph tattoo (holds ~6 months outside Midtown scrub-wards) | Mickey Fusco's rate, cash |
-| Vault-unbinding | Harlow Duvall's tiers, cash up front |
+Numbers: bet pennies on three digits; **600-to-1** payout; Chen-Okafor keeps ~40% by leaning the slips. Jade-contract loans: **6-for-5** weekly — default means bone-deep joint pain from the ward.
 
-A working stiff's week and a capo's week are different currencies. The salons are the clearest sign of it — the city can fix almost anything, and the bill decides who gets fixed.
+*Tribune* (Midtown denial). *Herald-Post* (Ashford lean, living-ink Sundays). Yiddish Forward-style sheets on the LES. Harlem Defender-style neighborhood papers. Evening edition without wirephoto: scry pool → plate by 4 → glyph for the lantern by 6. Caption drift is a known comedy — morning **GUILTY**, evening lantern shows aquittal, nobody reconciles the clerks.
 
-## Where the night happens
+---
 
-Vice is the economic engine, not garnish. The clubs are the infrastructure:
+## Social weather
 
-- **The Blue Note** — 52nd St. Front room passes inspection. Moretti and Chen-Okafor split the headache of the back. This is where your crew's story starts.
-- **The Velvet Horn** — Harlem. Half-orc bouncers reading paperback poetry outside; elf patrons funding glamour jazz inside.
-- **The San Gennaro Social Club** — Mulberry St. Moretti face. Floor wax and espresso; the dead are registered in the basement.
-- **The Golden Dragon Mahjong Club** — Flushing. Chen-Okafor face. Tiles in back, divination upstairs, Auntie Mei collecting favors when the piano stops.
-- **Sea Wolf Tattoo** — Red Hook. Mickey "The Needle" Fusco, ward-glyph ink, a ticking prosthetic arm, and the first friendly face when a job goes sideways.
-- **The Longshoreman's Union Hall** — Pier 7, Red Hook. Valenti face. Wet rope, coal smoke, brass tubes to every dock office.
-
-## The sensory palette
-
-A trumpet echoing down a wet brick alley at 2 a.m. Steam hissing from a tenement radiator. The clatter of speaking-tubes, the iron bell of a sanitation truck. Coal smoke, river mud, garlic and oregano from the social clubs, funeral incense under stale tobacco. Neon outside the licensed clubs, gas mantles in the slums, the dim blue aura of a warded doorframe, the hard glare of a detective's flashlight.
-
-## The social reality
-
-Male-dominant mid-century world. Men run the rackets, hold the union offices, serve as capos. Women are expected to manage the home, the socials, the ledgers — and a woman who steps into the underworld as an operator has to be twice as sharp and twice as tough, and gets priced, patronized, and tested for it. It shows up in license fees, club rules, and the tone of the old dons. The campaign plays it as concrete diegetic reality, not a wink.
-
-Sex and prudery land uncomfortable, not sitcom-horny. The city sells everything and admits to nothing.
+Male-dominant mid-century defaults. Men hold the union offices and the capo chairs. Women run homes, socials, ledgers — and operators who step into the Grey get priced harder and tested twice. It shows up in license fees and the tone of old dons, not in essays. Sex and prudery land uncomfortable.

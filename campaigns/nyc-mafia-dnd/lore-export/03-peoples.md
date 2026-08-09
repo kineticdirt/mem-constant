@@ -1,16 +1,16 @@
 # 03 — Peoples & Ancestries
 
-*Who lives in this city, and what being them means. This is the longest file in the pack because it's the one you'll use most when building a character.*
+Long file. Use it when you build a character. Skip around.
 
 ---
 
-## The rule before anything else: anti-allegory
+## Anti-allegory (read this)
 
-**Races are diasporas, not one-to-one ethnic allegories.** Humans live in every people group. The Morettis aren't "the halfling family" — they're an Italian-American syndicate that hires halfling tenement runners and gnome bookkeepers because those kids grew up on the same blocks and know which stairs squeak.
+Races are diasporas, not stand-ins. Humans live in every group. The Morettis aren't "the hobgoblin family" — they're an Italian-American syndicate that hires hobgoblin capos, human fronts, and halfling runners because those kids know which stairs squeak on Mulberry.
 
-Prejudice at this table targets **ancestry visibility** — horns, height, tusks — and **magical licensing**, not skin color as a stand-in for real-world bigotry. A visible orc longshoreman gets stopped at a Midtown bank because he's an unlicensed orc, not because of his neighborhood. Human-on-human ugliness still exists, played concrete and dry.
+Prejudice at this table tracks **ancestry visibility** (horns, height, tusks) and **magical licensing**. An orc longshoreman gets stopped at a Midtown bank because he's unlicensed, not because of his block. Human-on-human ugliness still exists — play it concrete.
 
-The street-level version: **WardID** is the city's internal license status that lets a guard check a nonhuman on the street. **Passport-tier** is what Midtown needs for a hotel desk. The Five Families buy forged licenses; the Jersey Iron Guild sells stamped originals.
+**WardID** = what a street guard checks on a nonhuman. **Passport-tier** = what a Midtown hotel desk wants. Families buy forgeries. The Iron Guild sells stamped originals.
 
 ## The visibility ladder (who gets stopped where)
 

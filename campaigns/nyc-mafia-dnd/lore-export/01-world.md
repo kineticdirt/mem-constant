@@ -1,46 +1,49 @@
-# 01 — The World
+# 01 — The City, the Stack, and How We Got Here
 
-*Read this first. It's short.*
+*Don't ask what year it is. There isn't one.*
 
 ---
 
-## The stack
+## How it feels when you walk outside
 
-Don't ask what year it is. There isn't one. The city wears different decades on different parts of its body — this is on purpose, and it's the first thing to get used to.
+Mid-century clothes. Late-1800s machinery. Healing that can close a brain bleed in a West Chelsea salon. Math that can't keep a train on time. That's the stack, and people live inside the seams without naming them.
 
-| What | Feels like | What you actually see |
-|------|-----------|----------------------|
-| **Nightlife, clothes, voice** | ~1950s–60s | Bebop sets, sharkskin and fedoras, church hats, commuter trains from Jersey, newspapers full of cold-war dread |
-| **Street hardware** | ~1890s industrial | Brass speaking-tubes, steam-assist subway, warded roll-up doors, coal smoke, slow motor-carriages, capsule revolvers |
-| **Skyline** | Pre-skyscraper | Brick and stone, 4–8 stories, guild spires, factory stacks. No steel towers. No glass. No interstates. |
-| **Medicine & death** | Ahead of everything | Salons close bullet holes same-night. Raising the dead is a scandal and a price, not a myth. |
-| **Constructs & bound labor** | Near-future threat | Cores that keep working after everyone left. Foundries that don't need you. |
-| **Math & prediction** | Worse than ours | Ledgers, counting rooms, diviners with nosebleeds. Nobody can reconcile the books. |
+A capo in a sharkskin hat rides a steam lift installed when his grandfather was a kid, gets his aneurysm fixed like it's the future, and signs a contract no brass engine in the city can double-check. The *Tribune* calls it progress. The Elevatormen's Guild calls it Tuesday.
 
-A man in a 1956 hat rides an 1890 elevator, gets his aneurysm fixed like it's 1975, and signs a contract no machine in the city could double-check. That's Tuesday.
+## A short history (the parts that stuck)
+
+Nobody agrees on the dates. The bones of the story are these:
+
+**About three hundred years of slow craft.** Renaissance guild halls and temple precedents — not labs — started turning spells into tools. Continual flame on a hook. Mending that undercut honest tailors. Message cantrips across a courtyard. Parish craft first. Then batch charms. Then foundries.
+
+**The industrial climb.** Fabricate presses made uniform nails and ward-tags. Bound spirits went into boilers. Brass clockwork met elemental contracts. Somebody on the Jersey flats finally made **ward-rail** beat horse-haul, and robber-baron money poured into limestone fronts with broken radiators in the stairwells behind them. The names that still matter: **Pemberton**, **Harlan**, **Vandermeer**. Their grandchildren sit on boards next to Ashford lawyers.
+
+**The burial registry.** Moretti funeral houses have paper on every death in the borough back to **1910**. That's why "consigned to the parish registry" is a sentence. Control of the dead is older than most of the Commission.
+
+**The Below.** Nineteenth-century water works and transit digs folded something wrong into the bedrock. Surface maps don't cover it. The families tax the ways in. Most people only know the rumors (see `06`).
+
+**OCU.** The Organized Crime Unit stood up in **1952** when magical rackets and unlicensed construct smuggling got too loud for the regular precincts. Ward-sniffers, tube splices, wax cylinders. Still underfunded. Still here.
+
+**What people remember from their grandparents:** Great Migration trunks in Harlem kitchens. Covenant clauses Ashford clerks redact for fees. Dock unions built on who got licensed first. The city did not invent prejudice — it invented **WardIDs** and **passport-tiers** so the prejudice could wear a badge.
 
 ## What the city is good at (and what it isn't)
 
-**Bodies, oaths, and death — strong.** Guild magic knows what a body is. *Cure wounds* isn't biochemistry; it's a negotiation with something the culture has been naming for centuries. Back-room salons do what hospitals won't. *Raise dead* costs because death is political, not because it's impossible.
+**Bodies, oaths, death — strong.** Guild magic knows what a body is. *Cure wounds* is a negotiation, not a chemistry set. Salons outperform hospitals. *Raise dead* is scandal and politics, not myth.
 
-**Computation — weak.** Brass calculating engines drift, lie, or need a bound ghost who hates arithmetic. The families keep human bookkeepers. Chen-Okafor's numbers rooms cheat with divination, not math. If a plot needs "the numbers," the answer is a tired clerk, a bribe, or a diviner burnout — never a working machine.
+**Computation — weak.** Brass calculating engines drift after feast days. Bound clerk-spirits hate arithmetic. Chen-Okafor cheats with divination and human runners. If the numbers matter, hire a Goddart bookkeeper, not a machine.
 
-**Automata — strong, and that's the problem.** A Jersey foundry can bind an elemental into a core that *wants* to keep the line running. It outlifts a teamster, works through the night, and rewrites its own purpose when the binding cracks. It doesn't need to outthink anyone. It needs to outlast the union.
+**Automata — strong, and that's the problem.** The **Iron Guild of New Jersey** binds elementals into cores. A core wants to keep the line running. It outlifts a teamster, works the night shift without gin, and rewrites its purpose when the binding cracks. It does not need to outthink anyone. It needs to outlast the union. FSA policy on runaways: **shoot-to-scrap**.
 
-## The tone
+## Tone
 
-Jazz-club noir. Gritty crime drama with a supernatural edge. Dry, awkward, darkly funny until it isn't — think *Barry*, not a sitcom. Violence is understated. Bureaucracy is absurd. Healing is a line item. The band keeps playing.
+Jazz-club noir. Gritty crime. Dry until it isn't. The band keeps playing. Nobody is a hero.
 
-The mobsters are not heroes. The law is corrupt. The streets are cold. The music is good.
+## Three layers you already live in
 
-## The three layers
+- **The Street** — debt ledgers, warded carriages, wax-cylinder wiretaps on brass tubes.
+- **The Grey** — bootleg salons, stolen Locksmiths' Guild stamps, a saxophone used as a focus mid-set.
+- **The Deep** — the Below and the foundries. You hear about it. You go there when the campaign decides you have to.
 
-- **The Street** — mundane New York. Debt ledgers, warded carriages, wax-cylinder wiretaps on brass tubes.
-- **The Grey** — the underworld of bootleg spell-tech. Back-room healing salons, stolen guild stamps, a saxophone used as a focus to cast a charm mid-set.
-- **The Deep** — the Below and the foundries. Construct cores, bound spirits, and a folded-in demiplane that doesn't obey street geography.
+## What this city does not have
 
-You live in the Street and work in the Grey. The Deep is where the campaign goes when it wants to scare you.
-
-## What you won't find here
-
-No phones, no TV, no radio as a default. No Tommy guns, no gunpowder, no chemical propellant of any kind. No glass towers. No interstate highways. No vampires holding elected office. No cartoon eco-terrorist druids. No Volstead gin-running — the bootleg trade is in **construct cores, healing bands, and bound spirits**. No casual necromancy. No "science discovers magic" — magic is guild craft, temple precedent, or patron revelation, and it has always been here.
+Phones. TV. Radio as a default. Gunpowder. Tommy guns. Glass towers. Interstate cloverleafs. Vampire aldermen. Casual necromancy. Science "discovering" mana. The illegal trade is **construct cores, healing bands, and bound spirits** — not gin.

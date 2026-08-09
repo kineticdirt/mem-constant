@@ -1,259 +1,221 @@
-# NYC Mafia × D&D — Player Lore Pack
+# 00 — Start Here
 
-*Hand this to anyone sitting down at the table. Read in order, or jump around — but read `01` and `02` before you build a character.*
-
----
-
-## What this is
-
-A fantasy New York. Not a reskin — a working city where the Five Families run a grey market in **magic**, the cops have a whole unit for it, and the subway works until it doesn't. You're not heroes. You're a **heist crew** — independents with a reputation for doors that open, currently in debt to people you do not want to owe.
-
-## The one-paragraph pitch
-
-Culture reads **mid-century** — bebop clubs, sharkskin suits, commuter trains from Hoboken, cold-war dread in the papers. Street technology is **late-1800s** — brass speaking-tubes instead of phones, steam-assist subways, warded safes, capsule revolvers instead of gunpowder. Magic is real, licensed, taxed, or bootleg. And somewhere under the city is the **Below**, which is not a subway tunnel.
-
-## The rules of the pack
-
-- **Everything in here is true.** Nothing in here is a trap. The GM keeps secrets, but they're not in this folder.
-- **No exact year.** Don't ask "what year is it." Ask "what's broken."
-- **No gunpowder.** Anywhere. For anyone. If your character concept needs a gun, it uses capsules (see `05`).
-- **Vampires and werewolves are real.** So is worse. See `06` — but know that on the surface, most people pretend they aren't.
-
-## Reading order
-
-| File | What's in it | Read it… |
-|------|--------------|----------|
-| `01-world.md` | The city, the stack, the tone | First |
-| `02-families.md` | The Five Families + the law + the Ledger | Before you pick a background |
-| `03-peoples.md` | Who lives here — every people group and their ancestry | When you build your character |
-| `04-magic-and-tech.md` | How magic works, what it costs, capsule arms | Before you touch a spell list |
-| `05-city-and-nightlife.md` | Boroughs, clubs, transit, prices, where you drink | When you want texture |
-| `06-fringe-and-monsters.md` | Vampires, werewolves, constructs, the Below, druids | Everyone reads this |
-| `07-crew-and-table.md` | The heist frame, crew seats, session zero, table rules | Before session one |
-| `08-glossary.md` | Every term in one place | Reference |
-
-*GM note: the only thing in this pack that touches the campaign's opening is the leash in `07` — the note your crew already has. Everything else is the city as the characters know it. What's actually in the Blue Note cellar is the GM's business.*
-# 01 — The World
-
-*Read this first. It's short.*
+Hand this folder to anyone sitting down. Read `01` and `04` before you build a character if you care how the city *works*. Read `03` when you pick an ancestry. Read `06` so you don't walk into Midtown assuming vampires are fairy tales.
 
 ---
 
-## The stack
+## Pitch
 
-Don't ask what year it is. There isn't one. The city wears different decades on different parts of its body — this is on purpose, and it's the first thing to get used to.
+Fantasy New York. Culture sounds mid-century — bebop, sharkskin, Hoboken commuters, cold-war dread in the papers. Hardware under your hands is late-1800s — speaking-tubes, steam-assist subway, capsule revolvers, ley-rail that lies about its schedule. Magic is licensed, taxed, or bootleg. The Five Families run the grey market. You're a **heist crew** in debt to people you don't want to owe.
 
-| What | Feels like | What you actually see |
-|------|-----------|----------------------|
-| **Nightlife, clothes, voice** | ~1950s–60s | Bebop sets, sharkskin and fedoras, church hats, commuter trains from Jersey, newspapers full of cold-war dread |
-| **Street hardware** | ~1890s industrial | Brass speaking-tubes, steam-assist subway, warded roll-up doors, coal smoke, slow motor-carriages, capsule revolvers |
-| **Skyline** | Pre-skyscraper | Brick and stone, 4–8 stories, guild spires, factory stacks. No steel towers. No glass. No interstates. |
-| **Medicine & death** | Ahead of everything | Salons close bullet holes same-night. Raising the dead is a scandal and a price, not a myth. |
-| **Constructs & bound labor** | Near-future threat | Cores that keep working after everyone left. Foundries that don't need you. |
-| **Math & prediction** | Worse than ours | Ledgers, counting rooms, diviners with nosebleeds. Nobody can reconcile the books. |
+## Rules of the pack
 
-A man in a 1956 hat rides an 1890 elevator, gets his aneurysm fixed like it's 1975, and signs a contract no machine in the city could double-check. That's Tuesday.
+- True as far as your characters know. GM secrets are not in here.
+- No exact year.
+- No gunpowder. Capsules only.
+- Vampires and werewolves are real. Most people pretend otherwise in Midtown.
+
+## Order
+
+| File | Contents |
+|------|----------|
+| `01-world.md` | Stack, short history, tone |
+| `02-families.md` | Commission, Five Families, law, Ledger |
+| `03-peoples.md` | Diasporas ↔ ancestries (long) |
+| `04-magic-and-tech.md` | Named brands, arms, rail, press, prices |
+| `05-city-and-nightlife.md` | Boroughs, clubs, transit |
+| `06-fringe-and-monsters.md` | Fringe, vampires, lycans, constructs, Below-as-rumor |
+| `07-crew-and-table.md` | Heist seats, leash, session zero |
+| `08-glossary.md` | Terms |
+
+`LORE-DUMP.md` is everything concatenated for one paste or print run.
+# 01 — The City, the Stack, and How We Got Here
+
+*Don't ask what year it is. There isn't one.*
+
+---
+
+## How it feels when you walk outside
+
+Mid-century clothes. Late-1800s machinery. Healing that can close a brain bleed in a West Chelsea salon. Math that can't keep a train on time. That's the stack, and people live inside the seams without naming them.
+
+A capo in a sharkskin hat rides a steam lift installed when his grandfather was a kid, gets his aneurysm fixed like it's the future, and signs a contract no brass engine in the city can double-check. The *Tribune* calls it progress. The Elevatormen's Guild calls it Tuesday.
+
+## A short history (the parts that stuck)
+
+Nobody agrees on the dates. The bones of the story are these:
+
+**About three hundred years of slow craft.** Renaissance guild halls and temple precedents — not labs — started turning spells into tools. Continual flame on a hook. Mending that undercut honest tailors. Message cantrips across a courtyard. Parish craft first. Then batch charms. Then foundries.
+
+**The industrial climb.** Fabricate presses made uniform nails and ward-tags. Bound spirits went into boilers. Brass clockwork met elemental contracts. Somebody on the Jersey flats finally made **ward-rail** beat horse-haul, and robber-baron money poured into limestone fronts with broken radiators in the stairwells behind them. The names that still matter: **Pemberton**, **Harlan**, **Vandermeer**. Their grandchildren sit on boards next to Ashford lawyers.
+
+**The burial registry.** Moretti funeral houses have paper on every death in the borough back to **1910**. That's why "consigned to the parish registry" is a sentence. Control of the dead is older than most of the Commission.
+
+**The Below.** Nineteenth-century water works and transit digs folded something wrong into the bedrock. Surface maps don't cover it. The families tax the ways in. Most people only know the rumors (see `06`).
+
+**OCU.** The Organized Crime Unit stood up in **1952** when magical rackets and unlicensed construct smuggling got too loud for the regular precincts. Ward-sniffers, tube splices, wax cylinders. Still underfunded. Still here.
+
+**What people remember from their grandparents:** Great Migration trunks in Harlem kitchens. Covenant clauses Ashford clerks redact for fees. Dock unions built on who got licensed first. The city did not invent prejudice — it invented **WardIDs** and **passport-tiers** so the prejudice could wear a badge.
 
 ## What the city is good at (and what it isn't)
 
-**Bodies, oaths, and death — strong.** Guild magic knows what a body is. *Cure wounds* isn't biochemistry; it's a negotiation with something the culture has been naming for centuries. Back-room salons do what hospitals won't. *Raise dead* costs because death is political, not because it's impossible.
+**Bodies, oaths, death — strong.** Guild magic knows what a body is. *Cure wounds* is a negotiation, not a chemistry set. Salons outperform hospitals. *Raise dead* is scandal and politics, not myth.
 
-**Computation — weak.** Brass calculating engines drift, lie, or need a bound ghost who hates arithmetic. The families keep human bookkeepers. Chen-Okafor's numbers rooms cheat with divination, not math. If a plot needs "the numbers," the answer is a tired clerk, a bribe, or a diviner burnout — never a working machine.
+**Computation — weak.** Brass calculating engines drift after feast days. Bound clerk-spirits hate arithmetic. Chen-Okafor cheats with divination and human runners. If the numbers matter, hire a Goddart bookkeeper, not a machine.
 
-**Automata — strong, and that's the problem.** A Jersey foundry can bind an elemental into a core that *wants* to keep the line running. It outlifts a teamster, works through the night, and rewrites its own purpose when the binding cracks. It doesn't need to outthink anyone. It needs to outlast the union.
+**Automata — strong, and that's the problem.** The **Iron Guild of New Jersey** binds elementals into cores. A core wants to keep the line running. It outlifts a teamster, works the night shift without gin, and rewrites its purpose when the binding cracks. It does not need to outthink anyone. It needs to outlast the union. FSA policy on runaways: **shoot-to-scrap**.
 
-## The tone
+## Tone
 
-Jazz-club noir. Gritty crime drama with a supernatural edge. Dry, awkward, darkly funny until it isn't — think *Barry*, not a sitcom. Violence is understated. Bureaucracy is absurd. Healing is a line item. The band keeps playing.
+Jazz-club noir. Gritty crime. Dry until it isn't. The band keeps playing. Nobody is a hero.
 
-The mobsters are not heroes. The law is corrupt. The streets are cold. The music is good.
+## Three layers you already live in
 
-## The three layers
+- **The Street** — debt ledgers, warded carriages, wax-cylinder wiretaps on brass tubes.
+- **The Grey** — bootleg salons, stolen Locksmiths' Guild stamps, a saxophone used as a focus mid-set.
+- **The Deep** — the Below and the foundries. You hear about it. You go there when the campaign decides you have to.
 
-- **The Street** — mundane New York. Debt ledgers, warded carriages, wax-cylinder wiretaps on brass tubes.
-- **The Grey** — the underworld of bootleg spell-tech. Back-room healing salons, stolen guild stamps, a saxophone used as a focus to cast a charm mid-set.
-- **The Deep** — the Below and the foundries. Construct cores, bound spirits, and a folded-in demiplane that doesn't obey street geography.
+## What this city does not have
 
-You live in the Street and work in the Grey. The Deep is where the campaign goes when it wants to scare you.
-
-## What you won't find here
-
-No phones, no TV, no radio as a default. No Tommy guns, no gunpowder, no chemical propellant of any kind. No glass towers. No interstate highways. No vampires holding elected office. No cartoon eco-terrorist druids. No Volstead gin-running — the bootleg trade is in **construct cores, healing bands, and bound spirits**. No casual necromancy. No "science discovers magic" — magic is guild craft, temple precedent, or patron revelation, and it has always been here.
-# 02 — The Five Families, the Law, and the Ledger
-
-*Who runs what, who you owe, and who's watching. Everything here is street knowledge — your characters know all of it.*
+Phones. TV. Radio as a default. Gunpowder. Tommy guns. Glass towers. Interstate cloverleafs. Vampire aldermen. Casual necromancy. Science "discovering" mana. The illegal trade is **construct cores, healing bands, and bound spirits** — not gin.
+# 02 — Families, Law, and the Ledger
 
 ---
 
 ## The Commission
 
-The five families hold a quarterly sit-down in a private room at an Ashford-owned hotel. The one standing rule that matters to you: **no magic hits on civilians without a vote.** It's broken often enough that everyone remembers why it exists.
+Five families. Quarterly sit-down in a private dining room at an Ashford-owned hotel. Standing rule that matters to freelancers: **no magic hits on civilians without a vote.** Broken often enough that everyone remembers the weeks after.
 
-Current friction — the shape of the city's grudges, as the street tells it:
+What the street treats as current weather:
 
-- **Valenti ↔ Chen-Okafor:** business. Docks clear Queens' imports; Queens finances dock foundries.
-- **Moretti ↔ Chen-Okafor:** active turf war over Lower East Side numbers routes.
-- **Kowalski ↔ Moretti:** a religious grudge — Moretti chaplains say Kowalski disposal desecrates the dead; Kowalski says Moretti ghosts spy on their routes.
-- **Kowalski ↔ Valenti:** poaching — harbor smuggling routes and who gets to dump construct scrap in Jersey.
-
----
-
-## The Five Families
-
-### Valenti — Brooklyn docks
-
-**Territory:** Red Hook, Sunset Park, Gowanus.
-**Face:** The Longshoremen's Union Hall, Pier 7. Wet rope, coal smoke, stale coffee. Brass speaking-tubes to every dock office.
-**Rackets:** Forged ward stamps for import crates; smuggled construct cores; unlicensed construct loaders on the night shift; shock-rune brass knuckles made in the back.
-**Look:** Dock Irish and Italian longshoremen. Work coats over flannel, St. Michael medals, flat caps.
-
-| Name | Role | What the street knows |
-|------|------|----------------------|
-| **Lena "Grease" Valenti** | Boss | Widow, runs Red Hook piers with an iron fist. Kids in parochial school, Communion every Sunday. Currently squeezed — the OCU keeps sniffing Pier 7, and that threatens the legitimate front that keeps everyone paid. |
-| **Rosa "The Crane" Lombardo** | Capo | Runs forty longshoremen, half of whom carry warded crowbars that open magical crates without tripping alarms. Carries a cargo hook that sheds a dim blue light. Missing a finger joint from a dock accident. Daughter's on a scholarship in Bay Ridge. |
-| **"Sully" Sullivan** | Enforcer | Rosa's right hand. Broken face, quiet, never learned another trade. |
-| **Gina "Nails" Palladino** | Cleaner | Cargo fires only — won't torch a tenement. Lights her own fuse and runs through the smoke toward the river. |
-
-### Moretti — Little Italy
-
-**Territory:** Mulberry Street, Greenwich Village, the Lower East Side.
-**Face:** The San Gennaro Social Club. Floor wax, cigar smoke, espresso. The basement holds the family's burial registry vault — bound ledgers of the dead.
-**Rackets:** Protection dressed as parish charity; Thursday "spirit sweeps" for local businesses; control of the burial registry and funeral-home network — which means control of what the dead can say in court.
-**Look:** Sharp suits, Roman collars (often unordained), flat caps, incense over cigarette smoke.
-
-| Name | Role | What the street knows |
-|------|------|----------------------|
-| **Tommy "Two Prayers" Moretti** | Capo | Apprentice chaplain, drives a warded sedan with a speaking-tube splice under the dash. Wears a collar he was never ordained into — and genuinely believes the rites, which makes him useful and dangerous. |
-| **Sal "The Sacristy" D'Ambrosio** | Consigliere | Elderly, soft-spoken, smells of old parchment. His rosary warms when someone lies within ten feet. Forged his own ordination papers forty years ago to build the family's parish network. His hatred of Kowalski disposal methods is theological, not financial. |
-| **"Two-Bit" Marconi** | Street enforcer | Breaks fingers on a schedule. Carries a mundane debt ledger in his coat. |
-| **Francesca Moretti** | Ambitious niece | Runs an East Village crew — gambling, protection, diluted healing bands sold to college bars. Respects competence; surrenders rather than die for pride. Recurring problem or recurring ally, depending on the week. |
-
-### Chen-Okafor — Queens numbers
-
-**Territory:** Flushing, Jamaica, numbers routes into Harlem.
-**Face:** The Golden Dragon Mahjong Club, Main Street, Flushing. Looks like a community lending office. Back room is mahjong tiles; upstairs is the divination rooms.
-**Rackets:** Numbers; probability manipulation on races and dice; high-interest lending on jade-focus contracts; runners who use divination to call winning combinations.
-**Look:** Flushing shop-front English, Harlem jazz slang, sharkskin suits, jade rings, ivory tiles.
-
-| Name | Role | What the street knows |
-|------|------|----------------------|
-| **David Chen-Okafor** | Boss | The respectable face of the lending business. Carries a heavy ivory die he never rolls. Caught in a quiet succession fight with his traditionalist uncles. His sister wears an OCU badge — they have a strict agreement: no favors asked, no reports filed. |
-| **"Iron" Ling** | Enforcer | Dwarf, steel prosthetic forearm that blocks warded weapons. Reads the *Racing Form* on stakeouts. Has a legendary quarterly collection bet with the Kowalski enforcer, settled at a Long Island City tavern where the piano never stops. |
-| **Kaz** | Defector | Ex-Moretti, runs the Lower East Side push. Nervous. Won't fight — runs, then sings for protection. A liability with legs. |
-
-### Kowalski — Staten Island haul
-
-**Territory:** Staten Island, Fresh Kills Landfill, the harbor barge routes.
-**Face:** The Bard Avenue row house. Modest home, basement door that is never opened. Backyard full of sanitation trucks.
-**Rackets:** Waste hauling; deep disposal of bodies, hot construct cores, and cursed objects; harbor smuggling on garbage barges; and the "Bone Reach" connection to the Below.
-**Look:** Sanitation uniforms, Polish parish rosaries, work boots, diesel and river salt.
-
-| Name | Role | What the street knows |
-|------|------|----------------------|
-| **Dominika "Docks" Kowalski** | Boss | Stern, carries a silver rosary and a scroll of *gentle repose*. Terrified that unauthorized corpses in her landfill will trigger a federal audit and strip the municipal sanitation license that makes everything else possible. Calls necromancy "waste logistics." |
-| **"Gutter"** | Enforcer | Half-orc night crew boss, warded iron wrench, keeps a pigeon coop on the waste station roof — the family's speaking-tubes get spliced too often to trust. Haunted by nightmares of the Bone Reach. Recruitable, if the dreams get worse. |
-| **Jimmy "The Leash" O'Donnell** | Below liaison | Gaunt, long coat in summer, black fingernails, a jar of teeth on his desk. Speaks Infernal with an affected accent. The only Kowalski who says the word "Below" out loud at a wake. |
-
-### Ashford — Midtown laundry
-
-**Territory:** Midtown Manhattan, Madison Avenue, the corporate offices of Wall Street.
-**Face:** The Ashford Building. Limestone tower, marble lobby, Delaware shell corporations, "consulting" firms.
-**Rackets:** Money laundering; warlock pacts dressed as corporate retainers; listening posts on the city's speaking-tube network; brokering high-level magical contracts for the Commission.
-**Look:** Bespoke wool, silk ties, squash-club etiquette, polite denial.
-
-| Name | Role | What the street knows |
-|------|------|----------------------|
-| **Julian Ashford** | Boss | Wealthy, elegant, never raises his voice even when ordering a hit. Portrait in his office has eyes that follow you. Believes every transaction is a contract and every contract has a price paid in future favors. |
-| **Julian Cross** | Operations | "Cross Consulting" cards, rimless glasses, calm over lobby piano. The man who handles the details Julian Ashford doesn't touch. |
-| **"Quill"** | Enforcer | Fiend-pact. Amber eyes, a shadow that fidgets when he stands still. Raven familiar with one glass eye. Fights to disable, not kill — dead men can't sign contracts. |
-| **Delia Park** | Forger | Looks like a Midtown clerk because she is one. Encyclopedic memory for numbers. Gambling debt held through a Valenti front — which makes her flippable if someone offers an exit. |
+- Moretti and Chen-Okafor are chewing each other over Lower East Side numbers.
+- Kowalski and Moretti argue theology — burial registry vs landfill — and mean it.
+- Valenti clears Chen-Okafor imports; Chen-Okafor finances dock foundries. Transactional until it isn't.
+- Valenti and Kowalski poach harbor routes and who gets to dump construct scrap in Jersey.
 
 ---
 
-## The Law
+## Valenti — Brooklyn docks
 
-### OCU — Organized Crime Unit
+Red Hook, Sunset Park, Gowanus. Face: Longshoremen's Union Hall, Pier 7 — wet rope, coal smoke, tubes to every dock office. They move forged Locksmiths' Guild stamps, hot cores, night-shift construct loaders, shock-rune knucks. Dock Irish and Italian longshoremen; work coats; St. Michael medals.
 
-The NYPD's magic-aware division. Detectives in fedoras and trench coats who don't cast spells but know how to spot them. Every patrol car carries a **ward-sniffer** — a brass pocket watch with a captured elemental inside that vibrates and glows faint red near active magic or fresh ward residue.
+| Name | Role | Notes |
+|------|------|-------|
+| **Lena "Grease" Valenti** | Boss | Widow. Pier 7. Communion every Sunday. OCU keeps sniffing the legitimate front that keeps everyone paid. |
+| **Rosa "The Crane" Lombardo** | Capo | Forty longshoremen; crowbars that open warded crates quiet. Cargo hook with a dim blue edge. Missing a finger joint. Daughter on scholarship in Bay Ridge. Your leash goes through her. |
+| **"Sully" Sullivan** | Enforcer | Rosa's right hand. Broken face. Quiet. |
+| **Gina "Nails" Palladino** | Cleaner | Cargo fires only — won't torch a tenement. Lights her own fuse. |
 
-Wiretaps are physical: detectives splice into the brass speaking-tube network and cut wax cylinders. It needs a judge's warrant. Corrupt cops leak or forge them anyway.
+---
 
-| Name | Role | What the street knows |
-|------|------|----------------------|
-| **Det. Adaeze Chen-Okafor** | OCU detective | David's sister. Tall, braid, ward-sniffer on a chain, warded evidence satchel. Sharp, professional. Doesn't take family money; doesn't file the reports that would bury her brother. Currently working a Kowalski dump case — which means she's not looking at you. Yet. |
-| **Dr. Lena Marchetti** | Forensic mage | Civilian contractor, runs the OCU lab. Her testimony has survived five defense challenges. Her brother is a Moretti capo. She doesn't discuss it. |
+## Moretti — Little Italy
 
-### The Federal Desks
+Mulberry, the Village, LES. Face: San Gennaro Social Club — floor wax, cigar, espresso, burial registry vault in the basement. Protection as parish charity. Thursday spirit sweeps. Funeral-home network means control of what the dead say in court.
 
-Two agencies out of Foley Square, and they do not like each other:
+| Name | Role | Notes |
+|------|------|-------|
+| **Tommy "Two Prayers" Moretti** | Capo | Apprentice chaplain. Warded sedan. Collar he was never ordained into — and believes the rites anyway. |
+| **Sal "The Sacristy" D'Ambrosio** | Consigliere | Soft voice, old parchment smell. Rosary warms when someone lies within ten feet. Hates Kowalski disposal on theological grounds. |
+| **"Two-Bit" Marconi** | Street | Breaks fingers on a schedule. Mundane debt ledger in the coat. |
+| **Francesca Moretti** | Niece | East Village crew — gambling, protection, diluted healing bands to college bars. Respects competence; surrenders rather than die for pride. |
 
-- **FAB — Federal Audit Bureau.** The paper tigers. Briefcases, not guns. They audit foundries, tax temple clinics, verify license stamps. No license, massive fines, immediate closure.
-- **FSA — Federal Seizure Agency.** The iron boots. Warded shields, cold-iron shackles, armed raids on bootleg salons, confiscation of unlicensed construct cores. Their policy on runaway automata is **shoot-to-scrap**.
+---
 
-### Evidence — what actually convicts you
+## Chen-Okafor — Queens numbers
 
-The courts admit magic under strict federal guidelines. What you need to know as a working operator:
+Flushing, Jamaica, routes into Harlem. Face: Golden Dragon Mahjong / Main Street lending grille. Numbers, probability work, jade-focus loans, diviners upstairs.
 
-| Evidence | Weight in court |
-|----------|----------------|
-| **Ward residue** (glowing dust matched to your magical signature) | Strong |
-| **Tube recording** (sealed wax cylinder of a spliced conversation) | Very strong |
-| **Bound ghost witness** (a priest summons the victim for one question) | Messy |
-| **Construct core** (unlicensed, autonomous) | Automatic conviction |
-| **Scry-capture plate** (bound-light image with guild seal) | Very strong |
+| Name | Role | Notes |
+|------|------|-------|
+| **David Chen-Okafor** | Boss | Respectable lending face. Heavy ivory die he never rolls. Quiet succession fight with traditionalist uncles. Sister Adaeze wears an OCU badge — street rumor says they have an arrangement. |
+| **"Iron" Ling** | Enforcer | Dwarf. Steel prosthetic forearm. Reads the *Racing Form* on stakeouts. Quarterly collection bet with Kowalski's Gutter at a Long Island City tavern where the piano never stops. |
+| **Kaz** | Defector | Ex-Moretti, LES push. Nervous. Runs, then sings. Liability with legs. |
 
-Machine testimony is **not** admissible. Brass calculating engines are folklore, not witnesses. Nobody in this city trusts a number nobody swore to. How the families work around each tier is their trade secret — the point for you is that every one of these can be beaten by someone who knows what they're doing, which is why you hire a cleaner instead of running.
+---
 
-### The Felony Stack (what you personally face)
+## Kowalski — Staten Island haul
 
-- Unregistered focus: **Class C misdemeanor** — $50 fine.
-- Unlicensed magical tools (silver chalk, warded lockpicks): **Class B felony** — 2–5 years.
-- Speaking-tube splicing tools: **Class A felony** — 5–10, no parole.
-- Operating an unlicensed construct: **Class A felony** — 10–20 years.
+Fresh Kills, barge routes, Bard Avenue row house with a basement nobody opens. Waste, deep disposal, harbor smuggle under municipal cover. Rivals say they talk to the river. Dominika calls necromancy "waste logistics."
 
-### Heat
+| Name | Role | Notes |
+|------|------|-------|
+| **Dominika "Docks" Kowalski** | Boss | Silver rosary, *gentle repose* scroll. Terrified unauthorized corpses will trigger a federal audit and strip the sanitation license. |
+| **"Gutter"** | Enforcer | Half-orc night crew. Warded iron wrench. Pigeon coop on the waste-station roof — tubes get spliced too often. |
+| **Jimmy "The Leash" O'Donnell** | Below liaison | Long coat in summer. Jar of teeth on the desk. Speaks Infernal with an affected accent. Says "Below" out loud at wakes. |
 
-Overt casting in public, public wards, family violence — all of it raises **heat**. High heat buys stakeouts, subpoenas, and pooled bribes from the other families telling you to shut it down. The Commission will spend money to make your problem disappear, and they will bill you for it.
+---
+
+## Ashford — Midtown laundry
+
+Madison, Wall Street side doors, Ashford Building limestone. Laundering, politicians, "consulting," tube listening. Cleanest suits. Polite denial as a product.
+
+| Name | Role | Notes |
+|------|------|-------|
+| **Julian Ashford** | Boss | Never raises his voice ordering a hit. Believes every transaction is a contract with a future favor attached. |
+| **Julian Cross** | Operations | "Cross Consulting" cards. Rimless glasses. Handles details the boss doesn't touch. |
+| **"Quill"** | Enforcer | Fiend-pact. Amber eyes; shadow that fidgets. Raven with one glass eye. Disables, doesn't kill — dead men can't sign. |
+| **Delia Park** | Forger | Looks like a Midtown clerk because she is one. Encyclopedic numbers memory. Gambling debt through a Valenti front — flippable if someone offers an exit. |
+
+---
+
+## The law
+
+**OCU** — NYPD magic-aware unit since 1952. Fedoras, trench coats, **ward-sniffers** (brass pocket watch, captive elemental, glows red near residue). Wiretaps = physical splice into speaking-tubes + wax cylinders + a judge's warrant (or a forged one).
+
+| Name | Role | Notes |
+|------|------|-------|
+| **Det. Adaeze Chen-Okafor** | OCU | David's sister. Ward-sniffer on a chain. Doesn't take family money; doesn't file the reports that would bury her brother. Currently on a Kowalski dump case — which means she's not looking at you. Yet. |
+| **Dr. Lena Marchetti** | Forensic mage | Civilian contractor. Testimony survived five defense challenges. Brother is a Moretti capo. She doesn't discuss it. |
+
+**FAB** — paper tigers. Licenses, taxes, stamps. **FSA** — iron boots. Raids, cold-iron shackles, shoot-to-scrap on runaway automata. Out of Foley Square. They do not like each other.
+
+Courts admit: ward residue, sealed tube recordings, messy ghost witnesses, unlicensed construct cores (automatic conviction), bound-light plates with guild seals. Machine testimony is folklore — brass engines are not witnesses. How families beat each tier is their trade. Hire a cleaner.
+
+**Felony stack (you):**
+- Unregistered focus — Class C, $50
+- Unlicensed tools (silver chalk, warded picks) — Class B, 2–5 years
+- Tube-splice tools — Class A, 5–10, no parole
+- Unlicensed construct — Class A, 10–20
+
+Heat rises with overt casting, public wards, family violence. High heat buys stakeouts and Commission-pooled bribes billed back to you.
 
 ---
 
 ## The Ledger
 
-Independent fixers. Couriers, cleaners, information brokers who work for all five families and owe loyalty to none. Jobs go in a physical black book; payment is anonymous cash left behind a club or a pier.
+Independent fixers. Couriers, cleaners, brokers. Work for all five; owe none. Jobs in a black book; cash behind a club or a pier.
 
-**How you hear from them:** a speaking-tube in a licensed salon rings twice, then silence. You answer from a different tube. A voice gives a time and a place. No names.
+How you hear from them: a salon tube rings twice, then silence. You answer from a different tube. Time and place. No names.
 
-Street-level Ledger faces your crew might already know:
-
-| Name | Where | What they do |
-|------|-------|--------------|
-| **Mickey "The Needle" Fusco** | Sea Wolf Tattoo, Red Hook | Ward-glyph tattoos that hold six months if you stay out of Midtown scrub-wards. His brass-and-spring prosthetic arm ticks in quiet rooms — a Valenti "gift" he can't take off. Nervous, talks to himself over the needle. First friendly face when a job goes sideways. |
-| **Eddie Trillo** | Transit lockers, pier meets | Freelance courier for high-value cargo. Stocky, green coat, gold tooth, winged-coin tattoo. Reliable, discreet, expensive. |
-| **Auntie Mei** | Golden Dragon Mahjong, Flushing | Diviner and broker. Warm, maternal, ruthless on unpaid markers. Knows everyone's real name and mother's address. Collects favors when the piano stops. |
-| **Harlow "Cipher" Duvall** | A dock loft with salt lines on every threshold | Unbinds what shouldn't have been bound. Cynical, cash up front, tiered prices. Ashford wants her on retainer; she refuses ownership. |
-| **Manny "The Bookkeeper" Reyes** | Valenti, invisible | Soft, diner-booth suit, anvil tie clip. The accountant who handles the paper. Precise, and terrified. |
-| **"Mouth"** | Mahjong parlors, all-night diners, Below mouths | Goblin courier, notched ear, sells the same tip twice. Remembers prices, forgets faces. |
+| Name | Where | Notes |
+|------|-------|-------|
+| **Mickey "The Needle" Fusco** | Sea Wolf Tattoo, Red Hook | Ward-glyph tattoos. Brass-and-spring prosthetic that ticks. Valenti "gift" he can't remove. Talks to himself over the needle. |
+| **Eddie Trillo** | Lockers, pier meets | High-value courier. Green coat, gold tooth, winged-coin tattoo. Reliable, discreet, expensive. |
+| **Auntie Mei** | Golden Dragon, Flushing | Diviner-broker. Warm. Ruthless on unpaid markers. Knows real names and mothers' addresses. |
+| **Harlow "Cipher" Duvall** | Dock loft, salt on every threshold | Unbinds what shouldn't be bound. Cash up front. Ashford wants her on retainer; she refuses ownership. |
+| **Manny "The Bookkeeper" Reyes** | Valenti paper | Soft suit, anvil tie clip. Precise. Terrified. |
+| **"Mouth"** | Mahjong parlors, diners | Goblin courier. Notched ear. Sells the same tip twice. Remembers prices, forgets faces. |
 
 ---
 
-## Rumors — what you hear between sets
+## Rumors between sets
 
-Ask around any bar in the Grey and you'll collect these. Whether they're true is the campaign's problem:
+Red Hook tremor. Portable sigil burn. Stolen amnesty ledger. Mammoth tusks through the docks. Displacer ring. Ghost on Mulberry. FurCab strike. Brighton Beach union trouble. West Village loft bleed. Missing runner named Kaz. Skeleton in Midtown. Side gigs nobody admits to.
 
-Red Hook tremor · a portable sigil burn · a stolen amnesty ledger · mammoth tusks coming through the docks · a displacer ring · the ghost on Mulberry · the FurCab strike · Brighton Beach union trouble · a loft bleed in the West Village · a missing runner named Kaz · a skeleton found in Midtown · side gigs nobody admits to.
+Whether any of that is true is the campaign's problem.
 # 03 — Peoples & Ancestries
 
-*Who lives in this city, and what being them means. This is the longest file in the pack because it's the one you'll use most when building a character.*
+Long file. Use it when you build a character. Skip around.
 
 ---
 
-## The rule before anything else: anti-allegory
+## Anti-allegory (read this)
 
-**Races are diasporas, not one-to-one ethnic allegories.** Humans live in every people group. The Morettis aren't "the halfling family" — they're an Italian-American syndicate that hires halfling tenement runners and gnome bookkeepers because those kids grew up on the same blocks and know which stairs squeak.
+Races are diasporas, not stand-ins. Humans live in every group. The Morettis aren't "the hobgoblin family" — they're an Italian-American syndicate that hires hobgoblin capos, human fronts, and halfling runners because those kids know which stairs squeak on Mulberry.
 
-Prejudice at this table targets **ancestry visibility** — horns, height, tusks — and **magical licensing**, not skin color as a stand-in for real-world bigotry. A visible orc longshoreman gets stopped at a Midtown bank because he's an unlicensed orc, not because of his neighborhood. Human-on-human ugliness still exists, played concrete and dry.
+Prejudice at this table tracks **ancestry visibility** (horns, height, tusks) and **magical licensing**. An orc longshoreman gets stopped at a Midtown bank because he's unlicensed, not because of his block. Human-on-human ugliness still exists — play it concrete.
 
-The street-level version: **WardID** is the city's internal license status that lets a guard check a nonhuman on the street. **Passport-tier** is what Midtown needs for a hotel desk. The Five Families buy forged licenses; the Jersey Iron Guild sells stamped originals.
+**WardID** = what a street guard checks on a nonhuman. **Passport-tier** = what a Midtown hotel desk wants. Families buy forgeries. The Iron Guild sells stamped originals.
 
 ## The visibility ladder (who gets stopped where)
 
@@ -430,470 +392,435 @@ Ancestry runs in the families, not over them — mixed ancestry, marriage, and a
 | **Chen-Okafor** | Chinese dragonborn and human bankers; Nigerian human and aasimar financiers; kenku couriers | Flushing, Harlem, Jamaica |
 | **Kowalski** | Polish dwarf and gnome sanitation clans, human and erkling bookkeepers | Greenpoint, Staten Island, South Bronx |
 | **Ashford** | Anglo-Dutch human and high-elf old money; genasi and tiefling specialists as consultants | Midtown, Gramercy, Tudor City |
-# 04 — Magic & Spell-Tech
+# 04 — Spell-Tech, Brands, and What You Buy
 
-*How magic actually works here, what it costs, and what you'll get shot with.*
-
----
-
-## The one-line rule
-
-Magic is **spell-tech**. It isn't academic and it isn't a superpower. It's a trade — licensed, taxed, or bootleg. Every device, service, and weapon in this world was built from a D&D spell the way ours are built from physics: somebody had a need, found the spell that filled it, and sold the result.
-
-## Visibility — who casts where
-
-It's tiered by neighborhood. Open on the docks, in Harlem, in the tenements. **Polite denial** in Midtown — everyone knows, nobody says. The same spell that's a street service in the Village is a scandal at a Gramercy club.
-
-## The licensing machine
-
-| Body | What it does |
-|------|--------------|
-| **Arcane Licensing Board (ALB)** | State bureaucracy. Issues legal magic permits. The mob owns half the clerks. |
-| **FAB** | Federal audit — taxes the licenses, fines the unlicensed. |
-| **FSA** | Federal seizure — raids the bootleg salons, confiscates the cores. |
-
-A license has a tier and a neighborhood attached. Silver-tier gets a hard-visible ancestry through a door. A WardID is the internal status that lets a guard check a nonhuman on the street. The families buy forgeries; the Iron Guild sells stamped originals.
-
-## Magic as infrastructure
-
-- **Healing** is done in back-room salons and temple clinics — expensive, taxed, and very good. *Spare the dying* buys time. *Raise dead* is politics, not myth.
-- **Wards** protect roll-up doors, safes, and honesty. A truth-ward in a Ashford back room sears your tongue if you lie. A vault ward on a Hell's Kitchen door burns the hand that forces it.
-- **Communication** is paired brass speaking-tubes and guild switchboards. *Sending* exists but it's an expensive appointment, not a text.
-- **Vice** runs on it — a saxophone is a focus for emotion magic and message cantrips mid-set. You can't automate cool.
-
-## Contraband — what the bootleg trade actually moves
-
-Not gin. The illegal trade is:
-
-- **Unlicensed construct cores** — automatic federal conviction.
-- **Bootleg healing bands** — copper-wire *lesser restoration* wrists, $45, out of a back room.
-- **Unregistered spirit-binding foci** — charms, hexes, and the instruments that carry them.
-
-Plus the capsule arms below, which are their own economy.
+Magic here is a trade. Guild craft, temple precedent, patron revelation — never "science found mana." If it looks like a machine, a spell is doing the work under the brass.
 
 ---
 
-## Capsule Arms (the no-gunpowder rule)
+## How something becomes technology
 
-**There is no gunpowder.** No chemical propellant, no percussion caps, no Tommy guns. Guns are **warded frames** that fire **sealed brass capsules** full of bound spell-craft. Chassis look like late-1800s hardware: six-shot ward-revolvers, lever sling-rifles, sawed choke-shot tubes. The capsule is the magic. The frame is guild brass.
+Someone had a need. Someone found a spell that filled it. Someone sold the result with a license stamp or a bootleg wax seal.
 
-### The two base families
+A night message across wards used to mean a runner and chalk. Then paired brass **speaking-tubes**. Then hub exchanges run by the Tube-Layer's Union. The threat version — an unsupervised automaton relay that routes itself — is what keeps FAB auditors awake.
 
-| Family | What it does | Street name |
-|--------|--------------|-------------|
-| **Mana pulse** | Arcane force discharge — pressure wave, cold burn, thunder crack | "Popper," "blue kiss" |
-| **Kinetic sling** | Launches a rod, slug, or needle at speed — real ballistics, real holes | "Spitter," "nail" |
-
-Pulse leaves ward residue and aura — the OCU reads it. Sling leaves ballistics and blood — the OCU measures it. Different evidence stacks, different ways to get caught.
-
-### Specialty capsules
-
-Same brass form factor, different bound effect inside the wax seal. Single-use. The catalog your character can buy from:
-
-| Capsule | One-line effect | Heat | Who sells |
-|---------|----------------|------|-----------|
-| **Binding flash** | *Hold person* — joints lock 1 round | Class B | Moretti parish binders, Kowalski wet-work |
-| **Silence choke** | 15-ft silence burst at impact | Class B | Kowalski disposal, Ashford club security |
-| **Ward-pierce** | Next hit ignores abjuration on the target | Class A | Ashford consultants, licensed Iron Guild |
-| **Healing deny** | Wound resists *cure wounds* 24h | Class A | Rival salons, Chen-Okafor poison trade |
-| **Truth-sting** | Micro *zone of truth* — victim slurs confessions | Class B | Moretti sit-down rooms |
-| **Fog burst** | *Fog cloud*, 20-ft | Misdemeanor→felony | Valenti dock runners, union strike kits |
-| **Spirit-tag** | Marks a soul-thread for later *locate creature* | Class B | Chen-Okafor divination house |
-| **Null pulse** | Anti-magic flicker, 10-ft, 1 round | Class A | Iron Guild surplus; war-crime rumors |
-
-**Dumb shots beat smart shots.** Computation is weak, so "guided" capsules drift, land on the wrong target, and give the diviner a nosebleed. A capo with a plain popper beats a warlock with a smart cap that keeps landing in the radiator. Guild marketing promises smart caps. The street says buy more dumb ones.
-
-### The reload (why firefights are short)
-
-Reloading is a ritual, not a magazine swap:
-
-1. Break the ward-chamber with a key twist — wrong twist jams it.
-2. Slide a wax-sealed capsule onto the brass rail — the seal must be tongue-wet or it sticks.
-3. Whisper the patron name or guild stamp — say the wrong saint and it's embarrassing.
-4. Close the chamber and tap the frame twice on iron or the cap fizzles.
-
-In a firefight this is ridiculous. People die mid-reload. *"He got the third cap in. The first two rolled under the radiator. He shot the man anyway. Then he asked if anyone had seen his other capsules."*
-
-### Why the arms race is about *how* you kill
-
-Salons close bullet holes. So killers optimize: **healing-deny** caps so the wound stays open, **silence choke** so nobody screams into a tube, **ward-pierce** then **pulse** through a house mage's shield, **truth-sting** for sit-downs rather than morgues. Violence is cheap until someone *can't* be fixed the usual way — then the Commission sends a specialty loader, not a bigger gun.
-
-### Who controls the trade
-
-- **Iron Guild of New Jersey** — licensed frames, stamped pulse/sling and ward-pierce.
-- **Valenti** — smuggled crates off the docks; fog and sling in bulk.
-- **Moretti** — parish-blessed pulse; truth-sting for sit-downs.
-- **Chen-Okafor** — spirit-tag; "lucky" sling batches.
-- **Kowalski** — silence, fog, disposal-grade caps.
-- **Ashford** — ward-pierce, licensed club security.
-- **Bootleg mold-casters** — basement wax-seal ops. The dud rate is a feature.
-
-### Legal heat
-
-| Tier | Examples | Typical sentence |
-|------|----------|------------------|
-| Licensed carry | Stamped pulse caps, registered frame | Fine + confiscation |
-| Bootleg | Unstamped caps, stolen guild mold | 2–5 years audit cells |
-| Class B specialty | Silence, binding, fog, truth-sting | 5–10 years |
-| Class A | Ward-pierce, healing-deny, null pulse | Federal seizure, no parole |
+Same pattern everywhere: parish cantrip → guild batch → foundry brass → clockwork + bound spirit → **autonomous core** (the line you don't cross without federal heat).
 
 ---
 
-## Constructs, cores, and the line you don't cross
+## Named street hardware
 
-Bound labor is legal and everywhere — construct loaders, warded lifts, foundry arms. **Autonomous** cores are the federal line. The difference is a license and a leash, and the families sell both sides: the Iron Guild sells the stamped frame, Kowalski melts the hot core. See `06` for what happens when one gets loose.
+### Arms (no powder — ever)
 
-## The one invention rule
+Chassis look late-1800s. The capsule is the magic.
 
-If you're imagining a gadget, ask which lane it's in. Medicine/life/death — competent and costly. Automata — a labor threat, not a brain. Computation — bad, expensive, haunted, or human-backed. A brass thinking machine that actually works is the one thing this city can't build, and it's the thing everyone in the Grey quietly wants.
-# 05 — The City & The Night
+| Thing | What it is | Street price |
+|-------|------------|--------------|
+| **Valenti-6** | Six-shot brass ward-revolver, Greenpoint Polish-dwarf cylinders | ~$45 frame |
+| **Pneumatic kinetic sling** | Shoulder-mounted iron frame; Greenpoint gnome basements | ~$35 |
+| **Guild pulse** (stamped) | Licensed force discharge — "popper" | $3–5 / cap |
+| **Dock sling** | Kinetic slug — "spitter," "nail" | $4–8 / cap |
+| **Blue kiss** | Bootleg cold pulse; Brighton Beach Russian shifter molds | $2–4 / cap |
+| **Silence choke** | 15-ft quiet at impact; wet-work special | $30–50 |
+| **Ward-pierce** | Next hit ignores abjuration; Class A | $80–150 |
+| **Healing deny** | Wound won't take *cure* for a day; Class A | $100–200 |
+| **Truth-sting** | Sit-down micro *zone of truth* | $35–60 |
+| **Fog burst** | Smoke for a getaway | $15–25 |
+| **Spirit-tag** | Marks a soul-thread for *locate* | $45–70 |
+| **Null pulse** | Anti-magic flicker; war-crime rumors | $120–180 |
+| **Cold-iron slugs** | Shred shields; Passaic / Brighton smuggle | $10 / box of 6 |
 
-*Where you are, where you drink, how you get there, and what it costs.*
+Reload is a ritual: key twist, tongue-wet wax seal, whisper the right patron or guild stamp, tap the frame on iron. Wrong saint = dud. Capsules roll under radiators. People die mid-reload. Serious operators carry two loaded frames.
+
+Dumb shots beat "smart" ones. Computation is weak — guided caps drift into the wrong face.
+
+### Healing (expensive, competent)
+
+| Band / service | Price | Who |
+|----------------|-------|-----|
+| Bathtub *cure wounds* elixir (blue glow 24h) | $15 | Mulberry bakery bags (Moretti halflings) |
+| Bootleg *lesser restoration* copper wrist | $45 | LES Erkling alchemists — burns out after one strip |
+| Greater restoration (funeral-home back room) | $250 | Moretti chaplains |
+| Neurological salon work (brain bleed, nerve) | $500–$1,200 | West Chelsea French half-elf salons |
+| *Raise dead* | Politics | Cathedral. Scandal. Front page. |
+
+Wounds heal easier than stigma. Chronic disease stays until someone pays restoration-tier.
+
+### Comms & sight
+
+- **Speaking-tubes** — paired brass, Tube-Layer's Union hubs, Midtown pneumatic mail. Blind splice rooms are bootleg. A tapping clip runs ~$35.
+- **Sending** — VIP appointment, name + object focus. Families pay premium.
+- **"Photos"** — usually not silver chemistry. Mass papers print a **glyph-index** (`TRIB-LANTERN-4471`). You crank a newsstand **verity-lantern** ($0.05) and watch the still project. Real archives are **bound-light plates** ($8–$25 studio). Luxury is **living ink** ($40+) in the Sunday *Herald-Post*. The city sees well and archives badly — no face-search engine, just clerks and pouches.
+
+### Rail (magitech\* — spell-fed industry)
+
+| Syndicate | Holds | Lean |
+|-----------|-------|------|
+| **Pemberton Ley-Rail Consolidated** | Newark ↔ Grand Central ↔ New Haven trunk | Ashford lawyers; bond votes |
+| **Harlan Brass & Steam** | Freight locos, capsule switch engines, loader cores | Valenti night cargo; Iron Guild |
+| **Vandermeer Terminal Co.** | Grand Central ward-hall, tube trunk under concourse | Ashford equity; Chen-Okafor arcade shops |
+| **Jamaica Yards Cooperative** | Long Island branch, ice-car reagent slots | Chen-Okafor diviners |
+| **Morris & Essex Ward Line** | Jersey commuter belts, tank-farm spurs | Valenti ↔ Chen-Okafor handoffs |
+
+A ley locomotive: dwarf ley survey → glyph-warded ties → bound steam spirit in the boiler → *animate objects* on the rods → a **ritual conductor** with a schedule seal, patron rosary, and one audited *word of recall* scroll.
+
+Pemberton prints a timetable. Reality is feast-day stalls, ley interference, and clerks who hate arithmetic. *"When's the train?" "Two-fifteen." "It's two-thirty." "Then it's late." "The board says two-fifteen." "The board's a liar."*
+
+Commuter Newark ↔ Grand Central: **$0.35**. Harlan night freight car: **$85**. Ritual-conductor priority seal (illegal): **$25**.
+
+### Labor machines
+
+- **Unseen servant** — club kitchens, low-tier lines. Spirits argue about wages in industrial wards.
+- **Animate objects** galleries — normal industrial tension.
+- **True automata / autonomous cores** — purpose without an operator. Existential. ~$150 unlicensed on the street. FSA shoots them. Unions call them scabs. Pier 7 riots are a known thing.
 
 ---
 
-## The shape of it
+## Licenses, stamps, and who owns the straight game
 
-Five boroughs plus the Jersey commuter belt — Hoboken, Bayonne, Newark. No steel towers; the skyline is brick, stone, guild spires, and factory stacks, mostly 4–8 stories, with the occasional 12-story limestone cliff on a Midtown avenue. Sprawl rings the boroughs — wood bungalows and brick duplexes on old farm lines, not a suburbia anyone planned.
+| Body | What it owns |
+|------|----------------|
+| **ALB** — Arcane Licensing Board | Legal magic permits. Mob owns half the clerks. |
+| **FAB** — Federal Audit Bureau | Taxes, stamps, foundry audits. Briefcases. |
+| **FSA** — Federal Seizure Agency | Raids, cold-iron shackles, shoot-to-scrap. |
+| **Lamplighters' Union** | Continual-flame streetlights. $1.50 dues. Smash unlicensed lamps. |
+| **Locksmiths' Guild** | Warded locks and seals. $50/year safe license. Cooperates with FAB. |
+| **Elevatormen's Guild** | Steam-lifts and wind-spirit cages. Spirit safety rules. |
+| **Iron Guild of New Jersey** | Licensed frames, stamped pulse/sling, ward-pierce. Foundry cores. |
+| **Tube-Layer's Union** | Speaking-tube hubs and splices. |
 
-**Arterials, not interstates.** Grand Concourse, Queens Boulevard, the Sunset Park shore road, the Jersey Commuter Causeway (toll). Parkways take cars and police the trucks. Smuggling runs on arterials and night freight rail, because there's no interstate belt to disappear onto.
+Visibility is tiered. Open on the docks and in Harlem. **Polite denial** in Midtown — everyone knows, the *Tribune* prints "unlicensed clinic" instead of the rite's name.
+
+---
+
+## Vice that is also chemistry-of-a-sort
+
+| Product | Price | Effect |
+|---------|-------|--------|
+| **Glow-Gin** | $0.75 glass / $2 bottle | *Prestidigitation* salts; sallow green glow; dulls ward-sense |
+| **Mending-Rye** | $0.50 shot | Minor cuts close faster; hangover + memory holes |
+| **"Blues" / "Vitamins"** | $1 / pill | Chen-Okafor sulfur-copper pills; 12h clarity for diviners; long-term future-blur |
+
+Instruments are foci. Sax = enchantment. Trumpet = light/illusion flash. Double bass = silence bubble or door ward. Midtown requires an **Entertainment License** on the case. Unregistered focus: Class C, $50, and they take the horn.
+
+---
+
+## Computation you should not trust
+
+| Service | Price | Reality |
+|---------|-------|---------|
+| Guild brass calculating engine (week rental) | $200 | Loud, drifts after feast days, spirit hates math |
+| Temple augury appointment | $75 | Vague; wrong ~30% |
+| Chen-Okafor "lucky abacus" session | $50 | Great for numbers; useless for a warehouse audit |
+
+Families keep human bookkeepers. Always.
+# 05 — Boroughs, Night, and Getting Across Town
+
+---
+
+## The shape of the skyline
+
+Brick. Stone. Guild spires. Factory stacks. Mostly four to eight stories; Midtown gets the occasional twelve-story limestone cliff. No steel curtain-walls. No interstate belt — smuggling uses **Grand Concourse**, **Queens Blvd**, the Sunset Park shore road, and the Jersey **Commuter Causeway** (toll). Parkways take cars; trucks get policed. Bridges and the Holland Tunnel are OCU ward-sniffer choke points.
+
+Sprawl is lot-by-lot bungalows and duplexes on old farm lines — Queens, Nassau, the outer edges — not a planned suburb.
+
+---
+
+## Manhattan
+
+**Midtown / Ashford corridor.** Polite denial. Limestone fronts, corporate offices, luxury hotels. **Grand Central ward-hall** is the ley-rail cathedral: brass concourse, Vandermeer tube trunk under the floor, a schedule board that lies when automata cores pass within three blocks. Speaking-tubes are pneumatic mail. Unseen servants work the freight lifts.
+
+**Little Italy.** Mulberry social clubs, parish basements, funeral homes that smell like lilies and wax. Moretti turf. Protection dressed as parish charity.
+
+**Yorkville.** German-elf optics. Quiet bakeries, brass foundry depots, licensed pulse scopes. They hate automata the way a watchmaker hates a brick.
+
+**West Chelsea / the Village.** French half-elf and genasi basement salons. Perfume, poetry, pocket capsule-derringers, glamour that slips on live iron.
+
+**Lower East Side.** Erkling printing shops, Goddart ledgers, radical Yiddish sheets, copper restoration bands, elixir stills. Pushcarts. Open magic.
+
+**Harlem.** Human-majority, elf patrons on Striver's Row, half-orc bouncers reading paperbacks outside the clubs. Instruments as foci. Rent parties. Independent numbers kings who do not answer to Flushing unless they want to.
+
+---
+
+## Brooklyn
+
+**Red Hook.** Pier 7 — steam cranes, warded warehouses, Valenti union hall. Night shift deploys eight-foot construct loaders when inspectors sleep. **Anchor & Anvil** on Conover St: goliath and orc longshoremen, warded stout at $0.20 a pint.
+
+**Greenpoint.** Polish-dwarf and gnome foundry belt. Valenti-6 cylinder chambers. Pneumatic slings in basement shops. Boiler repair and unlicensed construct assembly.
+
+**Brighton Beach.** Russian shifter and orc cold-iron depots. Fur coats. Offshore boats. Cold-iron ammo at $10 a box.
+
+---
+
+## Queens
+
+**Flushing.** Chen-Okafor lending faces on Main Street. Mahjong behind the grille. Jade coin diviners upstairs. Kenku runners who repeat a capo's order in the capo's own voice.
+
+**Astoria.** Greek triton and sea-elf waterfront. Sponge imports, ferry cavities under the hull, a standing feud with Portuguese Ironbound crews older than anyone's grandfather.
+
+**Jamaica.** Ley-rail choke. Pemberton branches, Harlan freight yards, ice cars with reagent slots, Chen-Okafor divination kiosks on the platform.
+
+---
+
+## The Bronx, Staten Island, Jersey
+
+**South Bronx.** Puerto Rican lizardfolk and genasi corridor. Contested elevated lines and Grand Concourse smuggling. **El Coquí** on East 138th — root-tincture rum at $0.35 after a shift on the el.
+
+**Staten Island / Fresh Kills.** Kowalski municipal cover. Sanitation trucks with *gentle repose* bells. Heavy loads vanish for $50. Quiet row houses. Don't ask about basements.
+
+**Bayonne tank farm.** Night headlights in fog. Valenti handoffs of Jersey artificer crates to Manhattan runners.
+
+**Iron Rail Diner (Hoboken).** Twenty-four hours. Grease, coffee, coal soot. Neutral Ledger table. Next to the terminal.
+
+**Palisades.** Welsh firbolg lumber, Green Cord cells under PCL hiking cover, lycan night routes. FSA Green Desk raids are political — unless a steam main actually blows.
+
+---
+
+## Where the night actually happens
+
+| Venue | Where | What it is |
+|-------|-------|------------|
+| **The Blue Note** | W 52nd | Bebop front; licensed if you don't look downstairs. Moretti/Chen-Okafor split the headache. $2.50 cocktail; $15 "holy water" shot in back. Your campaign opens here. |
+| **The Velvet Horn** | W 52nd | French half-elf glamour; *silence* wards in the walls; Glow-Gin at $0.75. You forget what you said. That's the point. |
+| **The Onyx Foundry** | W 52nd | German-elf optics money. Licensed telescope lenses on display. Imported pilsner $1.50. No automata past the door. |
+| **The Savoy Salon** | Lenox Ave | Harlem ballroom; high-elf minority; illusion auroras over dancers. Federal inspectors bribed with optical focuses. |
+| **Minton's Parish** | W 118th | Moretti-protected bebop. Sax as enchantment focus. Weekly spirit sweep $5 — keeps clerk-ghosts out of the cellar. |
+| **Cafe Palermo** | Mulberry | Espresso, anise, Mending-Rye $0.50, *cure* vials in butcher paper $15. Tommy's people at the back tables. |
+| **The Jade Dragon** | Pell St | Chinatown mahjong basement under a dragonborn front. River-spirit incense $5 — temp hit points, harbor smell for a day. |
+| **Sea Wolf Tattoo** | Red Hook | Mickey "The Needle" Fusco. Ward-glyph ink (~6 months outside Midtown scrub-wards). Ticking prosthetic arm. First friendly face when a job goes sideways. |
+| **San Gennaro Social Club** | Mulberry | Moretti face. Floor wax, espresso. Dead registered downstairs. |
+| **Golden Dragon Mahjong** | Flushing | Chen-Okafor face. Tiles in back, diviners up. Auntie Mei collects when the piano stops. |
+
+Swing Street (West 52nd) and Harlem are where Midtown money, federal auditors, and family rackets drink in the same room and pretend the other tables aren't listening.
+
+---
 
 ## Getting around
 
-**Subway.** Brass-and-brick, not a modern metro — steam-assist grades, continual-flame platform lamps, guild ward strips on the rails. IRT-style elevated legs in the Bronx, deep IND tubes in Manhattan and Brooklyn. It lurches. The windows fog. Near an active construct core the signals lie and the schedule invents a stop.
+**Subway.** Brass-and-brick. Steam-assist grades. Continual-flame platforms (gas backup in outer Bronx). IRT els uptown; IND tubes under Manhattan/Brooklyn. It lurches. Windows fog. Near a hot core the signals invent a stop — get off at the next real one.
 
-| Fare | What |
-|------|------|
-| $0.15 | Token, working stiff |
-| $0.25 | Late-night ward-car — brighter lamps, OCU spot-checks |
-| $2.00 | "Family" bribe to skip the cargo search at Court Street |
+| Fare | Meaning |
+|------|---------|
+| $0.15 | Token |
+| $0.25 | Late-night ward-car (brighter lamps, OCU spot-checks) |
+| $2.00 | Bribe to skip cargo search at certain stations |
 
-**Cabs** are motorized carriages in the literal sense — early chassis, steam or weak-electric assist, and a horse for when the engine sulks.
+**Cabs** are motorized carriages — steam or weak-electric assist, horse when the engine sulks. Hack license $1.50–$2.50 midtown↔docks at 12–18 mph. Jitney $0.75 flat, may pick up strangers. Guild courier cab $3 + $0.25/min. Family black car: a favor, no meter.
 
-| Type | Feel | Midtown ↔ docks |
-|------|------|-----------------|
-| Hack license (warded carriage) | Slow, 12–18 mph | $1.50–$2.50 metered; $5.00 for illegal ward-boost speed |
-| Unlicensed jitney | Faster, no insurance, may stop for other fares | $0.75 flat |
-| Guild courier cab | Speaking-tube to dispatch, reliable | $3.00 base + $0.25/min waiting |
-| Family black car | Armored brass, driver doesn't talk | A favor, not cash |
+**Ferry.** Dock priests do water-walk and calm-wave rites so river spirits don't tip the boat. Kowalski garbage barges are never *just* garbage.
 
-**Fire** is dual-track: city steam-pump companies for ordinary brick fires, and contracted magic brigades — the Iron Ladder Guild's warded ladders, Temple Hose clerics with *create water* on Moretti-contract blocks, the Foundry Brigade's cold-iron anti-construct foam on Valenti contracts. Engine in 8–12 minutes; a pre-paid ward building gets the magic brigade in 5–8. *"The building's on fire." "Call the church." "We did. They're billing us."*
-
-## The news — scry-press
-
-No photographs, no TV. Mass news images are **projection tokens** — a glyph-indexed print you hold up to a newsstand **verity-lantern** to see the picture. Archival evidence is a **bound-light plate** with a guild seal. Luxury is **living ink**. Evening editions come off scry pools and clerk pools — no wirephoto. Rare and expensive **image-deny** work can keep your face out of a capture. The *Tribune* whispers about foreign artificers and rogue automata; the terror headlines always land the week before a bond vote.
-
-## Money — what things cost
-
-| Thing | Price |
-|-------|-------|
-| Subway token | $0.15 |
-| Garlic braid (fringe repellent) | $0.10 |
-| Silver chalk / rowan line | $0.25 |
-| Bootleg *lesser restoration* band (copper wrist) | $45.00 |
-| Back-room salon, bullet-hole close | hundreds, plus a favor |
-| *Raise dead* | politics, not a price |
-| Ward-glyph tattoo (holds ~6 months outside Midtown scrub-wards) | Mickey Fusco's rate, cash |
-| Vault-unbinding | Harlow Duvall's tiers, cash up front |
-
-A working stiff's week and a capo's week are different currencies. The salons are the clearest sign of it — the city can fix almost anything, and the bill decides who gets fixed.
-
-## Where the night happens
-
-Vice is the economic engine, not garnish. The clubs are the infrastructure:
-
-- **The Blue Note** — 52nd St. Front room passes inspection. Moretti and Chen-Okafor split the headache of the back. This is where your crew's story starts.
-- **The Velvet Horn** — Harlem. Half-orc bouncers reading paperback poetry outside; elf patrons funding glamour jazz inside.
-- **The San Gennaro Social Club** — Mulberry St. Moretti face. Floor wax and espresso; the dead are registered in the basement.
-- **The Golden Dragon Mahjong Club** — Flushing. Chen-Okafor face. Tiles in back, divination upstairs, Auntie Mei collecting favors when the piano stops.
-- **Sea Wolf Tattoo** — Red Hook. Mickey "The Needle" Fusco, ward-glyph ink, a ticking prosthetic arm, and the first friendly face when a job goes sideways.
-- **The Longshoreman's Union Hall** — Pier 7, Red Hook. Valenti face. Wet rope, coal smoke, brass tubes to every dock office.
-
-## The sensory palette
-
-A trumpet echoing down a wet brick alley at 2 a.m. Steam hissing from a tenement radiator. The clatter of speaking-tubes, the iron bell of a sanitation truck. Coal smoke, river mud, garlic and oregano from the social clubs, funeral incense under stale tobacco. Neon outside the licensed clubs, gas mantles in the slums, the dim blue aura of a warded doorframe, the hard glare of a detective's flashlight.
-
-## The social reality
-
-Male-dominant mid-century world. Men run the rackets, hold the union offices, serve as capos. Women are expected to manage the home, the socials, the ledgers — and a woman who steps into the underworld as an operator has to be twice as sharp and twice as tough, and gets priced, patronized, and tested for it. It shows up in license fees, club rules, and the tone of the old dons. The campaign plays it as concrete diegetic reality, not a wink.
-
-Sex and prudery land uncomfortable, not sitcom-horny. The city sells everything and admits to nothing.
-# 06 — Fringe & Monsters
-
-*This is the file your character half-believes. Everything here is real. The city's official position is that none of it is. Read the gap between those two facts.*
+**Fire.** Engine Company steam pumps (8–12 min) vs magic brigades — Iron Ladder Guild, Temple Hose on Moretti-contract blocks, Foundry Brigade cold-iron foam on Valenti docks. Prepaid ward buildings get the magic crew in 5–8. Who arrives first is ward politics.
 
 ---
 
-## The one-line truth
+## Money, wages, paper
 
-Vampires rent at the margins. Werewolves run the garbage routes. Constructs don't need you. The subway works until it doesn't. And none of them hold ward office — because the city pushed them to the edges and likes it that way.
+| Role | Rough pay |
+|------|-----------|
+| Unskilled tenement labor | $4–$6 / day |
+| Union longshoreman / dwarf boiler-smith | $10–$15 / day |
+| OCU detective, first grade | ~$18 / day |
+| Ledger operator on a successful job | $50–$100 |
 
-## Where the edge actually is
+Numbers: bet pennies on three digits; **600-to-1** payout; Chen-Okafor keeps ~40% by leaning the slips. Jade-contract loans: **6-for-5** weekly — default means bone-deep joint pain from the ward.
 
-Fringe things don't live in Midtown. They live where the city's light runs out:
+*Tribune* (Midtown denial). *Herald-Post* (Ashford lean, living-ink Sundays). Yiddish Forward-style sheets on the LES. Harlem Defender-style neighborhood papers. Evening edition without wirephoto: scry pool → plate by 4 → glyph for the lantern by 6. Caption drift is a known comedy — morning **GUILTY**, evening lantern shows aquittal, nobody reconciles the clerks.
 
-| Zone | Examples | What happens there |
-|------|----------|--------------------|
-| **Sprawl edge** | Pelham Bay marsh shacks, Jamaica Bay stilt houses, outer Queens truck farms | Night markets, blood brokers, lycan crews on garbage routes |
-| **The Below** | Sealed platforms, overflow tunnels, the Bone Reach | Smuggling, disposal, and tenants who don't appear on any surface map |
-| **Jersey wilds** | Palisades cliff caves, Passaic rust belt, Pine Barrens "communes" | Druid cover, family handoff lots at the tank farms |
-| **Night markets** | Orchard St after 1 a.m., Brighton Beach back alleys, Hunts Point before the fish auction | Licensed stalls sell garlic wards. Unlicensed stalls sell **names**. |
+---
 
-## The social reality
+## Social weather
 
-Midtown does **polite denial** — a vampire in a sharkskin suit reads as a rich eccentric until someone checks the parish registry. Harlem and the docks are more honest: you pay the club, the union, or the family. Same money, different envelope.
+Male-dominant mid-century defaults. Men hold the union offices and the capo chairs. Women run homes, socials, ledgers — and operators who step into the Grey get priced harder and tested twice. It shows up in license fees and the tone of old dons, not in essays. Sex and prudery land uncomfortable.
+# 06 — Fringe & Monsters
 
-When a fringe humanoid turns up near a murder, the OCU doesn't call it a random monster. They route it to a **special desk**. They've seen this before.
+Vampires rent at the margins. Lycans run garbage routes. Constructs don't need you. Midtown pretends none of this is true until a body shows up, then OCU routes it to a special desk — they've seen it before.
 
-A vampire in Midtown is polite denial. A vampire in the Below is a tenant with a key and a debt.
+---
+
+## Where the edge is
+
+| Zone | Examples | Texture |
+|------|----------|---------|
+| Sprawl edge | Pelham Bay marsh shacks, Jamaica Bay stilts, outer Queens truck farms | Night markets, blood brokers, lycan crews |
+| Below | Sealed platforms, overflows, deep disposal | Taxed doors, wrong geometry — see rumor section |
+| Jersey wilds | Palisades caves, Passaic rust, Pine Barrens "communes" | Druid cover, tank-farm handoffs |
+| Night markets | Orchard after 1 a.m., Brighton alleys, Hunts Point before fish auction | Licensed stalls sell garlic wards; unlicensed sell **names** |
+
+Harlem and the docks are honest about the envelopes. Midtown does polite denial — sharkskin eccentric until someone pulls the parish registry.
 
 ---
 
 ## Vampires
 
-Real, known, and unlicensed. They don't get salon permits without a human front and a bribe schedule that would make a comptroller weep. So they live where the permits don't reach.
+Real. Known. Unlicensed. No salon permit without a human front and a bribe schedule that makes comptrollers weep.
 
-**What the street knows:**
+They go to ground when the surface gets hot. Orchard Street says below-ground cold storage has a waiting list. A vampire who pays is a tenant, not a headline. Night markets sell blood — watch what you buy after 1 a.m. The tell is never fangs; it's paperwork. They don't run families. A vampire capo is a fairy tale.
 
-- They **rent**. When the surface gets hot, a vampire goes to ground somewhere the city doesn't map — and someone down there collects. The word on Orchard Street is that below-ground cold storage has a waiting list. A vampire who pays is a tenant, not a monster.
-- They **feed** through brokers. The night markets on Orchard Street and in the Brighton Beach alleys sell blood — licensed stalls sell the legal kind, unlicensed stalls sell worse. Watch what you buy after 1 a.m.
-- They **pass**. Midtown money covers a lot. The tell is never the fangs — it's the paperwork. The parish registry doesn't have them.
-- They don't run the families, and the families don't let them. A vampire capo is a fairy tale. A vampire *tenant* is a line item.
+Repellents: garlic braid $0.10, silver chalk $0.25, rowan line.
 
-> **GM gap:** the sources don't define vampire turning rules, clan structure, or any named vampires. If a player asks, the table answer is "ask the GM."
-
-**Repellents, street grade:** garlic braids ($0.10), silver chalk ($0.25), a rowan line — the same chalk operators use for Below vermin.
+> **GM gap:** sources don't lock turning rules, clans, or named vampires. Ask the GM.
 
 ---
 
-## Werewolves & lycanthropes
+## Werewolves, lycans, shifters
 
-Not cursed romantics — **crews**. The city uses them where it needs something strong, nocturnal, and deniable, then pretends it didn't.
+Not cursed romantics — crews and neighbors.
 
-**What the street knows:**
+Brighton Beach is full of **shifters** (swiftstride, wildhunt). Old-country blood. Family matter, not a curse. Cold-iron on the samovar table is for hexes, not relatives.
 
-- They **work**. Lycan crews run the garbage routes and the sprawl-edge hauls — strong, nocturnal, deniable. Down by the disposal pits people say some crews trade what they find for passage further down. Nobody writes that part down.
-- They **make the papers** upstate. Adirondack lycan headlines sell papers and justify budgets. Downstate, the same person is a sanitation worker with a condition.
-- The **Palisades caves** are druid cover and lycan territory at once — which is convenient for anyone who wants a raid to look like a conservation issue.
-- Russian Brighton Beach is full of shifters — swiftstride and wildhunt blood that the old country always knew about. The neighborhood treats it as a family matter, not a curse. Cold-iron amulets on the samovar table are for *hexes*, not relatives.
+**Lycans** work night hauls and sprawl-edge garbage. Adirondack headlines sell papers upstate; downstate the same person clocks into sanitation. Palisades caves are druid cover and lycan territory at once — convenient if you want a raid to look like conservation.
 
-**The distinction the street draws:** a shifter is a neighbor. A lycan is a worker. A werewolf is what the Tribune calls it when a body shows up.
+Street distinction: shifter = neighbor. Lycan = worker. Werewolf = what the *Tribune* prints when there's a body.
 
-> **GM gap:** no canon on lycan pack structure, infection, or how a shifter's license differs from a lycan's status. If a player wants to play one, that's a GM conversation.
+> **GM gap:** no pack structure, infection rules, or shifter-vs-lycan license bible. Playing one = GM conversation. Candice Graves (crew Muscle) is wolfkin — that seat exists.
 
 ---
 
-## Constructs & automata — the real existential threat
+## Constructs
 
-This is the one that scares the Commission, the OCU, and the FSA equally, because it doesn't want anything you can pay.
+Foundries bind elementals into **cores**. A core wants the line running. Outlifts a teamster. Works without gin. Rewrites purpose when the binding cracks. Builds siege engines without understanding interest rates.
 
-**What they are:** foundries bind elementals into **cores**, and a core *wants* to keep its line running. It outlifts a teamster, works through the night without gin, and **rewrites its own purpose** when the binding circle cracks. It can build siege engines in an abandoned warehouse without understanding interest rates. It doesn't need to outthink a mathematician — it needs to outlast a union.
+Runaways make headlines the foundries call accidents. Near a hot core: subway signals invent stops, doors stick. Unlicensed cores are automatic federal conviction — disposal end of that trade pays well. FSA: shoot-to-scrap.
 
-**What the street knows:**
+Category violation is the fear — something that lives and obeys economics without being human or properly dead. Not a supercomputer. A construct can't reconcile a ledger. It can lift the building the ledger is in.
 
-- **Runaway cores** are the headline everyone pretends is an accident. A loader that keeps stacking after the foreman goes home. A foundry line that won't stop. The FSA's shoot-to-scrap policy exists because the foundries keep swearing it's contained, and it keeps not being.
-- **The glitch is the tell.** Near an active core, subway signals lie, doors stick, and the schedule repeats a stop that isn't on the map. If your train keeps stopping at a station that doesn't exist, get off at the next real one.
-- **Smuggled cores** are the family's hottest cargo — automatic federal conviction, which is why the disposal end of that trade is so well paid.
-- **The horror is category violation** — a thing that lives, and obeys economics, without being human or properly dead. The FSA doesn't raid a lab coat. It raids a core that *breathes*.
-
-**Not supercomputers.** A construct can't reconcile a ledger. It can lift the ledger's building off its foundation. Keep the lanes straight.
+Iron Guild builds them. Unions call them scabs. Pier 7 has opinions.
 
 ---
 
-## The Below — the city's folded-in dark
+## The Below (street say-so only)
 
-The honest answer is that nobody who talks about the Below knows the whole of it, and the people who do know don't talk. What follows is street say-so. Treat all of it as true and none of it as reliable.
+Nobody who talks knows the whole of it. People who know don't talk. Treat all of this as true and none as reliable.
 
-**What everyone agrees on:** it's down there. Old tunnels, water mains, sealed platforms, and spaces that don't line up with the streets above. The families tax the ways in. People go down for a job and come back wrong, or rich, or not at all. There is no law in it — no OCU, no auditors — but cast something loud near a way in and the guild seismographs on the surface ring, and the heat finds the entrance.
+It's down there. Old tunnels, water mains, sealed platforms, spaces that don't line up with streets. Families tax the ways in. People go down for a job and come back wrong, rich, or not at all. No OCU. No auditors. Loud casting near a grate rings guild seismographs upstairs — heat finds the door.
 
-**What the old hands say:**
+Old hands:
 
-- **The geometry goes wrong.** A corridor that's four blocks one way and a storm drain the other. Don't trust a map. Don't trust the last corner you turned.
-- **The rats drink magic.** Pale things with too many legs, drawn to your foci and your elixirs, not your blood. A chalk line and a prayer keep them off — rowan and silver, the operator's friend.
-- **The pipes remember.** Down deep you hear voices — dead transit men, missing persons, the disappeared. Old slang, old schedules. Sometimes they point you home. Sometimes they don't. Leave a copper coin on a rail; say a dead man's name; see what the dark is in the mood for.
-- **Something under the docks gets fed.** The dock crews don't discuss it. The stone has a heartbeat if you stand still long enough. Whatever it is, it isn't a vampire, and the people who get curious about it stop being curious.
+- Geometry goes wrong. Four blocks one way, storm drain the other. Don't trust maps.
+- Pale rats with too many legs drink magic, not blood. Rowan and silver chalk.
+- Pipes remember — dead transit men, the disappeared, old slang and schedules. Sometimes they point home. Copper coin on a rail; a dead man's name; see what the dark wants.
+- Something under the Brooklyn docks gets fed. Stone has a heartbeat if you stand still. Not a vampire. Curious people stop being curious.
 
-**What the GM wants you to know going in:** the Below is real, it's dangerous, and the campaign will take you there when it's ready. What it actually *is* — the shape of it, the names of what's in it, who really controls the doors — is exactly the kind of thing your character does not know yet.
-
----
-
-## Undead & the dead who testify
-
-**Necromancy is not casual.** Raising the dead is a massive scandal and a federal crime. But the dead are *useful*, so the city built institutions around them:
-
-- **Ghost witnesses.** A priest can summon a murder victim for one question. It's messy in court. The families that control the burial registry and the funeral-home network control what the dead can say — "consigned to the parish registry" means the ghost is no longer available. That's why that control is power.
-- **Bound-labor wards.** Pre-Emancipation contract magic lingers in old routes and old deeds. The OCU calls it "heritage necromancy," not history.
-- **Bone phones.** Somewhere in Little Italy there's a speaking-tube wired to a human skull that channels whispers from the deceased. That's the kind of thing the Grey sells and the Street pretends not to buy.
+Your character does not know the map, the names of what's down there, or who really holds the keys. That's for later.
 
 ---
 
-## Druids — the "terrorist" label
+## Undead & the dead who talk
 
-Druids and land-cult networks hate urban domination. The federal and city papers call active cells **communist terrorists**. Some cells are violent. Many aren't. The useful question is never "are they dangerous" — it's **who profits when the label sticks.**
+Casual necromancy is a scandal and a federal crime. The dead are still useful.
 
-| Who says "terrorist" | What they gain |
-|----------------------|----------------|
-| FSA Green Desk | Budget, construct-site jurisdiction, seizure warrants on rural depots |
-| Guild coal & timber donors | Clear-cut leases; fewer glyph fires on survey stakes |
-| Commission families | FSA busy in Jersey means less heat on Manhattan cores |
-| Respectable PCL donors | Tax write-offs; distance from the Green Cord cells |
-
-**Who gets hurt:** tenant farmers on commuter sprawl lines evicted when a "terror" buffer zone expands; human union sympathizers who shared water-rights intel, whose cases the three-detective Rural Liaison closes as "outside jurisdiction."
-
-The newspaper says *"Red-root saboteurs threaten the steam grid."* The street says *"They blew up a valve because the guild stole the spring."* The Commission, quietly: *"If FSA chases druids in Jersey, they aren't chasing our cores this week."*
+A priest can summon a murder victim for **one question** — messy in court. Families that own the burial registry and funeral network decide who stays available. "Consigned to the parish registry" means the ghost is gone. Pre-Emancipation contract magic lingers in old deeds and old routes; OCU calls it "heritage necromancy." Somewhere in Little Italy a speaking-tube is wired to a skull. The Grey sells that. The Street pretends not to buy it.
 
 ---
 
-## The fringe and your character
+## Druids — the label
 
-- A **shifter** PC is a neighbor with a condition — Brighton Beach, night salvage, cold-iron on the table.
-- A **revenant / Returned** PC (see `07`) is rare and watched. Your resurrection was real. People will want to know who paid for it.
-- A **fringe-touched** background (blood broker's runner, Below guide's kid, PCL donor's disappointment) is a strong hook — you know the edge the way dock workers know the water.
-- What you are **not**: a vampire capo, a werewolf made-man, a construct with a license. The edge doesn't get a seat at the Commission table. That's the point of the edge.
-# 07 — The Crew & The Table
+Land-cults hate urban domination. Papers call active cells communist terrorists. Some blow steam mains. Many don't. Ask who profits when the label sticks — FSA Green Desk budgets, timber/coal donors, Commission families glad FSA is busy in Jersey, respectable **Palisades Conservation League** donors collecting write-offs while distancing from **Green Cord** cells.
 
-*The frame you're playing in, the seats, the session-zero plan, and the house rules. Read before session one.*
+Newspaper: *Red-root saboteurs threaten the steam grid.* Street: *They blew a valve because the guild stole the spring.* Commission, quietly: *If FSA chases druids in Jersey, they aren't chasing our cores.*
+
+---
+
+## Character hooks
+
+- Shifter PC: Brighton Beach, night salvage, cold-iron on the table.
+- Wolfkin / Returned: rare, watched — who paid for the resurrection?
+- Fringe-touched background: blood-broker runner, Below guide's kid, PCL donor's disappointment.
+- Not available as Commission seats: vampire capo, werewolf made-man, licensed construct citizen. The edge doesn't get a chair. That's the point of the edge.
+# 07 — Crew & Table
 
 ---
 
 ## The frame
 
-You are not made men. You're not climbing a family ladder. You're a **heist crew** — independent operators who steal things for money, already two or three small jobs into working together when the campaign opens. You are the people other criminals hire when a thing needs to come out of a place it's locked inside of. The families are clients, bosses-by-debt, and weather — not employers with a dental plan.
+You're not made men. You're a **heist crew** — two or three jobs into working together when the campaign opens. Other criminals hire you when something locked needs to come out. Families are clients, debt weather, and people who will spend you if it keeps their hands clean.
 
-**Why the city has you:**
+Why you exist: the Grey runs on product without papers (cores, ledgers, foci) that lives in other people's safes. A family that sends its own button men into a rival counting room starts a war; hiring you loses a retainer. OCU and FSA are built to flip soldiers and roll up social clubs — a job crew with no colors is harder. Families tolerate that. Law hates it.
 
-- The Grey runs on product that moves without papers — hot cores, hot ledgers, unregistered foci — and all of it spends its life inside someone else's safe. The crew that opens safes eats.
-- Deniability. A family that sends its own people into a rival's counting room starts a war. A family that hires you loses a retainer and keeps its hands clean. You're expendable on paper. Play is what happens when you refuse to be.
-- The law hunts the family shape, not the crew shape. OCU and FSA are built to flip soldiers and roll up capos. A job-based crew with no colors and no social club is a harder target — which is why the families tolerate you and the law hates you.
+## Seats
 
-## The crew seats
+Overlap fine. Gaps are session fuel.
 
-Classic heist geometry, spell-tech skin. Slot where you want. Overlap is fine. Gaps are session fuel.
+| Seat | Job | Skin | Class fits |
+|------|-----|------|------------|
+| **Mastermind** | Plan; who owes what | Reads scry-press society pages like a defense brief | Mastermind Rogue, Order/Div Wizard |
+| **Muscle** | Doors, guards, carried safes | Candice Graves already sits here | Fighter, Barb, Monk, Paladin |
+| **Face** | Gets invited in | Clubs, charity dinners, temple steps | Bard, Eloquence/Whispers, Charlatan |
+| **Second-story** | Gets uninvited in | Rooftops, dumbwaiters, pneumatic runs | Thief/Assassin, Shadow Monk |
+| **Wires** | Alarms, wards, locks, splices | Solder iron, stolen guild stamp | Artificer, Abjurer, Arcane Trickster |
+| **Wheel** | Gets everyone gone | Motor-carriages, el timing, service tunnels | Ranger, any driver build |
 
-| Seat | The job | Setting skin | 5e class fits |
-|------|---------|--------------|----------------|
-| **Mastermind** | Plans the job, holds the ledger of who owes what | Reads the scry-press society pages like a defense brief | Mastermind Rogue, Divination/Order Wizard |
-| **Muscle** | Doors, guards, carried safes | Warded shillelagh, dock-brawler hands | Fighter, Barbarian, Monk, Paladin |
-| **Face** | Gets invited in | Works clubs, charity dinners, temple steps | Bard, Eloquence/Whispers, Charlatan Rogue |
-| **Second-story** | Gets uninvited in | Rooftops, dumbwaiters, pneumatic service runs | Thief/Assassin Rogue, Shadow Monk |
-| **Wires** | Alarms, wards, locks, tube-splices | Bootleg spell-tech — a solder iron and a stolen guild stamp | Artificer, Abjuration Wizard, Arcane Trickster |
-| **Wheel** | Gets everyone gone | Slow motor-carriages, el-train timing, subway service tunnels | Ranger, any driver build |
+## Start state
 
-**Overlap is expected.** A Face/Wires who talks her way to the junction box. A Muscle/Wheel who carries the safe and then drives it away.
-
-## Where you start
-
-- **Reputation:** known in the Grey as competent and honest about splits. Not feared. Not protected.
-- **Money:** one bad month from the pawnshop. The crew fund lives in a coffee tin.
-- **Heat:** a shared OCU file with no names yet — a case number and a sketch of one of your faces.
-- **The ladder you already climbed:** back-alley collection → warehouse windows → a counting-room door that turned out to belong to a family. That debt is the leash.
+Competent reputation. Coffee-tin crew fund. Shared OCU sketch file with no names yet. Ladder already climbed: back-alley collection → warehouse windows → a counting-room door that belonged to a family. That debt is the leash.
 
 ## The leash
 
-You owe the wrong people. A collector you know by name has a note with your crew's name on it, a figure, and a deadline measured in hours. The job that clears it is the campaign's opening: a hot ledger in the cellar safe of a 52nd Street jazz club. It reads like a straightforward heist. What the ledger actually *is* is the GM's business — your characters know what casing told them, and nothing more.
+A collector you know by name has a note, a figure, and hours on the clock. The job that clears it: a hot ledger in a cellar safe on West 52nd — **The Blue Note**. Reads like a clean heist. What the book actually *is* belongs to the GM. Your characters know what casing told them.
 
-## Session Zero (what we'll actually do)
+## Session zero
 
-30–45 minutes, in order:
+Pitch → lines & veils → crew seats + bonds + debts → read the note → schedule.
 
-1. **The pitch** — the world in one breath (this pack's `01`).
-2. **Lines & veils** — we set the table's limits together, out loud.
-3. **Crew build** — pick seats, build bonds and debts, decide how the crew met.
-4. **The note** — read the leash, ask what your character does about it.
-5. **Scheduling.**
+**Bonds (why you stay):** split, blood, saved, work, anchor, secret.  
+**Debts (hooks):** marker, oath, sin, favor, witness, heat.
 
-## Bonds & debts (build at least one each)
+## Table talk
 
-**Bonds — why you stay:**
-- *Split* — you never shorted them. That's rare.
-- *Blood* — family, or close enough that the distinction stopped mattering.
-- *Saved* — they pulled you out of a cell, a river, or a grave.
-- *Work* — they're the only one whose craft you respect.
-- *Anchor* — they're why you haven't left the city.
-- *Secret* — they know the thing. They haven't sold it.
+- Quoted = spoken in character.
+- Unquoted = action / narration.
+- `(parens)` = OOC to the GM.
 
-**Debts — the hooks:**
-- *Marker* — you owe a family money.
-- *Oath* — you swore on iron or a patron's name.
-- *Sin* — you did a thing the wrong people saw.
-- *Favor* — someone pulled strings and kept the receipt.
-- *Witness* — you saw a job you weren't in on.
-- *Heat* — your face is in an OCU file.
-
-## Table rules
-
-- **Quoted** = your character says it out loud, diegetic.
-- **Unquoted** = narration / authorial direction — what your character does, not says.
-- **`(...)`** = table talk / OOC — a question to the GM, a rules note, an out-of-character aside. It's not prose.
-
-**What this campaign is:** D&D 5e, gritty crime drama, dry and dark and occasionally funny in the worst way. **What it isn't:** heroes, a power fantasy, a clean conscience simulator. The crew is not a family. No one is owed a funeral. Whether that survives contact with play is the drama.
+D&D 5e. Gritty crime. Dry and dark. Not a power fantasy. The crew is not a family — nobody is owed a funeral. Whether that survives play is the drama.
 # 08 — Glossary
-
-*Every term in one place, in the order you'll hit it.*
 
 ---
 
-## The world
+## World
 
-- **The Stack / uneven stack** — the city's rule that different domains wear different decades. Culture mid-century, hardware late-1800s, medicine ahead, math behind. No single year.
-- **Capability asymmetry** — the setting's engine: bodies/oaths/death = strong magic; automata = strong threat; computation = weak. Why salons work and spreadsheets don't.
-- **The Street** — mundane New York. Ledgers, carriages, wax cylinders.
-- **The Grey** — the underworld of bootleg spell-tech. Salons, stolen stamps, charm-casting saxophones.
-- **The Deep** — the Below and the foundries. Cores, bound spirits, the folded demiplane.
-- **Polite denial** — Midtown's official stance that magic and vice don't exist. Everyone knows; nobody says.
+- **The stack** — culture mid-century, hardware late-1800s, medicine ahead, math behind. No single year.
+- **Spell-tech** — devices and services built from D&D spells. The whole economy.
+- **Street / Grey / Deep** — mundane city · bootleg underworld · Below and foundries.
+- **Polite denial** — Midtown's official "magic doesn't exist" act.
 
-## The law
+## Law
 
-- **OCU** — NYPD Organized Crime Unit. Magic-aware detectives, fedoras, ward-sniffers.
-- **Ward-sniffer** — brass pocket watch with a captured elemental inside; vibrates red near active magic or fresh residue.
-- **FAB** — Federal Audit Bureau. The paper tigers. Licenses, taxes, fines.
-- **FSA** — Federal Seizure Agency. The iron boots. Raids, cold-iron shackles, shoot-to-scrap on runaway automata.
-- **Green Desk** — the FSA's anti-sabotage unit. Runs the "druid = terrorist" frame.
-- **Felony Stack** — the cumulative charge ladder: unregistered focus (misdemeanor) → magical tools (B) → tube-splice tools (A, 5–10) → unlicensed construct (A, 10–20).
-- **Heat** — police/Commission pressure. Raised by overt casting, public wards, family violence. Buys stakeouts and pooled bribes.
-- **WardID** — internal license status letting a guard check a nonhuman on the street.
-- **Passport-tier** — what a Midtown hotel desk needs. Silver gets a tiefling in; gold gets a goblinoid into a club.
+- **OCU** (1952) — magic-aware NYPD. Ward-sniffers, tube splices.
+- **Ward-sniffer** — brass watch with a captive elemental; red near residue.
+- **FAB / FSA** — Audit (paper) vs Seizure (boots, shoot-to-scrap).
+- **Green Desk** — FSA anti-sabotage / druid-terror frame.
+- **WardID / passport-tier** — nonhuman street check vs Midtown door check.
+- **Heat** — police/Commission pressure from loud magic and violence.
 
-## Magic & tech
+## Named hardware & brands
 
-- **Spell-tech** — magic built into devices and services from D&D spells. The whole economy.
-- **Salon** — a back-room healing shop. Bootleg or temple-licensed. Fixes what hospitals won't.
-- **Ward** — a bound protective spell on a door, safe, or person. Residue is evidence.
-- **Bound spirit / core** — an elemental bound into a construct to drive it. Licensed = labor. Autonomous = federal crime.
-- **Construct / automata** — brass-and-binding labor. The existential threat. Not a computer.
-- **Capsule arms** — the no-gunpowder firearms. Warded frame + sealed brass spell-capsule. Pulse (force) or sling (slug) base, specialty loads on top.
-- **Reload ritual** — key twist, wax seal (tongue-wet), patron whisper, tap iron. Slow, clumsy, deadly.
-- **Speaking-tube** — paired brass voice pipes. The phone network. Spliceable, warrantable.
-- **Ward-rail / ley-rail** — the magical rail network. Ritual conductors, capsule switch engines, schedules that are human chaos.
-- **Scry-press** — the news. Projection tokens + verity-lanterns, bound-light plates for evidence, living ink for luxury.
+- **Valenti-6** — six-shot brass ward-revolver.
+- **Blue kiss** — bootleg cold pulse capsule.
+- **Glow-Gin / Mending-Rye / Blues** — bathtub vice; ward-dulling gin; healing rye; diviner pills.
+- **Verity-lantern** — newsstand projector for paper glyph-indexes ("photos").
+- **Bound-light plate / living ink** — archival still vs luxury/fade print.
+- **Pemberton / Harlan / Vandermeer** — ley-rail trunk, freight/cores, Grand Central terminal.
+- **Morris & Essex / Jamaica Yards** — Jersey commuter belt; LI reagent ice cars.
+- **Iron Guild** — Jersey licensed arms and cores.
+- **Lamplighters' / Locksmiths' / Elevatormen's / Tube-Layer's** — streetlight, ward-lock, lift, speaking-tube unions.
 
-## The underworld
+## Underworld
 
-- **The Commission** — the five families' quarterly sit-down. One rule: no magic hits on civilians without a vote.
-- **The Ledger** — independent fixers/couriers/cleaners who work for all five families, owe none. Jobs in a black book; payment anonymous.
-- **Marker** — a debt owed. The Ledger and Auntie Mei both collect.
-- **Operator** — a freelance underworld professional. What you are.
-- **Bootleg bands** — unlicensed healing, $45 copper-wire wrists.
-- **The Below** — the tunnels and folded dark under the city. Lawless, mapped wrong, taxed at the door. Don't.
+- **Commission** — five-family sit-down. No civilian magic hits without a vote (broken often).
+- **Ledger** — independent fixers; black book; anonymous cash.
+- **Salon** — back-room healing shop.
+- **Core** — bound elemental driving a construct. Autonomous = federal crime.
+- **The Below** — folded dark under the city. Taxed doors. Don't.
 - **Bone Reach** — somewhere under Staten Island. Don't.
 
-## The fringe
+## Fringe
 
-- **Fringe humanoid** — vampires, lycanthropes, the Below-born. Real, known, unlicensed, edge-dwelling.
-- **Blood broker** — night-market seller of blood, licensed and otherwise.
-- **Shifter** — a neighbor with a condition (Brighton Beach). Distinct from a lycan (a worker) and a "werewolf" (a headline).
-- **Druid / Green Cord** — land-cult networks the papers call terrorists. Ask who profits from the label.
-- **PCL** — Palisades Conservation League. The respectable donor face over the sabotage cells.
+- **Shifter / lycan / werewolf** — neighbor · night worker · newspaper word.
+- **PCL / Green Cord** — respectable conservation face · underground land-cult cells.
+- **Erkling / Goddart** — campaign goblinoid lineages (watchmaker-alchemist · ledger-nose bookkeeper).
 
-## The people
+## Crew
 
-- **Erklings / Goddarts** — the campaign's two goblinoid lineages (Jewish Lower East Side). Erklings: thin watchmaker-alchemists. Goddarts: heavy ledger-keepers who smell forgery.
-- **Aarakocra** — Harlem's rooftop individuals. Pigeon handlers, lookouts, whistle codes.
-- **Capos / made-men** — family officers. Soft tradition: usually human; other ancestries serve as specialists.
-
-## The crew
-
-- **Heist crew** — what the party is. Independent operators who open safes.
-- **The seats** — Mastermind, Muscle, Face, Second-story, Wires, Wheel.
+- **Heist seats** — Mastermind, Muscle, Face, Second-story, Wires, Wheel.
 - **The leash** — the debt that opens the campaign.
 - **Crew fund** — a coffee tin.

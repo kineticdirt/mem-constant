@@ -7,11 +7,11 @@ Player-facing lore pack for NYC Mafia × D&D. Drop the numbered files on the tab
 | File | Covers | Primary sources |
 |------|--------|-----------------|
 | `00-START-HERE.md` | Orientation + reading order | — |
-| `01-world.md` | Era stack, capability asymmetry, tone | `SETTING-CAPABILITY-ASYMMETRY.md`, `reports/2026-08-01-era-and-tone.md`, `story/premise.md` |
+| `01-world.md` | Era stack, short history (~300y path, OCU 1952, burial registry 1910, Below digs), tone | `SETTING-CAPABILITY-ASYMMETRY.md`, `SETTING-SPELL-TECH-TREE.md`, `reports/2026-08-01-era-and-tone.md`, `story/premise.md` |
 | `02-families.md` | Five Families, OCU/FAB/FSA, evidence, Ledger, rumors | `reports/2026-08-01-five-families.md`, `-law-and-magic.md`, `-police-ocu.md`, `-rumors-table.md`, `-npc-roster*.md`, `story/factions.md` |
 | `03-peoples.md` | Every people group ↔ ancestry, family bloodlines | `SETTING-PEOPLES-RACES.md`, `SETTING-ANCESTRIES-WARDS.md`, `reports/2026-08-01-family-ancestries.md` |
-| `04-magic-and-tech.md` | Spell-tech, licensing, contraband, capsule arms | `SETTING-ARMS.md`, `SETTING-SPELL-TECH-TREE.md`, `reports/2026-08-01-magic-in-the-city.md` |
-| `05-city-and-nightlife.md` | Boroughs, transit, scry-press, prices, clubs, social reality | `SETTING-URBAN-FRINGE.md`, `SETTING-SCRY-PRESS.md`, `worldbuilding/details/city-economics.md`, `reports/2026-08-01-locations.md` |
+| `04-magic-and-tech.md` | Named brands (Valenti-6, Pemberton/Harlan/Vandermeer, Glow-Gin, verity-lantern), arms catalog, rail, guilds | `SETTING-ARMS.md`, `SETTING-SPELL-TECH-TREE.md`, `SETTING-GILDED-INDUSTRY.md`, `SETTING-SCRY-PRESS.md`, `worldbuilding/details/capsule-arms.md`, `city-economics.md` |
+| `05-city-and-nightlife.md` | Borough grain, named clubs, transit, wages, papers | `SETTING-URBAN-FRINGE.md`, `borough-city-build.md`, `nightlife-culture.md`, `reports/2026-08-01-locations.md` |
 | `06-fringe-and-monsters.md` | Vampires, werewolves, constructs, the Below, undead, druids | `SETTING-URBAN-FRINGE.md`, `reports/2026-08-01-the-below.md`, `SETTING-CAPABILITY-ASYMMETRY.md` |
 | `07-crew-and-table.md` | Heist frame, seats, leash, session zero, table rules | `story/crew-start-heisters.md`, `story/session-zero-discord.md`, `reports/_session/2026-08-01-pc-roles.md` |
 | `08-glossary.md` | All terms | all of the above |
