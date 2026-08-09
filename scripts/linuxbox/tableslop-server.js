@@ -343,6 +343,7 @@ function worldPageHtml() {
   .btn.danger { color:var(--pink); border-color:var(--pink); background:rgba(255,113,206,.08); }
   main { padding:16px; }
   #gate { max-width:680px; margin:12vh auto; padding:22px; border:1px solid var(--purple); border-radius:10px; background:rgba(13,6,22,.92); }
+  [hidden] { display: none !important; }
   #app { display:grid; grid-template-columns:minmax(220px,260px) minmax(0,1fr) minmax(300px,360px); gap:14px; align-items:start; }
   .col { border:1px solid rgba(185,103,255,.32); border-radius:10px; background:rgba(13,6,22,.86); min-height:calc(100vh - 92px); }
   .col h2 { margin:0; padding:12px 14px; border-bottom:1px solid rgba(185,103,255,.25); font:700 .72rem Orbitron,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
@@ -921,12 +922,12 @@ function worldPageHtml() {
     $('e_name').value = activeEnt.name || '';
     $('e_aliases').value = (activeEnt.aliases || []).join(', ');
     $('e_location').value = activeEnt.location || '';
-    $('e_facts').value = (activeEnt.facts || []).join('\n');
+    $('e_facts').value = (activeEnt.facts || []).join('\\n');
     $('e_related').value = (activeEnt.related_ids || []).join(', ');
     estatus('');
   }
   function parseLines(v) {
-    return String(v || '').split('\n').map((s) => s.trim()).filter(Boolean);
+    return String(v || '').split('\\n').map((s) => s.trim()).filter(Boolean);
   }
   async function saveEntity() {
     if (!activeEnt || !entities) return;
@@ -1162,9 +1163,63 @@ function viewerHtml() {
     flex:1; min-height:0; overflow:hidden;
     display:grid; grid-template-columns:1fr var(--journal-w, min(300px, 32vw));
   }
+  .mobile-map-stub { display:none; }
   @media (max-width:800px) {
-    .game-shell { grid-template-columns:1fr; grid-template-rows:1fr auto; }
+    .game-shell {
+      grid-template-columns:1fr;
+      grid-template-rows:auto minmax(0, 1fr);
+    }
     .journal-resize { display:none !important; }
+    /* Map paused on phone — journal / docks are the product surface for now. */
+    .map-viewport { display:none !important; }
+    .mobile-map-stub {
+      display:block;
+      margin:0;
+      padding:14px 16px 12px;
+      border-bottom:1px solid rgba(185,103,255,.35);
+      background:linear-gradient(135deg, rgba(22,8,42,.98), rgba(8,24,40,.95));
+    }
+    .mobile-map-stub-title {
+      margin:0 0 6px;
+      font:700 .72rem Orbitron,sans-serif;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--sun);
+    }
+    .mobile-map-stub-body {
+      margin:0;
+      font-size:.82rem;
+      line-height:1.4;
+      color:var(--muted);
+      max-width:36rem;
+    }
+    .region-journal {
+      min-height:0;
+      height:100%;
+      max-height:none;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      box-shadow:none;
+    }
+    .hud {
+      gap:8px;
+      padding:8px 10px;
+      padding-top:max(8px, env(safe-area-inset-top));
+    }
+    .hud-brand { font-size:.85rem; letter-spacing:.12em; }
+    .hud-setting { font-size:1rem; }
+    .hud-res, .hud-dock, .hud-login, .hud-users-btn {
+      font-size:.62rem;
+      padding:5px 8px;
+    }
+    /* Map-only chrome — hidden while map is blocked on mobile */
+    #resToggle, #areasToggle, #labelToggle, #citiesToggle,
+    #editToggle, #drawToggle, #saveCoordsBtn, #map3dToggle,
+    #drawBar { display:none !important; }
+    .auth-users {
+      left:8px; right:8px; width:auto; top:auto;
+      max-height:min(70vh, 520px);
+    }
   }
   .map-viewport {
     position:relative; min-height:0; overflow:hidden;
@@ -1798,6 +1853,10 @@ function viewerHtml() {
   </div>
 </div>
 <div class="game-shell">
+  <aside class="mobile-map-stub" id="mobileMapStub" aria-label="Map unavailable on phone">
+    <p class="mobile-map-stub-title">Map · desktop for now</p>
+    <p class="mobile-map-stub-body">Phone map is blocked while we rebuild mobile. Use Cast, Phone, Radio, Sim, and the panel below — open this site on a wider screen for the island map.</p>
+  </aside>
   <section class="map-viewport" id="viewport">
     <div class="map-camera" id="mapCamera">
       <div class="map-stage" id="mapStage"></div>
@@ -7331,6 +7390,19 @@ async function handleRequest(req, res) {
 
 const server = http.createServer(handleRequest);
 
+/** Fail loud if worldPageHtml template-literal escapes break the client boot script (e.g. '\n' → real newline). */
+function assertWorldPageJsOk() {
+  const html = worldPageHtml();
+  const m = html.match(/<script>\s*\(function \(\) \{([\s\S]*?)\}\)\(\);\s*<\/script>/);
+  if (!m) throw new Error("worldPageHtml missing inline boot script");
+  try {
+    // eslint-disable-next-line no-new-func
+    new Function(m[1]);
+  } catch (e) {
+    throw new Error("worldPageHtml inline JS broken (check \\\\n escapes in template): " + e.message);
+  }
+}
+
 function bindListen() {
   const onListen = (host) => console.log(`tableslop: http://${host}:${PORT}/  campaign=${CAMPAIGN}`);
   server.listen(PORT, HOST, () => onListen(HOST));
@@ -7341,6 +7413,7 @@ function bindListen() {
 }
 
 async function main() {
+  assertWorldPageJsOk();
   if (REQUIRE_AUTH && !OAUTH_CONFIGURED && !DEV_AUTH) {
     console.warn(
       "tableslop: TABLESLOP_REQUIRE_DISCORD_AUTH=1 but OAuth env incomplete " +

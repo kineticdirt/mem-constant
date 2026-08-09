@@ -1,3 +1,13 @@
+- **2026-08-09T03:43Z** — [PC] **Result:** `/world` hang fixed. Root cause: `worldPageHtml()` template-literal `join('
+')`/`split('
+')` expanded to real newlines → inline JS SyntaxError → `#who` stuck on checking…; `#app { display:grid }` also defeated `hidden`. Fix: `\n` escapes + `[hidden]{display:none!important}` + `assertWorldPageJsOk` boot gate + `check-world-page-js.js`. Deployed+restarted; Playwright loopback cookie: `@WHOLESOMEest Boi · owner`, registry v37 · 27 rows, 0 pageerrors. Hard-refresh `/world`. Holder: `tableslop-world-hang`.
+
+- **2026-08-09T03:39Z** — [PC] **Intent:** /world still broken (who=checking…, empty cast) after fcc1ed6/bd99be0. Diagnose potato /api/me hang + worldPageHtml races; fix+deploy+verify. Holder: `tableslop-world-hang`.
+
+- **2026-08-09T03:08Z** — [PC] **Result:** tableslop — Discord `457403984936960010` (**Hiatus Cuz Life**) → **admin** (auth DB). Mobile ≤800px: map viewport hidden; stub “Map · desktop for now”; journal full-width; map-only HUD (3D/edit/areas…) hidden. Deployed `tableslop-server.js`; `sudo systemctl restart linuxbox-tableslop`; `:8765` **200**. Verified stub+mapDisplay=none @390×844.
+
+- **2026-08-09T03:06Z** — [PC] **Intent:** tableslop — grant Discord `457403984936960010` (Hiatus) **admin**; mobile: **block map** + journal-first layout. Touch `tableslop-server.js` + potato auth DB.
+
 - **2026-08-09T03:05Z** — [PC] **Result:** Pepper Quill dual-lane live. Hermes=listen; Cursor Auto=`pepper-quill-cursor` pre_gateway_dispatch primary (NYC listen); Hermes DeepSeek fallback. Reply encode: adapter fetch_message + Author(id):body + `[Discord meta]`; run.py parent inject [:2000]. Shutdown v3 `create_dm` owner-only. Plugin registered (31 found/27 enabled). Docs: `reports/pepper-quill-discord-dual-lane.md`. Holder: `nyc-pepper-cursor-reply`.
 - **2026-08-09T02:59Z** — [PC] **Intent:** Pepper Quill — encode Discord reply/parent context; Cursor Auto primary for NYC Q&A (Hermes secondary); keep infra. Holder: `nyc-pepper-cursor-reply`.
 - **2026-08-09T02:56Z** — [PC] **Intent:** Pepper Quill fix — answer associate Q (not name-search); OOC→web; kill public shutdown notice; ✅ temp reactions. Holder: `nyc-pepper-answer-fix`.
