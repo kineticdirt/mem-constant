@@ -1718,6 +1718,253 @@ function worldPageHtml() {
 </html>`;
 }
 
+/** Dedicated Dev calendar page (not a map overlay). HUD chip navigates here like WORLD → /world. */
+function devlogPageHtml() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Dev calendar — tableslop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --void:#0d0221; --panel:#16082a; --text:#e8f4ff; --muted:#9d8fc9;
+    --pink:#ff71ce; --cyan:#01cdfe; --purple:#b967ff; --sun:#fffb96;
+    --glow-pink:rgba(255,113,206,.55); --glow-cyan:rgba(1,205,254,.45);
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; min-height:100%; }
+  body {
+    font:15px/1.45 "Share Tech Mono",monospace; color:var(--text);
+    background:radial-gradient(1200px 600px at 20% -10%, rgba(255,113,206,.12), transparent),
+      radial-gradient(900px 500px at 90% 0%, rgba(1,205,254,.1), transparent), #0a0a0e;
+  }
+  .hud {
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:10px 16px; border-bottom:2px solid transparent;
+    border-image:linear-gradient(90deg, var(--pink), var(--cyan), var(--purple)) 1;
+    background:linear-gradient(180deg, rgba(22,8,42,.98), rgba(13,2,33,.98));
+  }
+  .hud-brand {
+    font:700 1rem Orbitron,sans-serif; letter-spacing:.18em; text-transform:uppercase;
+    background:linear-gradient(90deg, var(--pink), var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-decoration:none;
+  }
+  .hud a.back {
+    font:700 .7rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--cyan); border:1px solid var(--cyan); padding:6px 10px; text-decoration:none;
+  }
+  .hud a.back:hover { color:var(--pink); border-color:var(--pink); }
+  .wrap { max-width:920px; margin:0 auto; padding:20px 16px 48px; }
+  h1 {
+    margin:0 0 6px; font:700 1.2rem Orbitron,sans-serif; letter-spacing:.1em;
+    color:var(--sun); text-transform:uppercase;
+  }
+  .sub { color:var(--muted); margin:0 0 18px; font-size:.9rem; }
+  .dc-sec { margin:0 0 22px; padding:14px 16px; background:rgba(22,8,42,.85);
+    border:1px solid rgba(185,103,255,.35); }
+  .dc-sec h4 {
+    margin:0 0 10px; font:700 .75rem Orbitron,sans-serif; letter-spacing:.12em;
+    color:var(--pink); text-transform:uppercase;
+  }
+  .dc-list { list-style:none; margin:0; padding:0; }
+  .dc-item { padding:10px 0; border-top:1px solid rgba(1,205,254,.15); }
+  .dc-item:first-child { border-top:0; }
+  .dc-item-top { display:flex; flex-wrap:wrap; gap:8px; align-items:baseline; }
+  .dc-item-title { font-weight:700; color:var(--text); }
+  .dc-when { color:var(--cyan); font-size:.8rem; }
+  .dc-notes { margin:6px 0 0; color:var(--muted); font-size:.85rem; }
+  .dc-badge {
+    font:700 .62rem Orbitron,sans-serif; letter-spacing:.06em; text-transform:uppercase;
+    padding:2px 6px; border:1px solid var(--purple); color:var(--purple);
+  }
+  .dc-badge--done, .dc-badge--fixed { border-color:var(--cyan); color:var(--cyan); }
+  .dc-badge--doing { border-color:var(--sun); color:var(--sun); }
+  .dc-badge--blocked, .dc-badge--high { border-color:var(--pink); color:var(--pink); }
+  .dc-admin { margin-top:24px; padding:14px 16px; border:1px solid var(--cyan);
+    background:rgba(1,205,254,.06); }
+  .dc-admin[hidden] { display:none !important; }
+  .dc-admin h4 { margin:0 0 10px; color:var(--cyan); font:700 .75rem Orbitron,sans-serif;
+    letter-spacing:.1em; text-transform:uppercase; }
+  .dc-admin-form {
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  }
+  .dc-admin-form .dc-span2 { grid-column:1 / -1; }
+  .dc-admin-form input, .dc-admin-form select, .dc-admin-form textarea, .dc-admin-form button {
+    font:inherit; color:var(--text); background:rgba(0,0,0,.35);
+    border:1px solid rgba(1,205,254,.35); padding:8px;
+  }
+  .dc-admin-form button {
+    cursor:pointer; font:700 .7rem Orbitron,sans-serif; letter-spacing:.08em;
+    text-transform:uppercase; border-color:var(--sun); color:var(--sun);
+    background:rgba(255,251,150,.1);
+  }
+  .dc-status { margin-top:8px; color:var(--pink); min-height:1.2em; font-size:.8rem; }
+</style>
+</head>
+<body>
+<header class="hud">
+  <a class="hud-brand" href="/">TABLESLOP</a>
+  <span style="color:var(--sun);font:1.1rem VT323,monospace">Dev calendar</span>
+  <a class="back" href="/">← Map</a>
+</header>
+<main class="wrap">
+  <h1>Dev calendar</h1>
+  <p class="sub">Product roadmap for map.tableslop.org — timeline, features, known bugs. Estimates are GM-editable. Not diegetic lore.</p>
+  <div id="dcBody">Loading…</div>
+  <div class="dc-admin" id="dcAdmin" hidden>
+    <h4>Add (admin)</h4>
+    <form class="dc-admin-form" id="dcAddForm">
+      <select name="section" aria-label="Section" required>
+        <option value="bugs">Bug</option>
+        <option value="features">Feature</option>
+        <option value="timeline">Timeline</option>
+      </select>
+      <select name="status" aria-label="Status">
+        <option value="open">open / planned</option>
+        <option value="doing">doing</option>
+        <option value="done">done / fixed</option>
+        <option value="blocked">blocked</option>
+      </select>
+      <input class="dc-span2" name="title" placeholder="Title" required maxlength="160" />
+      <input name="when" placeholder="When / target (estimate OK)" maxlength="80" />
+      <select name="severity" aria-label="Severity (bugs)">
+        <option value="">severity (bugs)</option>
+        <option value="low">low</option>
+        <option value="med">med</option>
+        <option value="high">high</option>
+      </select>
+      <textarea class="dc-span2" name="notes" placeholder="Notes (optional)" maxlength="800"></textarea>
+      <button type="submit" class="dc-span2">Add item</button>
+    </form>
+    <div class="dc-status" id="dcStatus"></div>
+  </div>
+</main>
+<script>
+(function () {
+  const bodyEl = document.getElementById('dcBody');
+  const adminEl = document.getElementById('dcAdmin');
+  const statusEl = document.getElementById('dcStatus');
+  const form = document.getElementById('dcAddForm');
+  let cache = null;
+  let meCache = null;
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function badge(cls, text) {
+    return '<span class="dc-badge dc-badge--' + cls + '">' + escapeHtml(text) + '</span>';
+  }
+  function itemHtml(it, kind) {
+    const st = String(it.status || '').toLowerCase();
+    const sev = String(it.severity || '').toLowerCase();
+    let badges = badge(st || 'planned', st || '—');
+    if (kind === 'bugs' && sev) badges += ' ' + badge(sev, sev);
+    const when = it.when || it.target || '';
+    return '<li class="dc-item"><div class="dc-item-top">' +
+      '<span class="dc-item-title">' + escapeHtml(it.title || it.id || '') + '</span>' +
+      badges +
+      (when ? '<span class="dc-when">' + escapeHtml(when) + '</span>' : '') +
+      '</div>' +
+      (it.notes ? '<p class="dc-notes">' + escapeHtml(it.notes) + '</p>' : '') +
+      '</li>';
+  }
+  function section(title, rows, kind) {
+    if (!rows || !rows.length) {
+      return '<section class="dc-sec"><h4>' + title + '</h4><p class="dc-notes">None yet.</p></section>';
+    }
+    return '<section class="dc-sec"><h4>' + title + '</h4><ul class="dc-list">' +
+      rows.map(function (it) { return itemHtml(it, kind); }).join('') +
+      '</ul></section>';
+  }
+  function render(data) {
+    cache = data;
+    const tl = (data.timeline || []).slice().sort(function (a, b) {
+      return String(a.when || '').localeCompare(String(b.when || ''));
+    });
+    bodyEl.innerHTML =
+      section('Timeline', tl, 'timeline') +
+      section('Features', data.features || [], 'features') +
+      section('Bugs / issues', data.bugs || [], 'bugs') +
+      '<p class="dc-notes" style="margin-top:12px">v' + escapeHtml(String(data.version || 1)) +
+      (data.updated_at ? ' · updated ' + escapeHtml(data.updated_at) : '') + '</p>';
+    const canEdit = meCache && (meCache.can_edit === true ||
+      (meCache.logged_in && (meCache.role === 'owner' || meCache.role === 'admin')));
+    if (adminEl) adminEl.hidden = !canEdit;
+  }
+  async function loadCal() {
+    bodyEl.textContent = 'Loading…';
+    try {
+      const r = await fetch('/api/dev-calendar', { cache: 'no-store' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+      render(data);
+    } catch (err) {
+      bodyEl.textContent = 'Failed: ' + err.message;
+    }
+  }
+  if (form) {
+    form.onsubmit = async function (ev) {
+      ev.preventDefault();
+      if (!cache) return;
+      const fd = new FormData(form);
+      const sectionName = String(fd.get('section') || 'bugs');
+      let status = String(fd.get('status') || 'open');
+      if (sectionName === 'features' || sectionName === 'timeline') {
+        if (status === 'open') status = 'planned';
+        if (status === 'fixed') status = 'done';
+      } else if (status === 'planned') status = 'open';
+      if (status === 'done' && sectionName === 'bugs') status = 'fixed';
+      const item = {
+        title: String(fd.get('title') || '').trim(),
+        notes: String(fd.get('notes') || '').trim(),
+        status: status,
+      };
+      const when = String(fd.get('when') || '').trim();
+      if (sectionName === 'timeline') item.when = when || 'TBD';
+      else if (sectionName === 'features') item.target = when || 'TBD';
+      else if (when) item.when = when;
+      const sev = String(fd.get('severity') || '').trim();
+      if (sectionName === 'bugs' && sev) item.severity = sev;
+      if (statusEl) statusEl.textContent = 'Saving…';
+      try {
+        const r = await fetch('/api/dev-calendar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base_version: cache.version,
+            action: 'add',
+            section: sectionName,
+            item: item,
+          }),
+        });
+        const out = await r.json();
+        if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
+        if (statusEl) statusEl.textContent = 'Added ' + (out.item && out.item.id ? out.item.id : 'ok');
+        form.reset();
+        render(out.calendar || out);
+      } catch (err) {
+        if (statusEl) statusEl.textContent = 'Failed: ' + err.message;
+      }
+    };
+  }
+  (async function boot() {
+    try {
+      const meR = await fetch('/api/me', { cache: 'no-store' });
+      if (meR.ok) meCache = await meR.json();
+    } catch (_) { /* public read still works */ }
+    await loadCal();
+  })();
+})();
+</script>
+</body>
+</html>`;
+}
+
 function viewerHtml() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1725,6 +1972,8 @@ function viewerHtml() {
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
+<!-- Eager underlay: start 2k fetch during HTML parse (before 100KB+ map JS boots). -->
+<link rel="preload" as="image" href="/map-image?res=2k"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1963,6 +2212,18 @@ function viewerHtml() {
     border-image:linear-gradient(135deg, var(--pink), var(--cyan)) 1;
     box-shadow:0 0 40px var(--glow-pink), 0 0 80px rgba(1,205,254,.15);
   }
+  .map-load-chip {
+    position:absolute; top:42px; left:50%; transform:translateX(-50%); z-index:8;
+    max-width:min(520px, 92%); padding:8px 12px; text-align:center;
+    font:700 .68rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--sun); border:1px solid rgba(255,251,150,.45);
+    background:rgba(13,2,33,.88); box-shadow:0 0 16px rgba(255,251,150,.25);
+  }
+  .map-load-chip.is-err {
+    color:var(--pink); border-color:var(--pink);
+    box-shadow:0 0 16px var(--glow-pink);
+  }
+  .map-load-chip[hidden] { display:none !important; }
   .map-area-svg {
     width:100%; height:100%; display:block; overflow:visible;
   }
@@ -2598,7 +2859,7 @@ function viewerHtml() {
   <button type="button" class="hud-dock" id="castToggle" aria-pressed="false" title="Cast — expands over info panel">Cast</button>
   <a class="hud-res hud-world" id="worldToggle" href="/world" hidden title="World — separate character studio (admin)">World</a>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
-  <button type="button" class="hud-res hud-devlog" id="devLogToggle" title="Dev calendar — features, bugs, timeline">dev log</button>
+  <a class="hud-res hud-devlog" id="devLogToggle" href="/devlog" title="Dev calendar — dedicated page (timeline / features / bugs)">dev log</a>
   <div class="hud-auth" id="authSlot"></div>
 </header>
 <div class="draw-bar" id="drawBar" hidden>
@@ -2633,45 +2894,6 @@ function viewerHtml() {
     <div class="fb-status" id="fbStatus"></div>
   </div>
 </div>
-<div class="dc-modal" id="dcModal" hidden>
-  <div class="dc-card" role="dialog" aria-labelledby="dcTitle">
-    <div class="dc-head">
-      <div class="dc-titles">
-        <h3 id="dcTitle">Dev calendar</h3>
-        <p class="dc-sub">Product roadmap for this map — timeline, features, known bugs. Estimates are GM-editable.</p>
-      </div>
-      <button type="button" class="dc-close" id="dcCloseBtn">Close</button>
-    </div>
-    <div id="dcBody">Loading…</div>
-    <div class="dc-admin" id="dcAdmin" hidden>
-      <h4>Add (admin)</h4>
-      <form class="dc-admin-form" id="dcAddForm">
-        <select name="section" aria-label="Section" required>
-          <option value="bugs">Bug</option>
-          <option value="features">Feature</option>
-          <option value="timeline">Timeline</option>
-        </select>
-        <select name="status" aria-label="Status">
-          <option value="open">open / planned</option>
-          <option value="doing">doing</option>
-          <option value="done">done / fixed</option>
-          <option value="blocked">blocked</option>
-        </select>
-        <input class="dc-span2" name="title" placeholder="Title" required maxlength="160" />
-        <input name="when" placeholder="When / target (estimate OK)" maxlength="80" />
-        <select name="severity" aria-label="Severity (bugs)">
-          <option value="">severity (bugs)</option>
-          <option value="low">low</option>
-          <option value="med">med</option>
-          <option value="high">high</option>
-        </select>
-        <textarea class="dc-span2" name="notes" placeholder="Notes (optional)" maxlength="800"></textarea>
-        <button type="submit" class="dc-span2">Add item</button>
-      </form>
-      <div class="dc-status" id="dcStatus"></div>
-    </div>
-  </div>
-</div>
 <div class="game-shell">
   <aside class="mobile-map-stub" id="mobileMapStub" aria-label="Map unavailable on phone">
     <p class="mobile-map-stub-title">Map · desktop for now</p>
@@ -2684,6 +2906,7 @@ function viewerHtml() {
     <iframe class="map-3d-overlay" id="map3dOverlay" hidden title="3D map overlay" src="about:blank"></iframe>
     <div class="map-3d-badge" id="map3dBadge" hidden>3D overlay · PCs/routines on 2D when off</div>
     <div class="map-hint" id="mapHint">drag to pan · scroll to zoom · legend to focus · Cast for roster · 3D toggles overlay</div>
+    <div class="map-load-chip" id="mapLoadChip" hidden role="status"></div>
     <div class="map-zoom-label" id="zoomLabel">—</div>
     <div class="map-controls" id="mapControls">
       <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
@@ -3290,12 +3513,10 @@ function updateVisibleTiles() {
     img.style.width = tw + 'px';
     img.style.height = th + 'px';
     img.decoding = 'async';
-    img.style.opacity = '0';
+    // Show tiles as soon as they decode — never hold the viewport at opacity 0
+    // while underlay/JS catch up (black void). Fade-in optional via CSS only.
+    img.style.opacity = '1';
     img.dataset.epoch = String(epoch);
-    img.onload = function() {
-      if (img.dataset.epoch !== String(epoch)) return;
-      img.style.opacity = '1';
-    };
     img.onerror = function() {
       if (img.dataset.epoch !== String(epoch)) return;
       img.remove();
@@ -5865,8 +6086,7 @@ async function load() {
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
-  // Never let Dev log init abort map boot (bound-without-onclick leaves chip dead + black stage).
-  try { initDevCalendarUi(); } catch (err) { console.warn('initDevCalendarUi', err); }
+  // DEV LOG is a dedicated page (/devlog) — same pattern as WORLD → /world.
   coordsDirty = Object.keys(profile.coord_overrides || {}).length > 0;
   const castBtn = document.getElementById('castToggle');
   if (castBtn) {
@@ -5963,6 +6183,45 @@ function finishMapStage(stage, markers, profile) {
   }
 }
 
+function setMapLoadChip(msg, isErr) {
+  const el = document.getElementById('mapLoadChip');
+  if (!el) return;
+  if (!msg) {
+    el.hidden = true;
+    el.textContent = '';
+    el.classList.remove('is-err');
+    return;
+  }
+  el.hidden = false;
+  el.textContent = msg;
+  el.classList.toggle('is-err', !!isErr);
+}
+
+function watchMapArtLoad() {
+  setMapLoadChip('Loading map…', false);
+  const started = Date.now();
+  function tick() {
+    const img = document.getElementById('mapImg');
+    const layer = document.getElementById('mapTileLayer');
+    const tilesLoaded = layer
+      ? Array.from(layer.querySelectorAll('img')).filter(function(i) {
+          return i.complete && i.naturalWidth > 0;
+        }).length
+      : 0;
+    const underOk = !!(img && img.complete && img.naturalWidth > 0);
+    if (underOk || tilesLoaded > 0) {
+      setMapLoadChip('', false);
+      return;
+    }
+    if (Date.now() - started > 10000) {
+      setMapLoadChip('Map art failed to load — hard-refresh (Ctrl+Shift+R). If still black, report.', true);
+      return;
+    }
+    window.setTimeout(tick, 400);
+  }
+  window.setTimeout(tick, 200);
+}
+
 function renderMapPyramid(stage, data, profile) {
   const py = data.tile_pyramid;
   tilePyramid = py;
@@ -5977,7 +6236,8 @@ function renderMapPyramid(stage, data, profile) {
   stage.appendChild(stack);
   buildLayerStack(stack);
   // Instant underlay so fit-view is never a black void while pyramid tiles stream in.
-  const terrainBase = layerEl(stack, 'terrain-base');
+  // Prefers 2k (preloaded in <head>); browser cache makes this a warm hit after HTML parse.
+  const terrainBase = layerEl(stack, 'terrain-base') || layerEl(stack, 'terrain-tiles');
   const underUrl = data.base_image_2k_url || data.base_image_url;
   if (terrainBase && underUrl) {
     const img = document.createElement('img');
@@ -5985,7 +6245,17 @@ function renderMapPyramid(stage, data, profile) {
     img.src = underUrl;
     img.alt = data.title || 'campaign map';
     img.draggable = false;
+    img.fetchPriority = 'high';
+    img.onerror = function() {
+      if (data.base_image_url && img.src.indexOf('res=2k') >= 0) {
+        img.src = data.base_image_url;
+        return;
+      }
+      setMapLoadChip('Map underlay URL failed (HTTP error). Try hard-refresh.', true);
+    };
     terrainBase.appendChild(img);
+  } else {
+    setMapLoadChip('Map underlay missing from /api/map — check base_image on server.', true);
   }
   const terrainTiles = layerEl(stack, 'terrain-tiles');
   if (terrainTiles) {
@@ -5994,6 +6264,7 @@ function renderMapPyramid(stage, data, profile) {
     tileWrap.className = 'map-tile-layer';
     terrainTiles.appendChild(tileWrap);
   }
+  watchMapArtLoad();
   finishMapStage(stage, data.markers || [], profile);
 }
 
@@ -6762,6 +7033,31 @@ function regionsUiMtimeMs() {
     /* stat best-effort */
   }
   return 0;
+}
+
+/** Resolve on-disk map PNG/WebP without pulling regions-ui / full /api/map merge. */
+function resolveMapImageAbs(imgRes) {
+  try {
+    let rel = null;
+    if (mapJsonCache && mapJsonCache.data) {
+      const data = mapJsonCache.data;
+      rel =
+        imgRes === "2k" && data.base_image_2k && !String(data.base_image_2k).includes("..")
+          ? data.base_image_2k
+          : data.base_image;
+    } else if (fs.existsSync(MAP_JSON)) {
+      const raw = JSON.parse(fs.readFileSync(MAP_JSON, "utf8"));
+      rel =
+        imgRes === "2k" && raw.base_image_2k && !String(raw.base_image_2k).includes("..")
+          ? raw.base_image_2k
+          : raw.base_image;
+    }
+    if (!rel || String(rel).includes("..")) return null;
+    const abs = path.join(CAMPAIGN_DIR, rel);
+    return fs.existsSync(abs) ? abs : null;
+  } catch {
+    return null;
+  }
 }
 
 function loadMapJson() {
@@ -8349,8 +8645,25 @@ async function handleRequest(req, res) {
 
   if (url === "/" || url === "/index.html") {
     // Public view — login only gates editing, never viewing.
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    // no-store: edge must not keep a stale black-map viewer after deploys.
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
     res.end(viewerHtml());
+    return;
+  }
+  if (url === "/devlog" || url === "/devlog/" || url === "/dev-calendar" || url === "/dev-calendar/") {
+    if (url === "/dev-calendar" || url === "/dev-calendar/") {
+      res.writeHead(302, { Location: "/devlog", "Cache-Control": "no-store" });
+      res.end();
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    res.end(devlogPageHtml());
     return;
   }
   if (url === "/api/map") {
@@ -8792,29 +9105,24 @@ async function handleRequest(req, res) {
     return;
   }
   if (url === "/map-image") {
-    const data = loadMapJson();
-    const imgRes = q.searchParams.get("res");
-    const rel =
-      imgRes === "2k" && data.base_image_2k && !data.base_image_2k.includes("..")
-        ? data.base_image_2k
-        : data.base_image;
-    if (!rel || rel.includes("..")) {
-      res.writeHead(404);
-      res.end("Not found");
-      return;
-    }
-    const abs = path.join(CAMPAIGN_DIR, rel);
-    if (!fs.existsSync(abs)) {
+    // Lightweight path resolve — never run full loadMapJson (regions-ui merge)
+    // just to stream a PNG. Preload in <head> hits this before /api/map warms cache.
+    const abs = resolveMapImageAbs(q.searchParams.get("res"));
+    if (!abs) {
       res.writeHead(404);
       res.end("Not found");
       return;
     }
     const ext = path.extname(abs).toLowerCase();
     const types = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
-    res.writeHead(200, {
+    let size = 0;
+    try { size = fs.statSync(abs).size; } catch { size = 0; }
+    const headers = {
       "Content-Type": types[ext] || "application/octet-stream",
       "Cache-Control": "public, max-age=86400",
-    });
+    };
+    if (size > 0) headers["Content-Length"] = String(size);
+    res.writeHead(200, headers);
     fs.createReadStream(abs).pipe(res);
     return;
   }

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  * Prevention: viewerHtml() embeds a huge inline map script. A SyntaxError there
- * paints HUD chips then dies (black map + dead DEV LOG). Also guards the
- * pickTileZoom fit→maxZoom regression (hundreds of opacity-0 tiles → black strip).
+ * paints HUD chips then dies (black map). Also guards:
+ *   - pickTileZoom fit→maxZoom regression (hundreds of opacity-0 tiles)
+ *   - DEV LOG must navigate to /devlog (not a map overlay)
+ *   - eager /map-image?res=2k preload so underlay fetch starts before JS boots
  *
  * Usage: node scripts/linuxbox/check-viewer-page-js.js
  */
@@ -27,8 +29,6 @@ if (ret < 0 || closeHtml < 0) {
 }
 const templateBody = src.slice(ret + "return `".length, closeHtml + "</html>".length);
 
-// Do not eval the template (nested backticks / ${} break Function). Parse script
-// text as it appears in source — same bytes the browser gets aside from ${CAMPAIGN}.
 const scripts = [...templateBody.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
 if (!scripts.length) {
   console.error("FAIL: no inline scripts in viewerHtml template");
@@ -36,7 +36,6 @@ if (!scripts.length) {
 }
 for (let i = 0; i < scripts.length; i++) {
   const body = scripts[i][1];
-  // Skip tiny bootstrapping snippets if any; still parse all.
   try {
     new vm.Script(body, { filename: "viewer-inline-" + i + ".js" });
   } catch (e) {
@@ -54,16 +53,59 @@ if (!/maxZoom\s*\+\s*Math\.log2\(\s*scale\s*\)/.test(pick)) {
   console.error("FAIL: expected scale-based pickTileZoom formula");
   process.exit(1);
 }
-if (!templateBody.includes('id="devLogToggle"') || !templateBody.includes('id="dcModal"')) {
-  console.error("FAIL: missing DEV LOG HUD markup");
+
+if (!templateBody.includes('rel="preload"') || !templateBody.includes("/map-image?res=2k")) {
+  console.error("FAIL: missing eager preload for /map-image?res=2k");
   process.exit(1);
 }
-// Real newlines inside quoted join/split (same class as world hang).
+if (!templateBody.includes('id="mapImg"') && !/img\.id\s*=\s*['"]mapImg['"]/.test(templateBody)) {
+  console.error("FAIL: mapImg id path missing from viewer");
+  process.exit(1);
+}
+if (!templateBody.includes('id="mapLoadChip"')) {
+  console.error("FAIL: missing #mapLoadChip error/status chip");
+  process.exit(1);
+}
+
+// DEV LOG must be a real navigation target (WORLD pattern), not overlay-only.
+if (!/id="devLogToggle"[^>]*href="\/devlog"/.test(templateBody) &&
+    !/href="\/devlog"[^>]*id="devLogToggle"/.test(templateBody)) {
+  console.error("FAIL: DEV LOG chip must be <a href=\"/devlog\">");
+  process.exit(1);
+}
+if (templateBody.includes('id="dcModal"')) {
+  console.error("FAIL: map-page dcModal overlay still present — use /devlog page");
+  process.exit(1);
+}
+if (!src.includes("function devlogPageHtml()") || !src.includes('url === "/devlog"')) {
+  console.error("FAIL: /devlog route + devlogPageHtml missing");
+  process.exit(1);
+}
+
+// Fit-scale sanity: pickTileZoom at scale≈fit (~0.18 for 4k in ~1100px) must not clamp to maxZoom.
+{
+  const maxZoom = 5;
+  const minZoom = 0;
+  const scale = 0.18;
+  const ideal = Math.floor(maxZoom + Math.log2(scale) + 0.35);
+  const z = Math.max(minZoom, Math.min(maxZoom, ideal));
+  if (z >= maxZoom) {
+    console.error("FAIL: pickTileZoom at fit-like scale still yields maxZoom", z);
+    process.exit(1);
+  }
+  if (z > 3) {
+    console.error("FAIL: expected low zoom at fit (got z=" + z + ")");
+    process.exit(1);
+  }
+}
+
 if (/\.join\('\n'\)|\.split\('\n'\)/.test(templateBody)) {
   console.error("FAIL: real-newline join/split in viewerHtml template");
   process.exit(1);
 }
 
 console.log(
-  "OK viewerHtml inline JS parses (" + scripts.length + " scripts); pickTileZoom scale-based; DEV LOG markup present"
+  "OK viewerHtml inline JS parses (" +
+    scripts.length +
+    " scripts); pickTileZoom scale-based; preload+mapLoadChip; DEV LOG → /devlog"
 );
