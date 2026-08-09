@@ -1751,6 +1751,8 @@ function viewerHtml() {
     border-image:linear-gradient(90deg, var(--pink), var(--cyan), var(--purple)) 1;
     background:linear-gradient(180deg, rgba(22,8,42,.98), rgba(13,2,33,.98));
     box-shadow:0 0 24px rgba(255,113,206,.15);
+    /* Wrapped chips (dev log) must stay above the map for hit-testing. */
+    position:relative; z-index:20;
   }
   .hud-brand {
     font:700 1rem Orbitron,sans-serif; letter-spacing:.18em; text-transform:uppercase;
@@ -3212,10 +3214,13 @@ function computeFitScale() {
 
 function pickTileZoom() {
   if (!tilePyramid) return 0;
-  const fit = fitScale > 0 ? fitScale : computeFitScale();
-  const ratio = camera.scale / fit;
-  // ratio≈1 at fit-to-view → maxZoom; each halving of ratio steps down one pyramid level.
-  const ideal = tilePyramid.maxZoom + Math.floor(Math.log2(Math.max(0.125, ratio)));
+  // Match pyramid level to on-screen pixel density:
+  //   tileCss ≈ tileSize * 2^(maxZoom-z) * camera.scale
+  // Aim ~1 source px per CSS px → z ≈ maxZoom + log2(scale).
+  // BUG(was): maxZoom + log2(scale/fit) → at fit (ratio≈1) always picked maxZoom,
+  // requesting hundreds of z=5 tiles (opacity 0 until load) → black map strip.
+  const scale = Math.max(1e-6, camera.scale);
+  const ideal = Math.floor(tilePyramid.maxZoom + Math.log2(scale) + 0.35);
   const z = Math.max(tilePyramid.minZoom, Math.min(tilePyramid.maxZoom, ideal));
   if (activeTileZ == null) {
     activeTileZ = z;
@@ -4799,7 +4804,7 @@ function initDevCalendarUi() {
   const statusEl = document.getElementById('dcStatus');
   const form = document.getElementById('dcAddForm');
   if (!modal || !openBtn || openBtn.dataset.bound) return;
-  openBtn.dataset.bound = '1';
+  // Set bound only after handlers attach — a throw mid-init must not permanently mute the chip.
   let cache = null;
 
   function badge(cls, text) {
@@ -4870,7 +4875,8 @@ function initDevCalendarUi() {
     if (modal.hidden) openModal();
     else closeModal();
   };
-  document.getElementById('dcCloseBtn').onclick = closeModal;
+  const closeBtn = document.getElementById('dcCloseBtn');
+  if (closeBtn) closeBtn.onclick = closeModal;
   modal.addEventListener('click', function(e) {
     if (e.target === modal) closeModal();
   });
@@ -4919,6 +4925,7 @@ function initDevCalendarUi() {
       }
     };
   }
+  openBtn.dataset.bound = '1';
 }
 
 function markerById(id) {
@@ -5858,7 +5865,8 @@ async function load() {
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
-  initDevCalendarUi();
+  // Never let Dev log init abort map boot (bound-without-onclick leaves chip dead + black stage).
+  try { initDevCalendarUi(); } catch (err) { console.warn('initDevCalendarUi', err); }
   coordsDirty = Object.keys(profile.coord_overrides || {}).length > 0;
   const castBtn = document.getElementById('castToggle');
   if (castBtn) {
@@ -5968,6 +5976,17 @@ function renderMapPyramid(stage, data, profile) {
   stack.id = 'mapStack';
   stage.appendChild(stack);
   buildLayerStack(stack);
+  // Instant underlay so fit-view is never a black void while pyramid tiles stream in.
+  const terrainBase = layerEl(stack, 'terrain-base');
+  const underUrl = data.base_image_2k_url || data.base_image_url;
+  if (terrainBase && underUrl) {
+    const img = document.createElement('img');
+    img.id = 'mapImg';
+    img.src = underUrl;
+    img.alt = data.title || 'campaign map';
+    img.draggable = false;
+    terrainBase.appendChild(img);
+  }
   const terrainTiles = layerEl(stack, 'terrain-tiles');
   if (terrainTiles) {
     const tileWrap = document.createElement('div');
