@@ -15,8 +15,9 @@ Discord-managed European travel / adventure table. **Not** NYC Mafia × D&D (`ny
 1. [`LOCKS.md`](./LOCKS.md) — Discord-cited only  
 2. [`analysis/timeline.md`](./analysis/timeline.md) — what happened  
 3. [`analysis/define-with-gm.md`](./analysis/define-with-gm.md) — decide / promote  
-4. [`worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md`](./worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) — next session spine  
-5. [`worldbuilding/swamp/HALKIN-GAUL.md`](./worldbuilding/swamp/HALKIN-GAUL.md) — town bible  
+4. [`scenes/swamp-scene.md`](./scenes/swamp-scene.md) — **GM-ready playable swamp scene** (arrival session)  
+5. [`worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md`](./worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) — next-arc spine  
+6. [`worldbuilding/swamp/HALKIN-GAUL.md`](./worldbuilding/swamp/HALKIN-GAUL.md) — town bible  
 
 ## Discord IDs
 
@@ -37,6 +38,10 @@ Deep link (campaign-rp): https://discord.com/channels/1265793253798576148/147773
 | `discord.json` | Canonical Discord IDs |
 | `discord-export/` | Bot export + dated snapshots (`snapshot-2026-08-02/`, `snapshot-2026-08-09/`) |
 | `analysis/` | `campaign-timeline.md` · `define-with-gm.md` · swamp extract |
+| `reports/` | Discord swamp-scene analysis |
+| `scenes/` | **Playable session cards** (`swamp-scene.md`) |
+| `story/` | Current Story packet (Halkin arrival) |
+| `characters/` | Per-PC sheet stubs |
 | `prep/` | Session-ready pointers → swamp NEXT-ARC |
 | `worldbuilding/swamp/` | Halkin-Gaul + approach + **NEXT-ARC** (canon vs **[proposal]**) |
 | `players-characters.md` | Player ↔ character index |

@@ -5,6 +5,8 @@
 
 | File | Use |
 |------|-----|
+| `../../scenes/swamp-scene.md` | **GM-ready playable scene** (arrival → first session beats) |
+| `SCENE.md` | Pointer → scenes/swamp-scene.md |
 | `HALKIN-GAUL.md` | Town, tone, local texture, hooks, open questions |
 | `APPROACH-AND-EDGES.md` | Road from SmithsVille → Blackdoor Inn → mountains → bog basin |
 | `NEXT-ARC-HALKIN-GAUL.md` | **Next playable arc** — wraith + necromancer spine, clues, foil, adult NC seeds |
