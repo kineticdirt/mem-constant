@@ -1,3 +1,7 @@
+- **2026-08-09T03:55Z** — [PC] **Result:** `/world` SoT modules → dashboard. Weather cards from `worldbuilding/weather-state.json` (deterministic generate, no LLM); Regions/Ag/Transport from `sot-dashboard.json`; MD notes under Advanced. APIs: GET/POST `/api/world/weather`, GET `/api/world/summary`. Smoke OK: owner weather 2019-05-14 wet · 3 cities · gen_v2 · cast v37/27. Hard-refresh `/world`. Holder: `tableslop-world-dashboard`.
+
+- **2026-08-09T03:47Z** — [PC] **Intent:** tableslop `/world` SoT modules → dashboard UI (Weather structured JSON + generate; Regions/Ag/Transport cards; obfuscate MD paths). Holder: `tableslop-world-dashboard`.
+
 - **2026-08-09T03:43Z** — [PC] **Result:** `/world` hang fixed. Root cause: `worldPageHtml()` template-literal `join('
 ')`/`split('
 ')` expanded to real newlines → inline JS SyntaxError → `#who` stuck on checking…; `#app { display:grid }` also defeated `hidden`. Fix: `\n` escapes + `[hidden]{display:none!important}` + `assertWorldPageJsOk` boot gate + `check-world-page-js.js`. Deployed+restarted; Playwright loopback cookie: `@WHOLESOMEest Boi · owner`, registry v37 · 27 rows, 0 pageerrors. Hard-refresh `/world`. Holder: `tableslop-world-hang`.

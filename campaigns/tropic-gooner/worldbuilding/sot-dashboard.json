@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-09T03:47:00Z",
+  "present_lock": 2019,
+  "regions": {
+    "title": "Focus regions",
+    "blurb": "Island region digest. Borders live on the map (GM draw). Cards below are play-facing summaries — not the polygon editor.",
+    "focus": [
+      {
+        "id": "r01-paradise",
+        "name": "Paradise",
+        "bordered": "GM-drawn",
+        "identity": "Resort heart of the bay tri-city; the brochure",
+        "hook": "What's underneath the performance (Sasha's base)",
+        "status": "focus"
+      },
+      {
+        "id": "r02-porto-lujuria",
+        "name": "Porto Lujara",
+        "region_name": "Lujuria",
+        "bordered": "placeholder",
+        "identity": "Working port that parties; Carnaval town",
+        "hook": "The forecast economy — who knows the sweep schedule",
+        "status": "focus"
+      },
+      {
+        "id": "r03-crimson-quay",
+        "name": "Jackedsonville",
+        "region_name": "Crimson Quay",
+        "bordered": "GM-drawn",
+        "identity": "Casino city, rowdiest vice face",
+        "hook": "Handshake-deal order held up by lighting rigs",
+        "status": "focus"
+      }
+    ],
+    "watch": [
+      { "id": "r04", "name": "Villa Miel", "note": "Honey / shrimp / fertility cult cover" },
+      { "id": "r10", "name": "Lagooni Seika", "note": "Dry Contract — humidity feels wrong" },
+      { "id": "r08", "name": "Sierra Dorado", "note": "Federal mountain capital, cooler air" }
+    ],
+    "notes_path": "worldbuilding/REGIONS.md"
+  },
+  "agriculture": {
+    "title": "Agriculture & fishing",
+    "blurb": "Tourism is the money; food still has to move. Ice and cold trucks matter more than romance.",
+    "crops": [
+      { "product": "Sugarcane", "where": "San Aurelio / south belt", "note": "Rum feedstock; rail yards nearby" },
+      { "product": "Honey", "where": "Villa Miel", "note": "Festival brand; cult cover" },
+      { "product": "Truck crops", "where": "Inland pockets", "note": "Hotels buy first" },
+      { "product": "Ornamentals", "where": "Paradise supply", "note": "Boardwalk looks expensive" }
+    ],
+    "fishing": [
+      { "catch": "Day boats / shrimp", "where": "Villa Miel, Ruby Harbor", "note": "Friendly coast story" },
+      { "catch": "Working dock fish", "where": "Porto Lujara", "note": "Hotels + Ledger Row kitchens" },
+      { "catch": "Yacht galley supply", "where": "Paradise marina", "note": "Price is the point" }
+    ],
+    "logistics": [
+      "Cold chain break hits vice and restaurants together",
+      "San Aurelio rail moves bulk; bay ring moves people and bags",
+      "Harvest festival weeks raise police tolerance and hunter noise"
+    ],
+    "notes_path": "worldbuilding/AGRICULTURE.md"
+  },
+  "transport": {
+    "title": "Transportation",
+    "blurb": "Green map lines = highways / freeways. Street texture lives in STREETS.md. Do not wipe region borders when drawing roads.",
+    "modes": [
+      { "mode": "Highways / freeways", "role": "Island spine", "map": "green lines · highways layer" },
+      { "mode": "Local streets", "role": "City block texture", "map": "STREETS.md · streets layer" },
+      { "mode": "Cars / scooters", "role": "Default PC movement", "map": "player routines" },
+      { "mode": "Buses", "role": "Cheap bay hops", "map": "transit-bus placeholder" },
+      { "mode": "Rail", "role": "Bulk / south belt", "map": "San Aurelio yards" },
+      { "mode": "Boats / ships", "role": "Marina, docks, ferry rumor", "map": "ports" },
+      { "mode": "Walking", "role": "District play", "map": "STREETS.md times" }
+    ],
+    "play_notes": [
+      "Off-peak Paradise ↔ Lujara under an hour; Carnival and storm nights are not",
+      "Quay alleys are not freeway on-ramps",
+      "Federal roads look maintained; county roads look loved or ignored"
+    ],
+    "highway_note": "SwitchBack corridor is the diegetic get-anywhere highway story. Bay ring links Paradise ↔ Porto Lujara ↔ Jackedsonville.",
+    "notes_path": "worldbuilding/TRANSPORT.md"
+  }
+}

@@ -12,6 +12,12 @@ const path = require("path");
 const { TableslopAuth, EDIT_ROLES } = require("./tableslop-auth.js");
 const { writeRegistryFile, VersionConflictError } = require("./chars-registry-persist.js");
 const { acquire: acquireStateLock, release: releaseStateLock } = require("./multitask-lock");
+const {
+  generateWeatherState,
+  readWeatherState,
+  writeWeatherState,
+  ensureWeatherState,
+} = require("./tableslop-world-weather.js");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
@@ -50,7 +56,13 @@ const REGIONS_BOARD = path.join(REPO, "projects", "tableslop", "regions.json");
 /** Same SoT as dashboard Chars — read-through only (writes stay on :8790). */
 const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
 const ENTITIES_JSON = path.join(CAMPAIGN_DIR, "wiki", "entities.json");
+const SOT_DASHBOARD_JSON = path.join(CAMPAIGN_DIR, "worldbuilding", "sot-dashboard.json");
 const WORLD_PAGE_ROOTS = ["story", "worldbuilding", "reports", "places", "characters", "Things and Places of Note", "Plot Lines"];
+const WEATHER_LOCK = {
+  repoRoot: REPO,
+  acquire: acquireStateLock,
+  release: releaseStateLock,
+};
 const FEEDBACK_DIR = path.join(REPO, "reports", "tableslop-feedback");
 const USER_TASKS_JSON = path.join(REPO, "agents", "user-tasks.json");
 const FEEDBACK_MAX_BYTES = 2.5 * 1024 * 1024;
@@ -378,6 +390,28 @@ function worldPageHtml() {
   .status { min-height:1.2em; margin-top:10px; color:var(--sun); font-size:.78rem; }
   .rel { display:flex; gap:6px; align-items:center; margin:6px 0; color:var(--muted); font-size:.74rem; }
   .rel button { flex:0 0 auto; }
+  .dash-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  .dash-card { border:1px solid rgba(1,205,254,.35); border-radius:10px; background:linear-gradient(160deg,rgba(1,205,254,.08),rgba(185,103,255,.08)); padding:14px; }
+  .dash-card h3 { margin:0 0 6px; font:700 .78rem Orbitron,sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--cyan); }
+  .dash-card .city { font:700 1.15rem Orbitron,sans-serif; color:var(--sun); margin:0 0 4px; }
+  .dash-card .metric { display:flex; justify-content:space-between; gap:8px; margin:4px 0; font-size:.8rem; color:var(--muted); }
+  .dash-card .metric b { color:var(--text); font-weight:700; }
+  .dash-card .big { font:700 2rem Orbitron,sans-serif; color:var(--pink); line-height:1; }
+  .forecast { display:flex; gap:6px; overflow:auto; margin-top:10px; padding-bottom:4px; }
+  .fday { flex:0 0 72px; border:1px solid rgba(169,143,196,.35); border-radius:6px; padding:6px; text-align:center; font-size:.68rem; color:var(--muted); background:rgba(5,2,8,.55); }
+  .fday strong { display:block; color:var(--text); font-size:.85rem; margin:4px 0; }
+  .risk-high { color:var(--pink); }
+  .risk-moderate { color:var(--sun); }
+  .risk-low { color:var(--lime); }
+  .dash-meta { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; align-items:center; }
+  .dash-table { width:100%; border-collapse:collapse; font-size:.78rem; margin-top:8px; }
+  .dash-table th, .dash-table td { border-bottom:1px solid rgba(185,103,255,.2); padding:7px 6px; text-align:left; vertical-align:top; }
+  .dash-table th { color:var(--purple); font:700 .68rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+  details.source { margin-top:16px; border:1px solid rgba(169,143,196,.35); border-radius:8px; background:rgba(5,2,8,.55); }
+  details.source summary { cursor:pointer; padding:10px 12px; color:var(--muted); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; }
+  details.source .src-body { padding:0 12px 12px; }
+  .doc-title { font-size:.92rem; }
+  .doc-sub { color:var(--muted); font-size:.68rem; }
   @media (max-width: 900px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } .sheet-wrap { order:-2; } .edit-wrap { order:-1; } .places-grid, .docs-grid { grid-template-columns:1fr; } }
 </style>
 </head>
@@ -497,7 +531,7 @@ function worldPageHtml() {
       <aside class="col">
         <h2>Stories &amp; notes</h2>
         <div class="pad roster-tools">
-          <input id="dq" placeholder="Search path" autocomplete="off"/>
+          <input id="dq" placeholder="Search title / folder" autocomplete="off"/>
           <div class="chip" id="docMeta">pages …</div>
         </div>
         <ul class="roster pad" id="docList"></ul>
@@ -506,39 +540,48 @@ function worldPageHtml() {
         <h2 id="docTitle">Page</h2>
         <div class="pad">
           <div class="chip" id="docPath">pick a page</div>
-          <label for="docText" style="margin-top:10px">Markdown</label>
-          <textarea id="docText" style="min-height:calc(100vh - 260px)"></textarea>
-          <div class="row" style="margin-top:14px">
-            <button class="btn warn" id="docSaveBtn" type="button">Save page</button>
-            <button class="btn" id="docReloadBtn" type="button">Reload</button>
-          </div>
+          <div id="docPreview" class="sheet" style="min-height:120px;margin:10px 0;padding:12px;border:1px solid rgba(185,103,255,.25);border-radius:8px;background:rgba(5,2,8,.4)"></div>
+          <details class="source" id="docSource">
+            <summary>Advanced · edit markdown source</summary>
+            <div class="src-body">
+              <label for="docText">Markdown</label>
+              <textarea id="docText" style="min-height:calc(100vh - 420px)"></textarea>
+              <div class="row" style="margin-top:14px">
+                <button class="btn warn" id="docSaveBtn" type="button">Save page</button>
+                <button class="btn" id="docReloadBtn" type="button">Reload</button>
+              </div>
+            </div>
+          </details>
           <div class="status" id="dstatus"></div>
         </div>
       </section>
     </div>
   </section>
   <section id="mod-sot" class="mod" hidden>
-    <div class="docs-grid">
-      <aside class="col">
-        <h2 id="sotSideTitle">World SoT</h2>
-        <div class="pad">
-          <p id="sotBlurb" style="color:var(--muted);font-size:.78rem;line-height:1.45;margin:0 0 12px"></p>
-          <div class="chip" id="sotPathChip">path …</div>
-          <p style="margin:14px 0 0"><a class="btn" href="/" id="sotMapLink">← Open map</a></p>
+    <div class="col" style="min-height:calc(100vh - 92px)">
+      <h2 id="sotTitle">World dashboard</h2>
+      <div class="pad">
+        <p id="sotBlurb" style="color:var(--muted);font-size:.82rem;line-height:1.45;margin:0 0 12px"></p>
+        <div class="dash-meta">
+          <span class="chip" id="sotMetaChip">…</span>
+          <button class="btn warn" id="weatherGenBtn" type="button" hidden>Generate / refresh forecast</button>
+          <button class="btn" id="sotReloadBtn" type="button">Reload</button>
+          <a class="btn" href="/" id="sotMapLink">← Map</a>
         </div>
-      </aside>
-      <section class="col">
-        <h2 id="sotTitle">Page</h2>
-        <div class="pad">
-          <label for="sotText">Markdown (campaign SoT)</label>
-          <textarea id="sotText" style="min-height:calc(100vh - 220px)"></textarea>
-          <div class="row" style="margin-top:14px">
-            <button class="btn warn" id="sotSaveBtn" type="button">Save SoT</button>
-            <button class="btn" id="sotReloadBtn" type="button">Reload</button>
+        <div id="sotDash" class="dash-grid"></div>
+        <div class="status" id="sotStatus"></div>
+        <details class="source" id="sotSource">
+          <summary>Advanced · view source notes</summary>
+          <div class="src-body">
+            <p id="sotPathHint" style="color:var(--muted);font-size:.72rem;margin:0 0 8px"></p>
+            <label for="sotText">Notes (markdown export / lore)</label>
+            <textarea id="sotText" style="min-height:240px"></textarea>
+            <div class="row" style="margin-top:10px">
+              <button class="btn warn" id="sotSaveBtn" type="button">Save notes</button>
+            </div>
           </div>
-          <div class="status" id="sotStatus"></div>
-        </div>
-      </section>
+        </details>
+      </div>
     </div>
   </section>
 </main>
@@ -555,26 +598,32 @@ function worldPageHtml() {
     regions: {
       path: 'worldbuilding/REGIONS.md',
       title: 'Regions',
-      blurb: 'Island region digest. Borders live on the map (regions-ui / GM draw) — this file is the prose SoT, not the polygon editor.'
+      kind: 'regions',
+      blurb: 'Focus-city cards for play. Borders stay on the map (GM draw) — this is not the polygon editor.'
     },
     climate: {
       path: 'worldbuilding/CLIMATE.md',
-      title: 'Weather / climate',
-      blurb: 'Climate, seasons, and storm norms for Isla Primavera. Edit here; map overlays stay separate.'
+      title: 'Weather',
+      kind: 'weather',
+      blurb: 'Generated conditions by city (deterministic from diegetic date + seed). Lore band: 75–88°F, 70–90% humidity, wet May–Oct / dry Nov–Apr · present lock 2019.'
     },
     agriculture: {
       path: 'worldbuilding/AGRICULTURE.md',
-      title: 'Agriculture / fishing',
-      blurb: 'Crops, fisheries, and food logistics. Links places when they exist in Places / wiki entities.'
+      title: 'Agriculture',
+      kind: 'agriculture',
+      blurb: 'Crops, fleets, and cold-chain logistics as structured cards. Source notes stay collapsed.'
     },
     transport: {
       path: 'worldbuilding/TRANSPORT.md',
-      title: 'Transportation',
-      blurb: 'Roads, highways, boats, rail. Green map lines = highways/freeways (map layer highways). Draw more roads on the map later — do not invent border wipes here.'
+      title: 'Transport',
+      kind: 'transport',
+      blurb: 'Modes and play notes. Green map lines = highways/freeways. Do not wipe region borders when drawing roads.'
     }
   };
   let activeSot = null;
   let sotSha = '';
+  let weatherState = null;
+  let sotDash = null;
   const $ = (id) => document.getElementById(id);
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -818,7 +867,8 @@ function worldPageHtml() {
     $('docText').addEventListener('input', () => dstatus('unsaved changes'));
     $('sotSaveBtn').onclick = saveSot;
     $('sotReloadBtn').onclick = () => { if (activeSot) loadSot(activeSot); };
-    $('sotText').addEventListener('input', () => sotStatus('unsaved changes'));
+    $('weatherGenBtn').onclick = generateWeather;
+    $('sotText').addEventListener('input', () => sotStatus('unsaved note changes'));
   }
   function showMod(name) {
     $('mods').querySelectorAll('button[data-mod]').forEach((b) => {
@@ -836,37 +886,143 @@ function worldPageHtml() {
     if (name === 'docs' && !pages.length) loadDocs().catch((e) => dstatus('load failed: ' + (e.message || e)));
   }
   function sotStatus(msg) { $('sotStatus').textContent = msg || ''; }
+  function riskClass(r) {
+    const s = String(r || '').toLowerCase();
+    if (s === 'high') return 'risk-high';
+    if (s === 'moderate') return 'risk-moderate';
+    return 'risk-low';
+  }
+  function renderWeatherDash(w) {
+    weatherState = w;
+    const cities = w && w.cities ? Object.values(w.cities) : [];
+    $('sotMetaChip').textContent = (w.diegetic_date || '?') + ' · ' + (w.season || '?') + ' season · v' + (w.version || '?');
+    $('sotDash').innerHTML = cities.map((c) => {
+      const cur = c.current || {};
+      const forecast = (c.forecast || []).map((d) => {
+        const label = String(d.date || '').slice(5);
+        return '<div class="fday"><span>' + esc(label) + '</span><strong>' + esc(d.temp_f) + '°F</strong><span>' + esc(d.rain_chance_pct) + '% rain</span></div>';
+      }).join('');
+      return '<article class="dash-card" data-city="' + esc(c.id) + '">' +
+        '<p class="city">' + esc(c.label) + '</p>' +
+        '<div class="big">' + esc(cur.temp_f) + '°F</div>' +
+        '<p style="margin:4px 0 10px;color:var(--muted)">' + esc(cur.conditions) + ' · ' + esc(c.vibe || '') + '</p>' +
+        '<div class="metric"><span>Humidity</span><b>' + esc(cur.humidity_pct) + '%</b></div>' +
+        '<div class="metric"><span>Wind</span><b>' + esc(cur.wind_mph) + ' mph ' + esc(cur.wind_dir) + '</b></div>' +
+        '<div class="metric"><span>Rain chance</span><b>' + esc(cur.rain_chance_pct) + '%</b></div>' +
+        '<div class="metric"><span>Festival risk</span><b class="' + riskClass(cur.festival_risk) + '">' + esc(cur.festival_risk) + '</b></div>' +
+        '<div class="metric"><span>CRT optics</span><b style="text-align:right;max-width:58%">' + esc(cur.crt_optics) + '</b></div>' +
+        (cur.flood_watch && cur.flood_watch !== 'none' ? '<div class="metric"><span>Flood watch</span><b class="risk-high">' + esc(cur.flood_watch) + '</b></div>' : '') +
+        '<div class="forecast">' + forecast + '</div></article>';
+    }).join('') || '<p class="chip">No weather cities.</p>';
+  }
+  function renderRegionsDash(d) {
+    const focus = (d && d.focus) || [];
+    const watch = (d && d.watch) || [];
+    $('sotMetaChip').textContent = focus.length + ' focus · ' + watch.length + ' watch';
+    let html = focus.map((r) => {
+      return '<article class="dash-card"><h3>' + esc(r.name) + (r.region_name ? ' · ' + esc(r.region_name) : '') + '</h3>' +
+        '<div class="metric"><span>Border</span><b>' + esc(r.bordered) + '</b></div>' +
+        '<p style="margin:8px 0;color:var(--text)">' + esc(r.identity) + '</p>' +
+        '<p style="margin:0;color:var(--muted);font-size:.78rem">Hook: ' + esc(r.hook) + '</p></article>';
+    }).join('');
+    if (watch.length) {
+      html += '<article class="dash-card" style="grid-column:1/-1"><h3>On deck</h3><table class="dash-table"><thead><tr><th>Place</th><th>Note</th></tr></thead><tbody>' +
+        watch.map((w) => '<tr><td>' + esc(w.name) + '</td><td>' + esc(w.note) + '</td></tr>').join('') +
+        '</tbody></table></article>';
+    }
+    $('sotDash').innerHTML = html || '<p class="chip">No region summary.</p>';
+  }
+  function renderAgDash(d) {
+    $('sotMetaChip').textContent = ((d.crops || []).length) + ' crops · ' + ((d.fishing || []).length) + ' fleets';
+    let html = '<article class="dash-card" style="grid-column:1/-1"><h3>Crops &amp; land</h3><table class="dash-table"><thead><tr><th>Product</th><th>Where</th><th>Note</th></tr></thead><tbody>' +
+      (d.crops || []).map((c) => '<tr><td>' + esc(c.product) + '</td><td>' + esc(c.where) + '</td><td>' + esc(c.note) + '</td></tr>').join('') +
+      '</tbody></table></article>';
+    html += '<article class="dash-card" style="grid-column:1/-1"><h3>Fishing &amp; water</h3><table class="dash-table"><thead><tr><th>Catch</th><th>Where</th><th>Note</th></tr></thead><tbody>' +
+      (d.fishing || []).map((c) => '<tr><td>' + esc(c.catch) + '</td><td>' + esc(c.where) + '</td><td>' + esc(c.note) + '</td></tr>').join('') +
+      '</tbody></table></article>';
+    html += '<article class="dash-card" style="grid-column:1/-1"><h3>Logistics</h3><ul style="margin:0;padding-left:18px;color:var(--muted)">' +
+      (d.logistics || []).map((x) => '<li style="margin:4px 0">' + esc(x) + '</li>').join('') + '</ul></article>';
+    $('sotDash').innerHTML = html;
+  }
+  function renderTransportDash(d) {
+    $('sotMetaChip').textContent = ((d.modes || []).length) + ' modes · green = highways';
+    let html = '<article class="dash-card" style="grid-column:1/-1"><h3>Modes</h3><table class="dash-table"><thead><tr><th>Mode</th><th>Role</th><th>Map / SoT</th></tr></thead><tbody>' +
+      (d.modes || []).map((m) => '<tr><td>' + esc(m.mode) + '</td><td>' + esc(m.role) + '</td><td>' + esc(m.map) + '</td></tr>').join('') +
+      '</tbody></table></article>';
+    html += '<article class="dash-card"><h3>Highways</h3><p style="margin:0;color:var(--muted);font-size:.8rem;line-height:1.45">' + esc(d.highway_note || '') + '</p></article>';
+    html += '<article class="dash-card"><h3>Play notes</h3><ul style="margin:0;padding-left:18px;color:var(--muted)">' +
+      (d.play_notes || []).map((x) => '<li style="margin:4px 0">' + esc(x) + '</li>').join('') + '</ul></article>';
+    $('sotDash').innerHTML = html;
+  }
   async function loadSot(name) {
     const meta = SOT_MODS[name];
     if (!meta) return;
     activeSot = name;
-    $('sotSideTitle').textContent = meta.title;
     $('sotTitle').textContent = meta.title;
     $('sotBlurb').textContent = meta.blurb;
-    $('sotPathChip').textContent = meta.path;
+    $('sotPathHint').textContent = 'Source notes (optional lore export)';
+    $('weatherGenBtn').hidden = meta.kind !== 'weather';
+    $('sotDash').innerHTML = '<p class="chip">Loading dashboard…</p>';
     sotStatus('loading…');
-    const out = await fetchJson('/api/world/page?path=' + encodeURIComponent(meta.path), null, 15000);
-    if (!out.r.ok) {
-      sotStatus('load failed: ' + (out.j.error || out.r.status) + ' — create the SoT file on disk if missing');
+    try {
+      if (meta.kind === 'weather') {
+        const out = await fetchJson('/api/world/weather', null, 15000);
+        if (!out.r.ok) throw new Error(out.j.error || ('weather ' + out.r.status));
+        renderWeatherDash(out.j);
+      } else {
+        const out = await fetchJson('/api/world/summary?module=' + encodeURIComponent(meta.kind), null, 15000);
+        if (!out.r.ok) throw new Error(out.j.error || ('summary ' + out.r.status));
+        sotDash = out.j;
+        if (meta.kind === 'regions') renderRegionsDash(out.j);
+        else if (meta.kind === 'agriculture') renderAgDash(out.j);
+        else if (meta.kind === 'transport') renderTransportDash(out.j);
+        else $('sotDash').innerHTML = '<p class="chip">No dashboard for this module.</p>';
+      }
+    } catch (e) {
+      $('sotDash').innerHTML = '<p class="chip" style="border-color:var(--pink);color:var(--pink)">Dashboard load failed: ' + esc(e.message || e) + '</p>';
+    }
+    const pageOut = await fetchJson('/api/world/page?path=' + encodeURIComponent(meta.path), null, 15000);
+    if (!pageOut.r.ok) {
       $('sotText').value = '';
       sotSha = '';
+      sotStatus('dashboard ok · notes missing on disk');
       return;
     }
-    sotSha = out.j.sha256 || '';
-    $('sotText').value = out.j.content || '';
-    sotStatus(out.j.truncated ? 'truncated view' : '');
+    sotSha = pageOut.j.sha256 || '';
+    $('sotText').value = pageOut.j.content || '';
+    sotStatus(pageOut.j.truncated ? 'truncated notes view' : '');
+  }
+  async function generateWeather() {
+    sotStatus('generating…');
+    const out = await fetchJson('/api/world/weather', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        generate: true,
+        base_version: weatherState && weatherState.version,
+        seed: (weatherState && weatherState.seed) || 'isla-primavera-weather',
+        diegetic_date: weatherState && weatherState.diegetic_date,
+        forecast_days: 7
+      })
+    }, 20000);
+    if (!out.r.ok) {
+      sotStatus('generate failed: ' + (out.j.error || out.r.status));
+      return;
+    }
+    renderWeatherDash(out.j);
+    sotStatus('forecast refreshed · ' + (out.j.updated_at || ''));
   }
   async function saveSot() {
     const meta = activeSot && SOT_MODS[activeSot];
     if (!meta) return;
-    sotStatus('saving…');
+    sotStatus('saving notes…');
     const out = await fetchJson('/api/world/page', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: meta.path, content: $('sotText').value, base_sha256: sotSha })
     }, 20000);
     if (out.r.status === 409) {
-      sotStatus('page changed on disk — reload before saving.');
+      sotStatus('notes changed on disk — reload before saving.');
       return;
     }
     if (!out.r.ok) {
@@ -874,7 +1030,7 @@ function worldPageHtml() {
       return;
     }
     sotSha = out.j.sha256 || sotSha;
-    sotStatus('saved · ' + (out.j.bytes || 0) + ' bytes');
+    sotStatus('notes saved · ' + (out.j.bytes || 0) + ' bytes');
   }
   function entById(id) {
     return (entities && entities.entities || []).find((e) => String(e.id) === String(id)) || null;
@@ -979,11 +1135,23 @@ function worldPageHtml() {
     renderDocs();
     dstatus('');
   }
+  function docDisplayName(rel) {
+    const base = String(rel || '').split('/').pop() || 'page';
+    return base.replace(/\\.md$/i, '').replace(/[-_]+/g, ' ');
+  }
+  function docFolderLabel(rel) {
+    const parts = String(rel || '').split('/');
+    if (parts.length < 2) return 'notes';
+    return parts.slice(0, -1).join(' / ');
+  }
   function renderDocs() {
     const q = String($('dq').value || '').toLowerCase();
-    const list = pages.filter((p) => !q || String(p.path).toLowerCase().includes(q));
+    const list = pages.filter((p) => {
+      const hay = [docDisplayName(p.path), docFolderLabel(p.path), p.path].join(' ').toLowerCase();
+      return !q || hay.includes(q);
+    });
     $('docList').innerHTML = list.map((p) => {
-      return '<li><button type="button" class="rost' + (activePage === p.path ? ' is-active' : '') + '" data-path="' + esc(p.path) + '"><span class="face">¶</span><span><strong>' + esc(String(p.path).split('/').pop()) + '</strong><span>' + esc(p.path) + '</span></span></button></li>';
+      return '<li><button type="button" class="rost' + (activePage === p.path ? ' is-active' : '') + '" data-path="' + esc(p.path) + '"><span class="face">¶</span><span><strong class="doc-title">' + esc(docDisplayName(p.path)) + '</strong><span class="doc-sub">' + esc(docFolderLabel(p.path)) + '</span></span></button></li>';
     }).join('') || '<li class="chip">No pages.</li>';
     $('docList').querySelectorAll('button[data-path]').forEach((b) => { b.onclick = () => loadDoc(b.getAttribute('data-path')); });
   }
@@ -997,9 +1165,15 @@ function worldPageHtml() {
     }
     activePage = j.path;
     pageSha = j.sha256 || '';
-    $('docPath').textContent = j.path + ' · ' + (j.bytes || 0) + ' bytes';
-    $('docTitle').textContent = String(j.path).split('/').pop();
+    $('docPath').textContent = docFolderLabel(j.path) + ' · ' + (j.bytes || 0) + ' bytes';
+    $('docTitle').textContent = docDisplayName(j.path);
     $('docText').value = j.content || '';
+    if (window.marked && marked.parse) {
+      if (marked.setOptions) marked.setOptions({ breaks: true, gfm: true });
+      $('docPreview').innerHTML = marked.parse(j.content || '');
+    } else {
+      $('docPreview').innerHTML = '<pre>' + esc(j.content || '') + '</pre>';
+    }
     renderDocs();
     dstatus(j.truncated ? 'truncated view — file too large to edit safely' : '');
   }
@@ -7268,6 +7442,94 @@ async function handleRequest(req, res) {
         const msg = (err && err.message) || "save_failed";
         sendJson(res, { error: msg }, msg === "page_not_found" ? 404 : 400);
       }
+    }
+    return;
+  }
+  if (url === "/api/world/weather" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const state = ensureWeatherState(CAMPAIGN_DIR, WEATHER_LOCK);
+      if (state && state.error) {
+        sendJson(res, state, 500);
+        return;
+      }
+      sendJson(res, state, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "weather_failed" }, 500);
+    }
+    return;
+  }
+  if (url === "/api/world/weather" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      const cur = readWeatherState(CAMPAIGN_DIR);
+      if (payload.base_version != null && cur && !cur.error && Number(cur.version) !== Number(payload.base_version)) {
+        sendJson(res, { error: "version_conflict", version: cur.version, updated_at: cur.updated_at }, 409);
+        return;
+      }
+      let next;
+      if (payload.generate || !payload.cities) {
+        next = generateWeatherState(CAMPAIGN_DIR, {
+          seed: payload.seed,
+          diegetic_date: payload.diegetic_date,
+          forecast_days: payload.forecast_days,
+        });
+        if (cur && !cur.error && Number(cur.version) > 0) {
+          next.version = Number(cur.version) + 1;
+        }
+      } else {
+        next = Object.assign({}, cur && !cur.error ? cur : {}, payload, {
+          version: cur && !cur.error ? Number(cur.version || 0) + 1 : 1,
+        });
+      }
+      const written = writeWeatherState(CAMPAIGN_DIR, next, WEATHER_LOCK);
+      sendJson(res, written, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "weather_save_failed" }, 400);
+    }
+    return;
+  }
+  if (url === "/api/world/summary" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    const mod = String(q.searchParams.get("module") || "").trim();
+    if (!["regions", "agriculture", "transport"].includes(mod)) {
+      sendJson(res, { error: "bad_module" }, 400);
+      return;
+    }
+    try {
+      if (!fs.existsSync(SOT_DASHBOARD_JSON)) {
+        sendJson(res, { error: "summary_missing" }, 404);
+        return;
+      }
+      const all = JSON.parse(fs.readFileSync(SOT_DASHBOARD_JSON, "utf8"));
+      const block = all[mod];
+      if (!block) {
+        sendJson(res, { error: "summary_missing" }, 404);
+        return;
+      }
+      sendJson(
+        res,
+        Object.assign({ module: mod, version: all.version || 1, updated_at: all.updated_at || null }, block),
+        200,
+        0
+      );
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "summary_failed" }, 500);
     }
     return;
   }
