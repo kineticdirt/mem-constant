@@ -268,7 +268,7 @@ Do **not** lock as canon without GM: culprit class, kingdom name, Blackdoor spel
 | `../worldbuilding/swamp/HALKIN-GAUL.md` | GM bible draft (canon vs proposal) |
 | `../LOCKS.md` | Discord-cited locks only |
 | `../players-characters.md` | Roster |
-| `../scenes/swamp-scene.md` | GM-ready playable swamp scene |
+| `../scenes/swamp-scene.md` | **GM-ready playable scene** — Halkin-Gaul arrival from hall steps (aligned to this report) |
 | `../story/halkin-gaul-arrival.md` | Current Story packet |
 | `../discord.json` | Canonical Discord IDs |
 

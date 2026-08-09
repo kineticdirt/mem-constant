@@ -1,267 +1,200 @@
-# Scene — Halkin-Gaul swamp arrival (playable)
+# Scene — Halkin-Gaul arrival (playable next session)
 
-**Status:** GM-ready session card (2026-08-09).  
-**Play clock:** party **just arrived** at town-hall steps — Discord cliffhanger `#main-rp` **2026-07-26**.  
-**Tone:** cold European frontier travel D&D — overcast, mildew, mud, closed mouths. **Not** Tropic / Isla / NYC.
+**Status:** GM-ready · aligned to Discord analysis 2026-08-09.  
+**Play clock:** party **at town-hall steps** — `#main-rp` **2026-07-26 19:59 UTC** cliffhanger (*“begin next session”*).  
+**What this is:** investigation arrival in a settler swamp town — **not** a generic swamp combat crawl.  
+**Tone:** cold European frontier — overcast, mildew, mud, closed mouths. **Not** Tropic / Isla / NYC.
 
-| Related SoT | Role |
-|-------------|------|
-| [`../worldbuilding/swamp/HALKIN-GAUL.md`](../worldbuilding/swamp/HALKIN-GAUL.md) | Town bible |
-| [`../worldbuilding/swamp/APPROACH-AND-EDGES.md`](../worldbuilding/swamp/APPROACH-AND-EDGES.md) | Road geography |
-| [`../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) | Full arc spine (wraith + necromancer **[proposal]**) |
-| [`../analysis/discord-swamp-extract.md`](../analysis/discord-swamp-extract.md) | Discord citations |
-| [`../reports/discord-swamp-scene-analysis.md`](../reports/discord-swamp-scene-analysis.md) | Sibling Discord deep-dive (ids, quotes, gaps) |
-| [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md) | Lock worksheet |
-| [`../players-characters.md`](../players-characters.md) | PC roster index |
-| [`../characters/`](../characters/) | Per-PC sheets (sibling) |
-| [`../story/halkin-gaul-arrival.md`](../story/halkin-gaul-arrival.md) | Current Story packet |
-| Portal | [eurosluts](https://campaigns.tableslop.org/c/eurosluts) |
+**Discord SoT (read first):** [`../reports/discord-swamp-scene-analysis.md`](../reports/discord-swamp-scene-analysis.md)  
+Also: [`../worldbuilding/swamp/HALKIN-GAUL.md`](../worldbuilding/swamp/HALKIN-GAUL.md) · [`APPROACH-AND-EDGES.md`](../worldbuilding/swamp/APPROACH-AND-EDGES.md) · [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md) **[proposal]** · [`../story/halkin-gaul-arrival.md`](../story/halkin-gaul-arrival.md) · [`../characters/`](../characters/) · [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md)
 
 **Tag legend:** **[canon]** Discord-locked · **[proposal]** promote/cut · **[table talk]** player theory only.
 
 ---
 
-## Discord threads that inform this scene
+## Channel scope (from analysis)
 
-Primary play + approach live in **`#main-rp`** (`1495469564060893254`) under Guild Hall category `1477755184607396063`.
+| Channel | ID | Role for *this* scene |
+|---------|-----|------------------------|
+| `#main-rp` | `1495469564060893254` | **Holds swamp play** — job → Blackdoor → Halkin arrival |
+| Guild Hall category | `1477755184607396063` | Parent category |
+| `#campaign-rp` | `1477735120252178453` | **Intake only** (SmithsVille interviews) — not the swamp scene |
+| `#sheets` | `1475174763533176844` | Roster |
 
-| When / what | Channel or thread | Id |
-|-------------|-------------------|-----|
-| Guild brief (swamp job, pay, discretion) | `#main-rp` 2026-05-24 | parent `1495469564060893254` |
-| Road travel + Camila join | `#main-rp` 2026-05-31 | same |
-| Town named Halkin-Gaul; Blackdoor stay | `#main-rp` 2026-06-07+ | same |
-| Chelcins meet; settling-swamps gossip | `#main-rp` 2026-06-14 | same |
-| Mountains → bog → **town arrival cliffhanger** | `#main-rp` 2026-07-26 19:12–19:59 UTC | same (session end 19:59) |
-| *Outhouse investigation* (Blackdoor — routes / witnesses) | thread under `#main-rp` | `1520872806051614814` |
-| *Knife? Oh no, dear…* (Blackdoor murder beat) | thread | `1515805411763290132` |
-| *Sleep* | thread | `1513308759592796231` |
-| Elf to Elf Communication | thread | `1520867916168560783` |
-| Room Clearing | thread | `1520881912409755719` |
-| SmithsVille intake (not swamp scene) | `#campaign-rp` | `1477735120252178453` |
-| First Interview Vyl / Ata / Blaire / Fuyuko | campaign-rp threads | `1477741009650581517` · `1477746632216023313` · `1477749190116376658` · `1477758504264663133` |
-| Character sheets | `#sheets` | `1475174763533176844` |
-| Early “boglin” slang vs goblin board | `#main-guild-hall` 2026-03-08 | `1477755236591468647` |
-
-**Scope note (from Discord analysis):** swamp arrival lives in `#main-rp`, not `#campaign-rp`. Blackdoor threads are **behind** the party geographically but still **emotional cargo** (Vesper, sulfur, trust rot). Do not re-run them as this scene’s climax.
-
-**Gap:** DMs not exported; no `#main-rp` after 2026-07-26. Full quote block: [`../reports/discord-swamp-scene-analysis.md`](../reports/discord-swamp-scene-analysis.md) §4C.
+Blackdoor threads under `#main-rp` (Knife / Sleep / Outhouse / Elf-to-Elf / Room Clearing) are **pre-arrival cargo** — do not re-run as this session’s climax. Full thread table + quotes: analysis §1 and §4C.
 
 ---
 
-## 1. Setup — how the PCs arrive
+## 1. How they got here (already played — summarize, don’t replay)
 
-**[canon]** Ten-day horse-cart job from SmithsVille. Stone road thinned to empty rain and moors. Blackdoor Inn (Vesper stabbed; sulfur). Then hills, snowy peaks, a valley stream, the mountain crossing. Far side: bogs, marshes, tree cover to the horizon. Wooden fingerposts. Mildew. Donkey cart squelching. Cobble-and-plaster houses on a **slight dirt-and-rock rise**. Guard shack of wood and cut stone. Town hall with oak doors and steps. Pipe-smokers on the steps. Session ended as the party pulled up.
+**[canon]** Guild job: investigate distant town — **monsters** + **disappearances**; **discretion**; thin intel; **1000 gp** / **200** up front; ~month; ~**10 days** cart; “far… Swampy… Overcast.”
 
-**Start line for the table:** cart wheels stop in squelch-mud. Rain has not finished. Someone on the steps looks once, looks away, taps pipe ash onto wet stone. The oak doors are closed. This is Halkin-Gaul. The guild seal in your pack still smells like city ink.
+Road: empty stone road / moors → **Blackdoor Inn** (Vesper stabbed, sulfur; Chelcins) → hills → **snowy peaks** / valley stream → **bogs, marshes, tree cover** → wooden signs through bog → mildew → donkey cart into village foot.
 
-**Immediate goals the party already owns [canon]:**
+**Arrival locks [canon, 2026-07-26]:**
 
-- Investigate the town’s **several problems**
-- Monsters (under-defended) + **disappearances**
-- **Discretion**
-- Thin intel; ~month expected; **1000 gp** / **200** already taken
-
-Do not hand them a quest NPC who explains the mystery. Let the hall be awkward.
-
----
-
-## 2. Geography and hazards
-
-### Town proper (Hard Knoll) **[canon shape; name proposal]**
-
-~100–200 homes on the rise. Dirt roads that squelch. Cobble near hall and better houses. Alleys dump toward soft ground. Everything below the rise wants to be wetland again after a hard rain.
-
-| Zone | Footing | Hazard | Notes |
-|------|---------|--------|-------|
-| Hall / square | Cobble + wet stone | Social, not physical | Pipe circle = first filter |
-| Guard shack | Raised, cleaner stone | Political | Who paid for nice cut stone? |
-| Rise edge | Mixed dirt / soft | Dusk disappearances | Shuttered houses |
-| Fingerpost bog | Wooden posts, mud | Sink / wrong turn / night | Some posts lie after storms |
-| Peat / reed flats | Standing water | Stuck cart, fever, dump sites | **[table talk]** mud-as-disposal |
-| Tree belts | Canopy bog | Sound dies; fog | Good for haunt pressure |
-| Mountain foot (behind) | Drier shelves | Exhaustion if backtrack | Exit to Blackdoor road |
-
-**Surface threats the town might admit [proposal]:** fever from standing water, lost carts, opportunistic bandits on the stone road, bog sinkholes. True monster list stays blank until you promote a culprit (see GM-only).
-
-**Travel soft times [proposal]:** hall → deep reeds = ~1 hour if you know the posts; overnight if you do not. Night travel in the wet is how vanishings stay vanished.
+- ~**100–200** homes: cobblestone + white plaster  
+- **Slight raised outcrop** of dirt/rock amid bog  
+- Dirt roads that **squelch**  
+- Locals **seedy**, keep to themselves; scowl/ignore; not pitchfork-hostile  
+- **Guard shack:** wood + artisanal cut stone (stands out)  
+- **Town hall:** larger building, steps, **oak doors**; pipe-smokers on steps  
+- Session ended pulling up — play resumes **here**
 
 ---
 
-## 3. Cast
+## 2. Start line (read-aloud)
 
-### Present (on the rise, session start)
+Cart wheels stop in squelch-mud. Rain has not finished. The oak doors are shut. A few people on the steps smoke pipes; one looks once, looks away, taps ash onto wet stone. Guard shack stone looks *bought*. Mildew under the plaster smell. This is **Halkin-Gaul**. The guild seal still smells like city ink.
 
-| Who | Status | Use |
-|-----|--------|-----|
-| **SorePunks party** (PCs) | **[canon]** | Vyllynn, Fuyuko(+Natsuki), Ata, Leanora, Camila, Gwenevere — sheets in `../characters/`. **Blaire** departed early (Story); do not assume present unless GM says return |
-| Pipe-smokers on hall steps | **[canon]** | First social filter; shrug; wrong names |
-| Guard presence | **[canon]** shack exists | 2–4 on a good day **[proposal]**; peace & tax, not bog patrol |
-| Town clerk / reeve | **[proposal]** | Incomplete missing list; short hours |
-| Settler families / older bog folk | **[proposal]** | Newcomers vs people who never enter the hall |
-
-### Off-screen / behind the party
-
-| Who | Status | Use |
-|-----|--------|-----|
-| SmithsVille guildmaster | **[canon]** | Payee; pigeon mail is slow |
-| Chelcins (Kaelen, Elara, Ghorgash) | **[canon]** met on road | May arrive later; trust rotten after Vesper |
-| **Vesper** | **[canon]** dead at Blackdoor | Sulfur-stab stain; contrast with quiet vanishings |
-| Blackdoor innkeeper + gnomish crew (Biffens et al.) | **[canon]** | Behind them; reusable hub |
-| Culprit spine (wraith / binder) | **[proposal]** in NEXT-ARC | Do not name in hall |
-
-**NPC play tip:** if someone talks too freely, they are wrong, scared, or selling. No friendly innkeeper who hands over the plot.
+**Job they still own:** several problems · monsters · disappearances · discretion · on their own.
 
 ---
 
-## 4. Sensory (read-aloud scraps)
+## 3. Geography on the rise (arrival footprint)
 
-Steal freely; mix; do not dump all at once.
+| Zone | [canon]? | Next-session use |
+|------|----------|------------------|
+| Town-hall steps / oak doors | yes | First questions; discretion test |
+| Guard shack (nice stone) | yes | Official list vs hall shrugs |
+| Dirt streets on outcrop | yes | Walk; watch doors/smoke |
+| Rise edge → soft ground | grounded | Shuttered house; dusk risk |
+| Wooden fingerposts / bog | yes (approach) | Named cut locals won’t name **[proposal]** |
+| Mountain foot (behind) | yes | Exit / backtrack only |
 
-- **Smell:** swamp mildew; wet plaster; pipe tobacco fighting the wet; donkey and cart grease.
-- **Sound:** cart wood complaining; rain that never quite commits; a shutter that never latches; boots on wet cobble; then quiet that feels deliberate.
-- **Sight:** grey plaster waterline; crooked dirt streets; tree cover like a wall on the horizon; oak doors darker than the rain; cut stone on the guard shack that looks *bought*.
-- **Touch / body:** cold in the sleeves; mud sucking a heel; breath fog; a cough that tastes like cellar.
-- **Social temperature:** not pitchforks — indifference with an edge. Strangers are weather: endured, not greeted.
-
----
-
-## 5. Beats — entrance → middle → climax → exit
-
-One session can stop after Beat 3 or push through 5. Escalation days live in NEXT-ARC; this card is the **first swamp session**.
-
-### A. Entrance — hall steps (start)
-
-1. Cart arrives. Smokers clock the party. Discretion test: how loud do you announce a guild investigation?
-2. Oak doors. Clerk hours short or closed. Incomplete list vs “people just go.”
-3. Optional: guard shack first — compare official missing names; note the nicer stone.
-
-**Pressure:** nothing attacks. The win is a tone lock and one soft lead (a wrong name, a chin-point toward the wet, “don’t walk that cut after dusk”).
-
-### B. Middle — rise edge + fingerposts
-
-4. Walk the rise at dusk. Count houses too close to soft ground. Find a **shuttered house** that still has (or lacks) smoke.
-5. Fingerpost survey into the bog. One post points to a peat cut locals will not name.
-6. Optional soft scare: cold on a latch, missing breath, second shadow — enough for **[table talk]** undead/hag arguments, not a full boss fight.
-
-**Pressure:** choose priority — monster complaint vs quiet cousin-search. Guild brief said *several* problems.
-
-### C. Climax — first hard proof or first blood
-
-Pick **one** climax for this session (do not stack all):
-
-| Option | Beat | If you use NEXT-ARC spine |
-|--------|------|---------------------------|
-| **C1 Investigation** | Frost-burn latch + neat boots pile in reeds (no bones) | Clues C2 + C3 |
-| **C2 Haunt** | Cold Ledger pressure on a split party / alone PC | Soft scare or Seed A if adult OK |
-| **C3 Street threat** | 1–2 peat-walkers on a dirt road at dusk (only if party stalled or you want fight) | Escalation Day 3 early |
-| **C4 Social** | Chelcins shadow arrives; Blackdoor murder rides with them | Trust fight, not swamp fight |
-
-Default recommendation: **C1**, then stop — leave Binder/dugout for next session.
-
-### D. Exit — where the scene can leave them
-
-| Exit | Leaves party… | Hooks next |
-|------|----------------|------------|
-| **Lodging on the rise** | Wet beds, one soft lead | Day-2 disappearance or frost on a new door |
-| **Out into Don’t-name cut** | Overnight bog | Haunt / belongings pile / hag decoy |
-| **Back toward mountain foot** | Regroup / pigeon plan | Blackdoor contrast; delay costs lives |
-| **Public accusation with no proof** | Stonewalled | Binder accelerates (NEXT-ARC fail state) |
+Surface hazards the town might admit **[proposal]:** fever, lost carts, sinkholes, road bandits. No named Halkin townsfolk in export — invent only as **[proposal]** and mark them.
 
 ---
 
-## 6. Skill / check suggestions (5e-friendly, not railroad)
+## 4. Cast at session start
 
-Offer these when players declare approaches. Success = better info or safer footing; failure = partial truth, time cost, or attention — not “you may not play.”
+**Present [canon ambient]:** pipe-smokers on steps · guard shack (unnamed) · SorePunks PCs (Vyllynn, Fuyuko+Natsuki, Ata, Leanora, Camila, Gwenevere — see `characters/`; **Blaire** early departure — don’t assume present).
 
-| Approach | Check ideas | Success taste | Failure taste |
-|----------|-------------|---------------|---------------|
-| Read the pipe circle | Insight / Persuasion (low DC if discreet) | Chin-point; one real missing name | Wrong cousin; smokers leave |
-| Push hard in public | Intimidation | Scared half-truth | Square goes cold; guards notice |
-| Compare hall vs guard lists | Investigation | Gap = soft clue C1 | Miss the gap; waste afternoon |
-| Survey fingerposts | Survival / Nature | True post vs storm-twisted | Hours lost; dusk finds you wet |
-| Soft ground at rise edge | Perception / Investigation | Frost latch / wrong smoke | Nothing but mildew (still true) |
-| Track into reeds | Survival | Neat belongings pile | Sinkhole / stuck cart / fever exposure |
-| Detect undead / divine sense | Religion / class feature | Ping that **moves** with fog | No ping in daylight (not absence of threat) |
-| Disease / wet exposure | CON save (optional) | Shrug it off | Exhaustion / fever — town texture |
-| Quiet entry to shuttered house | Stealth / thieves’ tools | Intact scene | Neighbors watch; story spreads |
-| Recall Blackdoor vs swamp pattern | Intelligence (table theory) | Sulfur ≠ cold contrast | Merge mysteries wrongly |
+**Off-screen [canon]:** SmithsVille guildmaster · Chelcins (Kaelen, Elara, Ghorgash; Vesper dead) · Blackdoor staff.
 
-Combat when you choose C2/C3: radiant / turn undead / force matter against incorporeal **[proposal]**; steel alone frustrates. Peat-zombies are slow, grappling, disease-adjacent — terrain is the second enemy.
+**No named Halkin NPCs in Discord** — clerk/reeve/settler faces are **[proposal]** if needed. If someone talks freely, they are wrong, scared, or selling.
 
 ---
 
-## 7. Treasure, hooks, secrets
+## 5. Playable next beats — from hall steps forward
 
-### Player-facing hooks (safe)
+This session = **social + investigation**. Combat is optional late spice only if the table stalls or you escalate; default win is **hard evidence of method**, not a boss kill.
 
-- Guild pay remaining: **800 gp** on delivery of a discreet report (structure as you like).
-- Settler fringe may pay in **food, dry lodging, or a key** if shown hard proof.
-- Guard shack’s nicer stone → follow the money (company? anonymous purse?).
-- Chelcins branch charter ambition → rival credit if they appear.
-- Named peat cut / Don’t-name post → next expedition.
+### Beat A — Hall steps (must open here)
 
-### Player-facing “treasure” that is not gold **[proposal]**
+1. Smokers clock the party. **Discretion:** guild glory vs quiet “looking for lodging / work.”  
+2. Ask about missing people / monsters. Get shrugs, wrong names, mid-sentence stories (matches Camila’s “nobody knows a darn thing”).  
+3. Note who leaves when the topic turns.
 
-- Incomplete missing list (paper clue)
-- Frost-scarred latch (physical evidence)
-- Neat pile of boots/belts (creepy proof of method)
-- Hall tax book scrap in the same hand as a crossed name list (Act II)
+**Win:** tone lock + one soft lead (chin toward wet / “don’t walk that cut after dusk”).
+
+**Checks:** Insight / Persuasion (discreet) · Intimidation (loud — square goes cold).
+
+### Beat B — Inside hall or guard shack
+
+4. Oak doors: clerk hours short/closed **[proposal]**; incomplete missing list.  
+5. Guard shack: compare official names to pipe gossip; ask who paid for cut stone.
+
+**Win:** gap between lists = soft clue (analysis gap: *what evidence vanishings leave* is still unknown — let players discover).
+
+**Checks:** Investigation · Persuasion with junior guard **[proposal]**.
+
+### Beat C — Walk the rise (afternoon → dusk)
+
+6. Count houses too close to soft ground. Shutter that never latches. Smoke where there shouldn’t be — or none where there should.  
+7. Priority fight at table: someone wants a **beast** killed in the reeds; someone else wants a **quiet cousin search**. Guild said *several* problems.
+
+**Win:** one physical anomaly (cold latch, wrong smoke, neat belongings later).
+
+**Checks:** Perception / Investigation · Stealth if entering a shuttered house.
+
+### Beat D — Fingerpost / wet edge (first hard proof)
+
+8. Survey wooden posts into bog. One points to a cut locals won’t name **[proposal]**.  
+9. **Default climax for this session:** neat pile of boots/belts (no bones) **or** frost-scarred latch — proof of *method*, not identity of killer.
+
+**Win:** party can argue undead vs hag vs mud-dump with evidence. Stop here unless table hungry.
+
+**Checks:** Survival / Nature · CON vs wet exposure optional.
+
+### Beat E — Soft scare only (optional)
+
+10. Cold on breath / second shadow / latch frost — enough for **[table talk]** theories. **Not** a full wraith fight unless you choose NEXT-ARC early haunt.
+
+### Beat F — Exit hooks (end session)
+
+| Exit | Leaves them… |
+|------|----------------|
+| Lodging on the rise | Soft lead; overnight may add a new missing name **[proposal]** |
+| Out toward Don’t-name cut | Next session = wet search |
+| Public accusation, no proof | Town stonewalls (fail-soft) |
+| Back toward mountains | Delay; Blackdoor contrast only from memory |
 
 ---
 
-### ⚠ GM-ONLY — do not read aloud
+## 6. Skill / check cheat sheet (5e-friendly)
+
+| Approach | Check | Success | Failure |
+|----------|-------|---------|---------|
+| Read pipe circle | Insight / Persuasion | Chin-point; one true name | Wrong cousin; smokers leave |
+| Loud guild pitch | Intimidation | Scared half-truth | Guards notice; square freezes |
+| Hall vs guard lists | Investigation | Gap = soft clue | Waste afternoon |
+| Fingerposts | Survival / Nature | True vs storm-twisted post | Lost hours; dusk in wet |
+| Rise-edge anomaly | Perception | Frost latch / wrong smoke | Only mildew (still true) |
+| Blackdoor vs vanishing | Intelligence (table) | Sulfur ≠ quiet absence | Force-merge mysteries |
+
+**Do not railroad.** Failure = time cost / bad intel / attention — not “you cannot play.”
+
+---
+
+## 7. Player-facing hooks (safe)
+
+- Remaining pay **~800 gp** for discreet report  
+- Guard stone → follow the money  
+- Monster complaint vs disappearance priority  
+- Chelcins may show later; trust rotten after Vesper  
+- Don’t-name peat cut → next expedition  
+
+---
+
+## ⚠ GM-ONLY — secrets (do not read aloud)
 
 <details>
-<summary>Spoilers — culprit spine, secrets, adult gate, loot</summary>
+<summary>Spoilers — first-session secrets + optional spine</summary>
 
-**Default spine [proposal — promote/cut in define-with-gm]:**  
-Disappearances = **wraith murders** (“Cold Ledger”). A living **necromancer** (“Mire Binder”) binds/feeds the spirit and can summon undead when pressured. Full clue ladder, escalation clock, foil conditions, and adult NC seeds A–E → [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md).
+**What Discord does *not* lock:** cause of disappearances; who hired the guild; evidence left by vanishings; Blackdoor ↔ Halkin link. Fill only via **[proposal]** / `define-with-gm.md`.
 
-**Secrets for this first scene:**
+**Default next-arc spine [proposal — not played]:** wraith (“Cold Ledger”) + living necromancer (“Mire Binder”). Full clue ladder, escalation, foil, adult NC seeds → [`NEXT-ARC-HALKIN-GAUL.md`](../worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md). Do **not** dump this as table fact at hall steps.
 
-1. Pipe circle knows *something* about a cut after dusk; they will not gift it to loud strangers.
-2. Guard stone was paid by settler company money — corruption of priorities, **not** the killer (red herring unless you twist it).
-3. Hag-in-the-reeds rumor is useful fog; hut empty or decoy.
-4. Blackdoor sulfur-stab is a **different tool** by default (fork B soft: Binder hired a living knife on the road). Do not force the merge.
-5. True focus object (bone ring / peat idol / ledger of names) is **not** in the hall — fringe dugout / drowned chapel foundation later.
+**Secrets useful *this* session:**
 
-**Loot if they clear a haunt room or peat edge early [proposal]:**
+1. Smokers know a dusk cut exists; they won’t gift it to loud strangers.  
+2. Fancy guard stone = settler-company money / priority skew — red herring, not the killer (unless you twist).  
+3. Hag-in-reeds = rumor fog; empty/decoy hut if they chase.  
+4. Blackdoor sulfur-stab ≠ disappearance tool by default (fork A/B/C in define-with-gm). Party already doubts “serial stabbing demon” = swamp culprit (Prim 2026-07-26).  
+5. No focus object / binder dugout in the hall — later arc.
 
-- Victim’s coin purse (small; guilt-stained)
-- Iron/salt folk charm (situational vs spirit if you use folklore)
-- Settler company token stamped on the fancy guard stone’s quarry mark
-- No magic sword in session one unless you want to undercut the mystery
+**Combat [proposal, demoted]:** peat-walkers or haunt pressure only if party idle-comfort stalls or you want Day-3 escalation early. This card’s success metric is **evidence**, not a swamp fight XP.
 
-**Adult gate:** NEXT-ARC Seeds A–E are optional 18+ NC. Confirm table lines before Act II. Fade-to-black variants exist. This arrival scene can stay non-sexual.
+**Adult:** Room Clearing / banter adult loot is Blackdoor-era export texture — keep out of player-facing swamp lore unless intentional. NEXT-ARC Seeds A–E optional 18+; arrival session can stay non-sexual.
 
-**Fail-soft:** if the party lodges and socializes without searching the wet, advance a soft Day-2 disappearance overnight — punish idle comfort, not curiosity.
+**Fail-soft:** lodge and party without searching wet → overnight soft disappearance; punish idle comfort, not curiosity.
 
 </details>
 
 ---
 
-## 8. Exits and sequel pointers
+## 8. Open questions for GM
 
-- **Stay in Halkin-Gaul** → NEXT-ARC beats 4–12 (haunt → cut → intel → dugout → foil).
-- **Backtrack Blackdoor** → optional; do not force; sulfur vs cold contrast is enough from memory.
-- **Guild report early** → half-pay / messy partial win table in NEXT-ARC.
-- Portal / availability: https://campaigns.tableslop.org/c/eurosluts
+1. Promote/cut Cold Ledger / Mire Binder?  
+2. Blackdoor ↔ Binder fork A / B / C?  
+3. Who hired the guild?  
+4. Adult NC on / fade / off?  
+5. Blackdoor spelling; kingdom name; boglin = goblin slang only?  
+6. Stop after Beats A–C or push to Beat D hard clue?
 
----
-
-## 9. Open questions for GM
-
-1. Promote or cut **Cold Ledger / Mire Binder** (and Binder’s public cover face)?  
-2. Blackdoor ↔ Binder fork **A / B / C**?  
-3. Who hired the guild (hall / company / anonymous)?  
-4. Adult NC: which Seeds A–E are **on / fade-only / off**?  
-5. Confirm **Blackdoor Inn** spelling; kingdom/duchy name for periphery?  
-6. Lock **boglin** = goblin slang only (Fenrir), not a swamp species?  
-7. Any DM / post–2026-07-26 Discord that overrides arrival text?  
-8. Session length: stop after hall+edge (A–B) or push to first hard clue (C1)?
-
-Tick choices in [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md). Promote by stripping **[proposal]** and adding a `LOCKS.md` line.
+Worksheet: [`../analysis/define-with-gm.md`](../analysis/define-with-gm.md).
 
 ---
 
-*Scribe note: built from swamp SoT + NEXT-ARC **[proposal]** spine; refined 2026-08-09 against `reports/discord-swamp-scene-analysis.md` + `story/halkin-gaul-arrival.md` + `characters/`.*
+*Aligned to [`../reports/discord-swamp-scene-analysis.md`](../reports/discord-swamp-scene-analysis.md) — Halkin-Gaul arrival only; `#main-rp` SoT; `#campaign-rp` intake-only.*
