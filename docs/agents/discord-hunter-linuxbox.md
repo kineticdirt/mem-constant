@@ -142,9 +142,14 @@ Hardline + `detect_dangerous_command` remain. Re-enable real Tirith only with a 
 
 - Model for this profile after configure: **`deepseek/deepseek-v4-flash`**
 - Soul / channel prompts: `campaigns/nyc-mafia-dnd/SOUL-discord-qa.md`
-  - Female GM-helper; adaptive short replies; **@mention required** on Big Apples (Tropic free-response kept)
+  - Display name / persona: **Pepper Quill** (silent sentinel; female GM-helper; can roast; adaptive length)
+  - NYC listen only: `general-ooc-ba`, `general`, `rolly-poley`, `lore-dump`, `campaign-discussion-lore`, `dm-screen` — **exclude** `art`, `characters-ba` (Tropic allowlist kept)
+  - **@mention required** on Big Apples (Tropic free-response kept)
   - **Always obey** Discord user `wholesome.man` (`265909664590331915`)
-  - `display.tool_progress: off` (+ `display.platforms.discord`) — no `search_files` / `session_search` spam in channel
+  - `display.tool_progress: all` (+ `display.platforms.discord`) — tool lines show in channel
+  - `group_sessions_per_user: false` + `display.busy_input_mode: queue` — one reply can cover several speakers
+  - Shutdown/restart notices: **owner DM only** (`scripts/linuxbox/apply-hermes-shutdown-owner-dm.sh`) — not guild/home
+  - Scope apply: `scripts/linuxbox/apply-pepper-quill-discord-scope.sh`
   - `disabled_toolsets: [terminal, session_search]`; lore stub inject from `lore-export/` into channel_prompts
   - Rules stack: **D&D 5e external baseline** + **NYC homebrew internal**
 - SoT ids: `campaigns/nyc-mafia-dnd/discord.json`

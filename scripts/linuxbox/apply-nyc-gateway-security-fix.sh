@@ -111,13 +111,16 @@ if str(init_path) not in inits:
     inits.append(str(init_path))
 term["shell_init_files"] = inits
 
-# --- Quiet Discord display (config mtime → next turn, no restart) ---
+# --- Discord display (config mtime → next turn, no restart) ---
+# tool_progress ON (global + discord) — reverse of quieting pass
 display = cfg.setdefault("display", {})
-display["tool_progress"] = "off"
+display["tool_progress"] = "all"
 display["tool_progress_command"] = False
 display["interim_assistant_messages"] = False
 display["background_process_notifications"] = "off"
 display["cleanup_progress"] = True
+# Queue late messages into the shared turn (multi-speaker batch) instead of interrupt-spam
+display["busy_input_mode"] = "queue"
 platforms_disp = display.setdefault("platforms", {})
 if not isinstance(platforms_disp, dict):
     platforms_disp = {}
@@ -125,7 +128,10 @@ if not isinstance(platforms_disp, dict):
 platforms_disp.setdefault("discord", {})
 if not isinstance(platforms_disp["discord"], dict):
     platforms_disp["discord"] = {}
-platforms_disp["discord"]["tool_progress"] = "off"
+platforms_disp["discord"]["tool_progress"] = "all"
+
+# Shared channel session so one reply can address several people (keep require_mention)
+cfg["group_sessions_per_user"] = False
 
 # NYC channel ids (Big Apples) — strip from free_response; keep Tropic free
 NYC_IDS = {
@@ -212,6 +218,7 @@ print(f"patched {cfg_path}")
 print(f"tirith_enabled={sec.get('tirith_enabled')}")
 print(f"disabled_toolsets={agent.get('disabled_toolsets')}")
 print(f"tool_progress={display.get('tool_progress')} discord={platforms_disp['discord'].get('tool_progress')}")
+print(f"group_sessions_per_user={cfg.get('group_sessions_per_user')} busy_input_mode={display.get('busy_input_mode')}")
 print(f"require_mention={discord.get('require_mention')} free_response_kept={len(frc_kept)}")
 print(f"allowlist_n={len(allow)}")
 PY
@@ -336,7 +343,8 @@ PY
 echo ""
 echo "OK — gateway NOT restarted."
 echo "Check: systemctl --user is-active hermes-gateway-hunter-reckoning"
-echo "Hot next-turn (mtime/dotenv): tool_progress=off, require_mention, channel_prompts, free_response strip."
+echo "Hot next-turn (mtime/dotenv): tool_progress=all, require_mention, channel_prompts, free_response strip."
+echo "group_sessions_per_user=false + busy_input_mode=queue (multi-speaker one-reply)."
 echo "disabled_toolsets (terminal+session_search) + max_turns may need ONE idle reload to bind."
 echo "Tirith off + stub apply immediately via config mtime cache."
 echo "If Discord still mid-approval spam: ignore/deny; send a fresh short message."

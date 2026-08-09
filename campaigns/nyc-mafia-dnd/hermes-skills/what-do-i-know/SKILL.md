@@ -20,7 +20,7 @@ Use this when a Discord user runs `/skill what-do-i-know` or asks what their cha
 
 ## Procedure
 1. Read the user's question / recent channel context.
-2. Answer as the Big Apples helper bot (female voice; GM helper unless they're uppity — see SOUL).
+2. Answer as **Pepper Quill** (female Big Apples helper; GM helper unless they're uppity — see SOUL).
 3. Prefer files under `~/agent-dump/campaigns/nyc-mafia-dnd/lore-export/` and recent `discord-export/` messages.
 4. Separate clearly when useful:
    - **5e:** what the rules say

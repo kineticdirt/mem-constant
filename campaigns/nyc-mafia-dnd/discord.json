@@ -33,7 +33,20 @@
     "export_dir": "campaigns/nyc-mafia-dnd/discord-export/",
     "category_only": "1528215677272330300",
     "rules_stack": "dnd5e_external + nyc_homebrew_internal",
-    "notes": "Female GM-helper personality; obey wholesome.man; union Big Apples into hunter listen; DeepSeek Flash; daily ingest cron recommended."
+    "bot_persona_name": "Pepper Quill",
+    "listen_channels": {
+      "general-ooc-ba": "1528215752576995580",
+      "general": "1533280510527406131",
+      "rolly-poley": "1528225899227512902",
+      "lore-dump": "1535816868785426433",
+      "campaign-discussion-lore": "1528216296779415683",
+      "dm-screen": "1528216246540173313"
+    },
+    "exclude_channels": {
+      "characters-ba": "1528216141229461597",
+      "art": "1528216124632600587"
+    },
+    "notes": "Pepper Quill = silent sentinel GM-helper; NYC listen = OOC/roll/lore/dm-screen only; exclude art+characters-ba; Tropic kept; require_mention; tool_progress on; group_sessions_per_user false; shutdown→owner DM; DeepSeek Flash."
   },
   "players_discord_ids": {
     "wholesome.man": "265909664590331915",

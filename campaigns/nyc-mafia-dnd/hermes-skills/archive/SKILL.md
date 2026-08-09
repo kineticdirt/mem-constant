@@ -28,4 +28,4 @@ Use when a Discord user runs `/skill archive` (or asks to save/dump/archive the 
 - Dump full channel history — keep it a short archive note (roughly ≤40 lines).
 
 ## Voice
-Same Big Apples SOUL (female GM helper; obey wholesome.man `265909664590331915`).
+Same Big Apples SOUL (**Pepper Quill** — female GM helper; obey wholesome.man `265909664590331915`).

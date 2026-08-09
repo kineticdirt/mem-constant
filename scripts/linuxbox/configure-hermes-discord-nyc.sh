@@ -45,7 +45,7 @@ if [[ ! -f "${SOUL}" ]]; then
   exit 1
 fi
 
-# Discover Big Apples channel ids via REST (no discord.py event loop)
+# Discover Big Apples channel ids via REST, then keep listen-only subset
 CATEGORY_ID="${CATEGORY_ID}" CHANNELS_OUT="${CHANNELS_OUT}" ENV_FILE="${ENV_FILE}" python3 - <<'PY'
 import json, os, urllib.request
 from pathlib import Path
@@ -74,20 +74,48 @@ ba = [c for c in ba if int(c.get("type", -1)) in (0, 5, 15)]
 if not ba:
     raise SystemExit(f"no channels under category {category_id}")
 
-ids = [str(c["id"]) for c in ba]
+# Silent-sentinel listen set (OOC/roll/lore/dm-screen). Exclude art + characters-ba.
+LISTEN = {
+    "1528215752576995580",  # general-ooc-ba
+    "1533280510527406131",  # general
+    "1528225899227512902",  # rolly-poley
+    "1535816868785426433",  # lore-dump
+    "1528216296779415683",  # campaign-discussion-lore
+    "1528216246540173313",  # dm-screen
+}
+EXCLUDE = {
+    "1528216141229461597",  # characters-ba
+    "1528216124632600587",  # art
+}
+ids = [str(c["id"]) for c in ba if str(c["id"]) in LISTEN]
+# Prefer declared listen order even if API misses a channel
+for lid in (
+    "1528215752576995580",
+    "1533280510527406131",
+    "1528225899227512902",
+    "1535816868785426433",
+    "1528216296779415683",
+    "1528216246540173313",
+):
+    if lid not in ids:
+        ids.append(lid)
 lines = [
-    f"# Big Apples category {category_id}",
+    f"# Big Apples category {category_id} — listen-only (Pepper Quill)",
     f"DISCORD_NYC_CATEGORY_ID={category_id}",
     "DISCORD_NYC_CHANNELS=" + ",".join(ids),
+    "DISCORD_NYC_EXCLUDE=" + ",".join(sorted(EXCLUDE)),
 ]
-for c in ba:
+by_id = {str(c["id"]): c for c in ba}
+for cid in ids:
+    c = by_id.get(cid, {"id": cid, "name": "listen", "type": "?"})
     safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in c.get("name", "ch"))
     lines.append(f"DISCORD_NYC_CHANNEL_{safe}={c['id']}")
 out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 out_path.chmod(0o600)
-print(f"wrote {out_path} ({len(ids)} channels)")
-for c in ba:
-    print(f"  {c['id']}  type={c.get('type')}  {c.get('name')}")
+print(f"wrote {out_path} ({len(ids)} listen channels; excluded {sorted(EXCLUDE)})")
+for cid in ids:
+    c = by_id.get(cid, {"name": "?", "type": "?"})
+    print(f"  LISTEN {cid}  type={c.get('type')}  {c.get('name')}")
 PY
 
 # Build union channel list
@@ -216,11 +244,14 @@ discord["allowed_channels"] = csv
 discord["free_response_channels"] = ",".join(tropic_free)
 discord["auto_thread"] = False
 discord["no_thread_channels"] = csv
-# Quiet tool chatter on Discord
+# Tool progress ON in Discord (global + platform)
 display = data.setdefault("display", {})
-display["tool_progress"] = "off"
+display["tool_progress"] = "all"
 display["interim_assistant_messages"] = False
-display.setdefault("platforms", {}).setdefault("discord", {})["tool_progress"] = "off"
+display.setdefault("platforms", {}).setdefault("discord", {})["tool_progress"] = "all"
+# Shared room session so one reply can cover several speakers (still require_mention)
+data["group_sessions_per_user"] = False
+display["busy_input_mode"] = "queue"
 # Restrict tool rabbit holes
 agent = data.setdefault("agent", {})
 disabled = list(agent.get("disabled_toolsets") or [])
@@ -245,7 +276,7 @@ cfg_path.write_text(
 print(f"backup {bak}")
 print(f"model -> {model} (prev {prev_default})")
 print(f"allowed ({len(union)}); free_response tropic-only ({len(tropic_free)})")
-print(f"nyc channel_prompts: {len(nyc)} require_mention=true tool_progress=off")
+print(f"nyc channel_prompts: {len(nyc)} require_mention=true tool_progress=all group_sessions_per_user=false")
 print(f"nyc_only={nyc_only}")
 PY
 
@@ -255,6 +286,6 @@ echo "'Gateway shutting down' and turns die. Restart only when Discord is idle:"
 echo "  systemctl --user restart hermes-gateway-hunter-reckoning"
 echo "Prefer: bash scripts/linuxbox/apply-nyc-gateway-security-fix.sh (no restart)."
 echo ""
-echo "Smoke: @AI_RP_Master in #general-ooc-ba. Casual chatter / emoji without @ = ignored."
+echo "Smoke: @Pepper Quill / @AI_RP_Master in #general-ooc-ba. Casual chatter / emoji without @ = ignored."
 echo "Note: DISCORD_ALLOWED_USERS still gates who can talk; add player IDs if needed."
 echo "Tirith note: potato Bullseye (glibc 2.31) — keep security.tirith_enabled=false on hunter."
