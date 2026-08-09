@@ -20,11 +20,16 @@ if (start < 0) {
   process.exit(1);
 }
 const ret = src.indexOf("return `", start);
-const end = src.indexOf("\nfunction viewerHtml()", start);
-if (ret < 0 || end < 0) {
+// worldPageHtml may mention "devlogPageHtml" inside its template string — take the LAST
+// sibling declaration before viewerHtml, not the first string hit.
+const endView = src.indexOf("\nfunction viewerHtml()", start);
+if (ret < 0 || endView < 0) {
   console.error("FAIL: could not bound worldPageHtml template");
   process.exit(1);
 }
+const between = src.slice(start, endView);
+const hits = [...between.matchAll(/\nfunction devlogPageHtml\(\)/g)];
+const end = hits.length ? start + hits[hits.length - 1].index : endView;
 const raw = src.slice(ret + "return `".length, end);
 const close = raw.lastIndexOf("`;");
 const templateBody = raw.slice(0, close);

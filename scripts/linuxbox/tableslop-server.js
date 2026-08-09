@@ -851,10 +851,11 @@ function worldPageHtml() {
     const out = await fetchJson('/api/characters?include_hidden=1', null, 15000);
     if (!out.r.ok) throw new Error('characters ' + out.r.status);
     reg = out.j;
-    $('regMeta').textContent = 'registry v' + (reg.version || '?') + ' · ' + (reg.count || 0) + ' rows';
+    $('regMeta').textContent = 'registry v' + (reg.version || '?') + ' · ' + ((reg.characters && reg.characters.length) || reg.count || 0) + ' rows';
     renderRoster();
     const wanted = selectId || (active && active.id) || (reg.characters[0] && reg.characters[0].id);
-    if (wanted) await select(wanted);
+    // Do not block roster paint on sheet fetch (slow/failed sheet left middle panel blank).
+    if (wanted) select(wanted).catch(function(e) { status('sheet: ' + (e.message || e)); });
   }
   function renderRoster() {
     const q = String($('q').value || '').toLowerCase();
@@ -1973,7 +1974,8 @@ function viewerHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
 <!-- Eager underlay: start 2k fetch during HTML parse (before 100KB+ map JS boots). -->
-<link rel="preload" as="image" href="/map-image?res=2k"/>
+<meta name="tableslop-build" content="2026-08-09-morning-opacity"/>
+<link rel="preload" as="image" href="/map-image?res=2k&v=20260809m"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -2208,6 +2210,7 @@ function viewerHtml() {
   }
   .map-layer--terrain-base img#mapImg {
     display:block; width:100%; height:100%;
+    opacity:1; /* hard visible — do not rely on animation fill */
     border:2px solid transparent;
     border-image:linear-gradient(135deg, var(--pink), var(--cyan)) 1;
     box-shadow:0 0 40px var(--glow-pink), 0 0 80px rgba(1,205,254,.15);
@@ -2553,9 +2556,11 @@ function viewerHtml() {
     0%, 100% { box-shadow: 0 0 40px var(--glow-pink), 0 0 80px rgba(1,205,254,.15); }
     50% { box-shadow: 0 0 55px var(--glow-cyan), 0 0 100px rgba(255,113,206,.2); }
   }
+  /* Transform-only — NEVER animate opacity. Reduced-motion sets duration to 0.01ms and
+     can freeze map-reveal on the from{opacity:0} keyframe → permanent black void. */
   @keyframes map-reveal {
-    from { opacity: 0; transform: scale(0.985); }
-    to { opacity: 1; transform: scale(1); }
+    from { transform: scale(0.985); }
+    to { transform: scale(1); }
   }
   @keyframes card-in {
     from { opacity: 0; transform: translateX(12px); }
@@ -2578,7 +2583,8 @@ function viewerHtml() {
   .hud-setting { animation: shimmer-text 5s ease-in-out infinite .5s; }
 
   .map-stage img#mapImg {
-    animation: map-reveal .5s ease forwards;
+    opacity: 1;
+    animation: map-reveal .5s ease;
     box-shadow: 0 4px 32px rgba(0,0,0,.55);
   }
   .map-tile-layer img {
@@ -2801,6 +2807,13 @@ function viewerHtml() {
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+    /* Prevention: zero-duration + from{opacity:0} forwards left #mapImg invisible. */
+    .map-stage img#mapImg,
+    .map-layer--terrain-base img#mapImg {
+      opacity: 1 !important;
+      animation: none !important;
+      transform: none !important;
+    }
     .fx-scanlines { display: none; }
   }
 
@@ -2859,7 +2872,7 @@ function viewerHtml() {
   <button type="button" class="hud-dock" id="castToggle" aria-pressed="false" title="Cast — expands over info panel">Cast</button>
   <a class="hud-res hud-world" id="worldToggle" href="/world" hidden title="World — separate character studio (admin)">World</a>
   <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
-  <a class="hud-res hud-devlog" id="devLogToggle" href="/devlog" title="Dev calendar — dedicated page (timeline / features / bugs)">dev log</a>
+  <a class="hud-res hud-devlog" id="devLogToggle" href="/devlog" title="Dev calendar — dedicated page (timeline / features / bugs)">DEV LOG</a>
   <div class="hud-auth" id="authSlot"></div>
 </header>
 <div class="draw-bar" id="drawBar" hidden>
@@ -5016,137 +5029,10 @@ function initFeedbackUi() {
   };
 }
 
-/** Dev calendar / Dev log panel — timeline + features + bugs from /api/dev-calendar. */
+/** Dev calendar overlay on the map page — DISABLED.
+ * DEV LOG is a dedicated /devlog page (hard nav). Kept as no-op so any stray call cannot steal the chip. */
 function initDevCalendarUi() {
-  const modal = document.getElementById('dcModal');
-  const openBtn = document.getElementById('devLogToggle');
-  const bodyEl = document.getElementById('dcBody');
-  const adminEl = document.getElementById('dcAdmin');
-  const statusEl = document.getElementById('dcStatus');
-  const form = document.getElementById('dcAddForm');
-  if (!modal || !openBtn || openBtn.dataset.bound) return;
-  // Set bound only after handlers attach — a throw mid-init must not permanently mute the chip.
-  let cache = null;
-
-  function badge(cls, text) {
-    return '<span class="dc-badge dc-badge--' + cls + '">' + escapeHtml(text) + '</span>';
-  }
-  function itemHtml(it, kind) {
-    const st = String(it.status || '').toLowerCase();
-    const sev = String(it.severity || '').toLowerCase();
-    let badges = badge(st || 'planned', st || '—');
-    if (kind === 'bugs' && sev) badges += ' ' + badge(sev, sev);
-    const when = it.when || it.target || '';
-    return '<li class="dc-item">' +
-      '<div class="dc-item-top">' +
-      '<span class="dc-item-title">' + escapeHtml(it.title || it.id || '') + '</span>' +
-      badges +
-      (when ? '<span class="dc-when">' + escapeHtml(when) + '</span>' : '') +
-      '</div>' +
-      (it.notes ? '<p class="dc-notes">' + escapeHtml(it.notes) + '</p>' : '') +
-      '</li>';
-  }
-  function section(title, rows, kind) {
-    if (!rows || !rows.length) {
-      return '<section class="dc-sec"><h4>' + title + '</h4><p class="dc-notes">None yet.</p></section>';
-    }
-    return '<section class="dc-sec"><h4>' + title + '</h4><ul class="dc-list">' +
-      rows.map(function(it) { return itemHtml(it, kind); }).join('') +
-      '</ul></section>';
-  }
-  function render(data) {
-    cache = data;
-    const tl = (data.timeline || []).slice().sort(function(a, b) {
-      return String(a.when || '').localeCompare(String(b.when || ''));
-    });
-    bodyEl.innerHTML =
-      section('Timeline', tl, 'timeline') +
-      section('Features', data.features || [], 'features') +
-      section('Bugs / issues', data.bugs || [], 'bugs') +
-      '<p class="dc-notes" style="margin-top:12px">v' + escapeHtml(String(data.version || 1)) +
-      (data.updated_at ? ' · updated ' + escapeHtml(data.updated_at) : '') + '</p>';
-    const canEdit = meCache && (meCache.can_edit === true ||
-      (meCache.logged_in && (meCache.role === 'owner' || meCache.role === 'admin')));
-    if (adminEl) adminEl.hidden = !canEdit;
-  }
-  async function loadCal() {
-    bodyEl.textContent = 'Loading…';
-    try {
-      const r = await fetch('/api/dev-calendar', { cache: 'no-store' });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
-      render(data);
-    } catch (err) {
-      bodyEl.textContent = 'Failed: ' + err.message;
-    }
-  }
-  function closeModal() {
-    modal.hidden = true;
-    openBtn.classList.remove('is-on');
-    openBtn.setAttribute('aria-pressed', 'false');
-  }
-  function openModal() {
-    modal.hidden = false;
-    openBtn.classList.add('is-on');
-    openBtn.setAttribute('aria-pressed', 'true');
-    if (statusEl) statusEl.textContent = '';
-    loadCal();
-  }
-  openBtn.onclick = function() {
-    if (modal.hidden) openModal();
-    else closeModal();
-  };
-  const closeBtn = document.getElementById('dcCloseBtn');
-  if (closeBtn) closeBtn.onclick = closeModal;
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) closeModal();
-  });
-  if (form) {
-    form.onsubmit = async function(ev) {
-      ev.preventDefault();
-      if (!cache) return;
-      const fd = new FormData(form);
-      const sectionName = String(fd.get('section') || 'bugs');
-      let status = String(fd.get('status') || 'open');
-      if (sectionName === 'features' || sectionName === 'timeline') {
-        if (status === 'open') status = 'planned';
-        if (status === 'fixed') status = 'done';
-      } else if (status === 'planned') status = 'open';
-      if (status === 'done' && sectionName === 'bugs') status = 'fixed';
-      const item = {
-        title: String(fd.get('title') || '').trim(),
-        notes: String(fd.get('notes') || '').trim(),
-        status: status,
-      };
-      const when = String(fd.get('when') || '').trim();
-      if (sectionName === 'timeline') item.when = when || 'TBD';
-      else if (sectionName === 'features') item.target = when || 'TBD';
-      else if (when) item.when = when;
-      const sev = String(fd.get('severity') || '').trim();
-      if (sectionName === 'bugs' && sev) item.severity = sev;
-      if (statusEl) statusEl.textContent = 'Saving…';
-      try {
-        const r = await fetch('/api/dev-calendar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base_version: cache.version,
-            action: 'add',
-            section: sectionName,
-            item: item,
-          }),
-        });
-        const out = await r.json();
-        if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
-        if (statusEl) statusEl.textContent = 'Added ' + (out.item && out.item.id ? out.item.id : 'ok');
-        form.reset();
-        render(out.calendar || out);
-      } catch (err) {
-        if (statusEl) statusEl.textContent = 'Failed: ' + err.message;
-      }
-    };
-  }
-  openBtn.dataset.bound = '1';
+  return;
 }
 
 function markerById(id) {
@@ -6086,7 +5972,26 @@ async function load() {
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
-  // DEV LOG is a dedicated page (/devlog) — same pattern as WORLD → /world.
+  // DEV LOG + WORLD: hard navigate (location.assign). Never overlay; never rely on
+  // default <a> alone if a capture handler cancelable-clicks the HUD.
+  (function bindHardNavChips() {
+    const worldBtn = document.getElementById('worldToggle');
+    if (worldBtn && !worldBtn.dataset.navBound) {
+      worldBtn.dataset.navBound = '1';
+      worldBtn.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        location.assign('/world');
+      });
+    }
+    const devBtn = document.getElementById('devLogToggle');
+    if (devBtn && !devBtn.dataset.navBound) {
+      devBtn.dataset.navBound = '1';
+      devBtn.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        location.assign('/devlog');
+      });
+    }
+  })();
   coordsDirty = Object.keys(profile.coord_overrides || {}).length > 0;
   const castBtn = document.getElementById('castToggle');
   if (castBtn) {
@@ -6208,12 +6113,25 @@ function watchMapArtLoad() {
           return i.complete && i.naturalWidth > 0;
         }).length
       : 0;
+    if (img) {
+      // Belt: never leave CSS animation / reduced-motion fill at opacity 0.
+      img.style.opacity = '1';
+    }
     const underOk = !!(img && img.complete && img.naturalWidth > 0);
-    if (underOk || tilesLoaded > 0) {
+    const visible = underOk && img && getComputedStyle(img).opacity !== '0';
+    if ((underOk && visible) || tilesLoaded > 0) {
       setMapLoadChip('', false);
       return;
     }
     if (Date.now() - started > 10000) {
+      if (underOk && !visible) {
+        setMapLoadChip('Map art loaded but invisible (opacity). Forcing visible — hard-refresh if still black.', true);
+        if (img) {
+          img.style.setProperty('opacity', '1', 'important');
+          img.style.animation = 'none';
+        }
+        return;
+      }
       setMapLoadChip('Map art failed to load — hard-refresh (Ctrl+Shift+R). If still black, report.', true);
       return;
     }
@@ -6242,16 +6160,20 @@ function renderMapPyramid(stage, data, profile) {
   if (terrainBase && underUrl) {
     const img = document.createElement('img');
     img.id = 'mapImg';
-    img.src = underUrl;
+    img.src = underUrl.indexOf('?') >= 0 ? underUrl + '&v=20260809m' : underUrl + '?v=20260809m';
     img.alt = data.title || 'campaign map';
     img.draggable = false;
     img.fetchPriority = 'high';
+    img.style.opacity = '1';
     img.onerror = function() {
       if (data.base_image_url && img.src.indexOf('res=2k') >= 0) {
-        img.src = data.base_image_url;
+        img.src = data.base_image_url + (data.base_image_url.indexOf('?') >= 0 ? '&' : '?') + 'v=20260809m';
         return;
       }
       setMapLoadChip('Map underlay URL failed (HTTP error). Try hard-refresh.', true);
+    };
+    img.onload = function() {
+      img.style.opacity = '1';
     };
     terrainBase.appendChild(img);
   } else {

@@ -58,6 +58,24 @@ if (!templateBody.includes('rel="preload"') || !templateBody.includes("/map-imag
   console.error("FAIL: missing eager preload for /map-image?res=2k");
   process.exit(1);
 }
+// Opacity animation on #mapImg + prefers-reduced-motion 0.01ms → permanent black void.
+if (/@keyframes map-reveal\s*\{[^}]*opacity\s*:\s*0/s.test(templateBody)) {
+  console.error("FAIL: map-reveal must not animate opacity (reduced-motion freeze)");
+  process.exit(1);
+}
+if (!/map-layer--terrain-base img#mapImg[\s\S]*?opacity:\s*1/.test(templateBody)) {
+  console.error("FAIL: #mapImg must set opacity:1 in CSS (not animation-only)");
+  process.exit(1);
+}
+if (!/prefers-reduced-motion: reduce[\s\S]*?map-stage img#mapImg[\s\S]*?opacity:\s*1\s*!important/.test(templateBody)) {
+  console.error("FAIL: reduced-motion must force #mapImg opacity:1 !important");
+  process.exit(1);
+}
+if (!/location\.assign\(\s*['"]\/devlog['"]\s*\)/.test(templateBody) ||
+    !/location\.assign\(\s*['"]\/world['"]\s*\)/.test(templateBody)) {
+  console.error("FAIL: WORLD/DEV LOG must location.assign hard-nav");
+  process.exit(1);
+}
 if (!templateBody.includes('id="mapImg"') && !/img\.id\s*=\s*['"]mapImg['"]/.test(templateBody)) {
   console.error("FAIL: mapImg id path missing from viewer");
   process.exit(1);
@@ -107,5 +125,5 @@ if (/\.join\('\n'\)|\.split\('\n'\)/.test(templateBody)) {
 console.log(
   "OK viewerHtml inline JS parses (" +
     scripts.length +
-    " scripts); pickTileZoom scale-based; preload+mapLoadChip; DEV LOG → /devlog"
+    " scripts); pickTileZoom scale-based; preload+mapLoadChip; opacity-safe mapImg; DEV LOG/WORLD → assign"
 );
