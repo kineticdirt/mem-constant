@@ -1,3 +1,7 @@
+- **2026-08-09T01:52Z** — [PC] **Intent:** Plan Discord posting for NYC history textbook (no send yet) — thread map, keep/soft/delete prior posts, wait GM sign-off. Holder: `nyc-discord-history-plan`.
+
+- **2026-08-09T01:51Z** — [PC] **Result:** NYC history textbook landed — `campaigns/nyc-mafia-dnd/lore-export/09-history-textbook.md` (~358 lines): Parts I–V history (deep past→harbor→~300y spell-industry→gilded rail→present stack); Part VI demographics (visibility + peoples tables + family blood); Part VII manufacturing (foundries/rail/capsules/optics/healing/vice/wages); 〔proposal〕 lines + Appendix B open questions for GM. Updated `00-START-HERE`, README, `LORE-DUMP.md`. Zip refresh: `Downloads/big-apples-lore.zip`. **Awaiting GM review before Discord**; soften/replace heisters forum post still pending. Holder: `nyc-history-textbook`.
+
 - **2026-08-09T02:05Z** — [PC] **Intent:** Draft NYC history-textbook lore (fantasy→modern uneven stack) with demographics + manufacturing — player-safe; for GM review before Discord. Soften/replace heisters forum post later. Holder: `nyc-history-textbook`.
 
 - **2026-08-09T01:58Z** — [PC] **Result:** Posted 5 player-safe lore forum threads to Discord `#campaign-discussion-lore` (1528216296779415683) via AI_RP bot — all 201. Threads: Stack/history · Spell-tech/arms · Five Families+law · Fringe (vampires/lycans/constructs/Below-rumor) · Heister crew start. IDs 1535826690486308884…1535826722954412204. No session-1 spoilers. Holder: `nyc-discord-lore-posts`.
@@ -472,3 +476,7 @@
 ## 2026-08-08 21:48 ET — [PC] Intent: tableslop /world hang + module expand
 
 [PC] Intent: GM /world stuck on checking…; cast empty; Cast/Places/Stories dead. Diagnose potato tableslop; fix init/bindMods (bind mods early; do not block on marked CDN); clear API errors; expand World modules (Regions/Climate/Agriculture/Transport) with SoT under campaigns/tropic-gooner/worldbuilding/. LOCK: no chars-registry; no STREETS.md clobber; no regions-ui wipe. Holder: `tableslop-world-fix-expand`.
+
+## 2026-08-08 21:55 ET — [PC] Result: tableslop /world fix + module expand
+
+[PC] Result (holder `tableslop-world-fix-expand`): Root cause = world inline JS waited on blocking marked CDN + bindMods only after /api/me — UI stuck on checking… with dead module buttons. Fix: defer marked/wiki scripts; bindMods immediately; timed /api/me + cast error chip; /api/me Discord refresh soft-timeout 2.5s. New modules: Regions / Weather / Agriculture / Transport → worldbuilding SoT (REGIONS.md + new CLIMATE/AGRICULTURE/TRANSPORT.md). Deploy: potato sha256 fb048219… matches PC; linuxbox-tableslop active; loopback / = 200; owner /world markers (defer, mod-sot, transport) present; TRANSPORT page API 200. Commit `fcc1ed6` pushed linuxbox master:main + git-bundle applied. GM: hard-refresh https://map.tableslop.org/world.
