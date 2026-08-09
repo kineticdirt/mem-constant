@@ -34,7 +34,7 @@ const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db_20260808-workshop-chat-timeout-r1";
+const DASH_BUILD = "db_20260808-chat-cache-revalidate-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
