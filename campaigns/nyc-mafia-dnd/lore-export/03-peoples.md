@@ -143,7 +143,7 @@ Arepa windows, soccer on warded TV tubes, clerks who calculate three-currency ex
 ### Black New York / Harlem — Humans / Elves / Half-Orcs / Aarakocra
 **Mix:** Human 55% · Elf 28% · Half-Orc 12% · Aarakocra 5%. **Where:** Harlem (Striver's Row, Sugar Hill, the 125th corridor), Bed-Stuy, Brownsville, Newark Central Ward.
 
-Sweet-potato pie, collard greens, hair pomade, jazz clubs with warded basement doors. Elves in sharp zoot suits on Striver's Row; half-orc bouncers reading paperback poetry outside the Velvet Horn; Lenox Avenue humans who know every OCU precinct rotation by the squeak of the police-carriage wheels. *"Don't go to Harlem looking for a wire splice. The birds on the roof see you before the sergeant does."* Independent numbers kings; Chen-Okafor club partnerships; Ashford talent scouts who lose paperwork.
+Sweet-potato pie, collard greens, hair pomade, jazz clubs with warded basement doors. Elves in sharp zoot suits on Striver's Row; half-orc bouncers reading paperback poetry outside the Savoy Salon; Lenox Avenue humans who know every OCU precinct rotation by the squeak of the police-carriage wheels. *"Don't go to Harlem looking for a wire splice. The birds on the roof see you before the sergeant does."* Independent numbers kings; Chen-Okafor club partnerships; Ashford talent scouts who lose paperwork.
 
 **Aarakocra** are individuals, not a flock — pigeon handlers, antenna riggers, lookouts who don't use stairs, feathers under newsboy caps, whistle codes between blocks. Red Hook grain-elevator nest crews; Bed-Stuy chimney repair and dawn gospel that hums the ward-stones wrong; Iron Guild pays per mile flown over the Passaic tank farms.
 

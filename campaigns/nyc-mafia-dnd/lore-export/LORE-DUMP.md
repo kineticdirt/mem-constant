@@ -160,10 +160,12 @@ Madison, Wall Street side doors, Ashford Building limestone. Laundering, politic
 
 ## The law
 
-**OCU** — NYPD magic-aware unit since 1952. Fedoras, trench coats, **ward-sniffers** (brass pocket watch, captive elemental, glows red near residue). Wiretaps = physical splice into speaking-tubes + wax cylinders + a judge's warrant (or a forged one).
+**OCU** — NYPD magic-aware unit since 1952, 1st Precinct Annex at Broadway & Stone. Fedoras, trench coats, **ward-sniffers** (brass pocket watch, captive elemental, glows red near residue). Wiretaps = physical splice into speaking-tubes + wax cylinders + a judge's warrant (or a forged one).
 
 | Name | Role | Notes |
 |------|------|-------|
+| **Capt. Miriam Kostas** | OCU captain | Runs the annex. Hard nose. |
+| **Lt. Marcus Diaz** | OCU | Desk that assigns the sniffer cars. |
 | **Det. Adaeze Chen-Okafor** | OCU | David's sister. Ward-sniffer on a chain. Doesn't take family money; doesn't file the reports that would bury her brother. Currently on a Kowalski dump case — which means she's not looking at you. Yet. |
 | **Dr. Lena Marchetti** | Forensic mage | Civilian contractor. Testimony survived five defense challenges. Brother is a Moretti capo. She doesn't discuss it. |
 
@@ -348,7 +350,7 @@ Arepa windows, soccer on warded TV tubes, clerks who calculate three-currency ex
 ### Black New York / Harlem — Humans / Elves / Half-Orcs / Aarakocra
 **Mix:** Human 55% · Elf 28% · Half-Orc 12% · Aarakocra 5%. **Where:** Harlem (Striver's Row, Sugar Hill, the 125th corridor), Bed-Stuy, Brownsville, Newark Central Ward.
 
-Sweet-potato pie, collard greens, hair pomade, jazz clubs with warded basement doors. Elves in sharp zoot suits on Striver's Row; half-orc bouncers reading paperback poetry outside the Velvet Horn; Lenox Avenue humans who know every OCU precinct rotation by the squeak of the police-carriage wheels. *"Don't go to Harlem looking for a wire splice. The birds on the roof see you before the sergeant does."* Independent numbers kings; Chen-Okafor club partnerships; Ashford talent scouts who lose paperwork.
+Sweet-potato pie, collard greens, hair pomade, jazz clubs with warded basement doors. Elves in sharp zoot suits on Striver's Row; half-orc bouncers reading paperback poetry outside the Savoy Salon; Lenox Avenue humans who know every OCU precinct rotation by the squeak of the police-carriage wheels. *"Don't go to Harlem looking for a wire splice. The birds on the roof see you before the sergeant does."* Independent numbers kings; Chen-Okafor club partnerships; Ashford talent scouts who lose paperwork.
 
 **Aarakocra** are individuals, not a flock — pigeon handlers, antenna riggers, lookouts who don't use stairs, feathers under newsboy caps, whistle codes between blocks. Red Hook grain-elevator nest crews; Bed-Stuy chimney repair and dawn gospel that hums the ward-stones wrong; Iron Guild pays per mile flown over the Passaic tank farms.
 
@@ -450,7 +452,7 @@ Wounds heal easier than stigma. Chronic disease stays until someone pays restora
 
 - **Speaking-tubes** — paired brass, Tube-Layer's Union hubs, Midtown pneumatic mail. Blind splice rooms are bootleg. A tapping clip runs ~$35.
 - **Sending** — VIP appointment, name + object focus. Families pay premium.
-- **"Photos"** — usually not silver chemistry. Mass papers print a **glyph-index** (`TRIB-LANTERN-4471`). You crank a newsstand **verity-lantern** ($0.05) and watch the still project. Real archives are **bound-light plates** ($8–$25 studio). Luxury is **living ink** ($40+) in the Sunday *Herald-Post*. The city sees well and archives badly — no face-search engine, just clerks and pouches.
+- **"Photos"** — usually not silver chemistry. Mass papers print a **glyph-index** (`TRIB-LANTERN-4471`) and a lantern-stand number. You pay $0.05 (or use the day's password in the margin), crank a newsstand **verity-lantern**, and watch the still project. Real archives are **bound-light plates** ($8–$25 studio) — those go to court. Luxury is **living ink** ($40+) in the Sunday *Herald-Post*. The city sees well and archives badly: no face-search engine, just clerks and plate pouches. Trust a sealed plate over a lantern. Trust a tube recording over both — until an Ashford lawyer files an FAB objection. Caption drift is a known comedy (morning **GUILTY**, evening lantern shows acquittal).
 
 ### Rail (magitech\* — spell-fed industry)
 
@@ -465,6 +467,8 @@ Wounds heal easier than stigma. Chronic disease stays until someone pays restora
 A ley locomotive: dwarf ley survey → glyph-warded ties → bound steam spirit in the boiler → *animate objects* on the rods → a **ritual conductor** with a schedule seal, patron rosary, and one audited *word of recall* scroll.
 
 Pemberton prints a timetable. Reality is feast-day stalls, ley interference, and clerks who hate arithmetic. *"When's the train?" "Two-fifteen." "It's two-thirty." "Then it's late." "The board says two-fifteen." "The board's a liar."*
+
+**Who owns the tracks (faces, not just letterheads):** **Silas Pemberton III** — philanthropist wing on Midtown hospital limestone, Green Desk quiet before bond votes, human robber-baron money under a mid-century hat. **Magda Harlan** — dwarf-guild old money out of Greenpoint/Passaic; freight, capsule switch engines, cores the FSA watches. **Cornelis Vandermeer** — Grand Central air rights and the tube trunk under the concourse; Ashford equity on the board. The Commission runs vice. These people rent everyone the infrastructure.
 
 Commuter Newark ↔ Grand Central: **$0.35**. Harlan night freight car: **$85**. Ritual-conductor priority seal (illegal): **$25**.
 

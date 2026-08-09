@@ -80,10 +80,12 @@ Madison, Wall Street side doors, Ashford Building limestone. Laundering, politic
 
 ## The law
 
-**OCU** — NYPD magic-aware unit since 1952. Fedoras, trench coats, **ward-sniffers** (brass pocket watch, captive elemental, glows red near residue). Wiretaps = physical splice into speaking-tubes + wax cylinders + a judge's warrant (or a forged one).
+**OCU** — NYPD magic-aware unit since 1952, 1st Precinct Annex at Broadway & Stone. Fedoras, trench coats, **ward-sniffers** (brass pocket watch, captive elemental, glows red near residue). Wiretaps = physical splice into speaking-tubes + wax cylinders + a judge's warrant (or a forged one).
 
 | Name | Role | Notes |
 |------|------|-------|
+| **Capt. Miriam Kostas** | OCU captain | Runs the annex. Hard nose. |
+| **Lt. Marcus Diaz** | OCU | Desk that assigns the sniffer cars. |
 | **Det. Adaeze Chen-Okafor** | OCU | David's sister. Ward-sniffer on a chain. Doesn't take family money; doesn't file the reports that would bury her brother. Currently on a Kowalski dump case — which means she's not looking at you. Yet. |
 | **Dr. Lena Marchetti** | Forensic mage | Civilian contractor. Testimony survived five defense challenges. Brother is a Moretti capo. She doesn't discuss it. |
 
