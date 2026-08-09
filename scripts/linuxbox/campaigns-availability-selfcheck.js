@@ -85,7 +85,7 @@ const camp = renderCampaign(
   },
   campReq
 );
-if (!camp.includes("Open campaign channel")) throw new Error("discord block");
+if (!camp.includes("Open primary channel")) throw new Error("discord block");
 if (!camp.includes("At a glance")) throw new Error("campaign glance");
 if (!camp.includes("Discord chat track")) throw new Error("chat track heading");
 if (!camp.includes('href="/camp/players"')) throw new Error("campaign nav players");

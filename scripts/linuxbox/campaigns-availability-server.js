@@ -455,10 +455,11 @@ async function collectAvailability() {
       kind: "campaign",
       status: liveCampaignStatus("eurosluts", "tracked"),
       note: euroChat.linked
-        ? `Discord ${euroChat.probe_status}${euroChat.channel_name ? " · #" + euroChat.channel_name : ""}${euroChat.last_activity_label ? " · last " + euroChat.last_activity_label : ""} · player tracker`
+        ? `Discord ${euroChat.probe_status}${euroChat.channel_name ? " · #" + euroChat.channel_name : ""}${euroChat.last_activity_label ? " · last " + euroChat.last_activity_label : ""} · ${((readTracker("eurosluts") || {}).pcs || []).length} PCs · name pending`
         : "Discord IDs missing — player tracker only",
       links: [
-        { label: "Player tracker", href: "/c/euro" },
+        { label: "Player tracker", href: "/c/eurosluts" },
+        { label: "Alias /c/euro", href: "/c/euro" },
         ...(euroChat.url ? [{ label: "Open Discord", href: euroChat.url }] : []),
       ],
       chat: euroChat,
@@ -712,17 +713,28 @@ function renderCampaign(t, req) {
     }</dd></div>
   </dl>
 </section>`;
+  const earlyId = d.early_channel_id ? String(d.early_channel_id) : "";
+  const earlyUrl =
+    earlyId && d.guild_id
+      ? `https://discord.com/channels/${d.guild_id}/${earlyId}`
+      : "";
   const discordBlock = dUrl
     ? `<section class="discord">
   <h2>Discord chat track</h2>
-  <p><a class="big" href="${escapeHtml(dUrl)}">Open campaign channel</a></p>
+  <p><a class="big" href="${escapeHtml(dUrl)}">Open primary channel</a>${
+      earlyUrl
+        ? ` · <a href="${escapeHtml(earlyUrl)}">early channel</a>`
+        : ""
+    }</p>
   <p class="meta">server <code>${escapeHtml(String(d.guild_id || chat.guild_name || ""))}</code>
     · category <code>${escapeHtml(String(d.category_id || ""))}</code>
-    · channel <code>${escapeHtml(String(d.channel_id || ""))}</code></p>
+    · channel <code>${escapeHtml(String(d.channel_id || ""))}</code>${
+      earlyId ? ` · early <code>${escapeHtml(earlyId)}</code>` : ""
+    }</p>
   <p class="meta">Probe: <code>${escapeHtml(chat.probe_status)}</code>
     ${chat.probe_detail ? " — " + escapeHtml(chat.probe_detail) : ""}
     ${chat.channel_name ? " · #" + escapeHtml(chat.channel_name) : ""}
-    ${chat.threads != null ? " · threads≈" + escapeHtml(String(chat.threads)) : ""}</p>
+    ${chat.threads != null ? " · threads≈" + escapeHtml(chat.threads) : ""}</p>
   <p class="meta">Last activity: <code>${escapeHtml(chat.last_activity_label || "unknown")}</code>
     ${chat.last_message_at ? "(" + escapeHtml(chat.last_message_at) + ")" : ""}
     — timestamps only; message text is not shown.</p>
@@ -732,6 +744,19 @@ function renderCampaign(t, req) {
   <h2>Discord</h2>
   <p class="banner">Guild / category / channel IDs not set yet — players cannot deep-link. ${escapeHtml(d.notes || "")}</p>
 </section>`;
+
+  const resourceRows = (t.resources || [])
+    .map(
+      (r) => `<tr>
+      <td>${escapeHtml(r.label || "")}</td>
+      <td><code>${escapeHtml(r.path || r.href || "")}</code></td>
+      <td>${escapeHtml(r.note || "")}</td>
+    </tr>`
+    )
+    .join("");
+  const resourcesBlock = resourceRows
+    ? sectionTable("Campaign docs (repo paths)", ["Label", "Path", "Notes"], resourceRows)
+    : "";
 
   const pcRows = (t.pcs || [])
     .map(
@@ -843,6 +868,7 @@ function renderCampaign(t, req) {
     ${pending}
     ${glance}
     ${discordBlock}
+    ${resourcesBlock}
     ${map}
     <p class="meta">id <code>${escapeHtml(t.id)}</code> · updated <code>${escapeHtml(t.updated_at || "")}</code> · JSON <a href="${escapeHtml(apiPath)}">${escapeHtml(apiPath)}</a></p>
     ${sectionTable("Player characters", ["Name", "Player", "Role", "Notes"], pcRows)}

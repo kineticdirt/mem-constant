@@ -19,3 +19,5 @@
 Optional: Blackdoor sulfur fork A/B/C (see define-with-gm §D).
 
 **Play clock LOCK:** Halkin-Gaul town-hall arrival **2026-07-26**; no later `#main-rp` in export as of 2026-08-09 re-ingest.
+
+**Correction vs early draft:** Blackdoor Inn first appears **2026-06-07** (May 31 = cart departure / Camila road). Full 25-beat table: `campaign-timeline.md`.

@@ -35,8 +35,8 @@ Deep link (campaign-rp): https://discord.com/channels/1265793253798576148/147773
 | Path | Purpose |
 |------|---------|
 | `discord.json` | Canonical Discord IDs |
-| `discord-export/` | Bot export markdown (+ potato dated snapshots) |
-| `analysis/` | Extracts + timeline + define-with-gm |
+| `discord-export/` | Bot export + dated snapshots (`snapshot-2026-08-02/`, `snapshot-2026-08-09/`) |
+| `analysis/` | `campaign-timeline.md` · `define-with-gm.md` · swamp extract |
 | `prep/` | Session-ready pointers → swamp NEXT-ARC |
 | `worldbuilding/swamp/` | Halkin-Gaul + approach + **NEXT-ARC** (canon vs **[proposal]**) |
 | `players-characters.md` | Player ↔ character index |
@@ -49,6 +49,8 @@ cd ~/agent-dump/campaigns/euro-adventure-2026
 # Token: DISCORD_BOT_TOKEN (hunter profile or tropic .env) — do not commit
 python3 export_discord_lore.py --guild 1265793253798576148 --category 1477755184607396063
 python3 export_discord_lore.py --channels 1477735120252178453 1475174763533176844
+# Move fresh Guild Hall / campaign-rp / sheets folders into discord-export/snapshot-YYYY-MM-DD/
+# (keep prior snapshots side-by-side).
 ```
 
 Probe visibility (no message bodies): `python3 scripts/linuxbox/campaign-discord-probe.py`

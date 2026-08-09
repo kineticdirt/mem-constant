@@ -1,60 +1,142 @@
-# Define with GM — Euro Adventure locks worksheet
+# Define with GM — Euro Adventure worksheet
 
-Use this when the GM returns. **Do not** promote **[proposal]** lines in `worldbuilding/swamp/` or rename the tableslop campaign until a row below is marked **LOCK**.
+Answer by circling **one option** (or rewrite the blank). Mark **LOCK** when decided; strip **[proposal]** in swamp docs and add a `LOCKS.md` line with date.
 
-Portal: https://campaigns.tableslop.org/c/eurosluts  
-Repo SoT: `campaigns/euro-adventure-2026/` · Tracker id: `eurosluts` (`name_pending: true`)
-
-Export basis: Discord re-ingest **2026-08-09** (`discord-export/snapshot-2026-08-09/`). Play clock stuck at **Halkin-Gaul arrival 2026-07-26**.
-
----
-
-## A. Original seven swamp questions
-
-| # | Question | Status | Notes / options |
-|---|----------|--------|-----------------|
-| 1 | Confirm inn spelling/name: **Blackdoor Inn** (from GM “The blackdoor in.”)? | **OPEN** | Working lock in LOCKS + swamp pack. Alt spellings only if GM says so. |
-| 2 | Who sent the job to the guildmaster — town hall, merchant factor, church, anonymous purse? | **OPEN** | Discord brief does not name the client. |
-| 3 | Are disappearances **quiet absences**, or do belongings / carts / blood ever turn up? | **OPEN** | Camila: rumors with no useful warning signs. |
-| 4 | Is the Blackdoor sulfur-stab **linked**, **copycat pressure**, or **unrelated** to Halkin-Gaul? | **OPEN** | Table theories only; culprit unconfirmed. |
-| 5 | Kingdom / duchy name for the frontier beyond “periphery regions”? | **OPEN** | Not in export. |
-| 6 | Any map sketch, private notes, or **post–2026-07-26** Discord that should override the swamp draft? | **OPEN** | Re-ingest found **no** later `#main-rp` posts. Check DMs / undeclared channels. |
-| 7 | Lock “boglin” as slang/typo for **goblin** (Fenrir Hills), not a swamp species? | **OPEN** | Player phrasing in May brief; Fenrir job was goblins. |
+**Portal:** https://campaigns.tableslop.org/c/eurosluts  
+**Export:** `discord-export/snapshot-2026-08-09/` · play clock **Halkin-Gaul arrival 2026-07-26**  
+**Full beats:** `campaign-timeline.md`
 
 ---
 
-## B. New decisions (portal / product / continuity)
+## A. Seven swamp confirm questions
 
-| # | Question | Status | Notes / options |
-|---|----------|--------|-----------------|
-| 8 | **Tableslop display name** (replace “Euro Campaign” / path `eurosluts`)? | **OPEN — leave pending** | Evidence: tracker subtitle “was Eurosluts”; repo label “Euro Adventure 2026”; party guild **SorePunks** is *not* a campaign title. **Do not rename** without GM lock. Options to pick later: keep Eurosluts · Euro Adventure 2026 · new proper name · keep “Euro Campaign” forever. |
-| 9 | Canonical **Discord activity channel** for the portal probe? | **PROPOSED (agent)** | Probe now uses `#main-rp` (`1495469564060893254`) for last-activity (real play). `#campaign-rp` remains early SmithsVille + interview deep link. Confirm or revert. |
-| 10 | Mirror **full PC roster** on `/c/eurosluts` from sheets? | **PROPOSED (agent)** | Tracker filled from `players-characters.md` (Discord evidence). Confirm names/roles or edit. |
-| 11 | Schedule row — keep “See Discord” or paste next session time? | **OPEN** | No schedule text found in export after arrival cliffhanger. |
-| 12 | Promote any swamp **[proposal]** (Hard Knoll, clerk, pass name, edge table) to LOCKS? | **OPEN** | Leave proposals until GM marks them. |
-| 13 | Are DMs / private threads in scope for next ingest? | **OPEN** | Known gap; bot cannot read user DMs without opt-in export. |
+### Q1 — Blackdoor name
+GM wrote: “The blackdoor in.”
+
+- [ ] **A** Lock **Blackdoor Inn** as canon spelling  
+- [ ] **B** Other spelling: _______________  
+- [proposal] **A**
+
+**Evidence:** `#main-rp` **2026-06-07 17:44** (not May 31 — that day is cart departure).
+
+### Q2 — Who sent the Halkin job?
+- [ ] **A** Town hall / reeve  
+- [ ] **B** Merchant / factor  
+- [ ] **C** Church  
+- [ ] **D** Anonymous purse  
+- [ ] **E** Other: _______________  
+- [proposal] leave **unknown to party**; reveal later if useful
+
+**Evidence:** brief names problems + pay only — **no client** in export.
+
+### Q3 — Disappearance evidence pattern
+- [ ] **A** Quiet absences only (empty bed / no body)  
+- [ ] **B** Belongings / carts found, people gone  
+- [ ] **C** Blood / signs of struggle sometimes  
+- [ ] **D** Mix — specify: _______________  
+- [proposal] **A** dominant + rare **B** as red herrings
+
+**Evidence:** Camila — settling swamps; rumors with **no useful warning signs** (`2026-06-14`).
+
+### Q4 — Blackdoor murder vs Halkin vanishings
+- [ ] **A** Unrelated  
+- [ ] **B** Same pressure / same faction  
+- [ ] **C** Copycat / opportunistic third party  
+- [ ] **D** Linked but different tools (public stab vs quiet vanish)  
+- [proposal] **D** or **A** — do not merge silently
+
+**Evidence:** sulfur-stab **LOCK**; link **OPEN**.
+
+### Q5 — Kingdom / duchy name
+- [ ] **A** Keep unnamed (“kingdom” / periphery only)  
+- [ ] **B** Name: _______________  
+- [proposal] **A** until you need politics on-screen
+
+**Evidence:** “periphery regions of the kingdom(s)” only — **no proper name**.
+
+### Q6 — Override sources after arrival?
+- [ ] **A** Discord export is enough for now  
+- [ ] **B** I have DMs / notes / map — will paste / attach  
+- [ ] **C** Post–2026-07-26 play exists in a channel the bot cannot see — id: _______________  
+- [proposal] **A** for public channels; **B** if you have private notes
+
+**Evidence:** re-ingest **2026-08-09** — **zero** `#main-rp` after **2026-07-26**.
+
+### Q7 — “Boglin”
+- [ ] **A** Lock as **player slang / typo for goblin** (Fenrir / early board) — not a swamp species  
+- [ ] **B** Boglin is a real local creature distinct from goblins  
+- [ ] **C** Other: _______________  
+- [proposal] **A**
+
+**Evidence:** Mar 8 board = goblins; players say “boglins”; May 24 Vyllynn “boglin den” = that prior job.
 
 ---
 
-## C. Already locked (do not re-ask unless overturning)
+## B. New questions from full-year scrape
 
-See `../LOCKS.md` and `campaign-timeline.md`. Highlights: SmithsVille · Fenrir Hills goblins · Halkin-Gaul job terms · Blackdoor + Vesper murder · approach geography · Halkin arrival description · cast list from sheets/RP · play clock at town hall.
+### Q8 — Campaign display name (tableslop / portal)
+- [ ] Keep **Euro Campaign** / path `eurosluts`  
+- [ ] **Euro Adventure 2026**  
+- [ ] New name: _______________  
+- [ ] Decide later (`name_pending: true`)  
+- [proposal] decide later — **SorePunks is party guild, not campaign title**
+
+### Q9 — Canonical activity channel for portal probe
+- [ ] **`#main-rp`** `1495469564060893254` (real play)  
+- [ ] **`#campaign-rp`** `1477735120252178453` (SmithsVille intake only)  
+- [proposal] **`#main-rp`**
+
+### Q10 — Early board jobs still “done” canon?
+Fenrir goblins + cave + Leanora join + lumber/herbs — treat as completed backstory?
+
+- [ ] **Yes — closed**  
+- [ ] **Soft — may revisit**  
+- [proposal] **Yes — closed**
+
+### Q11 — Are Chelcins still in play after Blackdoor?
+- [ ] **A** They leave the road; not in Halkin  
+- [ ] **B** One or more show up in Halkin later  
+- [ ] **C** Dead/arrested subplot only  
+- [proposal] **A** until you want rivalry heat
+
+### Q12 — Storage / registration channels
+Empty in export — intentional unused?
+
+- [ ] Yes ignore  
+- [ ] Will use later for loot/ledger RP  
+- [proposal] ignore
+
+### Q13 — DMs for next ingest?
+- [ ] Out of scope (guild only)  
+- [ ] Player opt-in export later  
+- [proposal] guild only unless you ask
 
 ---
 
-## D. Next-arc culprit + adult gates (from `NEXT-ARC-HALKIN-GAUL.md`)
+## C. Next-arc spine (optional — from `NEXT-ARC-HALKIN-GAUL.md`)
 
-| # | Question | Status | Notes / options |
-|---|----------|--------|-----------------|
-| 14 | Accept **wraith + necromancer** spine? | **OPEN [proposal]** | Wraith-only / necromancer-only / other |
-| 15 | Names: **Cold Ledger** (wraith) · **Mire Binder** (necromancer)? | **OPEN** | Keep / rename |
-| 16 | Binder cover face + focus object | **OPEN** | Peat cutter / midwife / clerk cousin · bone ring / peat idol / name ledger |
-| 17 | Blackdoor fork | **OPEN** | **A** unrelated · **B** Binder hired knife · **C** apprentice stabbed Vesper |
-| 18 | Adult NC seeds A–E (18+) | **OPEN — tone-gate before Act II** | Each: On / Fade-only / Off — see NEXT-ARC §Adult |
+Only if you want a culprit class now:
 
-## E. How to lock
+| # | Prompt | Choices |
+|---|--------|---------|
+| 14 | Culprit spine | wraith+necromancer · wraith-only · necromancer-only · other ____ · undecided |
+| 15 | Names Cold Ledger / Mire Binder | keep · rename ____ · undecided |
+| 16 | Blackdoor fork | unrelated · Binder-hired knife · apprentice stabbed Vesper |
+| 17 | Adult NC seeds (18+) | review NEXT-ARC §Adult — On / Fade / Off per seed |
 
-1. Answer here (or Hub Inbox) with date.  
-2. Strip **[proposal]** in the swamp file (if promoting setting).  
-3. Add one line to `LOCKS.md` with Discord timestamp or `GM verbal YYYY-MM-DD`.  
-4. If renaming the campaign: set `tracker.json` `title`, `name_pending: false`, update portal — **only after #8**.
+All **[proposal]** until you pick.
+
+---
+
+## D. Already LOCK (do not re-ask)
+
+SmithsVille · Fenrir Hills goblins · Halkin job terms (pay/time/discretion) · Camila road join · Chelcins + Vesper murder · approach mountains→bog · Halkin town description · play clock at town hall · cast list in `players-characters.md`.
+
+---
+
+## E. How to promote
+
+1. Tick options above (chat reply is enough).  
+2. Strip **[proposal]** in the matching swamp file.  
+3. Add `LOCKS.md` line: `GM verbal YYYY-MM-DD` or Discord stamp.  
+4. Campaign rename (#8) only: set tracker `title` + `name_pending: false`.

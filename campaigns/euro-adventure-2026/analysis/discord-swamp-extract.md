@@ -3,7 +3,7 @@
 Export root: `campaigns/euro-adventure-2026/discord-export/`  
 Dated snapshots: `snapshot-2026-08-02/` · `snapshot-2026-08-09/` (sibling ingest may refresh)  
 Primary file: `…/Guild Hall-1477755184607396063/main-rp-1495469564060893254/messages.md`  
-Category summary: `…/Guild Hall-1477755184607396063/category-summary.md` (exported 2026-08-02)  
+Category summary: `…/Guild Hall-1477755184607396063/category-summary.md` (exported **2026-08-09 15:18 UTC**)  
 Origin city color: `…/campaign-rp-1477735120252178453/messages.md` (SmithsVille)
 
 **Gap:** private DMs not in export. Nothing after **2026-07-26** Halkin-Gaul arrival cliffhanger is in export (confirmed again on **2026-08-09** re-ingest).
@@ -43,7 +43,8 @@ Source blocks: `main-rp` ~5520–5524, 6014–6032, 6906, 8721–8833.
 
 | When | Fact |
 |------|------|
-| 2026-05-31 ~dusk | GM: after dwindling cart traffic, rest stop — **“large multi story innn. The blackdoor in.”** (parse as **Blackdoor Inn**) |
+| 2026-05-31 | Cart/mule purchase + leave SmithsVille; Prim road travel (swamp/moors). **Not** Blackdoor yet. |
+| 2026-06-07 17:44 | GM: after dwindling cart traffic, rest stop — **“large multi story innn. The blackdoor in.”** (parse as **Blackdoor Inn**) |
 | Stay | Multi-story; atrium; stables + hay; gnomish kitchen crew; maids/sanitation; three outhouses; soundproofed rooms available; pigeon mail to summon guards |
 | Murder | **Vesper** (Chelcins red tiefling) found stabbed; **sulfur** smell near stairs (Ata); little/no struggle; scream; innkeeper locks guests pending morning guards |
 | Threads | `_Outhouse investigation_-1520872806051614814`, `_Knife_ …`, `Elf to Elf Communication`, `Room Clearing`, `_Sleep_` |

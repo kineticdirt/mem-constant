@@ -126,6 +126,6 @@ Worksheet (locks vs open + portal name decisions): `../../analysis/define-with-g
 4. Is the Blackdoor sulfur-stab **linked**, **copycat pressure**, or **unrelated** to Halkin-Gaul?
 5. Kingdom / duchy name for the frontier beyond “periphery regions”?
 6. Any map sketch, private notes, or post–2026-07-26 Discord that should override this draft? (Re-ingest 2026-08-09: still no later `#main-rp`.)
-7. Lock “boglin” as slang/typo for **goblin** (Fenrir Hills job), not a swamp species?
+7. Lock “boglin” as slang/typo for **goblin** (Fenrir Hills / early board), not a swamp species? — **[proposal] yes** (Mar 8 + May 24).
 
-Mark promotes by stripping **[proposal]** and adding a line to `LOCKS.md` with a Discord timestamp or “GM verbal YYYY-MM-DD”. **Do not** invent answers while GM is away.
+Mark promotes by stripping **[proposal]** and adding a line to `LOCKS.md` with a Discord timestamp or “GM verbal YYYY-MM-DD”. **Do not** invent answers while GM is away. Tick choices in `analysis/define-with-gm.md`.
