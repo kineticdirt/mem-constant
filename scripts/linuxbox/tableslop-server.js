@@ -2418,6 +2418,8 @@ let drawVertDrag = null;
 let drawSelectedVert = null;
 let regionsDirty = false;
 let coordsDirty = false;
+/** Last /api/map marker coords (no localStorage overrides). Used to discard unsaved pin drags. */
+let serverMarkersCache = null;
 let meCache = null;
 let cameraReady = false;
 let cameraSaveTimer = null;
@@ -2977,11 +2979,25 @@ function focusOnMarker(marker, animate) {
 }
 
 function applyCoordOverrides(markers, profile) {
+  // Only while Edit is on. Leftover localStorage overrides must not move pins for viewers
+  // (Hiatus-class bug: drag in edit → exit/refresh without Save → ghost positions).
+  const allow = editMode || (profile && profile.editMode === true);
+  if (!allow) return markers;
   const ov = (profile && profile.coord_overrides) || {};
   return markers.map(function(m) {
     const o = ov[m.id];
     if (!o || o.x_pct == null || o.y_pct == null) return m;
     return { ...m, x_pct: o.x_pct, y_pct: o.y_pct, coord_status: 'manual' };
+  });
+}
+
+function restoreServerMarkerCoords() {
+  if (!mapDataCache || !serverMarkersCache) return;
+  mapDataCache.markers = serverMarkersCache.map(function(m) { return Object.assign({}, m); });
+  refreshPins();
+  (mapDataCache.markers || []).forEach(function(m) {
+    syncLabelForMarker(m.id);
+    if (m.x_pct != null && m.y_pct != null) syncAreaForMarker(m.id, m.x_pct, m.y_pct);
   });
 }
 
@@ -4105,13 +4121,21 @@ function initEditMode(profile) {
   updateEditHint();
   btn.onclick = function() {
     if (meCache && meCache.auth_gating && meCache.can_edit !== true) return;
+    const leavingEdit = editMode;
     editMode = !editMode;
     if (editMode && drawMode) {
       drawMode = false;
       clearDrawVerts();
       syncDrawUi();
     }
-    saveProfile({ editMode });
+    if (leavingEdit && !editMode) {
+      // Discard unsaved pin drags — view must match server SoT (GM pin lock).
+      coordsDirty = false;
+      saveProfile({ editMode: false, coord_overrides: {} });
+      restoreServerMarkerCoords();
+    } else {
+      saveProfile({ editMode });
+    }
     initEditMode(loadProfile());
     refreshPins();
   };
@@ -4134,6 +4158,9 @@ function initEditMode(profile) {
         coordsDirty = false;
         saveBtn.classList.remove('is-dirty');
         saveProfile({ coord_overrides: {} });
+        serverMarkersCache = (mapDataCache.markers || []).map(function(m) {
+          return Object.assign({}, m);
+        });
         saveBtn.textContent = 'Saved ✓';
         window.setTimeout(function() { saveBtn.textContent = 'Save coords'; }, 2000);
       } catch (err) {
@@ -5252,6 +5279,12 @@ async function load() {
   const r = await fetch('/api/map');
   if (r.status === 401) { location.href = '/'; return; }
   const data = await r.json();
+  serverMarkersCache = (data.markers || []).map(function(m) { return Object.assign({}, m); });
+  // Drop stale overrides unless Edit was left ON — otherwise ghost pins diverge from SoT.
+  if (!(profile && profile.editMode === true) && profile.coord_overrides && Object.keys(profile.coord_overrides).length) {
+    saveProfile({ coord_overrides: {} });
+    profile = loadProfile();
+  }
   data.markers = applyCoordOverrides(data.markers || [], profile);
   mapDataCache = data;
   const titleEl = document.getElementById('mapTitle');
