@@ -53,6 +53,8 @@ const REGIONS_UI_JSON = path.join(CAMPAIGN_DIR, "map", "regions-ui.json");
 const COORDS_JSON = path.join(CAMPAIGN_DIR, "map", "coords.json");
 const LAYERS_JSON = path.join(CAMPAIGN_DIR, "map", "layers.json");
 const REGIONS_BOARD = path.join(REPO, "projects", "tableslop", "regions.json");
+/** Product roadmap (features/bugs/timeline) — not diegetic lore. */
+const DEV_CALENDAR_JSON = path.join(REPO, "projects", "tableslop", "dev-calendar.json");
 /** Same SoT as dashboard Chars — read-through only (writes stay on :8790). */
 const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
 const ENTITIES_JSON = path.join(CAMPAIGN_DIR, "wiki", "entities.json");
@@ -1485,6 +1487,28 @@ function viewerHtml() {
   }
   a.hud-res { text-decoration:none; display:inline-flex; align-items:center; }
   .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
+  /* WORLD — neon pink; sits after orange docks, before REPORT */
+  .hud-world {
+    color:#ff2bd6; background:rgba(255,43,214,.14); border-color:#ff2bd6;
+    box-shadow:0 0 14px rgba(255,43,214,.65), 0 0 4px rgba(255,120,255,.9);
+    text-shadow:0 0 8px rgba(255,43,214,.55);
+  }
+  a.hud-world:hover, .hud-world:hover {
+    color:#fff0fb; background:rgba(255,43,214,.28); border-color:#ff7ae8;
+    box-shadow:0 0 18px rgba(255,43,214,.85);
+  }
+  /* DEV LOG — green box after REPORT */
+  .hud-devlog {
+    color:#04140a; background:rgba(57,255,136,.92); border-color:#1dff7a;
+    box-shadow:0 0 12px rgba(57,255,136,.55);
+    font-weight:700;
+  }
+  .hud-devlog:hover {
+    filter:brightness(1.08); color:#021008; border-color:#7dffb0;
+  }
+  .hud-devlog.is-on {
+    background:rgba(30,220,110,.98); box-shadow:0 0 16px rgba(57,255,136,.75);
+  }
   .hud-edit.is-on { border-color:var(--sun); color:var(--sun); box-shadow:0 0 12px rgba(255,251,150,.45); }
   .hud-save { border-color:var(--cyan); color:var(--cyan); }
   .hud-save.is-dirty { border-color:var(--sun); color:var(--sun); animation:lane-breathe 1.2s ease-in-out infinite; }
@@ -1707,6 +1731,74 @@ function viewerHtml() {
   .fb-actions button:disabled { opacity:.4; cursor:not-allowed; }
   .fb-status { margin-top:8px; font-size:.75rem; color:var(--pink); min-height:1.2em; }
   .fb-draw-hint { font-size:.7rem; color:var(--cyan); margin:0 0 8px; }
+  .dc-modal {
+    position:fixed; inset:0; z-index:42; display:flex; align-items:flex-start; justify-content:center;
+    background:rgba(5,0,16,.78); padding:52px 16px 16px; overflow:auto;
+  }
+  .dc-modal[hidden] { display:none !important; }
+  .dc-card {
+    width:min(720px,100%); max-height:min(88vh, 920px); overflow:auto;
+    background:rgba(10,18,14,.97); border:1px solid #1dff7a;
+    box-shadow:0 0 28px rgba(57,255,136,.25); padding:16px 18px 18px;
+  }
+  .dc-card h3 {
+    margin:0 0 4px; font:700 .85rem Orbitron,sans-serif; letter-spacing:.1em;
+    color:#1dff7a; text-transform:uppercase;
+  }
+  .dc-sub { margin:0 0 12px; color:var(--muted); font-size:.75rem; line-height:1.35; }
+  .dc-head { display:flex; align-items:flex-start; gap:10px; }
+  .dc-head .dc-titles { flex:1; min-width:0; }
+  .dc-close {
+    font:700 .65rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    padding:6px 10px; cursor:pointer; border:1px solid rgba(157,143,201,.5);
+    background:transparent; color:var(--muted);
+  }
+  .dc-close:hover { color:var(--pink); border-color:var(--pink); }
+  .dc-sec { margin:14px 0 0; }
+  .dc-sec h4 {
+    margin:0 0 8px; font:700 .68rem Orbitron,sans-serif; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--cyan);
+  }
+  .dc-list { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+  .dc-item {
+    border:1px solid rgba(57,255,136,.22); background:rgba(0,0,0,.28);
+    padding:8px 10px;
+  }
+  .dc-item-top { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; }
+  .dc-item-title { font-size:.9rem; color:var(--text); flex:1; min-width:10rem; }
+  .dc-when, .dc-target { font-size:.72rem; color:var(--muted); }
+  .dc-badge {
+    font-size:.58rem; letter-spacing:.1em; text-transform:uppercase;
+    padding:1px 7px; border:1px solid var(--muted); color:var(--muted); border-radius:8px;
+  }
+  .dc-badge--done, .dc-badge--fixed { border-color:#1dff7a; color:#1dff7a; }
+  .dc-badge--doing { border-color:var(--sun); color:var(--sun); }
+  .dc-badge--planned { border-color:var(--cyan); color:var(--cyan); }
+  .dc-badge--blocked, .dc-badge--open { border-color:var(--pink); color:var(--pink); }
+  .dc-badge--high { border-color:#ff5a5a; color:#ff5a5a; }
+  .dc-badge--med { border-color:var(--sun); color:var(--sun); }
+  .dc-badge--low { border-color:var(--muted); color:var(--muted); }
+  .dc-notes { margin:6px 0 0; font-size:.75rem; color:var(--muted); line-height:1.35; }
+  .dc-admin {
+    margin-top:16px; padding-top:12px; border-top:1px solid rgba(57,255,136,.25);
+  }
+  .dc-admin[hidden] { display:none !important; }
+  .dc-admin h4 { margin:0 0 8px; color:var(--sun); }
+  .dc-admin-form { display:grid; gap:6px; grid-template-columns:1fr 1fr; }
+  .dc-admin-form .dc-span2 { grid-column:1 / -1; }
+  .dc-admin-form input, .dc-admin-form select, .dc-admin-form textarea {
+    font:inherit; font-size:.78rem; background:rgba(0,0,0,.35);
+    border:1px solid rgba(57,255,136,.35); color:var(--text); padding:6px 8px; width:100%;
+    box-sizing:border-box;
+  }
+  .dc-admin-form textarea { min-height:52px; resize:vertical; }
+  .dc-admin-form button {
+    font:700 .68rem Orbitron,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    padding:8px 12px; cursor:pointer; border:1px solid #1dff7a;
+    background:rgba(57,255,136,.15); color:#1dff7a;
+  }
+  .dc-status { margin-top:8px; font-size:.72rem; color:var(--pink); min-height:1.1em; }
+  body.day .dc-card { background:rgba(248,255,250,.98); }
   #fbDrawLayer {
     position:absolute; inset:0; z-index:7; cursor:crosshair;
     background:rgba(255,251,150,.04);
@@ -2208,9 +2300,7 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
   <button type="button" class="hud-res hud-edit" id="editToggle" hidden>Edit</button>
   <button type="button" class="hud-res" id="drawToggle" hidden>Draw borders</button>
-  <a class="hud-res" id="worldToggle" href="/world" hidden title="World — separate character studio (admin)">World</a>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
-  <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
   <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
   <button type="button" class="hud-res hud-3d" id="map3dToggle" aria-pressed="false" title="Toggle 3D overlay on the 2D map (Google Maps-style)">3D</button>
   <a class="hud-res" href="/hunter/" title="Hunter board">Hunter</a>
@@ -2218,6 +2308,9 @@ function viewerHtml() {
   <button type="button" class="hud-dock" id="dockPhone" data-dock="phone" aria-pressed="false" title="Phone (call + text) — expands over cast/info">Phone</button>
   <button type="button" class="hud-dock" id="dockSim" data-dock="sim" aria-pressed="false" title="Sim — expands over cast/info">Sim</button>
   <button type="button" class="hud-dock" id="castToggle" aria-pressed="false" title="Cast — expands over info panel">Cast</button>
+  <a class="hud-res hud-world" id="worldToggle" href="/world" hidden title="World — separate character studio (admin)">World</a>
+  <button type="button" class="hud-res" id="reportToggle" title="Paste a screenshot + note for agents">Report</button>
+  <button type="button" class="hud-res hud-devlog" id="devLogToggle" title="Dev calendar — features, bugs, timeline">dev log</button>
   <div class="hud-auth" id="authSlot"></div>
 </header>
 <div class="draw-bar" id="drawBar" hidden>
@@ -2250,6 +2343,45 @@ function viewerHtml() {
       <button type="button" id="fbCancelBtn">Cancel</button>
     </div>
     <div class="fb-status" id="fbStatus"></div>
+  </div>
+</div>
+<div class="dc-modal" id="dcModal" hidden>
+  <div class="dc-card" role="dialog" aria-labelledby="dcTitle">
+    <div class="dc-head">
+      <div class="dc-titles">
+        <h3 id="dcTitle">Dev calendar</h3>
+        <p class="dc-sub">Product roadmap for this map — timeline, features, known bugs. Estimates are GM-editable.</p>
+      </div>
+      <button type="button" class="dc-close" id="dcCloseBtn">Close</button>
+    </div>
+    <div id="dcBody">Loading…</div>
+    <div class="dc-admin" id="dcAdmin" hidden>
+      <h4>Add (admin)</h4>
+      <form class="dc-admin-form" id="dcAddForm">
+        <select name="section" aria-label="Section" required>
+          <option value="bugs">Bug</option>
+          <option value="features">Feature</option>
+          <option value="timeline">Timeline</option>
+        </select>
+        <select name="status" aria-label="Status">
+          <option value="open">open / planned</option>
+          <option value="doing">doing</option>
+          <option value="done">done / fixed</option>
+          <option value="blocked">blocked</option>
+        </select>
+        <input class="dc-span2" name="title" placeholder="Title" required maxlength="160" />
+        <input name="when" placeholder="When / target (estimate OK)" maxlength="80" />
+        <select name="severity" aria-label="Severity (bugs)">
+          <option value="">severity (bugs)</option>
+          <option value="low">low</option>
+          <option value="med">med</option>
+          <option value="high">high</option>
+        </select>
+        <textarea class="dc-span2" name="notes" placeholder="Notes (optional)" maxlength="800"></textarea>
+        <button type="submit" class="dc-span2">Add item</button>
+      </form>
+      <div class="dc-status" id="dcStatus"></div>
+    </div>
   </div>
 </div>
 <div class="game-shell">
@@ -4372,6 +4504,137 @@ function initFeedbackUi() {
   };
 }
 
+/** Dev calendar / Dev log panel — timeline + features + bugs from /api/dev-calendar. */
+function initDevCalendarUi() {
+  const modal = document.getElementById('dcModal');
+  const openBtn = document.getElementById('devLogToggle');
+  const bodyEl = document.getElementById('dcBody');
+  const adminEl = document.getElementById('dcAdmin');
+  const statusEl = document.getElementById('dcStatus');
+  const form = document.getElementById('dcAddForm');
+  if (!modal || !openBtn || openBtn.dataset.bound) return;
+  openBtn.dataset.bound = '1';
+  let cache = null;
+
+  function badge(cls, text) {
+    return '<span class="dc-badge dc-badge--' + cls + '">' + escapeHtml(text) + '</span>';
+  }
+  function itemHtml(it, kind) {
+    const st = String(it.status || '').toLowerCase();
+    const sev = String(it.severity || '').toLowerCase();
+    let badges = badge(st || 'planned', st || '—');
+    if (kind === 'bugs' && sev) badges += ' ' + badge(sev, sev);
+    const when = it.when || it.target || '';
+    return '<li class="dc-item">' +
+      '<div class="dc-item-top">' +
+      '<span class="dc-item-title">' + escapeHtml(it.title || it.id || '') + '</span>' +
+      badges +
+      (when ? '<span class="dc-when">' + escapeHtml(when) + '</span>' : '') +
+      '</div>' +
+      (it.notes ? '<p class="dc-notes">' + escapeHtml(it.notes) + '</p>' : '') +
+      '</li>';
+  }
+  function section(title, rows, kind) {
+    if (!rows || !rows.length) {
+      return '<section class="dc-sec"><h4>' + title + '</h4><p class="dc-notes">None yet.</p></section>';
+    }
+    return '<section class="dc-sec"><h4>' + title + '</h4><ul class="dc-list">' +
+      rows.map(function(it) { return itemHtml(it, kind); }).join('') +
+      '</ul></section>';
+  }
+  function render(data) {
+    cache = data;
+    const tl = (data.timeline || []).slice().sort(function(a, b) {
+      return String(a.when || '').localeCompare(String(b.when || ''));
+    });
+    bodyEl.innerHTML =
+      section('Timeline', tl, 'timeline') +
+      section('Features', data.features || [], 'features') +
+      section('Bugs / issues', data.bugs || [], 'bugs') +
+      '<p class="dc-notes" style="margin-top:12px">v' + escapeHtml(String(data.version || 1)) +
+      (data.updated_at ? ' · updated ' + escapeHtml(data.updated_at) : '') + '</p>';
+    const canEdit = meCache && (meCache.can_edit === true ||
+      (meCache.logged_in && (meCache.role === 'owner' || meCache.role === 'admin')));
+    if (adminEl) adminEl.hidden = !canEdit;
+  }
+  async function loadCal() {
+    bodyEl.textContent = 'Loading…';
+    try {
+      const r = await fetch('/api/dev-calendar', { cache: 'no-store' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+      render(data);
+    } catch (err) {
+      bodyEl.textContent = 'Failed: ' + err.message;
+    }
+  }
+  function closeModal() {
+    modal.hidden = true;
+    openBtn.classList.remove('is-on');
+    openBtn.setAttribute('aria-pressed', 'false');
+  }
+  function openModal() {
+    modal.hidden = false;
+    openBtn.classList.add('is-on');
+    openBtn.setAttribute('aria-pressed', 'true');
+    if (statusEl) statusEl.textContent = '';
+    loadCal();
+  }
+  openBtn.onclick = function() {
+    if (modal.hidden) openModal();
+    else closeModal();
+  };
+  document.getElementById('dcCloseBtn').onclick = closeModal;
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+  if (form) {
+    form.onsubmit = async function(ev) {
+      ev.preventDefault();
+      if (!cache) return;
+      const fd = new FormData(form);
+      const sectionName = String(fd.get('section') || 'bugs');
+      let status = String(fd.get('status') || 'open');
+      if (sectionName === 'features' || sectionName === 'timeline') {
+        if (status === 'open') status = 'planned';
+        if (status === 'fixed') status = 'done';
+      } else if (status === 'planned') status = 'open';
+      if (status === 'done' && sectionName === 'bugs') status = 'fixed';
+      const item = {
+        title: String(fd.get('title') || '').trim(),
+        notes: String(fd.get('notes') || '').trim(),
+        status: status,
+      };
+      const when = String(fd.get('when') || '').trim();
+      if (sectionName === 'timeline') item.when = when || 'TBD';
+      else if (sectionName === 'features') item.target = when || 'TBD';
+      else if (when) item.when = when;
+      const sev = String(fd.get('severity') || '').trim();
+      if (sectionName === 'bugs' && sev) item.severity = sev;
+      if (statusEl) statusEl.textContent = 'Saving…';
+      try {
+        const r = await fetch('/api/dev-calendar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base_version: cache.version,
+            action: 'add',
+            section: sectionName,
+            item: item,
+          }),
+        });
+        const out = await r.json();
+        if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
+        if (statusEl) statusEl.textContent = 'Added ' + (out.item && out.item.id ? out.item.id : 'ok');
+        form.reset();
+        render(out.calendar || out);
+      } catch (err) {
+        if (statusEl) statusEl.textContent = 'Failed: ' + err.message;
+      }
+    };
+  }
+}
+
 function markerById(id) {
   return (mapDataCache && mapDataCache.markers || []).find(function(m) { return m.id === id; });
 }
@@ -5309,6 +5572,7 @@ async function load() {
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
+  initDevCalendarUi();
   coordsDirty = Object.keys(profile.coord_overrides || {}).length > 0;
   const castBtn = document.getElementById('castToggle');
   if (castBtn) {
@@ -6001,6 +6265,81 @@ function loadRegionsBoard() {
   } catch {
     return null;
   }
+}
+
+function emptyDevCalendar() {
+  return {
+    version: 1,
+    updated_at: new Date().toISOString(),
+    timeline: [],
+    features: [],
+    bugs: [],
+  };
+}
+
+function loadDevCalendar() {
+  if (!fs.existsSync(DEV_CALENDAR_JSON)) return emptyDevCalendar();
+  try {
+    const data = JSON.parse(fs.readFileSync(DEV_CALENDAR_JSON, "utf8"));
+    if (!data || typeof data !== "object") return emptyDevCalendar();
+    return {
+      version: Number(data.version) || 1,
+      updated_at: String(data.updated_at || ""),
+      notes: data.notes ? String(data.notes) : undefined,
+      timeline: Array.isArray(data.timeline) ? data.timeline : [],
+      features: Array.isArray(data.features) ? data.features : [],
+      bugs: Array.isArray(data.bugs) ? data.bugs : [],
+    };
+  } catch {
+    return emptyDevCalendar();
+  }
+}
+
+function slugId(prefix, title) {
+  const base = String(title || "item")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+  return `${prefix}-${base || "item"}-${Date.now().toString(36).slice(-4)}`;
+}
+
+function saveDevCalendarAdd(payload) {
+  const cal = loadDevCalendar();
+  const baseVersion = payload && payload.base_version != null ? Number(payload.base_version) : null;
+  if (baseVersion != null && Number.isFinite(baseVersion) && baseVersion !== cal.version) {
+    const err = new Error("version_conflict");
+    err.code = "version_conflict";
+    err.detail = { version: cal.version, base_version: baseVersion };
+    throw err;
+  }
+  const section = String((payload && payload.section) || "");
+  if (!["timeline", "features", "bugs"].includes(section)) {
+    throw new Error("section must be timeline|features|bugs");
+  }
+  const raw = (payload && payload.item) || {};
+  const title = String(raw.title || "").trim();
+  if (!title) throw new Error("title required");
+  const prefix = section === "bugs" ? "bug" : section === "features" ? "feat" : "tl";
+  const item = {
+    id: String(raw.id || slugId(prefix, title)).slice(0, 80),
+    title: title.slice(0, 160),
+    notes: String(raw.notes || "").trim().slice(0, 800),
+    status: String(raw.status || (section === "bugs" ? "open" : "planned")).slice(0, 24),
+  };
+  if (section === "timeline") item.when = String(raw.when || "TBD").slice(0, 80);
+  if (section === "features") item.target = String(raw.target || raw.when || "TBD").slice(0, 80);
+  if (section === "bugs") {
+    const sev = String(raw.severity || "med").toLowerCase();
+    item.severity = ["low", "med", "high"].includes(sev) ? sev : "med";
+  }
+  cal[section].push(item);
+  cal.version = (Number(cal.version) || 1) + 1;
+  cal.updated_at = new Date().toISOString();
+  const dir = path.dirname(DEV_CALENDAR_JSON);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(DEV_CALENDAR_JSON, JSON.stringify(cal, null, 2) + "\n", "utf8");
+  return { calendar: cal, item };
 }
 
 /** Place-name SoT: markers[].label (then .name). Lore aliases never win on display. */
@@ -7722,6 +8061,34 @@ async function handleRequest(req, res) {
       sendJson(res, result, 200);
     } catch (err) {
       sendJson(res, { error: err.message || "feedback failed" }, 400);
+    }
+    return;
+  }
+  if (url === "/api/dev-calendar" && req.method === "GET") {
+    sendJson(res, loadDevCalendar(), 200, 30);
+    return;
+  }
+  if (url === "/api/dev-calendar" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 64 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      if (payload.action && payload.action !== "add") {
+        throw new Error("only action=add supported");
+      }
+      const result = saveDevCalendarAdd(payload);
+      sendJson(res, result, 200, 0);
+    } catch (err) {
+      if (err && err.code === "version_conflict") {
+        sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
+      } else {
+        sendJson(res, { error: (err && err.message) || "save failed" }, 400);
+      }
     }
     return;
   }

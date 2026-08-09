@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-09T04:09:00Z",
+  "notes": "Product roadmap for map.tableslop.org — GM-editable estimates, not diegetic lore. Dates are rough targets.",
+  "timeline": [
+    {
+      "id": "tl-discord-auth",
+      "title": "Discord OAuth + owner/admin/user roles",
+      "when": "2026-07 (landed)",
+      "status": "done",
+      "notes": "Public view; login required to edit borders/coords/world. SQLite auth DB on potato."
+    },
+    {
+      "id": "tl-gm-borders",
+      "title": "GM-drawn region borders lock",
+      "when": "2026-08 early (landed)",
+      "status": "done",
+      "notes": "regions-ui.json potato-owned; skip-worktree + guard scripts; never wipe GM polys."
+    },
+    {
+      "id": "tl-hud-docks",
+      "title": "Phone / Radio / Sim / Cast HUD docks",
+      "when": "2026-08 (landed)",
+      "status": "done",
+      "notes": "Orange idle → turquoise active; expand over cast/info panel; Cast at end of strip."
+    },
+    {
+      "id": "tl-3d-toggle",
+      "title": "3D overlay toggle on 2D map",
+      "when": "2026-08 (landed)",
+      "status": "done",
+      "notes": "Google Maps-style overlay; PCs/routines stay on 2D when off."
+    },
+    {
+      "id": "tl-world-editor",
+      "title": "World editor (/world) + SoT dashboard",
+      "when": "2026-08-09 (landed)",
+      "status": "done",
+      "notes": "Separate page from map; cast + weather/regions modules; admin-gated."
+    },
+    {
+      "id": "tl-quick-create",
+      "title": "World Quick create / character ingest",
+      "when": "2026-08-09 (landed)",
+      "status": "done",
+      "notes": "Portrait + dump → registry + sheet (no LLM); POST /api/world/characters/ingest."
+    },
+    {
+      "id": "tl-pin-overrides",
+      "title": "Pin localStorage override discipline",
+      "when": "2026-08-09 (mitigated)",
+      "status": "done",
+      "notes": "Discard coord_overrides when Edit is off; restore server markers on Edit exit."
+    },
+    {
+      "id": "tl-dev-calendar",
+      "title": "Dev calendar HUD panel",
+      "when": "2026-08-09 (shipping)",
+      "status": "doing",
+      "notes": "Green dev log chip → timeline / features / bugs; JSON SoT under projects/tableslop/."
+    },
+    {
+      "id": "tl-mobile-map",
+      "title": "Mobile map rebuild",
+      "when": "est. later Aug / TBD",
+      "status": "planned",
+      "notes": "Phone currently stubs map (≤800px); journal + docks only until rebuild."
+    }
+  ],
+  "features": [
+    {
+      "id": "feat-world-editor",
+      "title": "World editor page",
+      "target": "landed 2026-08-09",
+      "status": "done",
+      "notes": "Cast roster, Quick create, weather/SoT cards — not a Hub escape hatch."
+    },
+    {
+      "id": "feat-quick-create",
+      "title": "Quick create character ingest",
+      "target": "landed 2026-08-09",
+      "status": "done",
+      "notes": "Store-only portrait + identity dump."
+    },
+    {
+      "id": "feat-dev-log",
+      "title": "Dev calendar / Dev log on map HUD",
+      "target": "2026-08-09",
+      "status": "doing",
+      "notes": "GM-facing product calendar of features + bugs."
+    },
+    {
+      "id": "feat-phone-apps",
+      "title": "Phone HOME launcher apps (Texts / Contacts / commerce)",
+      "target": "est. mid–late Aug (GM)",
+      "status": "planned",
+      "notes": "Multi-app shell already docks; deepen in-world apps next."
+    },
+    {
+      "id": "feat-cast-on-map",
+      "title": "Cast templates + undo on map product",
+      "target": "est. Sep (GM)",
+      "status": "planned",
+      "notes": "Move more Chars/Stories into map/worldeditor surfaces."
+    }
+  ],
+  "bugs": [
+    {
+      "id": "bug-pin-localstorage",
+      "title": "Pin positions drift via localStorage coord_overrides",
+      "severity": "high",
+      "status": "fixed",
+      "notes": "Mitigated 2026-08-09: ignore/discard overrides when Edit off. Hard-refresh if stale client still holds overrides."
+    },
+    {
+      "id": "bug-mobile-map",
+      "title": "Mobile map blocked (intentional stub)",
+      "severity": "med",
+      "status": "open",
+      "notes": "≤800px hides map viewport; stub copy points to desktop. Rebuild tracked as timeline tl-mobile-map."
+    },
+    {
+      "id": "bug-free-model-429",
+      "title": "OpenRouter :free 429 independent of USD balance",
+      "severity": "med",
+      "status": "open",
+      "notes": "Ops/chat concern more than map UI; failover must rotate free pool."
+    }
+  ]
+}
