@@ -434,3 +434,7 @@
 [PC] Intent: GM reports `/world` shows "just the cast"; screenshot is 1024×515 and the page's 1100px breakpoint stacks the grid Cast-first, pushing sheet/editor below the fold. Change `/world` grid minimums, move collapse to 900px, and order sheet/editor before roster when stacked. Deploy `tableslop-server.js` to potato, restart `linuxbox-tableslop`, verify header/grid markers. Holder: `tableslop-world-responsive`.
 
 [PC] Result: `/world` responsive fix live. Remote `tableslop-server.js` sha256 matches PC `5988c584…1660`; markers verified (`World editor`, `max-width: 900px`, `edit-wrap`). `linuxbox-tableslop` restarted and `systemctl is-active` = active; loopback `/` = 200, `/world` anon = 302 → `/login?next=/world`. At ~1024px the studio now stays three-column; if a narrower window ever stacks, sheet/edit come before Cast. Hard-refresh the `/world` tab.
+
+## 2026-08-08 19:56 ET — [PC] Intent: remove Hub Chars; make `/world` a real world editor
+
+[PC] Intent: GM correction — tableslop should not link out to Hub Chars, and `/world` must be a world editor, not a cast-only page. Changes: remove Hub Chars from the `/world` header; add module nav (Cast / Places / Stories & notes); add Places editor backed by `campaigns/tropic-gooner/wiki/entities.json` with version check + multitask lock + revision backup; add Stories & notes markdown editor for whitelisted campaign roots with sha256 conflict check + `.bak` backup. Deploy `tableslop-server.js`, restart `linuxbox-tableslop`, verify anon gates and route markers. Holder: `tableslop-world-real-editor`.

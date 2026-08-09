@@ -41,18 +41,18 @@ HUD (admin/owner only): **Edit** · **Draw borders** · **World → /world** · 
 HUD (user): Login→Logout · **My char** (when linked) · Cast/Phone/Radio/Sim view  
 HUD (anon): **Login** · view map
 
-`/world` is the dedicated character-modification dashboard: roster, large rendered sheet, WoD fit checklist, notes/additions, relations, portrait pick. It writes only through version-checked `characters-registry.json` persistence (base_version + lock + revision backup). Heavy merge/upload stays available in Hub Chars.
+`/world` is the dedicated world editor dashboard: **Cast** (roster, large rendered sheet, WoD fit checklist, notes/additions, relations, portrait pick), **Places** (places/orgs/schools/factions/years backed by `wiki/entities.json`), and **Stories & notes** (whitelisted campaign markdown editor). Writes go through version-checked/locked persistence (`characters-registry.json` base_version + lock + revision backup; `entities.json` version + lock + revision backup; markdown pages sha256 conflict check + `.bak`). No Hub Chars escape hatch on tableslop.
 
 ## World page modules (v1 — `/world`)
 
 Opened from HUD **World** as a separate page:
 
-1. **Chars** — roster + large rendered sheet + edit fields/notes/relations; admin merge/upload stays Hub/Chars or later parity  
-2. **Stories** — later (reader surface)  
-3. **Places** — place maker → `wiki/entities.json`  
-4. **Quests** — quest maker (no former-PC questgivers)  
-5. **Questions** — character question packs  
-6. *(later)* Highways / traffic, orgs, years  
+1. **Cast** — roster + large rendered sheet + edit fields/notes/relations; admin merge/upload stays Hub-side only, not linked from tableslop
+2. **Places** — ✅ place/org/school/faction/year editor → `wiki/entities.json` (version + lock + revision backup)
+3. **Stories & notes** — ✅ whitelisted campaign markdown editor (`story/`, `worldbuilding/`, `reports/`, `places/`, `characters/`, `Things and Places of Note/`, `Plot Lines/`) with sha256 conflict check
+4. **Quests** — later (needs a structured quest SoT; do not invent quest debt for former PCs)
+5. **Questions** — covered as world docs until/unless a structured pack SoT is wanted
+6. *(later)* Highways / traffic, orgs deep editor, years
 
 Hub Chars/Stories: **copy + link** — Hub remains; map World tools are play/GM home for Isla.
 
@@ -62,11 +62,11 @@ Hub Chars/Stories: **copy + link** — Hub remains; map World tools are play/GM 
 |-------|-------------|
 | **O0** | ✅ OAuth env live + login smoke |
 | **H1** | ✅ HUD role chrome: hide edit tools for `user`/anon; World chip links to separate page |
-| **W1** | ✅ `/world` full-page character studio; `/worldeditor` → `/world`; old map World panel removed |
-| **W2** | Chars tools parity bits vs Hub (upload/merge shortcuts) |
-| **W3** | Stories surface |
-| **W4** | Places + Quests makers |
-| **W5** | Questions / templates / bak undo |
+| **W1** | ✅ `/world` full-page world editor; `/worldeditor` → `/world`; old map World panel removed |
+| **W2** | Chars tools parity bits vs Hub (upload/merge shortcuts) — Hub stays separate, not linked |
+| **W3** | ✅ Stories & notes markdown surface |
+| **W4** | ✅ Places editor; Quests maker still pending structured SoT |
+| **W5** | Questions/templates/bak undo (questions currently editable as world docs) |
 
 ## Standing locks
 

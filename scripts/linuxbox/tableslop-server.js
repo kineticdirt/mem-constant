@@ -11,6 +11,7 @@ const http = require("http");
 const path = require("path");
 const { TableslopAuth, EDIT_ROLES } = require("./tableslop-auth.js");
 const { writeRegistryFile, VersionConflictError } = require("./chars-registry-persist.js");
+const { acquire: acquireStateLock, release: releaseStateLock } = require("./multitask-lock");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
@@ -48,6 +49,8 @@ const LAYERS_JSON = path.join(CAMPAIGN_DIR, "map", "layers.json");
 const REGIONS_BOARD = path.join(REPO, "projects", "tableslop", "regions.json");
 /** Same SoT as dashboard Chars — read-through only (writes stay on :8790). */
 const REGISTRY_JSON = path.join(CAMPAIGN_DIR, "characters-registry.json");
+const ENTITIES_JSON = path.join(CAMPAIGN_DIR, "wiki", "entities.json");
+const WORLD_PAGE_ROOTS = ["story", "worldbuilding", "reports", "places", "characters", "Things and Places of Note", "Plot Lines"];
 const FEEDBACK_DIR = path.join(REPO, "reports", "tableslop-feedback");
 const USER_TASKS_JSON = path.join(REPO, "agents", "user-tasks.json");
 const FEEDBACK_MAX_BYTES = 2.5 * 1024 * 1024;
@@ -325,13 +328,17 @@ function worldPageHtml() {
   * { box-sizing:border-box; }
   body { margin:0; min-height:100vh; background:radial-gradient(circle at 20% 0%, rgba(185,103,255,.22), transparent 34%), radial-gradient(circle at 90% 10%, rgba(1,205,254,.16), transparent 30%), var(--void); color:var(--text); font-family:"Share Tech Mono", ui-monospace, monospace; }
   a { color:var(--cyan); }
-  header { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid rgba(185,103,255,.35); background:rgba(5,2,8,.88); position:sticky; top:0; z-index:5; }
+  header { display:flex; align-items:center; flex-wrap:wrap; gap:12px; padding:12px 16px; border-bottom:1px solid rgba(185,103,255,.35); background:rgba(5,2,8,.88); position:sticky; top:0; z-index:5; }
   .brand { font:700 .95rem Orbitron,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--pink); text-shadow:0 0 14px rgba(255,113,206,.45); }
   .title { font:700 .78rem Orbitron,sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--sun); }
   .spacer { flex:1; }
   .chip { border:1px solid var(--purple); border-radius:999px; padding:4px 10px; color:var(--muted); font-size:.72rem; }
   .btn { font:inherit; font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--cyan); background:rgba(1,205,254,.08); border:1px solid var(--cyan); border-radius:4px; padding:7px 10px; cursor:pointer; text-decoration:none; display:inline-block; }
   .btn:hover { box-shadow:0 0 12px rgba(1,205,254,.35); }
+  .mods { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .modbtn { font:inherit; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:transparent; border:1px solid rgba(169,143,196,.4); border-radius:999px; padding:6px 10px; cursor:pointer; }
+  .modbtn.is-active { color:var(--sun); border-color:var(--sun); background:rgba(255,251,150,.08); }
+  .places-grid, .docs-grid { display:grid; grid-template-columns:minmax(240px,320px) minmax(0,1fr); gap:14px; align-items:start; }
   .btn.warn { color:var(--sun); border-color:var(--sun); background:rgba(255,251,150,.08); }
   .btn.danger { color:var(--pink); border-color:var(--pink); background:rgba(255,113,206,.08); }
   main { padding:16px; }
@@ -370,7 +377,7 @@ function worldPageHtml() {
   .status { min-height:1.2em; margin-top:10px; color:var(--sun); font-size:.78rem; }
   .rel { display:flex; gap:6px; align-items:center; margin:6px 0; color:var(--muted); font-size:.74rem; }
   .rel button { flex:0 0 auto; }
-  @media (max-width: 900px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } .sheet-wrap { order:-2; } .edit-wrap { order:-1; } }
+  @media (max-width: 900px) { #app { grid-template-columns:1fr; } .col { min-height:auto; } .roster { max-height:40vh; } .sheet-wrap { order:-2; } .edit-wrap { order:-1; } .places-grid, .docs-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -379,8 +386,13 @@ function worldPageHtml() {
   <span class="title">World editor</span>
   <span class="chip" id="who">checking…</span>
   <span class="spacer"></span>
+  <nav class="mods" id="mods" aria-label="World modules">
+    <button class="modbtn is-active" type="button" data-mod="cast">Cast</button>
+    <button class="modbtn" type="button" data-mod="places">Places</button>
+    <button class="modbtn" type="button" data-mod="docs">Stories &amp; notes</button>
+  </nav>
+  <span class="spacer"></span>
   <a class="btn" href="/">← Map</a>
-  <a class="btn warn" id="hubChars" href="https://abhinavall.net/Linuxbox/?tab=characters&campaign=tropic-gooner" target="_blank" rel="noopener">Hub Chars</a>
   <a class="btn danger" href="/auth/logout">Logout</a>
 </header>
 <main>
@@ -389,7 +401,7 @@ function worldPageHtml() {
     <p id="gateMsg" style="color:var(--muted)">Checking access…</p>
     <p><a class="btn" id="gateLink" href="/login?next=/world">Continue</a></p>
   </section>
-  <section id="app" hidden>
+  <section id="app" class="mod" hidden>
     <aside class="col">
       <h2>Cast</h2>
       <div class="pad roster-tools">
@@ -437,6 +449,68 @@ function worldPageHtml() {
       </div>
     </aside>
   </section>
+  <section id="mod-places" class="mod" hidden>
+    <div class="places-grid">
+      <aside class="col">
+        <h2>Places &amp; orgs</h2>
+        <div class="pad roster-tools">
+          <input id="eq" placeholder="Search name / alias / fact" autocomplete="off"/>
+          <div class="row">
+            <input id="eNewName" placeholder="New place/org name"/>
+            <select id="eNewKind" style="flex:0 0 104px"><option value="place">place</option><option value="org">org</option><option value="school">school</option><option value="faction">faction</option><option value="year">year</option></select>
+            <button class="btn" id="eAddBtn" type="button" style="flex:0 0 auto">Add</button>
+          </div>
+          <div class="chip" id="entMeta">entities …</div>
+        </div>
+        <ul class="roster pad" id="entList"></ul>
+      </aside>
+      <section class="col">
+        <h2>Place editor</h2>
+        <div class="pad">
+          <label for="e_id">Id</label><input id="e_id" readonly/>
+          <div class="row">
+            <div><label for="e_kind">Kind</label><input id="e_kind" list="kindList"/><datalist id="kindList"><option value="place"></option><option value="org"></option><option value="school"></option><option value="faction"></option><option value="year"></option></datalist></div>
+            <div><label for="e_region">Region</label><input id="e_region" list="regionList"/><datalist id="regionList"></datalist></div>
+          </div>
+          <label for="e_name">Name</label><input id="e_name"/>
+          <label for="e_aliases">Aliases (comma)</label><input id="e_aliases"/>
+          <label for="e_location">Location</label><input id="e_location"/>
+          <label for="e_facts">Facts (one per line)</label><textarea id="e_facts"></textarea>
+          <label for="e_related">Related entity ids (comma)</label><input id="e_related"/>
+          <div class="row" style="margin-top:14px">
+            <button class="btn warn" id="eSaveBtn" type="button">Save place</button>
+            <button class="btn" id="eReloadBtn" type="button">Reload</button>
+          </div>
+          <div class="status" id="estatus"></div>
+        </div>
+      </section>
+    </div>
+  </section>
+  <section id="mod-docs" class="mod" hidden>
+    <div class="docs-grid">
+      <aside class="col">
+        <h2>Stories &amp; notes</h2>
+        <div class="pad roster-tools">
+          <input id="dq" placeholder="Search path" autocomplete="off"/>
+          <div class="chip" id="docMeta">pages …</div>
+        </div>
+        <ul class="roster pad" id="docList"></ul>
+      </aside>
+      <section class="col">
+        <h2 id="docTitle">Page</h2>
+        <div class="pad">
+          <div class="chip" id="docPath">pick a page</div>
+          <label for="docText" style="margin-top:10px">Markdown</label>
+          <textarea id="docText" style="min-height:calc(100vh - 260px)"></textarea>
+          <div class="row" style="margin-top:14px">
+            <button class="btn warn" id="docSaveBtn" type="button">Save page</button>
+            <button class="btn" id="docReloadBtn" type="button">Reload</button>
+          </div>
+          <div class="status" id="dstatus"></div>
+        </div>
+      </section>
+    </div>
+  </section>
 </main>
 <script>
 (function () {
@@ -481,6 +555,7 @@ function worldPageHtml() {
     for (const id of ['f_name','f_role','f_status','f_player','f_aliases','f_story','f_image','f_hidden','f_notes']) {
       $(id).addEventListener('input', () => status('unsaved changes'));
     }
+    bindMods();
   }
   async function loadRegistry(selectId) {
     const r = await fetch('/api/characters?include_hidden=1', { cache: 'no-store' });
@@ -618,6 +693,182 @@ function worldPageHtml() {
     }
     $('newName').value = '';
     await loadRegistry(j.id);
+  }
+  let entities = null;
+  let activeEnt = null;
+  let pages = [];
+  let activePage = null;
+  let pageSha = '';
+  function estatus(msg) { $('estatus').textContent = msg || ''; }
+  function dstatus(msg) { $('dstatus').textContent = msg || ''; }
+  function bindMods() {
+    $('mods').querySelectorAll('button[data-mod]').forEach((b) => {
+      b.onclick = () => showMod(b.getAttribute('data-mod'));
+    });
+    $('eq').addEventListener('input', renderEntities);
+    $('eAddBtn').onclick = addEntity;
+    $('eSaveBtn').onclick = saveEntity;
+    $('eReloadBtn').onclick = () => loadEntities(activeEnt && activeEnt.id);
+    for (const id of ['e_kind','e_region','e_name','e_aliases','e_location','e_facts','e_related']) {
+      $(id).addEventListener('input', () => estatus('unsaved changes'));
+    }
+    $('dq').addEventListener('input', renderDocs);
+    $('docSaveBtn').onclick = saveDoc;
+    $('docReloadBtn').onclick = () => { if (activePage) loadDoc(activePage); };
+    $('docText').addEventListener('input', () => dstatus('unsaved changes'));
+  }
+  function showMod(name) {
+    $('mods').querySelectorAll('button[data-mod]').forEach((b) => {
+      b.classList.toggle('is-active', b.getAttribute('data-mod') === name);
+    });
+    document.querySelectorAll('main .mod').forEach((s) => { s.hidden = true; });
+    const el = name === 'cast' ? $('app') : $('mod-' + name);
+    if (el) el.hidden = false;
+    if (name === 'places' && !entities) loadEntities(null).catch((e) => estatus('load failed: ' + (e.message || e)));
+    if (name === 'docs' && !pages.length) loadDocs().catch((e) => dstatus('load failed: ' + (e.message || e)));
+  }
+  function entById(id) {
+    return (entities && entities.entities || []).find((e) => String(e.id) === String(id)) || null;
+  }
+  async function renderRegionsDatalist() {
+    try {
+      const r = await fetch('/api/regions', { cache: 'no-store' });
+      const j = await r.json();
+      const regs = Array.isArray(j.regions) ? j.regions : [];
+      $('regionList').innerHTML = regs.map((x) => '<option value="' + esc(x.id) + '">' + esc(x.name || x.id) + '</option>').join('');
+    } catch (e) { /* datalist stays empty */ }
+  }
+  async function loadEntities(selectId) {
+    estatus('loading…');
+    const r = await fetch('/api/world/entities', { cache: 'no-store' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ('entities ' + r.status));
+    entities = j;
+    $('entMeta').textContent = 'entities v' + (j.version || '?') + ' · ' + (j.entities || []).length + ' rows';
+    renderRegionsDatalist();
+    renderEntities();
+    const wanted = selectId || (activeEnt && activeEnt.id) || (j.entities[0] && j.entities[0].id);
+    if (wanted) selectEntity(wanted);
+    estatus('');
+  }
+  function renderEntities() {
+    if (!entities) return;
+    const q = String($('eq').value || '').toLowerCase();
+    const list = (entities.entities || []).filter((e) => {
+      const hay = [e.id, e.kind, e.name, (e.aliases || []).join(' '), e.location, e.region_id, (e.facts || []).join(' ')].join(' ').toLowerCase();
+      return !q || hay.includes(q);
+    });
+    $('entList').innerHTML = list.map((e) => {
+      return '<li><button type="button" class="rost' + (activeEnt && activeEnt.id === e.id ? ' is-active' : '') + '" data-id="' + esc(e.id) + '"><span class="face">' + esc(String(e.kind || '?').slice(0, 1).toUpperCase()) + '</span><span><strong>' + esc(e.name || e.id) + '</strong><span>' + esc([e.kind, e.region_id].filter(Boolean).join(' · ')) + '</span></span></button></li>';
+    }).join('') || '<li class="chip">No matches.</li>';
+    $('entList').querySelectorAll('button[data-id]').forEach((b) => { b.onclick = () => selectEntity(b.getAttribute('data-id')); });
+  }
+  function selectEntity(id) {
+    activeEnt = entById(id);
+    if (!activeEnt) return;
+    renderEntities();
+    $('e_id').value = activeEnt.id || '';
+    $('e_kind').value = activeEnt.kind || 'place';
+    $('e_region').value = activeEnt.region_id || '';
+    $('e_name').value = activeEnt.name || '';
+    $('e_aliases').value = (activeEnt.aliases || []).join(', ');
+    $('e_location').value = activeEnt.location || '';
+    $('e_facts').value = (activeEnt.facts || []).join('\n');
+    $('e_related').value = (activeEnt.related_ids || []).join(', ');
+    estatus('');
+  }
+  function parseLines(v) {
+    return String(v || '').split('\n').map((s) => s.trim()).filter(Boolean);
+  }
+  async function saveEntity() {
+    if (!activeEnt || !entities) return;
+    estatus('saving…');
+    const body = {
+      base_version: entities.version,
+      id: activeEnt.id,
+      kind: $('e_kind').value.trim(),
+      region_id: $('e_region').value.trim(),
+      name: $('e_name').value.trim(),
+      aliases: parseAliases($('e_aliases').value),
+      location: $('e_location').value.trim(),
+      facts: parseLines($('e_facts').value),
+      related_ids: parseAliases($('e_related').value),
+    };
+    const r = await fetch('/api/world/entities', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 409) {
+      estatus('version conflict — reload places, then re-apply.');
+      return;
+    }
+    if (!r.ok) {
+      estatus('save failed: ' + (j.error || r.status));
+      return;
+    }
+    estatus('saved · entities v' + j.version);
+    await loadEntities(j.id || activeEnt.id);
+  }
+  async function addEntity() {
+    const name = $('eNewName').value.trim();
+    if (!name) return estatus('name required for new entity');
+    estatus('creating…');
+    const r = await fetch('/api/world/entities', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ create: true, base_version: entities && entities.version, name: name, kind: $('eNewKind').value }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      estatus('create failed: ' + (j.error || r.status));
+      return;
+    }
+    $('eNewName').value = '';
+    await loadEntities(j.id);
+  }
+  async function loadDocs() {
+    dstatus('loading…');
+    const r = await fetch('/api/world/pages', { cache: 'no-store' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ('pages ' + r.status));
+    pages = Array.isArray(j.files) ? j.files : [];
+    $('docMeta').textContent = pages.length + ' pages';
+    renderDocs();
+    dstatus('');
+  }
+  function renderDocs() {
+    const q = String($('dq').value || '').toLowerCase();
+    const list = pages.filter((p) => !q || String(p.path).toLowerCase().includes(q));
+    $('docList').innerHTML = list.map((p) => {
+      return '<li><button type="button" class="rost' + (activePage === p.path ? ' is-active' : '') + '" data-path="' + esc(p.path) + '"><span class="face">¶</span><span><strong>' + esc(String(p.path).split('/').pop()) + '</strong><span>' + esc(p.path) + '</span></span></button></li>';
+    }).join('') || '<li class="chip">No pages.</li>';
+    $('docList').querySelectorAll('button[data-path]').forEach((b) => { b.onclick = () => loadDoc(b.getAttribute('data-path')); });
+  }
+  async function loadDoc(rel) {
+    dstatus('loading…');
+    const r = await fetch('/api/world/page?path=' + encodeURIComponent(rel), { cache: 'no-store' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      dstatus('load failed: ' + (j.error || r.status));
+      return;
+    }
+    activePage = j.path;
+    pageSha = j.sha256 || '';
+    $('docPath').textContent = j.path + ' · ' + (j.bytes || 0) + ' bytes';
+    $('docTitle').textContent = String(j.path).split('/').pop();
+    $('docText').value = j.content || '';
+    renderDocs();
+    dstatus(j.truncated ? 'truncated view — file too large to edit safely' : '');
+  }
+  async function saveDoc() {
+    if (!activePage) return;
+    dstatus('saving…');
+    const r = await fetch('/api/world/page', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: activePage, content: $('docText').value, base_sha256: pageSha }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 409) {
+      dstatus('page changed on disk — reload before saving.');
+      return;
+    }
+    if (!r.ok) {
+      dstatus('save failed: ' + (j.error || r.status));
+      return;
+    }
+    pageSha = j.sha256 || pageSha;
+    dstatus('saved · ' + (j.bytes || 0) + ' bytes');
   }
   init().catch((e) => gate('World editor failed to load: ' + (e.message || e), '/'));
 })();
@@ -5688,6 +5939,252 @@ function patchWorldCharacter(payload) {
   return { ok: true, id, version: written.version, updated_at: written.updated_at };
 }
 
+function readEntitiesRaw() {
+  if (!fs.existsSync(ENTITIES_JSON)) {
+    return { version: 0, campaign: CAMPAIGN, setting: "Isla Primavera", updated_at: null, entities: [], missing: true };
+  }
+  try {
+    const data = JSON.parse(fs.readFileSync(ENTITIES_JSON, "utf8"));
+    data.entities = Array.isArray(data.entities) ? data.entities : [];
+    return data;
+  } catch (e) {
+    return { version: 0, campaign: CAMPAIGN, entities: [], error: e.message };
+  }
+}
+
+function cleanWorldStringList(input, max) {
+  const out = [];
+  const seen = new Set();
+  for (const raw of Array.isArray(input) ? input : []) {
+    const s = cleanWorldText(raw, max || 120);
+    if (!s) continue;
+    const key = s.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
+  }
+  return out;
+}
+
+function writeEntitiesFile(data, baseVersion) {
+  const resource = `wiki-entities:${CAMPAIGN}`;
+  const holder = `tableslop-world-entities:${process.pid}`;
+  acquireStateLock({ repoRoot: REPO, resource, holder, note: "world page entities patch", wait: true });
+  try {
+    let onDisk = null;
+    if (fs.existsSync(ENTITIES_JSON)) {
+      try {
+        onDisk = JSON.parse(fs.readFileSync(ENTITIES_JSON, "utf8"));
+      } catch {
+        onDisk = null;
+      }
+    }
+    if (baseVersion !== undefined && baseVersion !== null && baseVersion !== "") {
+      const disk = onDisk && Number.isFinite(Number(onDisk.version)) ? Math.floor(Number(onDisk.version)) : 0;
+      const base = Math.floor(Number(baseVersion));
+      if (base !== disk) {
+        throw VersionConflictError("version_conflict", {
+          disk_version: disk,
+          base_version: base,
+          hint: "Reload Places, then retry. Stale multitask write refused.",
+        });
+      }
+    }
+    const prevVer = onDisk && Number.isFinite(Number(onDisk.version)) ? Math.floor(Number(onDisk.version)) : 0;
+    const version = prevVer + 1;
+    if (onDisk) {
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      const revDir = path.join(REPO, "agents", "state", "wiki-entities-revisions", CAMPAIGN);
+      fs.mkdirSync(revDir, { recursive: true });
+      fs.writeFileSync(path.join(revDir, `v${prevVer}-${ts}.json`), JSON.stringify(onDisk, null, 2) + "\n");
+      try {
+        fs.writeFileSync(`${ENTITIES_JSON}.bak-${ts}`, JSON.stringify(onDisk, null, 2) + "\n");
+      } catch {
+        /* ignore */
+      }
+    }
+    data.version = version;
+    data.updated_at = new Date().toISOString();
+    data.campaign = data.campaign || CAMPAIGN;
+    data.entities = Array.isArray(data.entities) ? data.entities : [];
+    fs.writeFileSync(ENTITIES_JSON, JSON.stringify(data, null, 2) + "\n");
+    return data;
+  } finally {
+    try {
+      releaseStateLock({ repoRoot: REPO, resource, holder });
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function patchWorldEntity(payload) {
+  const raw = readEntitiesRaw();
+  if (raw.error) throw new Error("entities_read_failed: " + raw.error);
+  raw.entities = Array.isArray(raw.entities) ? raw.entities : [];
+  let id = String(payload.id || "").trim();
+  let row = null;
+
+  if (payload.create === true) {
+    const name = cleanWorldText(payload.name, 120);
+    if (!name) throw new Error("name required");
+    const kind = cleanWorldText(payload.kind, 40) || "place";
+    id = slugifyCharacterId(`${kind}-${name}`);
+    let n = 2;
+    while (raw.entities.some((e) => e && String(e.id) === id)) {
+      id = `${slugifyCharacterId(`${kind}-${name}`)}-${n++}`;
+    }
+    row = {
+      id,
+      kind,
+      name,
+      aliases: [],
+      location: null,
+      region_id: null,
+      facts: [],
+      when: null,
+      related_ids: [],
+      created_at: new Date().toISOString(),
+    };
+    raw.entities.push(row);
+  } else {
+    if (!id) throw new Error("id required");
+    row = raw.entities.find((e) => e && String(e.id) === id);
+    if (!row) throw new Error("entity_not_found");
+  }
+
+  if (payload.name !== undefined) {
+    const name = cleanWorldText(payload.name, 120);
+    if (!name) throw new Error("name required");
+    row.name = name;
+  }
+  if (payload.kind !== undefined) {
+    const kind = cleanWorldText(payload.kind, 40);
+    if (!kind) throw new Error("kind required");
+    row.kind = kind;
+  }
+  if (payload.aliases !== undefined) row.aliases = cleanWorldStringList(payload.aliases, 80);
+  if (payload.location !== undefined) row.location = cleanWorldText(payload.location, 200) || null;
+  if (payload.region_id !== undefined) row.region_id = cleanWorldText(payload.region_id, 80) || null;
+  if (payload.facts !== undefined) row.facts = cleanWorldStringList(payload.facts, 500);
+  if (payload.related_ids !== undefined) {
+    const known = new Set(raw.entities.map((e) => String(e && e.id)));
+    row.related_ids = cleanWorldStringList(payload.related_ids, 120).filter((relId) => known.has(relId));
+  }
+  row.updated_at = new Date().toISOString();
+
+  const written = writeEntitiesFile(raw, payload.base_version);
+  return { ok: true, id, version: written.version, updated_at: written.updated_at };
+}
+
+function sha256Text(s) {
+  return crypto.createHash("sha256").update(String(s), "utf8").digest("hex");
+}
+
+function worldPageAbs(rel) {
+  const s = String(rel || "").replace(/\\/g, "/").replace(/^\/+/, "").trim();
+  if (!s || s.includes("..") || path.isAbsolute(s) || !s.toLowerCase().endsWith(".md")) {
+    throw new Error("bad page path");
+  }
+  const abs = path.resolve(CAMPAIGN_DIR, s);
+  const relToCampaign = path.relative(CAMPAIGN_DIR, abs).replace(/\\/g, "/");
+  if (relToCampaign.startsWith("..") || path.isAbsolute(relToCampaign)) {
+    throw new Error("bad page path");
+  }
+  const root = relToCampaign.split("/")[0];
+  if (!WORLD_PAGE_ROOTS.includes(root)) {
+    throw new Error("page root not editable");
+  }
+  return { abs, rel: relToCampaign };
+}
+
+function listWorldPages() {
+  const out = [];
+  for (const root of WORLD_PAGE_ROOTS) {
+    const rootAbs = path.join(CAMPAIGN_DIR, root);
+    if (!fs.existsSync(rootAbs)) continue;
+    const stack = [rootAbs];
+    while (stack.length && out.length < 800) {
+      const dir = stack.pop();
+      let entries = [];
+      try {
+        entries = fs.readdirSync(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const ent of entries) {
+        const abs = path.join(dir, ent.name);
+        if (ent.isDirectory()) {
+          if (ent.name.startsWith(".") || ent.name === "node_modules") continue;
+          stack.push(abs);
+          continue;
+        }
+        if (!ent.isFile() || !ent.name.toLowerCase().endsWith(".md")) continue;
+        const rel = path.relative(CAMPAIGN_DIR, abs).replace(/\\/g, "/");
+        let st = null;
+        try {
+          st = fs.statSync(abs);
+        } catch {
+          st = null;
+        }
+        out.push({ path: rel, bytes: st ? st.size : 0, mtime: st ? st.mtime.toISOString() : null });
+        if (out.length >= 800) break;
+      }
+    }
+  }
+  out.sort((a, b) => String(a.path).localeCompare(String(b.path)));
+  return out;
+}
+
+function readWorldPage(rel) {
+  const { abs, rel: safeRel } = worldPageAbs(rel);
+  if (!fs.existsSync(abs)) throw new Error("page_not_found");
+  const raw = fs.readFileSync(abs, "utf8");
+  const truncated = raw.length > 400000;
+  const content = truncated ? raw.slice(0, 400000) + "\n\n…(truncated)" : raw;
+  return {
+    path: safeRel,
+    content,
+    sha256: sha256Text(raw),
+    bytes: Buffer.byteLength(raw, "utf8"),
+    truncated,
+  };
+}
+
+function writeWorldPage(rel, content, baseSha256) {
+  const { abs, rel: safeRel } = worldPageAbs(rel);
+  if (!fs.existsSync(abs)) throw new Error("page_not_found");
+  const cur = fs.readFileSync(abs, "utf8");
+  const curSha = sha256Text(cur);
+  if (baseSha256 && baseSha256 !== curSha) {
+    const err = new Error("page_conflict");
+    err.code = "page_conflict";
+    err.detail = { path: safeRel };
+    throw err;
+  }
+  const next = String(content == null ? "" : content);
+  if (Buffer.byteLength(next, "utf8") > 400000) throw new Error("page too large");
+  const resource = `world-page:${CAMPAIGN}`;
+  const holder = `tableslop-world-page:${process.pid}`;
+  acquireStateLock({ repoRoot: REPO, resource, holder, note: `write ${safeRel}`, wait: true });
+  try {
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    try {
+      fs.writeFileSync(`${abs}.bak-${ts}`, cur);
+    } catch {
+      /* ignore */
+    }
+    fs.writeFileSync(abs, next);
+    return { ok: true, path: safeRel, sha256: sha256Text(next), bytes: Buffer.byteLength(next, "utf8") };
+  } finally {
+    try {
+      releaseStateLock({ repoRoot: REPO, resource, holder });
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 function findMyCharacter(discordId, username) {
   const raw = readCharactersRegistryRaw();
   const chars = Array.isArray(raw.characters) ? raw.characters : [];
@@ -6469,6 +6966,88 @@ async function handleRequest(req, res) {
         sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
       } else {
         sendJson(res, { error: (err && err.message) || "save_failed" }, 400);
+      }
+    }
+    return;
+  }
+  if (url === "/api/world/entities" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    const data = readEntitiesRaw();
+    if (data.error) {
+      sendJson(res, { error: "entities_read_failed" }, 500);
+      return;
+    }
+    sendJson(res, { version: data.version || 0, updated_at: data.updated_at || null, entities: data.entities || [] }, 200, 0);
+    return;
+  }
+  if (url === "/api/world/entities" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      sendJson(res, patchWorldEntity(payload), 200, 0);
+    } catch (err) {
+      if (err && err.code === "version_conflict") {
+        sendJson(res, { error: "version_conflict", ...(err.detail || {}) }, 409);
+      } else {
+        sendJson(res, { error: (err && err.message) || "save_failed" }, 400);
+      }
+    }
+    return;
+  }
+  if (url === "/api/world/pages" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      sendJson(res, { files: listWorldPages(), roots: WORLD_PAGE_ROOTS }, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "pages_failed" }, 400);
+    }
+    return;
+  }
+  if (url === "/api/world/page" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      sendJson(res, readWorldPage(q.searchParams.get("path") || ""), 200, 0);
+    } catch (err) {
+      const msg = (err && err.message) || "page_failed";
+      sendJson(res, { error: msg }, msg === "page_not_found" ? 404 : 400);
+    }
+    return;
+  }
+  if (url === "/api/world/page" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 512 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      sendJson(res, writeWorldPage(payload.path, payload.content, payload.base_sha256), 200, 0);
+    } catch (err) {
+      if (err && err.code === "page_conflict") {
+        sendJson(res, { error: "page_conflict", ...(err.detail || {}) }, 409);
+      } else {
+        const msg = (err && err.message) || "save_failed";
+        sendJson(res, { error: msg }, msg === "page_not_found" ? 404 : 400);
       }
     }
     return;
