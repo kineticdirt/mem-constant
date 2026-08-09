@@ -1,3 +1,4 @@
+- **2026-08-09T15:21Z** — [PC] **Result:** Euro next-arc wraith prep shipped. Canonical `campaigns/euro-adventure-2026/worldbuilding/swamp/NEXT-ARC-HALKIN-GAUL.md` (wraith Cold Ledger + necromancer Mire Binder; clues/locations/escalation/foil; adult NC seeds A–E 18+ TW/fade). Timeline `analysis/campaign-timeline.md` + card `timeline.md`; GM worksheet `define-with-gm.md` §D. Pointer `prep/NEXT-ARC-HALKIN-GAUL.md`. Commit `483b230`. Potato twins: Cursor `cursor-20260809T151920Z-935920`; Hermes think pid via `~/.local/bin/hermes` (PATH miss first try). Discord: reuse snapshot-2026-08-09 (no post-2026-07-26 play). Holder: `euro-next-arc-wraith`.
 - **2026-08-09T15:18Z** — [PC] **Intent:** Euro wrap then PC sleep
   Holder: `euro-wrap-pc-sleep`
   1. Inventory in-flight euro agents/artifacts (discord export, timeline, swamp, next-arc)
