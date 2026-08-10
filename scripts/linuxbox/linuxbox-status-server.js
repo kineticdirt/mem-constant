@@ -35,7 +35,7 @@ const LISTEN_PORT = 8790;
 // db_20260810-lane-sync-skill-r1 — philosophy via skill/subagent; Meta fold + System observability.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db_20260810-lane-sync-skill-r1";
+const DASH_BUILD = "db_20260810-hub-c-ssh-chips-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -2152,14 +2152,31 @@ function readLaneSyncSummary() {
       skip: "Same file without multitask lock / ledger Intent",
       lock: "AI_GROUPCHAT holder + multitask-lock",
     },
+    {
+      resource: "ssh sessions (timew)",
+      writers: "agent-cycle-sync → ssh-session-track.sh",
+      skip: "Treat timew open-interval as approx; JSONL archive is SoT",
+      lock: "agents/state/ssh-sessions.json + /mnt/archive/logs/ssh-sessions",
+    },
   ];
+  // Cheap disk read — same SoT Hub Chat inquiry uses (no bash on every /api/agent poll).
+  const ssh = readSshSessionState();
   return {
     blurb:
-      "Lane sync: think · sync · Cursor Auto · pods share the box. Locks + pick order keep them from clobbering shared SoT.",
+      "Lane sync: think · sync · Cursor Auto · pods · SSH sessions share the box. Locks + pick order keep them from clobbering shared SoT.",
     last_seen: {
       sync: syncLast,
       think: thinkLast,
       think_llm: thinkLlmLast,
+    },
+    ssh_sessions: {
+      active_count: ssh.active_count || 0,
+      active: (ssh.active || []).slice(0, 4).map((s) => ({
+        user: s.user,
+        rhost: s.rhost,
+        elapsed_sec: s.elapsed_sec,
+      })),
+      today: ssh.today || { sessions: 0, total_sec: 0 },
     },
     continuous_rr: continuousRr
       ? {

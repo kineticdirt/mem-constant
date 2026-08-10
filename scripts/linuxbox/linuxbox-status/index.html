@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db_20260810-lane-sync-skill-r1">
+  <meta name="dash-build" content="db_20260810-hub-c-ssh-chips-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -7691,6 +7691,51 @@
       }
     }
 
+    /** Hub-c: topbar chips from lane_sync.last_seen (+ SSH duration meld). */
+    function renderTopbarLaneChips(data) {
+      const el = document.getElementById("lane-row");
+      if (!el) return;
+      const sync = data?.lane_sync || data?.meta_lane?.lane_sync || {};
+      const last = sync.last_seen || {};
+      const lanesObj = data?.lanes || {};
+      const chips = [];
+      const push = (label, stRaw, when, detail) => {
+        const st = String(stRaw || "pending");
+        const cls = st.startsWith("ok") || st === "active" || st === "running"
+          ? "ok"
+          : (st === "pending" || st === "idle" ? "pending" : "bad");
+        const t = when ? fmtEtTime(when) : "—";
+        const extra = detail ? ` · ${esc(String(detail).slice(0, 48))}` : "";
+        chips.push(`<span class="lane-chip ${cls}" data-lane="${esc(label)}">${esc(label)} · ${esc(t)}${extra}</span>`);
+      };
+      const syncLane = lanesObj["agent-cycle-sync"] || {};
+      const thinkLane = lanesObj["agent-cycle-think"] || {};
+      push("sync", syncLane.status || (last.sync ? "ok" : "pending"), last.sync || syncLane.last_run, syncLane.schedule || "1m");
+      push("think", thinkLane.status || (last.think ? "ok" : "pending"), last.think || thinkLane.last_run, thinkLane.schedule || "1m·LLM");
+      if (last.think_llm) push("think-llm", "ok", last.think_llm, "gate");
+      const ssh = sync.ssh_sessions || {};
+      const activeN = Number(ssh.active_count) || 0;
+      const todayN = Number(ssh.today && ssh.today.sessions) || 0;
+      const todayMin = Math.round((Number(ssh.today && ssh.today.total_sec) || 0) / 60);
+      const who = (ssh.active || [])
+        .slice(0, 2)
+        .map((s) => `${s.user || "?"}@${s.rhost || "?"} ${Math.floor((s.elapsed_sec || 0) / 60)}m`)
+        .join(", ");
+      push(
+        "ssh",
+        activeN > 0 ? "ok" : "pending",
+        null,
+        `${activeN} live · today ${todayN}/${todayMin}m${who ? ` · ${who}` : ""}`
+      );
+      for (const l of Object.values(lanesObj)) {
+        const name = String(l.name || "");
+        if (!name || /agent-cycle-(fast|sync|think)/.test(name)) continue;
+        const st = (l.status || "pending").startsWith("ok") ? "ok" : (l.status === "pending" ? "pending" : "bad");
+        push(name.replace(/^agent-cycle-/, ""), st, l.last_run, l.schedule || l.status);
+      }
+      el.innerHTML = chips.join("");
+    }
+
     function renderMeta(data) {
       const sync = data?.lane_sync || data?.meta_lane?.lane_sync || {};
       const m = data?.meta_lane || {};
@@ -7698,7 +7743,7 @@
       if (blurbEl) {
         blurbEl.textContent = sync.blurb
           || m.blurb
-          || "Lane sync: think · sync · Cursor · pods — locks keep shared SoT safe.";
+          || "Lane sync: think · sync · Cursor · pods · SSH — locks keep shared SoT safe.";
       }
       const upd = document.getElementById("lane-sync-updated");
       if (upd) upd.textContent = data?.updated_at ? fmtEt(data.updated_at) : "";
@@ -7725,6 +7770,19 @@
         pushLane("Sync", syncLane.status || (last.sync ? "ok" : "pending"), last.sync || syncLane.last_run, syncLane.schedule || "deterministic");
         pushLane("Think", thinkLane.status || (last.think ? "active" : "pending"), last.think || thinkLane.last_run, thinkLane.schedule || "1m · LLM ~8m");
         pushLane("Think LLM", last.think_llm ? "ok" : "idle", last.think_llm, "THINK_INTERVAL gate");
+        const ssh = sync.ssh_sessions || {};
+        const sshN = Number(ssh.active_count) || 0;
+        const sshMin = Math.round((Number(ssh.today && ssh.today.total_sec) || 0) / 60);
+        const sshWho = (ssh.active || [])
+          .slice(0, 3)
+          .map((s) => `${s.user || "?"}@${s.rhost || "?"} ${Math.floor((s.elapsed_sec || 0) / 60)}m`)
+          .join(", ");
+        pushLane(
+          "SSH sessions",
+          sshN > 0 ? "active" : "idle",
+          null,
+          `${sshN} live · today ${Number(ssh.today && ssh.today.sessions) || 0} ended (${sshMin}min)${sshWho ? ` · ${sshWho}` : ""} · timew/JSONL`
+        );
         const cStat = cursor.status || cursor.state || (rn.cursor_lane && rn.cursor_lane.status) || "idle";
         const cWhen = cursor.when || cursor.started_at || (rn.cursor_lane && rn.cursor_lane.when);
         const cWhat = cursor.what || cursor.goal || (rn.cursor_lane && (rn.cursor_lane.what || rn.cursor_lane.goal));
@@ -7746,10 +7804,11 @@
         const locks = pack.locks || [];
         const claim = pack.checkin && pack.checkin.active_claim;
         if (locksMeta) {
+          const claimedN = locks.filter((l) => l.status === "claimed").length;
           const freshN = locks.filter((l) => l.fresh).length;
           locksMeta.textContent = claim
             ? `active · ${claim.resource || "?"} · ${claim.holder || "?"}`
-            : (freshN ? `${freshN} fresh` : "no active claim");
+            : (claimedN ? `${claimedN} claimed${freshN ? ` (${freshN} fresh)` : ""}` : "no active claim");
         }
         if (!locks.length && !claim) {
           locksEl.innerHTML = '<p class="empty">No locks on disk</p>';
@@ -7762,8 +7821,15 @@
               <div class="meta-paths">${esc(claim.note || "")}${claim.heartbeat_at ? ` · ${esc(fmtEt(claim.heartbeat_at))}` : ""}</div>
             </div>`);
           }
-          for (const l of locks.slice(0, 8)) {
-            const cls = l.fresh ? "warn" : (l.stale ? "bad" : "ok");
+          const ordered = locks.slice().sort((a, b) => {
+            const aw = a.status === "claimed" ? 0 : 1;
+            const bw = b.status === "claimed" ? 0 : 1;
+            return aw - bw;
+          });
+          for (const l of ordered.slice(0, 8)) {
+            const cls = l.status === "claimed"
+              ? (l.fresh ? "warn" : "bad")
+              : (l.status === "done" ? "ok" : (l.stale ? "bad" : "ok"));
             rows.push(`<div class="meta-card ${cls}">
               <div class="aw-label">${esc(l.resource || "lock")}</div>
               <div>${esc(l.status || "—")} · ${esc(l.holder || "—")}</div>
@@ -10016,15 +10082,7 @@
 
         renderHub(agentData);
         renderRunningNow(agentData, "chrome");
-
-        const lanes = document.getElementById("lane-row");
-        lanes.innerHTML = Object.values(agentData.lanes || {})
-          .filter((l) => l.name !== "agent-cycle-fast")
-          .map((l) => {
-          const st = (l.status || "pending").startsWith("ok") ? "ok" : (l.status === "pending" ? "pending" : "bad");
-          const t = l.last_run ? fmtEtTime(l.last_run) : "—";
-          return `<span class="lane-chip ${st}">${esc(l.name.replace("agent-cycle-",""))} · ${esc(l.schedule||"?")} · ${t} · ${esc(l.status)}</span>`;
-        }).join("");
+        renderTopbarLaneChips(agentData);
 
         renderCampaigns(agentData);
         if (activeTab === "reports") {

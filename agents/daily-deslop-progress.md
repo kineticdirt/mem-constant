@@ -23,7 +23,7 @@ Tick-sized only. When today’s Open children are `[x]`, archive under Done and 
 
 - [x] **dd-11** Ponytail: shared CRLF note for `install-*.sh` — one comment block in `scripts/linuxbox/README.md` documenting strip-CR before first run on box (`sed` remove CR); stop duplicating long CRLF paragraphs in each installer. Docs only. (2026-08-09)
 - [ ] **dd-12** Papercut prevention (bin-shadow): fold `cp -f` repo→`~/bin` refresh for `agent-cycle-think-tick.sh` + `agent-cycle-sync.sh` into `push-linuxbox.sh --finished` or sync tick so `~/bin` shadows cannot drift. Verify: after push, potato `~/bin` matches repo (or installer re-run note).
-- [ ] **dd-13** Dashboard backlog **Hub-c**: Hub lane chips render last sync + think activity from `/api/agent` `lane_sync` payload (Meta already shows live lanes). UI only; reuse lane_sync fields. Verify: Playwright or curl+DOM note on Hub chips.
+- [x] **dd-13** Dashboard backlog **Hub-c**: Hub lane chips render last sync + think (+ SSH duration) from `/api/agent` `lane_sync` payload; Meta live lanes include SSH. Verify: curl `lane_sync.ssh_sessions` + dash_build pair. (2026-08-10)
 
 ## Done
 

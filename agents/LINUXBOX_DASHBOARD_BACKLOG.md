@@ -17,8 +17,8 @@ Parent intent retained (was one multi-step bullet that timed out at ~300s on thi
 
 - [x] **Hub-a:** Tick writers — sync+think already stamp `agents/state/sync-tick.last` / `think-tick.last` (fast lane removed 2026-08-01); optional `dashboard-lane-state.json` rollup deferred — 2026-08-10
 - [x] **Hub-b:** API — expose sync/think `last_seen` on `/api/agent` as `lane_sync.last_seen` (+ locks / conflict rules) — 2026-08-10 (heartbeats already written by sync/think; fast lane removed)
-- [ ] **Hub-c:** UI — Hub lane chips render last sync + think activity from that payload (Meta panel already shows live lanes)
-- [x] **Hub-d:** Verify — potato `curl 127.0.0.1:8790/api/agent` shows `lane_sync.last_seen` + 6 conflict_rules; dash_build `db_20260810-meta-lane-sync-r1` — 2026-08-10 (Hub-c lane chips still open)
+- [x] **Hub-c:** UI — Hub lane chips render last sync + think (+ SSH duration) from `lane_sync` payload; Meta live lanes include SSH sessions — 2026-08-10 (holder `hub-c-ssh-lane-chips`; dash_build `db_20260810-hub-c-ssh-chips-r1`)
+- [x] **Hub-d:** Verify — potato `curl 127.0.0.1:8790/api/agent` shows `lane_sync.last_seen` + conflict_rules (incl. ssh sessions); dash_build `db_20260810-hub-c-ssh-chips-r1` — 2026-08-10
 
 - [ ] **Smoke:** after dashboard edits, run `bash scripts/linuxbox/run-dashboard-ui-smoke.sh`; triage fails into this backlog (see `agents/DASHBOARD_UI_SMOKE_TASK.md`)
 
