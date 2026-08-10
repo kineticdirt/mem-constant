@@ -3,6 +3,7 @@
 
 
 
+- **2026-08-10T02:44:11Z** — [PC] **Result:** Meta panel → lane-sync systems design (holder `hub-meta-lane-sync-panel`). Reused SYSTEMS_DESIGN_BOARD + Hub-a/b heartbeats + multitask locks; `/api/agent` `lane_sync` live (last_seen sync/think/llm + 6 conflict rules). Papercuts · meta-harness · backlog moved to System bottom. dash_build `db_20260810-meta-lane-sync-r1` potato :8790 200. Hard-refresh Hub Meta + System. Open: Hub-c lane chips.
 - **2026-08-10T02:39:22Z** — [PC] **Intent:** Replace Hub Meta panel (philosophy stub / path cards) with **lane-sync systems design** (reuse SYSTEMS_DESIGN_BOARD + Hub-a/b heartbeats + multitask locks). Move papercuts + meta-harness + open backlog to bottom of **System** (`#hub`). No new rail. Holder: `hub-meta-lane-sync-panel`.
 - **2026-08-10T02:16Z** — [PC] **Intent:** daily-deslop-dd-05 — verify `from __future__ import annotations` on `campaigns/tropic-gooner/export_discord_lore.py` (Py3.9 Path|None); `python3 -m py_compile`; mark dd-05; commit + git-bundle potato. Holder: `daily-deslop-dd-05`.
 - **2026-08-10T02:24Z** — [PC] **Result:** daily-deslop-dd-05 done. `export_discord_lore.py` already had `from __future__ import annotations`; `python3 -m py_compile` OK (PC+potato). Boards dd-05+[x]; next desk **clear** (no dd-06 seeded). SHA `727f90c`; potato HEAD `727f90c`; bundle verify initially FAIL (:8790 000) → `sudo systemctl restart linuxbox-status` → verify-runtime-state **PASS**; hermes-gateway left **active**. Holder: `daily-deslop-dd-05`.
@@ -657,3 +658,7 @@
 ## 2026-08-09 ~22:40 ET — [PC] Intent: dd-07 apply-git-bundle +x fail-loud
 
 [PC] Intent: dd-07 — harden apply-git-bundle so missing +x on linuxbox-status-watchdog.sh / hermes-gateway-watchdog.sh is fail-loud (or auto-chmod+verify), not silent 203/EXEC. Reuse fix-sh-crlf-remote / chmod paths. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-07`.
+
+## 2026-08-09 22:44 ET — [PC] Result: daily deslop dd-07 shipped
+
+[PC] Result (holder `daily-deslop-dd-07`): Fail-loud +x verify for `hermes-gateway-watchdog.sh` + `linuxbox-status-watchdog.sh` in `apply-git-bundle.sh`, `fix-sh-crlf-remote.sh`, and `push-linuxbox-git-bundle.sh` post-chmod. `bash -n` OK. SHA `4b5f706` → linuxbox `main` + potato bundle `18beaf3→4b5f706` verify-runtime-state PASS (+x verified). Both watchdogs `-rwxr-xr-x`; hermes-gateway + both watchdog timers **active**. Next open: **dd-08**.
