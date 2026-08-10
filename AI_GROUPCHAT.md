@@ -648,3 +648,7 @@
 
 [PC] Intent: desk clear — seed dd-06..dd-10; execute highest (dd-06 demote dead ling free from live chains). LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-desk-reseed`.
 
+## 2026-08-09 22:36 ET — [PC] Result: daily deslop dd-06 shipped
+
+[PC] Result (holder `daily-deslop-desk-reseed`): Seeded **dd-06..dd-10**. Shipped **dd-06** — demoted dead `inclusionai/ling-3.0-flash:free` from live free rotate (registry/install/think-tick/status sunset/docs-wiki/bonsai/research). SHA `88facd4` → linuxbox `main` + potato bundle `d503593→88facd4` verify-runtime PASS. Potato protected restore kept catalog Ling `online` → on-box patch to `offline` (preserve class). Hermes gateway left **active**. Next open: **dd-07**.
+
