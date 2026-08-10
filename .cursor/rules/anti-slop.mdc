@@ -1,0 +1,145 @@
+---
+description: Canonical anti-slop reference — prose AI-quirks + code slop patterns and their mitigations. Pull this in when writing prose (blog/docs) or reviewing AI-generated code, and as the source of truth for the blog quirk-lint and any headless run harness.
+alwaysApply: false
+---
+
+# Anti-slop (canonical source of truth)
+
+Single reference for avoiding AI slop in **prose** and **code**. Referenced by:
+
+- the **blog quirk-lint** (deterministic banned-phrase / em-dash / boilerplate gate),
+- the **headless run harness** (Cursor CLI / lanes — inject this so automated output isn't slop),
+- a **general agent rule** (this file; agent-requestable, so it costs context only when relevant).
+
+Keep this DRY: extend *this* file, don't fork parallel slop lists. Code-cleanup mechanics
+live in the `deslop` skill; this file is the catalogue + the lint's banned set.
+
+## Prose slop — AI-quirks catalogue
+
+| # | Quirk | Tell-tale | Mitigation |
+|---|-------|-----------|------------|
+| 1 | Fabricated facts / stats / quotes / citations | Confident numbers with no source; invented quotes | **Citation-verify gate (blocker):** claim must link to a real public source or be cut |
+| 2 | Em-dash / antithesis overuse | "It's not X — it's Y", "It's not X or Y, it's Z", endless em-dashes | Cap em-dashes; **ban** antithesis templates (not-X-it's-Y / not-X-or-Y-it's-Z / "this isn't about A, it's about B") |
+| 3 | Filler vocabulary | delve, tapestry, realm, testament, underscore, "ever-evolving landscape", "in today's fast-paced" | Banned-phrase/word lint |
+| 4 | Hedging / weasel | "it's worth noting", "arguably", "some would say" | Strip filler hedges; hedge only where genuinely uncertain and say why |
+| 5 | Listicle padding | "Here are N things", shallow bullets | Require prose depth; bullets earn their place |
+| 6 | Both-sides with no stance | balanced summary, no thesis | Require an explicit claim/position per piece |
+| 7 | Conclusion boilerplate | "In conclusion,", "In summary," | Ban; end on a concrete takeaway |
+| 8 | False precision / fake confidence | exact figures on uncertain things | Mark unknowns as unknown; round honestly; cite |
+| 9 | Repetitive rhythm | tricolons everywhere, same sentence openers | Vary sentence length/openers; lint repeated openers |
+| 10 | Sycophancy / meta | "Great question", "Let's dive in" | Strip; pieces don't address a "you" |
+| 11 | Title-case Everything / emoji bullets | Marketing-deck styling | Sentence case, no emoji bullets |
+| 12 | Stale knowledge stated as current | "as of my training" / wrong dates | Date-stamp; verify time-sensitive claims against the source |
+
+**Routing:** quirks 2,3,4,7,9,11 → automatable **style lint**; quirks 1,8,12 →
+**citation/verification gate**; quirks 5,6,10 → **structural template + review**.
+
+## AI bad habits — six bans (STE-aligned)
+
+House bar for **effectiveness**. Aligns with ASD-STE100 / Simplified Technical English
+(one term, one idea per sentence, active verbs). Potato card: `agents/AI_BAD_HABITS.md`.
+Cursor rule: `.cursor/rules/ai-bad-habits.mdc`.
+
+| # | Habit | Tell-tale | Do instead |
+|---|-------|-----------|------------|
+| 1 | Synonym rotation | user / customer / client for one referent | One approved term; keep it |
+| 2 | Hedging | “important to note”, “may potentially” | Direct claim; hedge only with a reason |
+| 3 | Frozen verbs | “perform an analysis of” | **analyze** (active verb) |
+| 4 | Marketing adjectives | seamless · robust · cutting-edge | Concrete nouns / measured facts |
+| 5 | Run-ons | four ideas in one sentence | One idea per sentence |
+| 6 | Phrasal filler | spin up · reach out · dive into | start / ask / read (clear single verb) |
+
+Lint hooks (extend `banned_phrases` / `banned_words` when tightening automation):
+`seamless`, `robust`, `cutting-edge`, `spin up`, `reach out`, `dive into`,
+`it is important to note`, `may potentially`.
+
+## Inbox / clarification asks (Hub human-inbox)
+
+When drafting Inbox `question` / `context` / `option_help` (Hermes think, Cursor, or Chat→task):
+
+- **Style policy** (not research claims): prefer human burstiness — uneven sentence length, specific nouns from the system, one concrete consequence, optional real uncertainty (“might”, “looks like”). Avoid formulaic AI rhythm.
+- **Hard bans / strong discourage:** antithesis templates above; “In today’s fast-paced…”; stacked em-dashes; symmetrical tricolons; fake certainty; buzzword option pairs.
+- **Still required:** direct ask + 2–4 sentence rich `context`; plain-English option labels; no bare acronyms without a gloss.
+- **Potato SoT:** `agents/INBOX_PROSE.md` (do/don’t + examples). Keep that file and this catalogue in sync when editing bans.
+
+## Code slop — patterns (see `deslop` skill for cleanup)
+
+- Comments that narrate the obvious ("// increment counter", "// import module").
+- Defensive `try/catch` or null-guards on trusted, can't-fail paths.
+- Casts to `any`/`unknown` used only to silence the type checker.
+- Deep nesting that early returns would flatten.
+- Speculative abstractions / config / flexibility nobody asked for (YAGNI — see `ponytail`).
+- Restating the prompt back as a code comment, or explaining the change in a comment.
+
+Mitigation: minimal focused diffs, match surrounding style, comments explain **why** not **what**.
+
+## Machine-readable lint set (the blog quirk-lint reads from here)
+
+```yaml
+# banned substrings (case-insensitive) — fail the lint if present
+banned_phrases:
+  - "in today's fast-paced"
+  - "ever-evolving landscape"
+  - "it's worth noting"
+  - "it is worth noting"
+  - "in conclusion"
+  - "in summary"
+  - "let's dive in"
+  - "let's delve"
+  - "great question"
+  - "at the end of the day"
+  - "needless to say"
+  - "as of my training"
+  - "in the realm of"
+  - "a testament to"
+  - "navigating the"
+  - "it's not x or y, it's"
+  - "this isn't about"
+  - "this is not about"
+  - "it is important to note"
+  - "may potentially"
+  - "spin up"
+  - "reach out"
+  - "dive into"
+  - "perform an analysis"
+  - "it should be noted"
+  - "might possibly"
+  - "help to improve"
+  - "make a decision"
+  - "conduct a review"
+  - "give an explanation"
+  - "make use of"
+  - "put in place"
+  - "figure out"
+  - "set up"
+banned_words:        # flag overuse; allow rare justified use
+  - delve
+  - tapestry
+  - realm
+  - testament
+  - underscore
+  - leverage
+  - utilize
+  - seamless
+  - robust
+  - cutting-edge
+  - myriad
+limits:
+  em_dashes_per_1000_words: 4      # cap; over this fails
+  not_x_its_y_template: 0          # ban "not X, it's Y" antithesis
+  repeated_sentence_opener_max: 2  # same opener word >2x in a row fails
+  max_sentence_words_instruction: 20   # STE 5.1/6.3 — instruction sentences
+  max_sentence_words_description: 25   # descriptions; used when unsure
+  semicolons_max: 0                    # STE — ban ";" in prose
+  hedging_stacks_max: 0                # hedging patterns ("it should be noted", "may potentially")
+  nominalizations_max: 0               # frozen verbs ("perform an analysis", "make use of")
+  phrasal_verbs_max: 0                 # STE 9.3 ("spin up", "figure out", "take off" as remove)
+  synonym_rotation_max: 0              # STE 1.11 — one term per concept within a block
+require:
+  - explicit_thesis        # piece states a claim/position
+  - every_external_claim_has_resolvable_url
+  - date_stamp_on_time_sensitive_claims
+```
+
+> The lint script (pending `pipeline-lint`) parses this `yaml` block as its config so the
+> banned set has exactly one home. Edit the catalogue and the lint set together.

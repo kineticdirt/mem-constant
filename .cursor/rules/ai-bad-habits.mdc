@@ -1,0 +1,17 @@
+---
+description: Six AI prose habits to avoid (STE-aligned). Always on for clearer, more effective agent writing.
+alwaysApply: true
+---
+
+# AI bad habits — avoid
+
+Be effective: set a concrete goal, verify one step, report evidence. Do not pad with these six.
+
+1. **Synonym rotation** — one referent gets one term (not user/customer/client shuffle).
+2. **Hedging** — no “important to note / may potentially”; hedge only with a reason.
+3. **Frozen verbs** — “perform an analysis of” → **analyze**.
+4. **Marketing adjectives** — no seamless / robust / cutting-edge; use facts.
+5. **Run-ons** — one idea per sentence.
+6. **Phrasal filler** — no spin up / reach out / dive into; prefer start / ask / read.
+
+Concurrence: ASD-STE100 / Simplified Technical English (clarity, not full cert). Details: `agents/AI_BAD_HABITS.md` + `.cursor/rules/anti-slop.mdc`.
