@@ -3,6 +3,7 @@
 
 
 
+- **2026-08-10T02:16Z** — [PC] **Intent:** daily-deslop-dd-05 — verify `from __future__ import annotations` on `campaigns/tropic-gooner/export_discord_lore.py` (Py3.9 Path|None); `python3 -m py_compile`; mark dd-05; commit + git-bundle potato. Holder: `daily-deslop-dd-05`.
 - **2026-08-10T02:09Z** — [PC] **Intent:** daily-deslop-dd-04 — refine `agent-pod-scheduler.sh` `ponytail-cleanup` prompt branch (board path + Goal/Feature/Keep/Verify); mark dd-04 + board card; `bash -n`; commit + git-bundle potato. Holder: `daily-deslop-dd-04`.
 - **2026-08-10T02:13Z** — [PC] **Result:** daily-deslop-dd-04 done. Refined `agent-pod-scheduler.sh` `ponytail-cleanup` prompt branch: board path + Goal/Feature/Keep/Verify (not generic task_spec soup); `bash -n` OK. Boards dd-04+[x]; next open **dd-05** export_discord_lore annotations. SHA `ac37c05`; potato HEAD `ac37c05`; verify-runtime-state PASS; hermes-gateway **active**. Holder: `daily-deslop-dd-04`.
 - **2026-08-10T02:07Z** — [PC] **Result:** full economy sim v1 live (holder `tableslop-economy-sim-full`). SoT economy-state (6 water / 4 minerals / 8 other + commodities); tick engine self-check OK; World→Economy + /api/world/economy; map Econ overlay 18 sites (pins frozen 37.35 Paradise). Potato tableslop active; borders+pin guards PASS. Open: soft-clock cron, Sim dock prices, GM canon promote.

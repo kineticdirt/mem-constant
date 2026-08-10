@@ -13,10 +13,11 @@ Tick-sized only. When today’s Open children are `[x]`, archive under Done and 
 
 ## Open — next desk
 
-- [ ] **dd-05** Ponytail: `campaigns/tropic-gooner/export_discord_lore.py` — add `from __future__ import annotations` for `Path | None` on Py3.9; verify `python3 -m py_compile`
+_(desk clear — seed next tick-sized deslop item)_
 
 ## Done
 
+- [x] **dd-05** `export_discord_lore.py` already had `from __future__ import annotations`; `python3 -m py_compile` OK — 2026-08-10
 - [x] **dd-04** `agent-pod-scheduler.sh` `ponytail-cleanup` prompt branch: board path + Goal/Feature/Keep/Verify (not generic task_spec); `bash -n` — 2026-08-10
 - [x] **dd-02** `scripts/linuxbox/discord_token.py` shared resolver; euro/nyc configure + nyc ingest + pepper use it; list/probe/hunter already imported — 2026-08-10
 - [x] **dd-01** git-regression-memory seeded — 2026-08-10
