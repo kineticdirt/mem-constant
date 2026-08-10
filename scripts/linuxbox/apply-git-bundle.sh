@@ -116,13 +116,17 @@ if [[ -f "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh" ]]; then
 fi
 
 # Windows/git-bundle often lands scripts as 100644; systemd ExecStart then fails 203/EXEC.
-# Evidence 2026-07-12: hermes-gateway-watchdog Permission denied every 2m until chmod +x.
+# Evidence 2026-07-12 / 2026-08-09: hermes + Hub status watchdogs Permission denied (203/EXEC).
 chmod +x "${REPO}/scripts/linuxbox/"*.sh 2>/dev/null || true
 chmod +x "${REPO}/scripts/linuxbox/lib/"*.sh 2>/dev/null || true
-if [[ ! -x "${REPO}/scripts/linuxbox/hermes-gateway-watchdog.sh" ]]; then
-  echo "apply-git-bundle: ERROR hermes-gateway-watchdog.sh not executable after chmod (203/EXEC risk)" >&2
-  exit 1
-fi
+# Fail-loud on timer ExecStart scripts — soft chmod || true must not hide 203/EXEC (dd-07).
+for _wd in hermes-gateway-watchdog.sh linuxbox-status-watchdog.sh; do
+  if [[ ! -x "${REPO}/scripts/linuxbox/${_wd}" ]]; then
+    echo "apply-git-bundle: ERROR ${_wd} not executable after chmod (203/EXEC risk)" >&2
+    exit 1
+  fi
+done
+unset _wd
 # CRLF guard (bundle path): no root .gitattributes, so a Windows CRLF commit of a .sh
 # lands verbatim via bundle → shebang /bin/bash^M → ExecStart 203 / cron bad-interpreter.
 # SCP path is covered by scripts/pc/fix-sh-crlf-remote.sh; same strip here for bundles.

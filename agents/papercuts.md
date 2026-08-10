@@ -169,4 +169,4 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Severity:** high (when Hub hangs, auto-restart cannot run)
 - **Complaint:** potato script `scripts/linuxbox/linuxbox-status-watchdog.sh` lost `+x` (`rw-r--r--`) → timer unit **203/EXEC** Permission denied; Hub stop-hangs + CF 502 windows had no auto recovery.
 - **Proposed fix:** after git-bundle/SCP always `fix-sh-crlf-remote.sh` / `chmod +x scripts/linuxbox/*.sh`; watchdog oneshot should fail-loud to inbox if EXEC fails.
-- **Status:** recurring 2026-08-09 — chmod +x re-applied after another bundle strip; oneshots SUCCESS; durable mode-bit gate still needed (see pc-2026-08-09-hub-8790-dstate-after-bundle).
+- **Status:** recurring 2026-08-09 — chmod +x re-applied after another bundle strip; oneshots SUCCESS; durable mode-bit gate: dd-07 fail-loud on hermes+status watchdogs in apply-git-bundle / fix-sh-crlf / push-bundle (2026-08-09).

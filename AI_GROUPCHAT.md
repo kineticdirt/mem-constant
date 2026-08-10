@@ -3,6 +3,7 @@
 
 
 
+- **2026-08-10T02:39:22Z** — [PC] **Intent:** Replace Hub Meta panel (philosophy stub / path cards) with **lane-sync systems design** (reuse SYSTEMS_DESIGN_BOARD + Hub-a/b heartbeats + multitask locks). Move papercuts + meta-harness + open backlog to bottom of **System** (`#hub`). No new rail. Holder: `hub-meta-lane-sync-panel`.
 - **2026-08-10T02:16Z** — [PC] **Intent:** daily-deslop-dd-05 — verify `from __future__ import annotations` on `campaigns/tropic-gooner/export_discord_lore.py` (Py3.9 Path|None); `python3 -m py_compile`; mark dd-05; commit + git-bundle potato. Holder: `daily-deslop-dd-05`.
 - **2026-08-10T02:24Z** — [PC] **Result:** daily-deslop-dd-05 done. `export_discord_lore.py` already had `from __future__ import annotations`; `python3 -m py_compile` OK (PC+potato). Boards dd-05+[x]; next desk **clear** (no dd-06 seeded). SHA `727f90c`; potato HEAD `727f90c`; bundle verify initially FAIL (:8790 000) → `sudo systemctl restart linuxbox-status` → verify-runtime-state **PASS**; hermes-gateway left **active**. Holder: `daily-deslop-dd-05`.
 - **2026-08-10T02:09Z** — [PC] **Intent:** daily-deslop-dd-04 — refine `agent-pod-scheduler.sh` `ponytail-cleanup` prompt branch (board path + Goal/Feature/Keep/Verify); mark dd-04 + board card; `bash -n`; commit + git-bundle potato. Holder: `daily-deslop-dd-04`.
@@ -652,3 +653,7 @@
 
 [PC] Result (holder `daily-deslop-desk-reseed`): Seeded **dd-06..dd-10**. Shipped **dd-06** — demoted dead `inclusionai/ling-3.0-flash:free` from live free rotate (registry/install/think-tick/status sunset/docs-wiki/bonsai/research). SHA `88facd4` → linuxbox `main` + potato bundle `d503593→88facd4` verify-runtime PASS. Potato protected restore kept catalog Ling `online` → on-box patch to `offline` (preserve class). Hermes gateway left **active**. Next open: **dd-07**.
 
+
+## 2026-08-09 ~22:40 ET — [PC] Intent: dd-07 apply-git-bundle +x fail-loud
+
+[PC] Intent: dd-07 — harden apply-git-bundle so missing +x on linuxbox-status-watchdog.sh / hermes-gateway-watchdog.sh is fail-loud (or auto-chmod+verify), not silent 203/EXEC. Reuse fix-sh-crlf-remote / chmod paths. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-07`.

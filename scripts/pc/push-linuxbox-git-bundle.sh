@@ -42,7 +42,7 @@ apply_rc=0
 ssh "${SSH_OPTS[@]}" "${HOST}" "chmod +x \${HOME}/agent-dump/scripts/linuxbox/apply-git-bundle.sh 2>/dev/null; bash \${HOME}/agent-dump/scripts/linuxbox/apply-git-bundle.sh" || apply_rc=$?
 # Always restore +x even when apply verify fails (set -e used to skip post-chmod).
 # Evidence 2026-08-09: Hub watchdog 203/EXEC twice after modes landed 100644.
-ssh "${SSH_OPTS[@]}" "${HOST}" 'chmod +x "$HOME"/agent-dump/scripts/linuxbox/*.sh "$HOME"/agent-dump/scripts/linuxbox/lib/*.sh 2>/dev/null; test -x "$HOME"/agent-dump/scripts/linuxbox/hermes-gateway-watchdog.sh'
+ssh "${SSH_OPTS[@]}" "${HOST}" 'chmod +x "$HOME"/agent-dump/scripts/linuxbox/*.sh "$HOME"/agent-dump/scripts/linuxbox/lib/*.sh 2>/dev/null; test -x "$HOME"/agent-dump/scripts/linuxbox/hermes-gateway-watchdog.sh; test -x "$HOME"/agent-dump/scripts/linuxbox/linuxbox-status-watchdog.sh'
 rm -f "${BUNDLE}"
 if [[ "${apply_rc}" -ne 0 ]]; then
   echo "WARN bundle apply exited ${apply_rc} (+x still restored)" >&2

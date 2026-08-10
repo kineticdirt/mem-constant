@@ -15,5 +15,13 @@ while IFS= read -r f; do
 done < <(find "${REMOTE_ROOT}/scripts/linuxbox" -name '*.sh' -type f)
 chmod +x "${REMOTE_ROOT}/scripts/linuxbox/"*.sh 2>/dev/null || true
 chmod +x "${REMOTE_ROOT}/scripts/linuxbox/lib/"*.sh 2>/dev/null || true
-echo "remote: stripped CRLF + restored +x under ${REMOTE_ROOT}/scripts/linuxbox"
+# Fail-loud: Hub + Hermes watchdogs must be +x after SCP deploy (dd-07 / 203/EXEC).
+for _wd in hermes-gateway-watchdog.sh linuxbox-status-watchdog.sh; do
+  if [[ ! -x "${REMOTE_ROOT}/scripts/linuxbox/${_wd}" ]]; then
+    echo "fix-sh-crlf-remote: ERROR ${_wd} not executable after chmod (203/EXEC risk)" >&2
+    exit 1
+  fi
+done
+unset _wd
+echo "remote: stripped CRLF + restored +x under ${REMOTE_ROOT}/scripts/linuxbox (+x verified watchdogs)"
 REMOTE
