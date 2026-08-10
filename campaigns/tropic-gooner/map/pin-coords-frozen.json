@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "locked_at": "2026-08-10T00:43:00.328521+00:00",
+  "policy": "FROZEN \u2014 do not move pins without explicit GM ask",
+  "holder": "tableslop-pins-lock-freeze",
+  "regions": {
+    "r01-paradise": {
+      "x_pct": 37.35,
+      "y_pct": 53.14
+    },
+    "r02-porto-lujuria": {
+      "x_pct": 36.48,
+      "y_pct": 62.88
+    },
+    "r03-crimson-quay": {
+      "x_pct": 29.23,
+      "y_pct": 59.35
+    },
+    "r04-villa-miel": {
+      "x_pct": 23.65,
+      "y_pct": 74.89
+    },
+    "r05-culovera": {
+      "x_pct": 32.85,
+      "y_pct": 93.62
+    },
+    "r06-seaside-springs": {
+      "x_pct": 61,
+      "y_pct": 53
+    },
+    "r07-orchid-falls": {
+      "x_pct": 60,
+      "y_pct": 46
+    },
+    "r08-sierra-dorado": {
+      "x_pct": 43,
+      "y_pct": 43
+    },
+    "r09-ruby-harbor": {
+      "x_pct": 23.4,
+      "y_pct": 89.53
+    },
+    "r10-lagoona-seica": {
+      "x_pct": 51,
+      "y_pct": 84
+    },
+    "r11-black-sand-preserve": {
+      "x_pct": 48,
+      "y_pct": 15
+    },
+    "r12-nueva-vista": {
+      "x_pct": 49.25,
+      "y_pct": 52.3
+    },
+    "r13-portview": {
+      "x_pct": 50.32,
+      "y_pct": 71.88
+    },
+    "r14-federal-shores": {
+      "x_pct": 31,
+      "y_pct": 38
+    }
+  },
+  "markers": [
+    {
+      "id": "r01-paradise",
+      "name": "Paradise",
+      "region": 1,
+      "x_pct": 37.35,
+      "y_pct": 53.14
+    },
+    {
+      "id": "r02-porto-lujuria",
+      "name": "Porto Lujara",
+      "region": 2,
+      "x_pct": 36.48,
+      "y_pct": 62.88
+    },
+    {
+      "id": "r03-crimson-quay",
+      "name": "Jackedsonville",
+      "region": 3,
+      "x_pct": 29.23,
+      "y_pct": 59.35
+    },
+    {
+      "id": "r04-villa-miel",
+      "name": "Villa Miel",
+      "region": 4,
+      "x_pct": 23.65,
+      "y_pct": 74.89
+    },
+    {
+      "id": "r05-culovera",
+      "name": "San Aurelio",
+      "region": 5,
+      "x_pct": 32.85,
+      "y_pct": 93.62
+    },
+    {
+      "id": "r06-seaside-springs",
+      "name": "Seaside Springs",
+      "region": 6,
+      "x_pct": 61,
+      "y_pct": 53
+    },
+    {
+      "id": "r08-sierra-dorado",
+      "name": "Sierra Dorado",
+      "region": 8,
+      "x_pct": 43,
+      "y_pct": 43
+    },
+    {
+      "id": "r09-ruby-harbor",
+      "name": "Ruby Harbor",
+      "region": 9,
+      "x_pct": 23.4,
+      "y_pct": 89.53
+    },
+    {
+      "id": "r10-lagoona-seica",
+      "name": "Lagooni Seika",
+      "region": 10,
+      "x_pct": 51,
+      "y_pct": 84
+    },
+    {
+      "id": "r11-black-sand-preserve",
+      "name": "Black Sand Beach Preserve",
+      "region": 11,
+      "x_pct": 48,
+      "y_pct": 15
+    },
+    {
+      "id": "r13-portview",
+      "name": "Portview",
+      "region": 13,
+      "x_pct": 50.32,
+      "y_pct": 71.88
+    },
+    {
+      "id": "r14-federal-shores",
+      "name": "InterFederal Shores",
+      "region": 14,
+      "x_pct": 31,
+      "y_pct": 38
+    },
+    {
+      "id": "r15-puckall",
+      "name": "Puckall",
+      "region": 15,
+      "x_pct": 37.4,
+      "y_pct": 33.4
+    },
+    {
+      "id": "r16-east-bayby",
+      "name": "East Bayby",
+      "region": 16,
+      "x_pct": 54.5,
+      "y_pct": 36.6
+    },
+    {
+      "id": "r17-research-islands",
+      "name": "Research Islands",
+      "region": 17,
+      "x_pct": 82.5,
+      "y_pct": 93
+    }
+  ]
+}

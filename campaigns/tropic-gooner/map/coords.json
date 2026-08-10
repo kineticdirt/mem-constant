@@ -2,7 +2,7 @@
   "version": 1,
   "projection": "image-percent",
   "source": "output-onlinetools4k.png",
-  "method": "A: pins into GM border centroids (regions-ui untouched); vibes labels secondary",
+  "method": "FROZEN \u2014 do not rewrite x_pct/y_pct without GM",
   "updated_at": "2026-08-10",
   "regions": {
     "r01-paradise": {
@@ -100,5 +100,6 @@
       "y_pct": 38,
       "anchor": "overlay-zone-unique"
     }
-  }
+  },
+  "pin_lock": "pin-coords-frozen.json"
 }

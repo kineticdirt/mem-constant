@@ -3,6 +3,8 @@
 
 
 
+- **2026-08-10T00:44Z** — [PC] **Result:** pins **FROZEN** (holder `tableslop-pins-lock-freeze`). No further pin moves. SoT `pin-coords-frozen.json` + guard `tableslop-pin-coords-guard.sh` PASS v1/14; wired into verify-runtime-state + push-tableslop-map. Borders untouched. Re-freeze only GM+`--accept`. Hard-refresh map.
+- **2026-08-10T00:42Z** — [PC] **Intent:** STOP moving map pins; **lock current** map.json+coords.json as frozen SoT. No more centroid/A edits. NEVER regions-ui. Holder: `tableslop-pins-lock-freeze`.
 - **2026-08-10T00:42Z** — [PC] **Result:** **A wins** (holder `tableslop-pins-into-borders-A`). Borders untouched (guard PASS v25/660). Moved 5 pins into GM poly centroids via map.json+coords.json: Paradise 37.35/53.14, Porto 36.48/62.88, Jacked 29.23/59.35, San Aurelio/Culovera 32.85/93.62, Ruby 23.40/89.53. Baks on potato. Rejected B/C. **GM: hard-refresh; clear site data once** for map.tableslop.org if old drag overrides linger.
 - **2026-08-10T00:40Z** — [PC] **Intent:** GM call: **A pins into borders** (borders look correct; do not re-draw). Clear map.tableslop.org site data if old drag overrides linger. Update map.json/coords only; NEVER regions-ui. Holder: `tableslop-pins-into-borders-A`.
 - **2026-08-10T00:36Z** — [PC] **Intent:** Wire **daily deslop** into daily checkups (paired with ponytail: no-delete refine, atomize by function/goal, reuse helpers). Add **git-regression memory** (errors/reversions). Scaffold **Systems design board** for linuxbox understanding. Holder: `daily-deslop-systems-board`.

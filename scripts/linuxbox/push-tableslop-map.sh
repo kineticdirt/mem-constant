@@ -176,6 +176,7 @@ set -euo pipefail
 REPO="${LINUXBOX_AGENT_DUMP:-/home/abhinav/agent-dump}"
 cd "${REPO}"
 bash "${REPO}/scripts/linuxbox/tableslop-gm-borders-guard.sh"
+bash "${REPO}/scripts/linuxbox/tableslop-pin-coords-guard.sh"
 bash "${REPO}/scripts/linuxbox/verify-runtime-state.sh" --context tableslop-map
 REMOTE_VERIFY
 echo "push-tableslop-map: post-deploy verify PASS"

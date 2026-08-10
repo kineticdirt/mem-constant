@@ -37,9 +37,10 @@
       "x_pct": 37.35,
       "y_pct": 53.14,
       "pin_color": "#e8c547",
-      "coord_status": "pinned_into_border_A",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
-      "note": "vibes.png label N of middle bay | A: into border from 48.32/57.47 (2026-08-10)"
+      "note": "vibes.png label N of middle bay | A: into border from 48.32/57.47 (2026-08-10)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r02-porto-lujuria",
@@ -50,12 +51,13 @@
       "x_pct": 36.48,
       "y_pct": 62.88,
       "pin_color": "#5eb0d9",
-      "coord_status": "pinned_into_border_A",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "aliases": [
         "Porto Lujuria"
       ],
-      "note": "vibes.png Porto Lujara (NOT Lujuria) S tip of middle bay | A: into border from 41.00/66.00 (2026-08-10)"
+      "note": "vibes.png Porto Lujara (NOT Lujuria) S tip of middle bay | A: into border from 41.00/66.00 (2026-08-10)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r03-crimson-quay",
@@ -66,13 +68,14 @@
       "x_pct": 29.23,
       "y_pct": 59.35,
       "pin_color": "#3ec9ad",
-      "coord_status": "pinned_into_border_A",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "aliases": [
         "Crimson Quay",
         "Crimzon Quay"
       ],
-      "note": "vibes.png Jackedsonville W of bay (lore rebrand was Crimson Quay) | A: into border from 35.88/73.85 (2026-08-10)"
+      "note": "vibes.png Jackedsonville W of bay (lore rebrand was Crimson Quay) | A: into border from 35.88/73.85 (2026-08-10)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r04-villa-miel",
@@ -83,8 +86,9 @@
       "x_pct": 23.65,
       "y_pct": 74.89,
       "pin_color": "#e89a3c",
-      "coord_status": "overlay-label",
-      "workflow_status": "planning"
+      "coord_status": "LOCKED",
+      "workflow_status": "planning",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r05-culovera",
@@ -95,12 +99,13 @@
       "x_pct": 32.85,
       "y_pct": 93.62,
       "pin_color": "#7bc45e",
-      "coord_status": "pinned_into_border_A",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "aliases": [
         "CuloVera"
       ],
-      "note": "vibes.png San Aurelio at southern tip (lore alias CuloVera) | A: into border from 40.12/86.06 (2026-08-10)"
+      "note": "vibes.png San Aurelio at southern tip (lore alias CuloVera) | A: into border from 40.12/86.06 (2026-08-10)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r06-seaside-springs",
@@ -111,8 +116,9 @@
       "x_pct": 61,
       "y_pct": 53,
       "pin_color": "#e07a8c",
-      "coord_status": "overlay-label",
-      "workflow_status": "planning"
+      "coord_status": "LOCKED",
+      "workflow_status": "planning",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r08-sierra-dorado",
@@ -123,9 +129,10 @@
       "x_pct": 43,
       "y_pct": 43,
       "pin_color": "#f0c530",
-      "coord_status": "overlay-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
-      "note": "Federal mountain capital \u2014 pin on settlement mark E of label (not ridge crest)"
+      "note": "Federal mountain capital \u2014 pin on settlement mark E of label (not ridge crest)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r09-ruby-harbor",
@@ -136,9 +143,10 @@
       "x_pct": 23.4,
       "y_pct": 89.53,
       "pin_color": "#45b06e",
-      "coord_status": "pinned_into_border_A",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
-      "note": "A: into border from 33.60/76.35 (2026-08-10)"
+      "note": "A: into border from 33.60/76.35 (2026-08-10)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r10-lagoona-seica",
@@ -149,13 +157,14 @@
       "x_pct": 51,
       "y_pct": 84,
       "pin_color": "#e09262",
-      "coord_status": "overlay-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "aliases": [
         "Lagoona Seika",
         "Lagoona Seica"
       ],
-      "note": "vibes.png Lagooni Seika SE coast"
+      "note": "vibes.png Lagooni Seika SE coast",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r11-black-sand-preserve",
@@ -166,9 +175,10 @@
       "x_pct": 48,
       "y_pct": 15,
       "pin_color": "#52c4bd",
-      "coord_status": "overlay-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
-      "note": "vibes.png N tip preserve \u2014 near painted label"
+      "note": "vibes.png N tip preserve \u2014 near painted label",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r13-portview",
@@ -179,9 +189,10 @@
       "x_pct": 50.32,
       "y_pct": 71.88,
       "pin_color": "#d49248",
-      "coord_status": "overlay-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
-      "note": "vibes.png Portview E coast label \u2014 was on mountains (potato ~47,65) / water (PC 56,69)"
+      "note": "vibes.png Portview E coast label \u2014 was on mountains (potato ~47,65) / water (PC 56,69)",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r14-federal-shores",
@@ -192,13 +203,14 @@
       "x_pct": 31,
       "y_pct": 38,
       "pin_color": "#6aabd4",
-      "coord_status": "overlay-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "aliases": [
         "Federal Shores",
         "Interfederal Shores"
       ],
-      "note": "vibes.png InterFederal Shores NW coast"
+      "note": "vibes.png InterFederal Shores NW coast",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r15-puckall",
@@ -209,10 +221,11 @@
       "x_pct": 37.4,
       "y_pct": 33.4,
       "pin_color": "#b47acc",
-      "coord_status": "vibes-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "beta_deferred_lore": true,
-      "note": "vibes-only inland N-central \u2014 pin matches art; lore deferred past beta"
+      "note": "vibes-only inland N-central \u2014 pin matches art; lore deferred past beta",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r16-east-bayby",
@@ -223,10 +236,11 @@
       "x_pct": 54.5,
       "y_pct": 36.6,
       "pin_color": "#7a94d4",
-      "coord_status": "vibes-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "beta_deferred_lore": true,
-      "note": "vibes-only NE coast \u2014 off mountain slope onto coastal green near label"
+      "note": "vibes-only NE coast \u2014 off mountain slope onto coastal green near label",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     },
     {
       "id": "r17-research-islands",
@@ -237,11 +251,13 @@
       "x_pct": 82.5,
       "y_pct": 93,
       "pin_color": "#48c498",
-      "coord_status": "vibes-label",
+      "coord_status": "LOCKED",
       "workflow_status": "planning",
       "beta_deferred_lore": true,
-      "note": "vibes-only SE archipelago \u2014 pin on island landmass not floating label"
+      "note": "vibes-only SE archipelago \u2014 pin on island landmass not floating label",
+      "coord_locked_at": "2026-08-10T00:43:00.328521+00:00"
     }
   ],
-  "pin_policy": "A_pins_into_existing_borders_2026-08-10"
+  "pin_policy": "FROZEN_2026-08-10",
+  "pin_lock_file": "pin-coords-frozen.json"
 }

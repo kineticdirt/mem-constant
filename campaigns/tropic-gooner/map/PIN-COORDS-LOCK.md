@@ -1,13 +1,18 @@
 # DO NOT overwrite pin coords without GM OK
 
-Holder: `tableslop-pins-colors` (2026-08-01) · **policy A** locked 2026-08-10 (`tableslop-pins-into-borders-A`)
+**LOCKED / FROZEN** — holder `tableslop-pins-lock-freeze` (2026-08-10)
 
-- Pin positions live in `map.json` + `coords.json`. **API merges `coords.json` over `map.json`** — update **both** or the old vibes coords win.
-- **2026-08-10 GM call: A wins** — borders (`regions-ui.json`) stay sacred; pins move **into** existing GM polys. Not B (re-draw borders). Not C (Aug 7 baks are regions-ui-only and would risk good borders).
-- Applied: Paradise / Porto / Jackedsonville / San Aurelio (Culovera) / Ruby Harbor → border centroids; bak `map.json.bak-before-pins-A-*` + `coords.json.bak-before-pins-A-*` on potato. Log: `pin-into-borders-A-applied.json`.
-- Cursor Auto / digitize / ellipse jobs must **not** rewrite `x_pct`/`y_pct` or restore Orchid Falls / Nueva Vista without GM OK.
-- Region polygon digitize may touch `regions-ui.json` geometry only — leave pin coords alone unless GM asks A again.
-- Edit-mode Save → `POST /api/map/coords` is the intentional human fine-tune path (drag after clear site data).
+## Rule
 
-- Live borders: see `REGIONS-UI-LOCK.md` (potato owns `regions-ui.json`; never SCP empty PC stubs).
-- Client: hard-refresh; if pins look like an old drag session, **clear site data once** for `map.tableslop.org` (stale `coord_overrides`).
+- **Stop moving pins.** Current `coords.json` + `map.json` percents are frozen SoT.
+- Freeze file: `pin-coords-frozen.json` (potato + repo).
+- Guard: `bash scripts/linuxbox/tableslop-pin-coords-guard.sh` (FAIL if any region moves).
+- Re-freeze **only** after explicit GM ask: `bash scripts/linuxbox/tableslop-pin-coords-guard.sh --accept`
+- **API merges `coords.json` over `map.json`** — never edit one without the other (and never without GM + --accept).
+- Agents / digitize / centroid / “policy A” scripts: **do not** rewrite `x_pct`/`y_pct`.
+- `regions-ui.json` is separate and still sacred (`REGIONS-UI-LOCK.md` / borders guard).
+- Human Edit-drag on the map: only if GM asks; then Save + `--accept` to re-freeze.
+
+## Client
+
+Hard-refresh; clear site data once for `map.tableslop.org` if old `coord_overrides` linger.

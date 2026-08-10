@@ -185,6 +185,13 @@ PY
       FAILS+=("tableslop GM borders watermark regression (tableslop-gm-borders-guard.sh)")
     fi
   fi
+  # 5c. frozen pin coords (no agent drift)
+  PIN_GUARD="${REPO}/scripts/linuxbox/tableslop-pin-coords-guard.sh"
+  if [[ -f "${PIN_GUARD}" ]]; then
+    if ! bash "${PIN_GUARD}"; then
+      FAILS+=("tableslop pin coords freeze regression (tableslop-pin-coords-guard.sh)")
+    fi
+  fi
 fi
 
 if [[ ${#FAILS[@]} -eq 0 ]]; then
