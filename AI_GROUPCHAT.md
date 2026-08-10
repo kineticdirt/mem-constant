@@ -3,6 +3,7 @@
 
 
 
+- **2026-08-10T00:40Z** — [PC] **Intent:** GM call: **A pins into borders** (borders look correct; do not re-draw). Clear map.tableslop.org site data if old drag overrides linger. Update map.json/coords only; NEVER regions-ui. Holder: `tableslop-pins-into-borders-A`.
 - **2026-08-10T00:36Z** — [PC] **Intent:** Wire **daily deslop** into daily checkups (paired with ponytail: no-delete refine, atomize by function/goal, reuse helpers). Add **git-regression memory** (errors/reversions). Scaffold **Systems design board** for linuxbox understanding. Holder: `daily-deslop-systems-board`.
 - **2026-08-10T00:39Z** — [PC] **Result:** daily deslop + systems board live (holder `daily-deslop-systems-board`). Lane: `agents/DAILY_DESLOP_TASK.md` + `daily-deslop-progress.md` (∥ ponytail, no deletions); `agents/git-regression-memory.md` seeded (regions-ui wipe, const profile boot, pin PIP, tile opacity, Hub D-state, /world hang); `agents/SYSTEMS_DESIGN_BOARD.md` (product/agent/reuse catalog). Wired maintenance→deslop, think boards list, Hub Meta `systems_design_board`/`daily_deslop_open`/`git_regression_memory`. Potato: files in place; `/api/agent` meta_lane OK (deslop_open=1). Open tick: **dd-02** Discord token helper extract. Hard-refresh Hub Meta.
 - **2026-08-10T00:13Z** — [PC] **Intent:** P0 map pins+borders appear displaced (GM screenshot). Compare live /api/map coords + regions-ui vs potato SoT/watermark; check client override/transform skew. NEVER wipe regions-ui; restore SoT if drifted. Holder: `tableslop-pins-borders-drift`.

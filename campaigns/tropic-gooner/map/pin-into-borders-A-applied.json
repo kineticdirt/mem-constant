@@ -1,0 +1,70 @@
+{
+  "applied_at": "2026-08-10T00:41:25.612599+00:00",
+  "policy": "A",
+  "regions_ui_untouched": true,
+  "map_bak": "map.json.bak-before-pins-A-20260810T004125Z",
+  "moves": [
+    {
+      "name": "Paradise",
+      "region": 1,
+      "from": {
+        "x_pct": 48.32,
+        "y_pct": 57.47
+      },
+      "to": {
+        "x_pct": 37.35,
+        "y_pct": 53.14
+      }
+    },
+    {
+      "name": "Porto Lujara",
+      "region": 2,
+      "from": {
+        "x_pct": 41.0,
+        "y_pct": 66.0
+      },
+      "to": {
+        "x_pct": 36.48,
+        "y_pct": 62.88
+      }
+    },
+    {
+      "name": "Jackedsonville",
+      "region": 3,
+      "from": {
+        "x_pct": 35.88,
+        "y_pct": 73.85
+      },
+      "to": {
+        "x_pct": 29.23,
+        "y_pct": 59.35
+      }
+    },
+    {
+      "name": "San Aurelio",
+      "region": 5,
+      "from": {
+        "x_pct": 40.12,
+        "y_pct": 86.06
+      },
+      "to": {
+        "x_pct": 32.85,
+        "y_pct": 93.62
+      }
+    },
+    {
+      "name": "Ruby Harbor",
+      "region": 9,
+      "from": {
+        "x_pct": 33.6,
+        "y_pct": 76.35
+      },
+      "to": {
+        "x_pct": 23.4,
+        "y_pct": 89.53
+      }
+    }
+  ],
+  "coords_bak": "coords.json.bak-before-pins-A-20260810T004203Z",
+  "coords_synced": true
+}

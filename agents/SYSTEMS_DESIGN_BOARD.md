@@ -49,7 +49,7 @@
 ## Open design questions (board)
 
 - [x] Hub Meta card: systems board + daily-deslop open count (2026-08-10)
-- [ ] Tableslop: pin vs border SoT when PIP fails (GM A/B/C — do not auto-pick)
+- [x] Tableslop: pin vs border SoT → **A** (pins into borders; borders sacred) 2026-08-10
 - [ ] Document Discord token helper once extracted (euro/nyc/tropic configure scripts)
 
 ## Related docs

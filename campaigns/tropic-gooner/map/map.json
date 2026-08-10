@@ -3,7 +3,7 @@
   "campaign": "tropic-gooner",
   "brand": "Primavera",
   "title": "Isla Primavera",
-  "description": "tableslop overworld — Primavera setting. Marker label/name = vibes.png spellings (SoT); lore renames kept in aliases. Removed Orchid Falls + Nueva Vista pins (not on vibes.png). Pins realigned to vibes painted labels 2026-08-01 (esp Portview #13 off mountains).",
+  "description": "tableslop overworld \u2014 Primavera setting. Marker label/name = vibes.png spellings (SoT); lore renames kept in aliases. Removed Orchid Falls + Nueva Vista pins (not on vibes.png). Pins realigned to vibes painted labels 2026-08-01 (esp Portview #13 off mountains).",
   "base_image": "map/master-enhanced.png",
   "base_image_2k": "map/output-onlinetools-2k.png",
   "tile_pyramid": "map/pyramid.json",
@@ -18,7 +18,7 @@
   "layers_manifest": "map/layers.json",
   "base_image_status": "sharp AI terrain + HTML areas/cities/labels (strip deferred until canva-terrain export)",
   "projection": "image-percent",
-  "updated_at": "2026-08-02",
+  "updated_at": "2026-08-10T00:41:25.607686+00:00",
   "name_source": "Obsidian WoD vibes.png",
   "art_sot": {
     "names_and_pins": "Obsidian/DND Archive/World Of Darkness/vibes.png",
@@ -34,12 +34,12 @@
       "name": "Paradise",
       "label": "Paradise",
       "type": "city",
-      "x_pct": 48.32,
-      "y_pct": 57.47,
+      "x_pct": 37.35,
+      "y_pct": 53.14,
       "pin_color": "#e8c547",
-      "coord_status": "overlay-label",
+      "coord_status": "pinned_into_border_A",
       "workflow_status": "planning",
-      "note": "vibes.png label N of middle bay"
+      "note": "vibes.png label N of middle bay | A: into border from 48.32/57.47 (2026-08-10)"
     },
     {
       "id": "r02-porto-lujuria",
@@ -47,15 +47,15 @@
       "name": "Porto Lujara",
       "label": "Porto Lujara",
       "type": "city",
-      "x_pct": 41,
-      "y_pct": 66,
+      "x_pct": 36.48,
+      "y_pct": 62.88,
       "pin_color": "#5eb0d9",
-      "coord_status": "overlay-label",
+      "coord_status": "pinned_into_border_A",
       "workflow_status": "planning",
       "aliases": [
         "Porto Lujuria"
       ],
-      "note": "vibes.png Porto Lujara (NOT Lujuria) S tip of middle bay"
+      "note": "vibes.png Porto Lujara (NOT Lujuria) S tip of middle bay | A: into border from 41.00/66.00 (2026-08-10)"
     },
     {
       "id": "r03-crimson-quay",
@@ -63,16 +63,16 @@
       "name": "Jackedsonville",
       "label": "Jackedsonville",
       "type": "city",
-      "x_pct": 35.88,
-      "y_pct": 73.85,
+      "x_pct": 29.23,
+      "y_pct": 59.35,
       "pin_color": "#3ec9ad",
-      "coord_status": "overlay-label",
+      "coord_status": "pinned_into_border_A",
       "workflow_status": "planning",
       "aliases": [
         "Crimson Quay",
         "Crimzon Quay"
       ],
-      "note": "vibes.png Jackedsonville W of bay (lore rebrand was Crimson Quay)"
+      "note": "vibes.png Jackedsonville W of bay (lore rebrand was Crimson Quay) | A: into border from 35.88/73.85 (2026-08-10)"
     },
     {
       "id": "r04-villa-miel",
@@ -92,15 +92,15 @@
       "name": "San Aurelio",
       "label": "San Aurelio",
       "type": "city",
-      "x_pct": 40.12,
-      "y_pct": 86.06,
+      "x_pct": 32.85,
+      "y_pct": 93.62,
       "pin_color": "#7bc45e",
-      "coord_status": "overlay-label",
+      "coord_status": "pinned_into_border_A",
       "workflow_status": "planning",
       "aliases": [
         "CuloVera"
       ],
-      "note": "vibes.png San Aurelio at southern tip (lore alias CuloVera)"
+      "note": "vibes.png San Aurelio at southern tip (lore alias CuloVera) | A: into border from 40.12/86.06 (2026-08-10)"
     },
     {
       "id": "r06-seaside-springs",
@@ -125,7 +125,7 @@
       "pin_color": "#f0c530",
       "coord_status": "overlay-label",
       "workflow_status": "planning",
-      "note": "Federal mountain capital — pin on settlement mark E of label (not ridge crest)"
+      "note": "Federal mountain capital \u2014 pin on settlement mark E of label (not ridge crest)"
     },
     {
       "id": "r09-ruby-harbor",
@@ -133,11 +133,12 @@
       "name": "Ruby Harbor",
       "label": "Ruby Harbor",
       "type": "city",
-      "x_pct": 33.6,
-      "y_pct": 76.35,
+      "x_pct": 23.4,
+      "y_pct": 89.53,
       "pin_color": "#45b06e",
-      "coord_status": "overlay-label",
-      "workflow_status": "planning"
+      "coord_status": "pinned_into_border_A",
+      "workflow_status": "planning",
+      "note": "A: into border from 33.60/76.35 (2026-08-10)"
     },
     {
       "id": "r10-lagoona-seica",
@@ -167,7 +168,7 @@
       "pin_color": "#52c4bd",
       "coord_status": "overlay-label",
       "workflow_status": "planning",
-      "note": "vibes.png N tip preserve — near painted label"
+      "note": "vibes.png N tip preserve \u2014 near painted label"
     },
     {
       "id": "r13-portview",
@@ -180,7 +181,7 @@
       "pin_color": "#d49248",
       "coord_status": "overlay-label",
       "workflow_status": "planning",
-      "note": "vibes.png Portview E coast label — was on mountains (potato ~47,65) / water (PC 56,69)"
+      "note": "vibes.png Portview E coast label \u2014 was on mountains (potato ~47,65) / water (PC 56,69)"
     },
     {
       "id": "r14-federal-shores",
@@ -211,7 +212,7 @@
       "coord_status": "vibes-label",
       "workflow_status": "planning",
       "beta_deferred_lore": true,
-      "note": "vibes-only inland N-central — pin matches art; lore deferred past beta"
+      "note": "vibes-only inland N-central \u2014 pin matches art; lore deferred past beta"
     },
     {
       "id": "r16-east-bayby",
@@ -225,7 +226,7 @@
       "coord_status": "vibes-label",
       "workflow_status": "planning",
       "beta_deferred_lore": true,
-      "note": "vibes-only NE coast — off mountain slope onto coastal green near label"
+      "note": "vibes-only NE coast \u2014 off mountain slope onto coastal green near label"
     },
     {
       "id": "r17-research-islands",
@@ -239,7 +240,8 @@
       "coord_status": "vibes-label",
       "workflow_status": "planning",
       "beta_deferred_lore": true,
-      "note": "vibes-only SE archipelago — pin on island landmass not floating label"
+      "note": "vibes-only SE archipelago \u2014 pin on island landmass not floating label"
     }
-  ]
+  ],
+  "pin_policy": "A_pins_into_existing_borders_2026-08-10"
 }

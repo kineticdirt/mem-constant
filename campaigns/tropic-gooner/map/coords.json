@@ -2,23 +2,38 @@
   "version": 1,
   "projection": "image-percent",
   "source": "output-onlinetools4k.png",
-  "method": "unique Canva overlay zone per region; pin at zone centroid (label anchor)",
-  "updated_at": "2026-08-02",
+  "method": "A: pins into GM border centroids (regions-ui untouched); vibes labels secondary",
+  "updated_at": "2026-08-10",
   "regions": {
     "r01-paradise": {
-      "x_pct": 48.32,
-      "y_pct": 57.47,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 37.35,
+      "y_pct": 53.14,
+      "anchor": "border-centroid-A",
+      "prev": {
+        "x_pct": 48.32,
+        "y_pct": 57.47,
+        "anchor": "overlay-zone-unique"
+      }
     },
     "r02-porto-lujuria": {
-      "x_pct": 41,
-      "y_pct": 66,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 36.48,
+      "y_pct": 62.88,
+      "anchor": "border-centroid-A",
+      "prev": {
+        "x_pct": 41,
+        "y_pct": 66,
+        "anchor": "overlay-zone-unique"
+      }
     },
     "r03-crimson-quay": {
-      "x_pct": 35.88,
-      "y_pct": 73.85,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 29.23,
+      "y_pct": 59.35,
+      "anchor": "border-centroid-A",
+      "prev": {
+        "x_pct": 35.88,
+        "y_pct": 73.85,
+        "anchor": "overlay-zone-unique"
+      }
     },
     "r04-villa-miel": {
       "x_pct": 23.65,
@@ -26,9 +41,14 @@
       "anchor": "overlay-zone-unique"
     },
     "r05-culovera": {
-      "x_pct": 40.12,
-      "y_pct": 86.06,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 32.85,
+      "y_pct": 93.62,
+      "anchor": "border-centroid-A",
+      "prev": {
+        "x_pct": 40.12,
+        "y_pct": 86.06,
+        "anchor": "overlay-zone-unique"
+      }
     },
     "r06-seaside-springs": {
       "x_pct": 61,
@@ -46,9 +66,14 @@
       "anchor": "overlay-zone-unique"
     },
     "r09-ruby-harbor": {
-      "x_pct": 33.6,
-      "y_pct": 76.35,
-      "anchor": "overlay-zone-unique"
+      "x_pct": 23.4,
+      "y_pct": 89.53,
+      "anchor": "border-centroid-A",
+      "prev": {
+        "x_pct": 33.6,
+        "y_pct": 76.35,
+        "anchor": "overlay-zone-unique"
+      }
     },
     "r10-lagoona-seica": {
       "x_pct": 51,
