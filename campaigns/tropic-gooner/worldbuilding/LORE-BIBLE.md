@@ -223,6 +223,8 @@ For the record, so nobody "resolves" these by accident:
 - **`STREETS.md`** — tri-city street names, block times, and business placement for Paradise / Porto Lujara / Jackedsonville (most street names [proposal]; pins canon venues onto named faces). Use with the aesthetic and naming guide below.
 - **`CLIMATE.md`** — weather / seasons / storms (World → Weather).
 - **`AGRICULTURE.md`** — crops, fishing, food logistics (World → Agriculture).
+- **`ECONOMY.md`** — full water/mineral/other sim + commodity tick (World → Economy; map Econ overlay).
+- **`TRANSPORT.md`** — modes and play notes (World → Transport).
 - **`TRANSPORT.md`** — highways (green map lines), streets, boats, rail — prose SoT; map layers stay on the map.
 - **`REGIONS.md`** — region digest (World → Regions).
 

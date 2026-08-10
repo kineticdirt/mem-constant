@@ -1,5 +1,5 @@
 /**
- * World dashboard control-plane JSON for Regions / Agriculture / Transport.
+ * World dashboard control-plane JSON for Regions / Agriculture / Economy / Transport.
  * Markdown notes stay sidecars; this module is structured state only.
  */
 "use strict";
@@ -17,6 +17,11 @@ const MODULES = {
     file: "agriculture-state.json",
     resource: "world-agriculture:tropic-gooner",
     listKey: "crops",
+  },
+  economy: {
+    file: "economy-state.json",
+    resource: "world-economy:tropic-gooner",
+    listKey: "water_bodies",
   },
   transport: {
     file: "transport-state.json",
@@ -116,6 +121,18 @@ function applyModulePatch(cur, payload) {
       next.fishing = patchListItem(next.fishing, id, patch);
     } else if (payload.list_key === "modes" || (next.modes && next.modes.some((r) => r && r.id === id))) {
       next.modes = patchListItem(next.modes, id, patch);
+    } else if (
+      payload.list_key === "water_bodies" ||
+      (next.water_bodies && next.water_bodies.some((r) => r && r.id === id))
+    ) {
+      next.water_bodies = patchListItem(next.water_bodies, id, patch);
+    } else if (payload.list_key === "minerals" || (next.minerals && next.minerals.some((r) => r && r.id === id))) {
+      next.minerals = patchListItem(next.minerals, id, patch);
+    } else if (
+      payload.list_key === "other_resources" ||
+      (next.other_resources && next.other_resources.some((r) => r && r.id === id))
+    ) {
+      next.other_resources = patchListItem(next.other_resources, id, patch);
     } else {
       throw new Error("item_not_found");
     }

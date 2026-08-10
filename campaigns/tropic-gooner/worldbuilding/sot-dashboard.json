@@ -5,6 +5,7 @@
   "modules": {
     "regions": "worldbuilding/regions-state.json",
     "agriculture": "worldbuilding/agriculture-state.json",
+    "economy": "worldbuilding/economy-state.json",
     "transport": "worldbuilding/transport-state.json",
     "weather": "worldbuilding/weather-state.json"
   },

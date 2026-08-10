@@ -30,7 +30,8 @@ Tick-sized only (Hub-a/b/c lesson). When all Open children are `[x]`, archive un
   - [ ] **dux-21** App A glance readability — last Discord activity / status chips clearer
   - [ ] **dux-22** Cancel/RSVP — **defer to roadmap P1** (do not fake); keep link/note only until session schema lands
   - [ ] **dux-30** Docs/smoke hygiene — Areas default ON documented; smoke keeps Cast chrome + borders gates
-- [ ] **Map leftover boundaries** — **PAUSED for agents (2026-08-01 gear `nyc-wb-gear-change`)** — GM-owned Draw; borders sacred (`REGIONS-UI-LOCK.md`). Do **not** prioritize Cursor/Hermes on ellipse digitize / regions-ui. Leftover list still: Villa Miel, Seaside Springs, Black Sand Beach Preserve, Portview, InterFederal Shores, East Bayby, Research Islands — resume only on explicit GM ask. Focus shifted to **NYC Mafia × D&D** borough worldbuilding.
+
+- [x] **Economy sim v1** — water/minerals/other + tick + World + Econ overlay (holder `tableslop-economy-sim-full`, 2026-08-10). Open polish in `agents/tableslop-economy-progress.md`.- [ ] **Map leftover boundaries** — **PAUSED for agents (2026-08-01 gear `nyc-wb-gear-change`)** — GM-owned Draw; borders sacred (`REGIONS-UI-LOCK.md`). Do **not** prioritize Cursor/Hermes on ellipse digitize / regions-ui. Leftover list still: Villa Miel, Seaside Springs, Black Sand Beach Preserve, Portview, InterFederal Shores, East Bayby, Research Islands — resume only on explicit GM ask. Focus shifted to **NYC Mafia × D&D** borough worldbuilding.
 - [ ] **Error/test framework** — collector exists (`tableslop-error-collect.sh`); extend/fix if LATEST not ok; keep smoke gates green.
 - Character flesh: **deferred** (sheets = place/world kernels only).
 - **Potato handoff:** `docs/plans/tableslop-potato-handoff-2026-08-01.md` (PC shutdown; Cursor∥Hermes parallel).

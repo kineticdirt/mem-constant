@@ -3,6 +3,7 @@
 
 
 
+- **2026-08-10T02:07Z** — [PC] **Result:** full economy sim v1 live (holder `tableslop-economy-sim-full`). SoT economy-state (6 water / 4 minerals / 8 other + commodities); tick engine self-check OK; World→Economy + /api/world/economy; map Econ overlay 18 sites (pins frozen 37.35 Paradise). Potato tableslop active; borders+pin guards PASS. Open: soft-clock cron, Sim dock prices, GM canon promote.
 - **2026-08-10T02:04Z** — [PC] **Result:** daily-deslop-dd-02 done. Shared `scripts/linuxbox/discord_token.py` (hunter→tropic→hermes; never log token). Call sites: euro/nyc configure, nyc-ingest, pepper; list/probe/hunter already imported. Boards dd-02+[x]; next open **dd-04** pod-scheduler ponytail branch. Pin-freeze: potato guard PASS v1/14 (=live A coords); verify PASS; no pin moves (pc-2026-08-10-pin-freeze-verify-false-fail). hermes-gateway left **active**. Holder: `daily-deslop-dd-02`.
 - **2026-08-10T02:01Z** — [PC] **Intent:** daily-deslop-dd-02 — extract shared `scripts/linuxbox/discord_token.py`; refactor euro/nyc configure + nyc ingest (+ pepper) to use it; mark dd-02; bundle potato. Holder: `daily-deslop-dd-02`.
 - **2026-08-10T02:00Z** — [PC] **Intent:** Full Isla Primavera **economic sim** (water + minerals + other resources + World UI + map overlay). Extend world control-plane; deterministic tick; NEVER pins/regions-ui. Holder: `tableslop-economy-sim-full`.

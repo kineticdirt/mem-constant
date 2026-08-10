@@ -1,0 +1,577 @@
+{
+  "version": 1,
+  "title": "Island economy",
+  "blurb": "Full control-plane sim: water bodies, minerals, and other stocks feed commodity prices. Tourism is the money; logistics and extractables are load-bearing. Soft clock: 1 tick ≈ 1 diegetic day (~48h IRL per diegetic-clock.json).",
+  "present_lock": 2019,
+  "diegetic_date": "2019-06-15",
+  "season": "wet",
+  "tick": 0,
+  "seed": "isla-primavera-economy-v1",
+  "units": {
+    "currency": "IP$",
+    "stock": "abstract_tonnes_equiv",
+    "note": "Playable magnitudes, not USGS accounting"
+  },
+  "markets": {
+    "island": {
+      "name": "Isla Primavera open market",
+      "liquidity": 1,
+      "shock": 0
+    }
+  },
+  "commodities": {
+    "tourism": {
+      "label": "Tourism nights",
+      "price": 100,
+      "base_demand": 120,
+      "supply": 110,
+      "demand": 120
+    },
+    "hospitality": {
+      "label": "Hotel / marina services",
+      "price": 85,
+      "base_demand": 90,
+      "supply": 88,
+      "demand": 90
+    },
+    "seafood": {
+      "label": "Seafood / shrimp",
+      "price": 40,
+      "base_demand": 55,
+      "supply": 50,
+      "demand": 55
+    },
+    "ice": {
+      "label": "Ice / cold chain",
+      "price": 22,
+      "base_demand": 60,
+      "supply": 58,
+      "demand": 60
+    },
+    "sugar": {
+      "label": "Sugarcane / sugar",
+      "price": 18,
+      "base_demand": 40,
+      "supply": 42,
+      "demand": 40
+    },
+    "rum": {
+      "label": "Rum / distillate",
+      "price": 55,
+      "base_demand": 35,
+      "supply": 34,
+      "demand": 35
+    },
+    "honey": {
+      "label": "Honey / festival brand",
+      "price": 28,
+      "base_demand": 20,
+      "supply": 19,
+      "demand": 20
+    },
+    "stone": {
+      "label": "Quarry stone / aggregate",
+      "price": 12,
+      "base_demand": 25,
+      "supply": 24,
+      "demand": 25
+    },
+    "ore": {
+      "label": "Heavy mineral sands / ore",
+      "price": 48,
+      "base_demand": 15,
+      "supply": 14,
+      "demand": 15
+    },
+    "freight": {
+      "label": "Port freight throughput",
+      "price": 30,
+      "base_demand": 70,
+      "supply": 68,
+      "demand": 70
+    },
+    "power": {
+      "label": "Grid / plant power",
+      "price": 16,
+      "base_demand": 80,
+      "supply": 78,
+      "demand": 80
+    },
+    "tech": {
+      "label": "Niche tech export",
+      "price": 95,
+      "base_demand": 25,
+      "supply": 22,
+      "demand": 25
+    },
+    "vice_cash": {
+      "label": "Casino / grey liquidity",
+      "price": 70,
+      "base_demand": 45,
+      "supply": 44,
+      "demand": 45
+    }
+  },
+  "water_bodies": [
+    {
+      "id": "water-middle-bay",
+      "name": "Middle Bay",
+      "kind": "water",
+      "canon": "canon",
+      "regions": [
+        "r01-paradise",
+        "r02-porto-lujuria",
+        "r03-crimson-quay"
+      ],
+      "roles": [
+        "shipping",
+        "tourism",
+        "fishery"
+      ],
+      "feeds": [
+        "freight",
+        "tourism",
+        "seafood",
+        "hospitality"
+      ],
+      "stock": 920,
+      "capacity": 1000,
+      "regen_per_tick": 55,
+      "extract_per_tick": 48,
+      "quality": 0.88,
+      "x_pct": 38.5,
+      "y_pct": 62,
+      "note": "Paradisio County money moves through this water — cruise, cargo, marina."
+    },
+    {
+      "id": "water-lagooni",
+      "name": "Lagooni Seika lagoon",
+      "kind": "water",
+      "canon": "canon",
+      "regions": [
+        "r10-lagoona-seica"
+      ],
+      "roles": [
+        "tourism",
+        "fishery"
+      ],
+      "feeds": [
+        "tourism",
+        "seafood",
+        "hospitality"
+      ],
+      "stock": 410,
+      "capacity": 450,
+      "regen_per_tick": 22,
+      "extract_per_tick": 18,
+      "quality": 0.92,
+      "x_pct": 51,
+      "y_pct": 84,
+      "note": "Boardwalk glamour harvest; name jokes about dry while nothing is."
+    },
+    {
+      "id": "water-ruby-grounds",
+      "name": "Ruby Harbor fishing grounds",
+      "kind": "water",
+      "canon": "canon",
+      "regions": [
+        "r09-ruby-harbor"
+      ],
+      "roles": [
+        "fishery",
+        "tourism"
+      ],
+      "feeds": [
+        "seafood",
+        "ice",
+        "tourism"
+      ],
+      "stock": 360,
+      "capacity": 400,
+      "regen_per_tick": 20,
+      "extract_per_tick": 24,
+      "quality": 0.86,
+      "x_pct": 23.4,
+      "y_pct": 89.5,
+      "note": "Regatta coast + day-boat shrimp story."
+    },
+    {
+      "id": "water-villa-miel-shrimp",
+      "name": "Villa Miel shrimp flats",
+      "kind": "water",
+      "canon": "canon",
+      "regions": [
+        "r04-villa-miel"
+      ],
+      "roles": [
+        "fishery"
+      ],
+      "feeds": [
+        "seafood",
+        "honey",
+        "ice"
+      ],
+      "stock": 280,
+      "capacity": 320,
+      "regen_per_tick": 16,
+      "extract_per_tick": 18,
+      "quality": 0.9,
+      "x_pct": 23.65,
+      "y_pct": 74.89,
+      "note": "Friendly harvest face; festival committee cover."
+    },
+    {
+      "id": "water-black-sand-coast",
+      "name": "Black Sand preserve coast",
+      "kind": "water",
+      "canon": "canon",
+      "regions": [
+        "r11-black-sand-preserve"
+      ],
+      "roles": [
+        "ecology"
+      ],
+      "feeds": [
+        "seafood"
+      ],
+      "stock": 500,
+      "capacity": 520,
+      "regen_per_tick": 12,
+      "extract_per_tick": 4,
+      "quality": 0.95,
+      "x_pct": 55,
+      "y_pct": 40,
+      "note": "Garou eco-NGO fights condo money; low legal extract."
+    },
+    {
+      "id": "water-federal-north",
+      "name": "InterFederal north waters",
+      "kind": "water",
+      "canon": "proposal",
+      "regions": [
+        "r14-federal-shores"
+      ],
+      "roles": [
+        "shipping",
+        "restricted"
+      ],
+      "feeds": [
+        "freight",
+        "power"
+      ],
+      "stock": 600,
+      "capacity": 650,
+      "regen_per_tick": 18,
+      "extract_per_tick": 10,
+      "quality": 0.8,
+      "x_pct": 42,
+      "y_pct": 22,
+      "note": "[proposal] Federal / base logistics; not tourist brochure."
+    }
+  ],
+  "minerals": [
+    {
+      "id": "min-sierra-quarry",
+      "name": "Sierra Dorado quarry belt",
+      "kind": "mineral",
+      "canon": "proposal",
+      "regions": [
+        "r08-sierra-dorado"
+      ],
+      "roles": [
+        "construction",
+        "federal"
+      ],
+      "feeds": [
+        "stone",
+        "power"
+      ],
+      "stock": 700,
+      "capacity": 800,
+      "regen_per_tick": 2,
+      "extract_per_tick": 28,
+      "quality": 0.84,
+      "x_pct": 43,
+      "y_pct": 43,
+      "note": "[proposal] Mountain capital aggregate + plant ballast."
+    },
+    {
+      "id": "min-south-limestone",
+      "name": "San Aurelio limestone / cane soils",
+      "kind": "mineral",
+      "canon": "proposal",
+      "regions": [
+        "r05-culovera"
+      ],
+      "roles": [
+        "ag_amendment",
+        "construction"
+      ],
+      "feeds": [
+        "stone",
+        "sugar"
+      ],
+      "stock": 520,
+      "capacity": 600,
+      "regen_per_tick": 1,
+      "extract_per_tick": 22,
+      "quality": 0.8,
+      "x_pct": 32.85,
+      "y_pct": 93.62,
+      "note": "[proposal] Soil amendment + rail-yard ballast for cane belt."
+    },
+    {
+      "id": "min-black-sand-heavies",
+      "name": "Black sand heavy minerals",
+      "kind": "mineral",
+      "canon": "proposal",
+      "regions": [
+        "r11-black-sand-preserve"
+      ],
+      "roles": [
+        "extractive",
+        "contested"
+      ],
+      "feeds": [
+        "ore"
+      ],
+      "stock": 240,
+      "capacity": 300,
+      "regen_per_tick": 0.5,
+      "extract_per_tick": 8,
+      "quality": 0.7,
+      "x_pct": 57,
+      "y_pct": 38,
+      "note": "[proposal] Contested: preserve law vs quiet dredge money."
+    },
+    {
+      "id": "min-federal-restricted",
+      "name": "Federal restricted extractives",
+      "kind": "mineral",
+      "canon": "proposal",
+      "regions": [
+        "r14-federal-shores",
+        "r08-sierra-dorado"
+      ],
+      "roles": [
+        "restricted"
+      ],
+      "feeds": [
+        "ore",
+        "power"
+      ],
+      "stock": 400,
+      "capacity": 450,
+      "regen_per_tick": 0.2,
+      "extract_per_tick": 5,
+      "quality": 0.75,
+      "x_pct": 40,
+      "y_pct": 28,
+      "note": "[proposal] Not on the public ledger; Base Fuerte Luna adjacent."
+    }
+  ],
+  "other_resources": [
+    {
+      "id": "res-sugarcane-belt",
+      "name": "South sugarcane belt",
+      "kind": "ag",
+      "canon": "canon",
+      "regions": [
+        "r05-culovera"
+      ],
+      "roles": [
+        "agriculture"
+      ],
+      "feeds": [
+        "sugar",
+        "rum"
+      ],
+      "stock": 480,
+      "capacity": 550,
+      "regen_per_tick": 30,
+      "extract_per_tick": 32,
+      "quality": 0.87,
+      "x_pct": 34,
+      "y_pct": 90,
+      "note": "Rum feedstock; rail yards nearby."
+    },
+    {
+      "id": "res-rum-distill",
+      "name": "Rum distillate capacity",
+      "kind": "industry",
+      "canon": "canon",
+      "regions": [
+        "r05-culovera",
+        "r02-porto-lujuria"
+      ],
+      "roles": [
+        "manufacturing"
+      ],
+      "feeds": [
+        "rum"
+      ],
+      "stock": 200,
+      "capacity": 220,
+      "regen_per_tick": 14,
+      "extract_per_tick": 15,
+      "quality": 0.9,
+      "x_pct": 36.5,
+      "y_pct": 70,
+      "note": "Plantation brands + working-port bottling."
+    },
+    {
+      "id": "res-honey-miel",
+      "name": "Villa Miel honey / festival brand",
+      "kind": "ag",
+      "canon": "canon",
+      "regions": [
+        "r04-villa-miel"
+      ],
+      "roles": [
+        "agriculture",
+        "cult_cover"
+      ],
+      "feeds": [
+        "honey",
+        "tourism"
+      ],
+      "stock": 90,
+      "capacity": 100,
+      "regen_per_tick": 8,
+      "extract_per_tick": 9,
+      "quality": 0.93,
+      "x_pct": 24.5,
+      "y_pct": 76,
+      "note": "Festival face; fertility cult in the committee."
+    },
+    {
+      "id": "res-cold-chain",
+      "name": "IFC / port cold-chain ice",
+      "kind": "logistics",
+      "canon": "canon",
+      "regions": [
+        "r02-porto-lujuria"
+      ],
+      "roles": [
+        "logistics",
+        "vice"
+      ],
+      "feeds": [
+        "ice",
+        "seafood",
+        "freight"
+      ],
+      "stock": 310,
+      "capacity": 350,
+      "regen_per_tick": 28,
+      "extract_per_tick": 30,
+      "quality": 0.85,
+      "x_pct": 36.48,
+      "y_pct": 62.88,
+      "note": "When ice breaks, restaurants and vice feel it together."
+    },
+    {
+      "id": "res-paradise-beds",
+      "name": "Paradise hospitality beds",
+      "kind": "tourism",
+      "canon": "canon",
+      "regions": [
+        "r01-paradise"
+      ],
+      "roles": [
+        "tourism"
+      ],
+      "feeds": [
+        "tourism",
+        "hospitality",
+        "tech"
+      ],
+      "stock": 850,
+      "capacity": 900,
+      "regen_per_tick": 40,
+      "extract_per_tick": 55,
+      "quality": 0.91,
+      "x_pct": 37.35,
+      "y_pct": 53.14,
+      "note": "Brochure city; intern labor load-bearing."
+    },
+    {
+      "id": "res-jacked-casino",
+      "name": "Jackedsonville casino liquidity",
+      "kind": "vice",
+      "canon": "canon",
+      "regions": [
+        "r03-crimson-quay"
+      ],
+      "roles": [
+        "vice",
+        "tourism"
+      ],
+      "feeds": [
+        "vice_cash",
+        "tourism"
+      ],
+      "stock": 420,
+      "capacity": 480,
+      "regen_per_tick": 25,
+      "extract_per_tick": 28,
+      "quality": 0.82,
+      "x_pct": 29.23,
+      "y_pct": 59.35,
+      "note": "Grey stack most visible from the street."
+    },
+    {
+      "id": "res-paradise-tech",
+      "name": "Paradise niche tech export",
+      "kind": "tech",
+      "canon": "canon",
+      "regions": [
+        "r01-paradise"
+      ],
+      "roles": [
+        "tech"
+      ],
+      "feeds": [
+        "tech"
+      ],
+      "stock": 150,
+      "capacity": 180,
+      "regen_per_tick": 10,
+      "extract_per_tick": 12,
+      "quality": 0.78,
+      "x_pct": 39,
+      "y_pct": 55,
+      "note": "Boosters call it emerging; still a real export slice."
+    },
+    {
+      "id": "res-grid-power",
+      "name": "Island grid / plant power",
+      "kind": "energy",
+      "canon": "proposal",
+      "regions": [
+        "r08-sierra-dorado",
+        "r14-federal-shores"
+      ],
+      "roles": [
+        "energy"
+      ],
+      "feeds": [
+        "power"
+      ],
+      "stock": 750,
+      "capacity": 800,
+      "regen_per_tick": 35,
+      "extract_per_tick": 40,
+      "quality": 0.86,
+      "x_pct": 44,
+      "y_pct": 35,
+      "note": "[proposal] AC is infrastructure; brownouts are plot."
+    }
+  ],
+  "last_flows": [],
+  "notes_path": "worldbuilding/ECONOMY.md",
+  "locks": {
+    "city_pins": "FROZEN — pin-coords-frozen.json",
+    "regions_ui": "sacred — REGIONS-UI-LOCK.md"
+  }
+}

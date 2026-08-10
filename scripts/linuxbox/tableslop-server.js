@@ -24,6 +24,14 @@ const {
   applyModulePatch,
   readHighwaysLayerStatus,
 } = require("./tableslop-world-sot.js");
+const {
+  tickEconomy,
+  loadEconomy,
+  saveEconomy,
+  syncOverlayFromState,
+  economyPath,
+  overlayPath,
+} = require("./tableslop-economy-sim.js");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
@@ -455,6 +463,7 @@ function worldPageHtml() {
     <button class="modbtn" type="button" data-mod="regions">Regions</button>
     <button class="modbtn" type="button" data-mod="climate">Weather</button>
     <button class="modbtn" type="button" data-mod="agriculture">Agriculture</button>
+    <button class="modbtn" type="button" data-mod="economy">Economy</button>
     <button class="modbtn" type="button" data-mod="transport">Transport</button>
   </nav>
   <span class="spacer"></span>
@@ -667,6 +676,8 @@ function worldPageHtml() {
           <button class="btn" id="weatherPlus7Btn" type="button" hidden>+7 days</button>
           <input id="weatherDateInput" type="date" hidden style="flex:0 0 auto;width:auto"/>
           <button class="btn" id="weatherSetDateBtn" type="button" hidden>Set date</button>
+          <button class="btn warn" id="economyTickBtn" type="button" hidden>Tick +1 day</button>
+          <button class="btn" id="economyTick7Btn" type="button" hidden>Tick +7</button>
           <button class="btn warn" id="sotDetailSaveBtn" type="button" hidden>Save detail</button>
         </div>
         <div id="sotDash" class="dash-grid"></div>
@@ -717,6 +728,12 @@ function worldPageHtml() {
       title: 'Agriculture',
       kind: 'agriculture',
       blurb: 'Crops, fleets, and cold-chain logistics as structured cards. Source notes stay collapsed.'
+    },
+    economy: {
+      path: 'worldbuilding/ECONOMY.md',
+      title: 'Economy',
+      kind: 'economy',
+      blurb: 'Full sim: water · minerals · other stocks → commodity prices. Tick = one diegetic day. Does not move city pins.'
     },
     transport: {
       path: 'worldbuilding/TRANSPORT.md',
@@ -1185,6 +1202,8 @@ function worldPageHtml() {
     $('weatherPlus1Btn').onclick = () => weatherAction('advance', 1);
     $('weatherPlus7Btn').onclick = () => weatherAction('advance', 7);
     $('weatherSetDateBtn').onclick = () => weatherAction('set_date');
+    $('economyTickBtn').onclick = () => economyAction(1);
+    $('economyTick7Btn').onclick = () => economyAction(7);
     $('sotDetailSaveBtn').onclick = saveSotDetail;
     $('sotText').addEventListener('input', () => sotStatus('unsaved note changes'));
     $('eBulkApplyBtn').onclick = applyEntBulk;
@@ -1220,6 +1239,7 @@ function worldPageHtml() {
     $('weatherDateInput').hidden = !on;
     $('weatherSetDateBtn').hidden = !on;
     $('sotDetailSaveBtn').hidden = !on;
+    if (!on && typeof setEconomyBulkVisible === 'function') setEconomyBulkVisible(false);
   }
   function renderWeatherDash(w) {
     weatherState = w;
@@ -1308,6 +1328,7 @@ function worldPageHtml() {
     sotDash = d;
     $('sotMetaChip').textContent = ((d.crops || []).length) + ' crops · ' + ((d.fishing || []).length) + ' fleets · v' + (d.version || '?');
     setWeatherBulkVisible(false);
+    setEconomyBulkVisible(false);
     $('sotBulkBar').hidden = false;
     $('sotDetailSaveBtn').hidden = false;
     let html = (d.crops || []).map((c) => {
@@ -1336,6 +1357,7 @@ function worldPageHtml() {
     setWeatherBulkVisible(false);
     $('sotBulkBar').hidden = false;
     $('sotDetailSaveBtn').hidden = false;
+    setEconomyBulkVisible(false);
     let html = '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Highways layer (map track)</h3>' +
       '<div class="metric"><span>Status</span><b>' + esc(hw.status || 'unknown') + '</b></div>' +
       '<div class="metric"><span>Source</span><b>' + esc(hw.source == null ? '(null placeholder)' : hw.source) + '</b></div>' +
@@ -1354,6 +1376,65 @@ function worldPageHtml() {
       card.onclick = () => selectSotItem(card.getAttribute('data-list'), card.getAttribute('data-id'));
     });
   }
+  function setEconomyBulkVisible(on) {
+    if ($('economyTickBtn')) $('economyTickBtn').hidden = !on;
+    if ($('economyTick7Btn')) $('economyTick7Btn').hidden = !on;
+  }
+  function renderEconomyDash(d) {
+    sotDash = d;
+    const nW = (d.water_bodies || []).length;
+    const nM = (d.minerals || []).length;
+    const nO = (d.other_resources || []).length;
+    $('sotMetaChip').textContent = 'tick ' + (d.tick || 0) + ' · ' + (d.diegetic_date || '?') + ' · ' + nW + ' water · ' + nM + ' minerals · ' + nO + ' other · v' + (d.version || '?');
+    setWeatherBulkVisible(false);
+    setEconomyBulkVisible(true);
+    $('sotBulkBar').hidden = false;
+    $('sotDetailSaveBtn').hidden = false;
+    const commodities = d.commodities || {};
+    let html = '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Commodity prices (IP$)</h3><div class="dash-grid" style="margin-top:8px">';
+    html += Object.keys(commodities).map((id) => {
+      const c = commodities[id] || {};
+      return '<div class="metric"><span>' + esc(c.label || id) + '</span><b>' + esc(c.price) + '</b></div>';
+    }).join('');
+    html += '</div></article>';
+    function resCards(listKey, rows, titleKey) {
+      return (rows || []).map((r) => {
+        const activeCls = sotSelectedId === r.id && sotSelectedList === listKey ? ' is-active' : '';
+        const stock = r.stock != null ? r.stock + '/' + (r.capacity != null ? r.capacity : '?') : '—';
+        return '<article class="dash-card' + activeCls + '" data-list="' + listKey + '" data-id="' + esc(r.id) + '"><h3>' + esc(r[titleKey] || r.name) + '</h3>' +
+          '<div class="metric"><span>Kind</span><b>' + esc(r.kind) + '</b></div>' +
+          '<div class="metric"><span>Stock</span><b>' + esc(stock) + '</b></div>' +
+          '<div class="metric"><span>Canon</span><b>' + esc(r.canon || '?') + '</b></div>' +
+          '<p style="margin:8px 0 0;color:var(--muted);font-size:.78rem">' + esc(r.note || '') + '</p></article>';
+      }).join('');
+    }
+    html += resCards('water_bodies', d.water_bodies, 'name');
+    html += resCards('minerals', d.minerals, 'name');
+    html += resCards('other_resources', d.other_resources, 'name');
+    if ((d.last_flows || []).length) {
+      html += '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Last tick flows</h3><ul style="margin:0;padding-left:18px;color:var(--muted);font-size:.78rem">' +
+        d.last_flows.map((f) => '<li>' + esc(f.commodity) + ' · supply ' + esc(f.supply) + ' · demand ' + esc(f.demand) + ' · price ' + esc(f.price) + ' (Δ ' + esc(f.delta_price) + ')</li>').join('') +
+        '</ul></article>';
+    }
+    $('sotDash').innerHTML = html;
+    $('sotDash').querySelectorAll('[data-id]').forEach((card) => {
+      card.onclick = () => selectSotItem(card.getAttribute('data-list'), card.getAttribute('data-id'));
+    });
+  }
+  async function economyAction(days) {
+    sotStatus('ticking economy…');
+    const out = await fetchJson('/api/world/economy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'tick', days: days || 1, base_version: sotDash && sotDash.version })
+    }, 30000);
+    if (!out.r.ok) {
+      sotStatus('economy tick failed: ' + (out.j.error || out.r.status));
+      return;
+    }
+    renderEconomyDash(out.j);
+    sotStatus('tick ok · day ' + (out.j.diegetic_date || '') + ' · v' + out.j.version);
+  }
   function selectSotItem(listKey, id) {
     sotSelectedList = listKey;
     sotSelectedId = id;
@@ -1364,7 +1445,7 @@ function worldPageHtml() {
       el.classList.toggle('is-active', el.getAttribute('data-id') === id && el.getAttribute('data-list') === listKey);
     });
     $('sotDetail').hidden = false;
-    $('sotDetailTitle').textContent = 'Detail · ' + (row.name || row.product || row.catch || row.mode || id);
+    $('sotDetailTitle').textContent = 'Detail · ' + (row.name || row.product || row.catch || row.mode || row.label || id);
     const fields = Object.keys(row).filter((k) => k !== 'id');
     $('sotDetailBody').innerHTML = fields.map((k) => {
       return '<label>' + esc(k) + '</label><input data-sot-field="' + esc(k) + '" value="' + esc(row[k] == null ? '' : row[k]) + '"/>';
@@ -1393,6 +1474,7 @@ function worldPageHtml() {
         sotDash = out.j;
         if (meta.kind === 'regions') renderRegionsDash(out.j);
         else if (meta.kind === 'agriculture') renderAgDash(out.j);
+        else if (meta.kind === 'economy') renderEconomyDash(out.j);
         else if (meta.kind === 'transport') renderTransportDash(out.j);
         else $('sotDash').innerHTML = '<p class="chip">No dashboard for this module.</p>';
       }
@@ -2402,6 +2484,17 @@ function viewerHtml() {
   .pin--town { }
   .pin--preserve { }
   .pin--region { }
+  .econ-site {
+    position:absolute; transform:translate(-50%,-50%) rotate(45deg);
+    width:14px; height:14px; padding:0; border:2px solid #0d0221;
+    box-shadow:0 0 8px rgba(0,0,0,.5); cursor:help; pointer-events:auto;
+  }
+  .econ-site--water { background:#2a9fd8; }
+  .econ-site--mineral { background:#c4a035; }
+  .econ-site--ag, .econ-site--fishery { background:#3dba6f; }
+  .econ-site--tourism, .econ-site--vice { background:#e85d9c; }
+  .econ-site--industry, .econ-site--logistics, .econ-site--tech, .econ-site--energy { background:#9d8fc9; }
+  .map-layer--economy-resources.is-hidden { display:none; }
   .map-label-layer {
     position:absolute; inset:0; pointer-events:none;
   }
@@ -2872,6 +2965,7 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="areasToggle" hidden>Areas</button>
   <button type="button" class="hud-res" id="labelToggle" hidden>Labels</button>
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
+  <button type="button" class="hud-res" id="econToggle" hidden>Econ</button>
   <button type="button" class="hud-res hud-edit" id="editToggle" hidden>Edit</button>
   <button type="button" class="hud-res" id="drawToggle" hidden>Draw borders</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
@@ -3063,6 +3157,7 @@ let mapDataCache = null;
 let uiLabelsVisible = true;
 let uiAreasVisible = true;
 let uiCitiesVisible = true;
+let uiEconVisible = false;
 let editMode = false;
 let drawMode = false;
 let drawVerts = [];
@@ -5829,6 +5924,60 @@ function initCitiesToggle(data, profile) {
   };
 }
 
+function econUiEnabled() {
+  return mapDataCache && mapDataCache.economy_overlay && uiEconVisible;
+}
+
+function syncEconLayerVisibility() {
+  syncLayerVisibility('economy-resources', econUiEnabled());
+}
+
+function placeEconomySites(container, overlay) {
+  if (!container || !overlay) return;
+  (overlay.sites || []).forEach(function(s) {
+    if (s.x_pct == null || s.y_pct == null) return;
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'econ-site econ-site--' + (s.kind || 'other');
+    el.style.left = s.x_pct + '%';
+    el.style.top = s.y_pct + '%';
+    el.dataset.id = s.id;
+    const tip = (s.name || s.id) + ' · ' + (s.kind || '?') +
+      (s.stock != null ? ' · stock ' + s.stock + '/' + (s.capacity != null ? s.capacity : '?') : '') +
+      (s.note ? ' — ' + s.note : '');
+    el.setAttribute('aria-label', tip);
+    el.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+    el.addEventListener('mouseenter', function(e) { showTooltip(tip, e.clientX, e.clientY); });
+    el.addEventListener('mousemove', function(e) { showTooltip(tip, e.clientX, e.clientY); });
+    el.addEventListener('mouseleave', hideTooltip);
+    container.appendChild(el);
+  });
+}
+
+function initEconToggle(data, profile) {
+  const btn = document.getElementById('econToggle');
+  if (!btn) return;
+  if (!data.economy_overlay || !(data.economy_overlay.sites || []).length) {
+    btn.hidden = true;
+    return;
+  }
+  btn.hidden = false;
+  uiEconVisible = profile.showEcon === true;
+  btn.textContent = uiEconVisible ? 'Econ ON' : 'Econ OFF';
+  btn.onclick = function() {
+    uiEconVisible = !uiEconVisible;
+    btn.textContent = uiEconVisible ? 'Econ ON' : 'Econ OFF';
+    saveProfile({ showEcon: uiEconVisible });
+    const layer = document.querySelector('[data-layer-id="economy-resources"]');
+    if (layer) {
+      layer.innerHTML = '';
+      if (uiEconVisible) placeEconomySites(layer, mapDataCache.economy_overlay);
+    }
+    syncEconLayerVisibility();
+  };
+  syncEconLayerVisibility();
+}
+
 function placeMapLabels(container, markers) {
   if (!labelsUiEnabled() || !container) return;
   markers.forEach(function(m) {
@@ -5982,6 +6131,7 @@ async function load() {
   initLabelToggle(data, profile);
   initAreaToggle(data, profile);
   initCitiesToggle(data, profile);
+  initEconToggle(data, profile);
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
@@ -6078,6 +6228,13 @@ function finishMapStage(stage, markers, profile) {
     pinLayer.innerHTML = '';
     placePins(pinLayer, markers);
   }
+  const econLayer = layerEl(stack, 'economy-resources');
+  if (econLayer) {
+    econLayer.innerHTML = '';
+    if (uiEconVisible && mapDataCache && mapDataCache.economy_overlay) {
+      placeEconomySites(econLayer, mapDataCache.economy_overlay);
+    }
+  }
   if (labelLayer) {
     labelLayer.classList.add('map-label-layer');
     labelLayer.innerHTML = '';
@@ -6085,6 +6242,7 @@ function finishMapStage(stage, markers, profile) {
   }
   syncAreaLayerVisibility();
   syncCitiesLayerVisibility();
+  syncEconLayerVisibility();
   syncLabelLayerVisibility();
   if (typeof renderDrawPreview === 'function') renderDrawPreview();
   restoreCameraFromProfile(profile || loadProfile(), !prefersReducedMotion);
@@ -7077,6 +7235,14 @@ function loadMapJson() {
       } catch {
         data.coords_data = null;
       }
+    }
+    try {
+      const econOvAbs = path.join(CAMPAIGN_DIR, "map", "economy-overlay.json");
+      if (fs.existsSync(econOvAbs)) {
+        data.economy_overlay = JSON.parse(fs.readFileSync(econOvAbs, "utf8"));
+      }
+    } catch {
+      data.economy_overlay = null;
     }
     const layersRel = data.layers_manifest;
     const layersAbs = layersRel && !layersRel.includes("..")
@@ -8918,6 +9084,62 @@ async function handleRequest(req, res) {
     }
     return;
   }
+  if (url === "/api/world/economy" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const block = readModuleState(CAMPAIGN_DIR, "economy");
+      if (block && block.error) {
+        sendJson(res, block, block.error === "summary_missing" ? 404 : 500);
+        return;
+      }
+      sendJson(res, block, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "economy_failed" }, 500);
+    }
+    return;
+  }
+  if (url === "/api/world/economy" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      const cur = loadEconomy(CAMPAIGN_DIR);
+      if (payload.base_version != null && Number(cur.version) !== Number(payload.base_version)) {
+        sendJson(res, { error: "version_conflict", version: cur.version, updated_at: cur.updated_at }, 409);
+        return;
+      }
+      const action = String(payload.action || "tick").trim();
+      let next = cur;
+      if (action === "tick") {
+        next = tickEconomy(cur, {
+          campaignDir: CAMPAIGN_DIR,
+          days: Math.max(1, Number(payload.days) || 1),
+        });
+      } else if (action === "set_date") {
+        next = Object.assign({}, cur, {
+          diegetic_date: String(payload.diegetic_date || cur.diegetic_date || "2019-06-15"),
+          version: Number(cur.version || 0) + 1,
+          updated_at: new Date().toISOString(),
+        });
+      } else {
+        throw new Error("bad_action");
+      }
+      const written = saveEconomy(CAMPAIGN_DIR, next);
+      sendJson(res, Object.assign({ module: "economy" }, written), 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "economy_save_failed" }, 400);
+    }
+    return;
+  }
   if (url === "/api/world/summary" && req.method === "GET") {
     const gate = editGate(session);
     if (gate) {
@@ -8925,7 +9147,7 @@ async function handleRequest(req, res) {
       return;
     }
     const mod = String(q.searchParams.get("module") || "").trim();
-    if (!["regions", "agriculture", "transport"].includes(mod)) {
+    if (!["regions", "agriculture", "economy", "transport"].includes(mod)) {
       sendJson(res, { error: "bad_module" }, 400);
       return;
     }
@@ -8955,7 +9177,7 @@ async function handleRequest(req, res) {
       if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
       const payload = JSON.parse(body || "{}");
       const mod = String(payload.module || "").trim();
-      if (!["regions", "agriculture", "transport"].includes(mod)) throw new Error("bad_module");
+      if (!["regions", "agriculture", "economy", "transport"].includes(mod)) throw new Error("bad_module");
       const cur = readModuleState(CAMPAIGN_DIR, mod);
       if (cur && cur.error) throw new Error(cur.error);
       if (payload.base_version != null && Number(cur.version) !== Number(payload.base_version)) {
@@ -8965,6 +9187,14 @@ async function handleRequest(req, res) {
       const next = applyModulePatch(cur, payload);
       const written = writeModuleState(CAMPAIGN_DIR, mod, next, SOT_LOCK);
       if (mod === "transport") written.highways_layer = readHighwaysLayerStatus(CAMPAIGN_DIR);
+      if (mod === "economy") {
+        try {
+          const ov = syncOverlayFromState(written);
+          fs.writeFileSync(overlayPath(CAMPAIGN_DIR), JSON.stringify(ov, null, 2) + "\n");
+        } catch {
+          /* overlay sync best-effort */
+        }
+      }
       sendJson(res, written, 200, 0);
     } catch (err) {
       sendJson(res, { error: (err && err.message) || "summary_save_failed" }, 400);

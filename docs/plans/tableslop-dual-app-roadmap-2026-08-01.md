@@ -395,7 +395,8 @@ Discord guilds/roles ──► Identity (OAuth / role claims)
 - Multitask lock if registry updated.
 
 **Deps:** P4–P5; character link; model budget policy.  
-**Out of scope:** Fully simmed island economy; multi-agent crowds.
+**Out of scope (platform baseline):** multi-agent crowds.  
+**GM override 2026-08-10:** Isla Primavera **full economic sim** is **in scope** — see `agents/tableslop-economy-progress.md` + `worldbuilding/economy-state.json` (water / minerals / other → commodity tick).
 
 ---
 
