@@ -1,0 +1,54 @@
+{
+  "_doc": "PC local Bonsai is ONE optional lane for potato Hermes think — never sole provider. Potato never loads GGUF. Keys stay in ~/.hermes/.env (OPENROUTER_API_KEY, ZENMUX_API_KEY).",
+  "version": 2,
+  "pc_host": "desktop-igqesd4",
+  "pc_tailscale_ip": "100.118.226.87",
+  "pc_lan_ip": "192.168.4.42",
+  "inference_port": 8000,
+  "health_path": "/v1/models",
+  "model_id": "Bonsai-27B-Q1_0.gguf",
+  "probe_timeout_sec": 4,
+  "profiles_when_local": ["think"],
+  "prefer_bonsai_when_healthy": true,
+  "_note": "think fires every minute — FREE-FIRST or it bleeds money (Step burned ~$14 thrashing 2026-07-24). When Bonsai up: primary=Bonsai, fallbacks=Laguna free + Qwen free + DeepSeek. When down: primary=Laguna free. Dashboard Chat profile stays OpenRouter-only.",
+  "cloud_chain": {
+    "think": {
+      "_note": "FREE-ONLY (2026-07-24). Laguna free primary; Qwen free fallback; NO paid model — think fails/IDLEs rather than spend. Step demoted (wrecked think); Kimi K3 free dropped (ZenMux 403 no-access).",
+      "provider": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "default": "poolside/laguna-xs-2.1:free",
+      "fallbacks": [
+        {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3-super-120b-a12b:free",
+          "base_url": "https://openrouter.ai/api/v1"
+        },
+        {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1"
+        }
+      ]
+    }
+  },
+  "openrouter_restore": {
+    "_compat": "legacy alias — failover reads cloud_chain; kept so older docs/scripts still resolve",
+    "think": {
+      "provider": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "default": "poolside/laguna-xs-2.1:free",
+      "fallbacks": [
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "cohere/north-mini-code:free"
+      ]
+    }
+  },
+  "zenmux_provider": {
+    "name": "ZenMux",
+    "base_url": "https://zenmux.ai/api/v1",
+    "key_env": "ZENMUX_API_KEY",
+    "api_mode": "chat_completions",
+    "discover_models": true
+  },
+  "state_file": "agents/state/pc-bonsai-routing.json"
+}

@@ -6,11 +6,12 @@
 #   fast  = free-first, DeepSeek only if all free fail
 #   meta/code = free code model → big free → DeepSeek → GLM 5.2 (backup for DeepSeek)
 #   chat  = free-first → DeepSeek → GLM 5.2
-# Do NOT re-add (probe-verified dead 2026-07-24, each one silently burns a retry hop):
+# Do NOT re-add (probe-verified dead, each one silently burns a retry hop):
 #   qwen/qwen3-next-80b-a3b-instruct:free  — delisted from OpenRouter (paid variant only now)
 #   zenmux moonshotai/kimi-k3-free         — 404 invalid_model, never existed (real kimi-k3 = $3/$15 per M)
 #   stepfun/step-3.7-flash                 — demoted, burned ~$14/day thrashing think
 #   tencent/hy3:free                       — OpenRouter sunset 2026-07-21
+#   inclusionai/ling-3.0-flash:free        — OpenRouter 404 2026-08-09 (paid slug only; see think-free-swap _do_not_readd)
 # ZenMux cannot be a profile PRIMARY: Hermes resolves it as provider "custom" and drops
 # ZENMUX_API_KEY → 403. Keep it registered for dashboard/manual `zenmux:<slug>` use only.
 # Re-probe ids before editing: .staging/model-probe/probe_free_models.py
@@ -26,7 +27,6 @@ HERMES_ROOT="${HOME}/.hermes"
 # Verified free models (wide pool 2026-07-25 — SoT agents/model-budget/think-free-swap.json).
 # Hermes same-provider fallback_providers often does NOT rotate model ids; think tick outer -m loop is real failover.
 FREE_SMALL="poolside/laguna-xs-2.1:free"
-FREE_FLASH="inclusionai/ling-3.0-flash:free"
 FREE_MID="nvidia/nemotron-3-super-120b-a12b:free"
 FREE_CODE="cohere/north-mini-code:free"
 FREE_BIG="nvidia/nemotron-3-ultra-550b-a55b:free"
@@ -116,14 +116,14 @@ ensure_profile meta \
 
 # think: FREE-ONLY wide pool — every-minute cron, never reaches a paid model (fails/IDLEs instead of spending).
 # Note: Hermes often retries primary 3× without rotating same-provider fallbacks; think tick uses -m rotate through think-free-swap.json.
-patch_profile_config think "${FREE_SMALL}" "${FREE_FLASH}" "${FREE_MID}" "${FREE_CODE}" "${FREE_BIG}" "${FREE_LAGUNA_S}" "${FREE_GEMMA}" "${FREE_OSS}"
+patch_profile_config think "${FREE_SMALL}" "${FREE_MID}" "${FREE_CODE}" "${FREE_BIG}" "${FREE_LAGUNA_S}" "${FREE_GEMMA}" "${FREE_OSS}"
 # fast: free-first; DeepSeek only if every free model fails.
-patch_profile_config fast "${FREE_SMALL}" "${FREE_FLASH}" "${PAID_HEAD}"
+patch_profile_config fast "${FREE_SMALL}" "${FREE_MID}" "${PAID_HEAD}"
 # meta/code: free code model first; GLM 5.2 last, as DeepSeek's backup.
 patch_profile_config meta "${FREE_CODE}" "${FREE_BIG}" "${PAID_HEAD}" "${PAID_BACKUP}"
 patch_profile_config code "${FREE_CODE}" "${FREE_BIG}" "${PAID_HEAD}" "${PAID_BACKUP}"
 # chat: interactive dashboard chat, same paid tail.
-patch_profile_config chat "${FREE_SMALL}" "${FREE_FLASH}" "${FREE_MID}" "${PAID_HEAD}" "${PAID_BACKUP}"
+patch_profile_config chat "${FREE_SMALL}" "${FREE_MID}" "${PAID_HEAD}" "${PAID_BACKUP}"
 
 # Ops-safe cron approvals: think/meta/code cron_mode=approve; fast stays deny; hardline kept
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

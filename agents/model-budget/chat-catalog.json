@@ -46,7 +46,7 @@
 
       "id": "inclusionai/ling-3.0-flash:free",
 
-      "label": "Ling 3.0 Flash free",
+      "label": "Ling 3.0 Flash free (demoted)",
 
       "tier": "free",
 
@@ -56,9 +56,9 @@
 
       "tokens_per_sec_est": 50,
 
-      "status": "online",
+      "status": "offline",
 
-      "note": "Fast free failover (262k ctx)"
+      "note": "Demoted 2026-08-09 — OpenRouter 404 on free slug; keep until ≥7 daily probe misses (route_watchlist)"
 
     },
 

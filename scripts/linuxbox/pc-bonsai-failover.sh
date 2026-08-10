@@ -150,7 +150,7 @@ def patch_yaml(profile: str, primary: str, base_url: str, provider: str, fallbac
             },
             {
                 "provider": "openrouter",
-                "model": "inclusionai/ling-3.0-flash:free",
+                "model": "cohere/north-mini-code:free",
                 "base_url": "https://openrouter.ai/api/v1",
             },
         ]

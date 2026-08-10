@@ -72,10 +72,9 @@
     "prefer_free": true,
     "paid_when": ["free_pool_exhausted", "verified_free_failure"],
     "paid_when_note": "Hermes think C8: free_pool_exhausted = THINK_PAID_ON_FREE_EXHAUSTED after full swap 429+reprobe; verified_free_failure = THINK_PAID_ON_VERIFIED_FREE_FAIL after THINK_PAID_FREE_FAIL_N concrete verify fails. Hub Chat may still fall through on 429/refusal via its own free-first chain — not the same gate.",
-    "_free_models_note": "Wide free pool (think-free-swap.json). Never re-add hy3 / kimi-k3-free phantom / qwen next :free. Re-probe: .staging/model-probe/probe_free_models.py.",
+    "_free_models_note": "Wide free pool (think-free-swap.json). Never re-add hy3 / kimi-k3-free phantom / qwen next :free / ling-3.0-flash:free (404 2026-08-09). Re-probe: .staging/model-probe/probe_free_models.py.",
     "free_models": [
       "poolside/laguna-xs-2.1:free",
-      "inclusionai/ling-3.0-flash:free",
       "nvidia/nemotron-3-super-120b-a12b:free",
       "cohere/north-mini-code:free",
       "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -112,6 +111,10 @@
     "zenmux:moonshotai/kimi-k3-free": {
       "sunset": "2026-07-24",
       "note": "404 invalid_model — never existed. Real moonshotai/kimi-k3 is PAID $3/$15 per M."
+    },
+    "inclusionai/ling-3.0-flash:free": {
+      "sunset": "2026-08-09",
+      "note": "OpenRouter 404 on free slug (dd-06). Hard-blocked in CHAT_SUNSET_MODELS. Watchlist until ≥7 daily probe misses."
     }
   },
   "soft_caps": {

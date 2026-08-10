@@ -1,0 +1,120 @@
+{
+
+  "_doc": "Free-only OpenRouter model options for the research/studies lane. Aligns with agents/model-budget/think-free-swap.json. Default = Nemotron Super 120B. Rotate among options[] for benchmarks. Never add paid ids. Re-probe before adding; skip sunset/dead ids in _do_not_readd.",
+
+  "version": 2,
+
+  "lane": "research-studies",
+
+  "profile": "think",
+
+  "free_only": true,
+
+  "default_model": "nvidia/nemotron-3-super-120b-a12b:free",
+
+  "options": [
+
+    {
+
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+
+      "label": "Nemotron 3 Super 120B free",
+
+      "role": "default",
+
+      "note": "Preferred research head (reasoning + long ctx)"
+
+    },
+
+    {
+
+      "id": "poolside/laguna-xs-2.1:free",
+
+      "label": "Laguna XS 2.1 free",
+
+      "role": "option",
+
+      "note": "Fast free-first head; compare latency vs quality"
+
+    },
+
+    {
+
+      "id": "cohere/north-mini-code:free",
+
+      "label": "North Mini Code free",
+
+      "role": "option",
+
+      "note": "Code-specialised free; stress code prompt in benchmark"
+
+    },
+
+    {
+
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+
+      "label": "Nemotron 3 Ultra 550B free",
+
+      "role": "option",
+
+      "note": "Strongest free option — expect slower; include in benchmark"
+
+    },
+
+    {
+
+      "id": "poolside/laguna-s-2.1:free",
+
+      "label": "Laguna S 2.1 free",
+
+      "role": "option",
+
+      "note": "Larger Laguna free sibling"
+
+    },
+
+    {
+
+      "id": "google/gemma-4-31b-it:free",
+
+      "label": "Gemma 4 31B IT free",
+
+      "role": "option",
+
+      "note": "OpenRouter free catalog"
+
+    },
+
+    {
+
+      "id": "openai/gpt-oss-20b:free",
+
+      "label": "GPT-OSS 20B free",
+
+      "role": "option",
+
+      "note": "OpenRouter free catalog"
+
+    }
+
+  ],
+
+  "_do_not_readd": {
+
+    "tencent/hy3:free": "OpenRouter sunset 2026-07-21",
+
+    "qwen/qwen3-next-80b-a3b-instruct:free": "delisted 2026-07-24 — paid variant only",
+
+    "zenmux:moonshotai/kimi-k3-free": "404 invalid_model, never existed",
+
+    "stepfun/step-3.7-flash": "paid / demoted — not for this free-only lane",
+
+    "inclusionai/ling-3.0-flash:free": "OpenRouter 404 2026-08-09 — free unavailable"
+
+  },
+
+  "hermes_override": "Prefer `hermes -p think chat -m <id>` for per-model benchmark hops when supported. Do NOT rewrite think profile config.yaml for this lane. If -m unsupported, use OpenRouter curl with ops key from ~/.hermes/.env (never print the key)."
+
+}
+

@@ -184,7 +184,7 @@ const CHAT_VENICE_LAST_RESORT = "cognitivecomputations/dolphin-mistral-24b-venic
 const CHAT_FREE_LAST_RESORT = [
   "poolside/laguna-xs-2.1:free",
   "nvidia/nemotron-3-super-120b-a12b:free",
-  "inclusionai/ling-3.0-flash:free",
+  "cohere/north-mini-code:free",
 ];
 /**
  * Hard-blocked model ids — filtered out of every Chat/Hermes failover chain.
@@ -197,11 +197,12 @@ const CHAT_SUNSET_MODELS = new Set([
   "zenmux:moonshotai/kimi-k3-free", // 404 invalid_model, never existed
   "moonshotai/kimi-k3-free", // same phantom without prefix
   "stepfun/step-3.7-flash", // demoted 2026-07-24 — burned ~$14–16/day thrashing think
+  "inclusionai/ling-3.0-flash:free", // OpenRouter 404 2026-08-09 — free unavailable
 ]);
 const CHAT_FREE_FALLBACK_LABELS = {
   "poolside/laguna-xs-2.1:free": "Laguna XS 2.1 free",
   "nvidia/nemotron-3-super-120b-a12b:free": "Nemotron 3 Super 120B free",
-  "inclusionai/ling-3.0-flash:free": "Ling 3.0 Flash free",
+  "cohere/north-mini-code:free": "North Mini Code free",
 };
 const CHAT_MODEL_USAGE_FILE = path.join(REPO, "agents", "state", "chat-model-usage.json");
 const MODEL_BUDGET_CONFIG = path.join(REPO, "agents/model-budget/config.json");
@@ -1464,8 +1465,8 @@ function buildWorkPipeline() {
       // Prefer SoT swap list; fall back to legacy 3-id head if file missing.
       let chain = [
         "poolside/laguna-xs-2.1:free",
-        "inclusionai/ling-3.0-flash:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
+        "cohere/north-mini-code:free",
       ];
       try {
         const swapPath = path.join(REPO, "agents", "model-budget", "think-free-swap.json");

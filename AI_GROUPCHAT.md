@@ -643,3 +643,8 @@
 - **2026-08-09T17:40Z** — [PC] **Result:** Euro neighbor-strife characters shipped (holder `euro-neighbor-strife`). 6 Ostwald + 3 Halkin design-doc sheets under `characters/` (wired in Story/scene/INDEX/tracker). Nation brief `worldbuilding/ostwald-march.md`. Cause-class LOCK in LOCKS.md. **Note:** sibling drafts also in `characters/npcs/` — do not auto-merge; SoT = root sheets. Local commit. Stop — no PC power-off.
 
 - **2026-08-09T17:41Z** — [PC] **Result:** Neighbor-strife NPCs ASAP (holder `euro-neighbor-strife`). Wired SoT sheets at `characters/*.md` (6 Ostwald + 3 Halkin); story/scene/INDEX/tracker updated. Sibling set also committed under `characters/npcs/` — GM pick/merge, do not dual-canon. Commit `519f745`. Stop.
+
+## 2026-08-09 22:28 ET — [PC] Intent: daily deslop desk reseed + ship highest
+
+[PC] Intent: desk clear — seed dd-06..dd-10; execute highest (dd-06 demote dead ling free from live chains). LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-desk-reseed`.
+

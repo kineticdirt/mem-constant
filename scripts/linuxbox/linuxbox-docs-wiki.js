@@ -1225,7 +1225,7 @@ async function runCharacterBeta(repo, campaigns, body = {}) {
     process.env.DOCS_BETA_MODEL || "",
     "poolside/laguna-xs-2.1:free",
     "nvidia/nemotron-3-super-120b-a12b:free",
-    "inclusionai/ling-3.0-flash:free",
+    "cohere/north-mini-code:free",
     // Paid last-resort when free pool is 429'd — Pixi key budget
     "deepseek/deepseek-v4-flash",
   ].filter((m, i, arr) => m && arr.indexOf(m) === i);
