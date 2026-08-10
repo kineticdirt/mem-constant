@@ -1,4 +1,6 @@
 
+- **2026-08-10T03:25Z** — [PC] **Intent:** daily-deslop-dd-11 — shared CRLF note in `scripts/linuxbox/README.md`. Holder: `daily-deslop-dd-11`.
+
 
 
 

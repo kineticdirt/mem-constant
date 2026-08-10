@@ -17,7 +17,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 mkdir -p "${HUNTER}/plugins"
 rm -rf "${PLUGIN_DST}"
 cp -a "${PLUGIN_SRC}" "${PLUGIN_DST}"
-# strip CRLF if copied from Windows
+# CRLF: see scripts/linuxbox/README.md (shared note)
 find "${PLUGIN_DST}" -type f \( -name '*.py' -o -name '*.yaml' -o -name '*.md' -o -name '*.sh' \) -exec sed -i 's/\r$//' {} +
 chmod +x "${PLUGIN_DST}"/*.sh 2>/dev/null || true
 echo "installed plugin → ${PLUGIN_DST}"

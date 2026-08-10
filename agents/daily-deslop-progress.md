@@ -21,12 +21,13 @@ Tick-sized only. When today’s Open children are `[x]`, archive under Done and 
 
 ## Open — 2026-08-10 night desk (seeded after dd-10)
 
-- [ ] **dd-11** Ponytail: shared CRLF note for `install-*.sh` — one comment block in `scripts/linuxbox/README.md` (or existing linuxbox doc) documenting strip-CR before first run on box (`sed` remove CR); stop duplicating long CRLF paragraphs in each installer. Docs only.
+- [x] **dd-11** Ponytail: shared CRLF note for `install-*.sh` — one comment block in `scripts/linuxbox/README.md` documenting strip-CR before first run on box (`sed` remove CR); stop duplicating long CRLF paragraphs in each installer. Docs only. (2026-08-09)
 - [ ] **dd-12** Papercut prevention (bin-shadow): fold `cp -f` repo→`~/bin` refresh for `agent-cycle-think-tick.sh` + `agent-cycle-sync.sh` into `push-linuxbox.sh --finished` or sync tick so `~/bin` shadows cannot drift. Verify: after push, potato `~/bin` matches repo (or installer re-run note).
 - [ ] **dd-13** Dashboard backlog **Hub-c**: Hub lane chips render last sync + think activity from `/api/agent` `lane_sync` payload (Meta already shows live lanes). UI only; reuse lane_sync fields. Verify: Playwright or curl+DOM note on Hub chips.
 
 ## Done
 
+- [x] **dd-11** scripts/linuxbox/README.md shared CRLF note (`sed` strip CR); installer prose points here — 2026-08-09
 - [x] **dd-10** CLAUDE.md cron names aligned to live `agent-cycle-think-1m` (+ legacy Hermes `agent-cycle` noted) — 2026-08-09
 - [x] **dd-09** Discord token helper documented in SYSTEMS_DESIGN_BOARD Shared primitives + design checkbox closed — 2026-08-09
 - [x] **dd-08** push-linuxbox PATHS + manifest paths_hint for anti-slop/ai-bad-habits/check_article — 2026-08-09
