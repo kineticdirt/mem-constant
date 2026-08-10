@@ -119,6 +119,10 @@ fi
 # Evidence 2026-07-12: hermes-gateway-watchdog Permission denied every 2m until chmod +x.
 chmod +x "${REPO}/scripts/linuxbox/"*.sh 2>/dev/null || true
 chmod +x "${REPO}/scripts/linuxbox/lib/"*.sh 2>/dev/null || true
+if [[ ! -x "${REPO}/scripts/linuxbox/hermes-gateway-watchdog.sh" ]]; then
+  echo "apply-git-bundle: ERROR hermes-gateway-watchdog.sh not executable after chmod (203/EXEC risk)" >&2
+  exit 1
+fi
 # CRLF guard (bundle path): no root .gitattributes, so a Windows CRLF commit of a .sh
 # lands verbatim via bundle → shebang /bin/bash^M → ExecStart 203 / cron bad-interpreter.
 # SCP path is covered by scripts/pc/fix-sh-crlf-remote.sh; same strip here for bundles.

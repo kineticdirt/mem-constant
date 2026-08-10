@@ -39,5 +39,8 @@ fi
 echo "bundle $(du -h "${BUNDLE}" | cut -f1) → ${HOST} …"
 scp "${SSH_OPTS[@]}" "${BUNDLE}" "${HOST}:/tmp/linuxbox-incoming.bundle"
 ssh "${SSH_OPTS[@]}" "${HOST}" "chmod +x \${HOME}/agent-dump/scripts/linuxbox/apply-git-bundle.sh 2>/dev/null; bash \${HOME}/agent-dump/scripts/linuxbox/apply-git-bundle.sh"
+# Belt-and-suspenders: Windows/git modes often land 100644; apply also chmods, but SCP/partial
+# applies and mid-script failures burned Hub watchdog 203/EXEC twice on 2026-08-09.
+ssh "${SSH_OPTS[@]}" "${HOST}" 'chmod +x "$HOME"/agent-dump/scripts/linuxbox/*.sh "$HOME"/agent-dump/scripts/linuxbox/lib/*.sh 2>/dev/null; test -x "$HOME"/agent-dump/scripts/linuxbox/hermes-gateway-watchdog.sh'
 rm -f "${BUNDLE}"
-echo "OK bundle applied on linuxbox"
+echo "OK bundle applied on linuxbox (+x verified)"

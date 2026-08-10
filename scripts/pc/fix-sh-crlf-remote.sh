@@ -13,5 +13,7 @@ REMOTE_ROOT="$1"
 while IFS= read -r f; do
   sed -i 's/\r$//' "${f}"
 done < <(find "${REMOTE_ROOT}/scripts/linuxbox" -name '*.sh' -type f)
-echo "remote: stripped CRLF under ${REMOTE_ROOT}/scripts/linuxbox"
+chmod +x "${REMOTE_ROOT}/scripts/linuxbox/"*.sh 2>/dev/null || true
+chmod +x "${REMOTE_ROOT}/scripts/linuxbox/lib/"*.sh 2>/dev/null || true
+echo "remote: stripped CRLF + restored +x under ${REMOTE_ROOT}/scripts/linuxbox"
 REMOTE
