@@ -32,6 +32,12 @@ const {
   economyPath,
   overlayPath,
 } = require("./tableslop-economy-sim.js");
+const {
+  loadAgents,
+  saveAgents,
+  tickAgents,
+  seedFromRegistry,
+} = require("./tableslop-agents-sim.js");
 
 const REPO = path.resolve(__dirname, "../..");
 const HOST = process.env.TABLESLOP_HOST || "127.0.0.1";
@@ -464,6 +470,7 @@ function worldPageHtml() {
     <button class="modbtn" type="button" data-mod="climate">Weather</button>
     <button class="modbtn" type="button" data-mod="agriculture">Agriculture</button>
     <button class="modbtn" type="button" data-mod="economy">Economy</button>
+    <button class="modbtn" type="button" data-mod="sim">People sim</button>
     <button class="modbtn" type="button" data-mod="transport">Transport</button>
   </nav>
   <span class="spacer"></span>
@@ -678,6 +685,8 @@ function worldPageHtml() {
           <button class="btn" id="weatherSetDateBtn" type="button" hidden>Set date</button>
           <button class="btn warn" id="economyTickBtn" type="button" hidden>Tick +1 day</button>
           <button class="btn" id="economyTick7Btn" type="button" hidden>Tick +7</button>
+          <button class="btn warn" id="simTickBtn" type="button" hidden>Sim day +1</button>
+          <button class="btn" id="simTick7Btn" type="button" hidden>Sim +7</button>
           <button class="btn warn" id="sotDetailSaveBtn" type="button" hidden>Save detail</button>
         </div>
         <div id="sotDash" class="dash-grid"></div>
@@ -735,11 +744,17 @@ function worldPageHtml() {
       kind: 'economy',
       blurb: 'Full sim: water · minerals · other stocks → commodity prices. Tick = one diegetic day. Does not move city pins.'
     },
+    sim: {
+      path: 'docs/plans/tableslop-deterministic-sim-2026-08-10.md',
+      title: 'People sim',
+      kind: 'sim',
+      blurb: 'Deterministic needs/wants/quirks per visible cast — no LLM. Coupled to commodity prices. Use Tick for a full island day.'
+    },
     transport: {
       path: 'worldbuilding/TRANSPORT.md',
       title: 'Transport',
       kind: 'transport',
-      blurb: 'Modes and play notes. Green map lines = highways/freeways. Do not wipe region borders when drawing roads.'
+      blurb: 'Modes and play notes. Green map lines = highways/freeways. Roads overlay labels SwitchBack / Bay Ring. Do not wipe region borders.'
     }
   };
   let activeSot = null;
@@ -1204,6 +1219,8 @@ function worldPageHtml() {
     $('weatherSetDateBtn').onclick = () => weatherAction('set_date');
     $('economyTickBtn').onclick = () => economyAction(1);
     $('economyTick7Btn').onclick = () => economyAction(7);
+    $('simTickBtn').onclick = () => simAction(1);
+    $('simTick7Btn').onclick = () => simAction(7);
     $('sotDetailSaveBtn').onclick = saveSotDetail;
     $('sotText').addEventListener('input', () => sotStatus('unsaved note changes'));
     $('eBulkApplyBtn').onclick = applyEntBulk;
@@ -1379,6 +1396,11 @@ function worldPageHtml() {
   function setEconomyBulkVisible(on) {
     if ($('economyTickBtn')) $('economyTickBtn').hidden = !on;
     if ($('economyTick7Btn')) $('economyTick7Btn').hidden = !on;
+    if (!on) setSimBulkVisible(false);
+  }
+  function setSimBulkVisible(on) {
+    if ($('simTickBtn')) $('simTickBtn').hidden = !on;
+    if ($('simTick7Btn')) $('simTick7Btn').hidden = !on;
   }
   function renderEconomyDash(d) {
     sotDash = d;
@@ -1435,6 +1457,78 @@ function worldPageHtml() {
     renderEconomyDash(out.j);
     sotStatus('tick ok · day ' + (out.j.diegetic_date || '') + ' · v' + out.j.version);
   }
+  function renderSimDash(payload) {
+    const agents = payload.agents || {};
+    const eco = payload.economy || {};
+    sotDash = payload;
+    const sum = agents.last_summary || {};
+    $('sotMetaChip').textContent = 'people ' + (sum.count || (agents.agents || []).length) +
+      ' · sat ' + (sum.avg_satisfaction != null ? sum.avg_satisfaction : '—') +
+      ' · funds≈' + (sum.avg_funds != null ? sum.avg_funds : '—') +
+      ' · day ' + (agents.diegetic_date || eco.diegetic_date || '?') +
+      ' · tick ' + (agents.tick || 0);
+    setWeatherBulkVisible(false);
+    setEconomyBulkVisible(false);
+    setSimBulkVisible(true);
+    $('sotBulkBar').hidden = false;
+    $('sotDetailSaveBtn').hidden = true;
+    const commodities = eco.commodities || {};
+    let html = '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Live prices (driven by people demand + resources)</h3><div class="dash-grid" style="margin-top:8px">';
+    html += Object.keys(commodities).slice(0, 12).map((id) => {
+      const c = commodities[id] || {};
+      return '<div class="metric"><span>' + esc(c.label || id) + '</span><b>' + esc(c.price) + '</b></div>';
+    }).join('');
+    html += '</div></article>';
+    html += '<article class="dash-card" style="grid-column:1/-1;cursor:default"><h3>Last day actions</h3><ul style="margin:0;padding-left:18px;color:var(--muted);font-size:.8rem">';
+    const actions = sum.actions || {};
+    html += Object.keys(actions).length
+      ? Object.keys(actions).map((k) => '<li>' + esc(k) + ': <b>' + esc(actions[k]) + '</b></li>').join('')
+      : '<li>No tick yet — press Sim day +1</li>';
+    html += '</ul></article>';
+    html += (agents.agents || []).map((a) => {
+      const activeCls = sotSelectedId === a.id && sotSelectedList === 'agents' ? ' is-active' : '';
+      const domNeed = Object.keys(a.needs || {}).sort((x, y) => (a.needs[y] || 0) - (a.needs[x] || 0))[0] || '—';
+      return '<article class="dash-card' + activeCls + '" data-list="agents" data-id="' + esc(a.id) + '">' +
+        '<h3>' + esc(a.name) + '</h3>' +
+        '<div class="metric"><span>Sat</span><b>' + esc(a.satisfaction) + '</b></div>' +
+        '<div class="metric"><span>Funds</span><b>' + esc(a.funds) + '</b></div>' +
+        '<div class="metric"><span>Need</span><b>' + esc(domNeed) + '</b></div>' +
+        '<div class="metric"><span>Last</span><b>' + esc(a.last_action || '—') + '</b></div>' +
+        '<p style="margin:8px 0 0;color:var(--muted);font-size:.72rem">wants: ' + esc((a.wants || []).join(', ')) +
+        ' · quirks: ' + esc((a.quirks || []).join(', ')) +
+        ' · @' + esc(a.region) + '</p></article>';
+    }).join('');
+    $('sotDash').innerHTML = html;
+    $('sotDash').querySelectorAll('[data-id]').forEach((card) => {
+      card.onclick = () => {
+        sotSelectedList = 'agents';
+        sotSelectedId = card.getAttribute('data-id');
+        const row = (agents.agents || []).find((r) => String(r.id) === String(sotSelectedId));
+        if (!row) return;
+        $('sotDetail').hidden = false;
+        $('sotDetailTitle').textContent = 'Agent · ' + (row.name || row.id);
+        $('sotDetailBody').innerHTML = Object.keys(row).map((k) => {
+          const v = row[k];
+          const shown = typeof v === 'object' ? JSON.stringify(v) : v;
+          return '<label>' + esc(k) + '</label><input readonly value="' + esc(shown == null ? '' : shown) + '"/>';
+        }).join('');
+      };
+    });
+  }
+  async function simAction(days) {
+    sotStatus('simulating people + economy…');
+    const out = await fetchJson('/api/world/sim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'tick', days: days || 1 })
+    }, 60000);
+    if (!out.r.ok) {
+      sotStatus('sim tick failed: ' + (out.j.error || out.r.status));
+      return;
+    }
+    renderSimDash(out.j);
+    sotStatus('sim ok · ' + (out.j.agents && out.j.agents.diegetic_date) + ' · sat ' + ((out.j.agents && out.j.agents.last_summary && out.j.agents.last_summary.avg_satisfaction) || '—'));
+  }
   function selectSotItem(listKey, id) {
     sotSelectedList = listKey;
     sotSelectedId = id;
@@ -1468,6 +1562,10 @@ function worldPageHtml() {
         const out = await fetchJson('/api/world/weather', null, 15000);
         if (!out.r.ok) throw new Error(out.j.error || ('weather ' + out.r.status));
         renderWeatherDash(out.j);
+      } else if (meta.kind === 'sim') {
+        const out = await fetchJson('/api/world/sim', null, 20000);
+        if (!out.r.ok) throw new Error(out.j.error || ('sim ' + out.r.status));
+        renderSimDash(out.j);
       } else {
         const out = await fetchJson('/api/world/summary?module=' + encodeURIComponent(meta.kind), null, 15000);
         if (!out.r.ok) throw new Error(out.j.error || ('summary ' + out.r.status));
@@ -2495,6 +2593,24 @@ function viewerHtml() {
   .econ-site--tourism, .econ-site--vice { background:#e85d9c; }
   .econ-site--industry, .econ-site--logistics, .econ-site--tech, .econ-site--energy { background:#9d8fc9; }
   .map-layer--economy-resources.is-hidden { display:none; }
+  .map-layer--highways.is-hidden { display:none; }
+  .hwy-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+  .hwy-road-casing { fill:none; stroke:#b0a070; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; opacity:.95; }
+  .hwy-road { fill:none; stroke:#f6e27a; stroke-width:0.65; stroke-linecap:round; stroke-linejoin:round; }
+  .hwy-road--freeway { stroke:#f7d44a; stroke-width:0.85; }
+  .hwy-label {
+    font: 700 1.6px "Segoe UI", system-ui, sans-serif;
+    fill:#1a1a1a;
+    stroke:#fff8dc;
+    stroke-width:0.35px;
+    paint-order:stroke fill;
+    text-anchor:middle;
+    pointer-events:none;
+  }
+  .hwy-shield {
+    font: 700 1.35px "Segoe UI", system-ui, sans-serif;
+    fill:#1a4480;
+  }
   .map-label-layer {
     position:absolute; inset:0; pointer-events:none;
   }
@@ -2966,6 +3082,7 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="labelToggle" hidden>Labels</button>
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
   <button type="button" class="hud-res" id="econToggle" hidden>Econ</button>
+  <button type="button" class="hud-res" id="roadsToggle" hidden>Roads</button>
   <button type="button" class="hud-res hud-edit" id="editToggle" hidden>Edit</button>
   <button type="button" class="hud-res" id="drawToggle" hidden>Draw borders</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
@@ -3158,6 +3275,7 @@ let uiLabelsVisible = true;
 let uiAreasVisible = true;
 let uiCitiesVisible = true;
 let uiEconVisible = false;
+let uiRoadsVisible = true;
 let editMode = false;
 let drawMode = false;
 let drawVerts = [];
@@ -5978,6 +6096,82 @@ function initEconToggle(data, profile) {
   syncEconLayerVisibility();
 }
 
+function roadsUiEnabled() {
+  return mapDataCache && mapDataCache.highways_data && uiRoadsVisible;
+}
+
+function syncRoadsLayerVisibility() {
+  syncLayerVisibility('highways', roadsUiEnabled());
+}
+
+function placeHighways(container, hwy) {
+  if (!container || !hwy) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'hwy-svg');
+  svg.setAttribute('viewBox', hwy.viewBox || '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  (hwy.routes || []).forEach(function(route) {
+    const pts = route.points || [];
+    if (pts.length < 2) return;
+    const d = pts.map(function(p, i) {
+      const x = Array.isArray(p) ? p[0] : p.x;
+      const y = Array.isArray(p) ? p[1] : p.y;
+      return (i === 0 ? 'M' : 'L') + x + ' ' + y;
+    }).join(' ');
+    const casing = document.createElementNS(NS, 'path');
+    casing.setAttribute('d', d);
+    casing.setAttribute('class', 'hwy-road-casing');
+    svg.appendChild(casing);
+    const road = document.createElementNS(NS, 'path');
+    road.setAttribute('d', d);
+    road.setAttribute('class', 'hwy-road' + (route.kind === 'freeway' ? ' hwy-road--freeway' : ''));
+    svg.appendChild(road);
+    const lab = route.label_at || pts[Math.floor(pts.length / 2)];
+    const lx = Array.isArray(lab) ? lab[0] : lab.x;
+    const ly = Array.isArray(lab) ? lab[1] : lab.y;
+    if (route.ref) {
+      const shield = document.createElementNS(NS, 'text');
+      shield.setAttribute('x', String(lx));
+      shield.setAttribute('y', String(ly - 1.2));
+      shield.setAttribute('class', 'hwy-shield');
+      shield.textContent = route.ref;
+      svg.appendChild(shield);
+    }
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', String(lx));
+    text.setAttribute('y', String(ly + 0.9));
+    text.setAttribute('class', 'hwy-label');
+    text.textContent = route.name || route.id;
+    svg.appendChild(text);
+  });
+  container.appendChild(svg);
+}
+
+function initRoadsToggle(data, profile) {
+  const btn = document.getElementById('roadsToggle');
+  if (!btn) return;
+  if (!data.highways_data || !(data.highways_data.routes || []).length) {
+    btn.hidden = true;
+    return;
+  }
+  btn.hidden = false;
+  uiRoadsVisible = profile.showRoads !== false;
+  btn.textContent = uiRoadsVisible ? 'Roads ON' : 'Roads OFF';
+  btn.onclick = function() {
+    uiRoadsVisible = !uiRoadsVisible;
+    btn.textContent = uiRoadsVisible ? 'Roads ON' : 'Roads OFF';
+    saveProfile({ showRoads: uiRoadsVisible });
+    const layer = document.querySelector('[data-layer-id="highways"]');
+    if (layer) {
+      layer.innerHTML = '';
+      if (uiRoadsVisible) placeHighways(layer, mapDataCache.highways_data);
+    }
+    syncRoadsLayerVisibility();
+  };
+  syncRoadsLayerVisibility();
+}
+
 function placeMapLabels(container, markers) {
   if (!labelsUiEnabled() || !container) return;
   markers.forEach(function(m) {
@@ -6132,6 +6326,7 @@ async function load() {
   initAreaToggle(data, profile);
   initCitiesToggle(data, profile);
   initEconToggle(data, profile);
+  initRoadsToggle(data, profile);
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
@@ -6235,6 +6430,13 @@ function finishMapStage(stage, markers, profile) {
       placeEconomySites(econLayer, mapDataCache.economy_overlay);
     }
   }
+  const hwyLayer = layerEl(stack, 'highways');
+  if (hwyLayer) {
+    hwyLayer.innerHTML = '';
+    if (uiRoadsVisible && mapDataCache && mapDataCache.highways_data) {
+      placeHighways(hwyLayer, mapDataCache.highways_data);
+    }
+  }
   if (labelLayer) {
     labelLayer.classList.add('map-label-layer');
     labelLayer.innerHTML = '';
@@ -6243,6 +6445,7 @@ function finishMapStage(stage, markers, profile) {
   syncAreaLayerVisibility();
   syncCitiesLayerVisibility();
   syncEconLayerVisibility();
+  syncRoadsLayerVisibility();
   syncLabelLayerVisibility();
   if (typeof renderDrawPreview === 'function') renderDrawPreview();
   restoreCameraFromProfile(profile || loadProfile(), !prefersReducedMotion);
@@ -7160,10 +7363,16 @@ function loadMapJson() {
   try {
     const st = fs.statSync(MAP_JSON);
     const ruiMs = regionsUiMtimeMs();
+    const hwyAbs = path.join(CAMPAIGN_DIR, "map", "highways.json");
+    const hwyMs = fs.existsSync(hwyAbs) ? fs.statSync(hwyAbs).mtimeMs : 0;
+    const econOvAbsEarly = path.join(CAMPAIGN_DIR, "map", "economy-overlay.json");
+    const econMs = fs.existsSync(econOvAbsEarly) ? fs.statSync(econOvAbsEarly).mtimeMs : 0;
     if (
       mapJsonCache.data &&
       mapJsonCache.mapMtimeMs === st.mtimeMs &&
-      mapJsonCache.regionsMtimeMs === ruiMs
+      mapJsonCache.regionsMtimeMs === ruiMs &&
+      mapJsonCache.highwaysMtimeMs === hwyMs &&
+      mapJsonCache.econMtimeMs === econMs
     ) {
       return mapJsonCache.data;
     }
@@ -7244,6 +7453,14 @@ function loadMapJson() {
     } catch {
       data.economy_overlay = null;
     }
+    try {
+      const hwyAbs = path.join(CAMPAIGN_DIR, "map", "highways.json");
+      if (fs.existsSync(hwyAbs)) {
+        data.highways_data = JSON.parse(fs.readFileSync(hwyAbs, "utf8"));
+      }
+    } catch {
+      data.highways_data = null;
+    }
     const layersRel = data.layers_manifest;
     const layersAbs = layersRel && !layersRel.includes("..")
       ? path.join(CAMPAIGN_DIR, layersRel)
@@ -7259,7 +7476,13 @@ function loadMapJson() {
     if (data.regions_ui_data) {
       bindPinsToAreasServer(data.markers, data.regions_ui_data);
     }
-    mapJsonCache = { mapMtimeMs: st.mtimeMs, regionsMtimeMs: ruiMs, data };
+    mapJsonCache = {
+      mapMtimeMs: st.mtimeMs,
+      regionsMtimeMs: ruiMs,
+      highwaysMtimeMs: hwyMs,
+      econMtimeMs: econMs,
+      data,
+    };
     return data;
   } catch (err) {
     return { campaign: CAMPAIGN, markers: [], error: err.message };
@@ -9081,6 +9304,60 @@ async function handleRequest(req, res) {
       sendJson(res, written, 200, 0);
     } catch (err) {
       sendJson(res, { error: (err && err.message) || "weather_save_failed" }, 400);
+    }
+    return;
+  }
+  if (url === "/api/world/sim" && req.method === "GET") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      let agents = loadAgents(CAMPAIGN_DIR);
+      if (!agents.agents || !agents.agents.length) {
+        agents = seedFromRegistry(CAMPAIGN_DIR);
+        saveAgents(CAMPAIGN_DIR, agents);
+      }
+      const economy = loadEconomy(CAMPAIGN_DIR);
+      sendJson(res, { agents, economy }, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "sim_failed" }, 500);
+    }
+    return;
+  }
+  if (url === "/api/world/sim" && req.method === "POST") {
+    const gate = editGate(session);
+    if (gate) {
+      sendJson(res, { error: gate.error }, gate.code);
+      return;
+    }
+    try {
+      const body = await readBody(req);
+      if (Buffer.byteLength(body, "utf8") > 256 * 1024) throw new Error("payload too large");
+      const payload = JSON.parse(body || "{}");
+      const action = String(payload.action || "tick").trim();
+      let agents = loadAgents(CAMPAIGN_DIR);
+      if (!agents.agents || !agents.agents.length) agents = seedFromRegistry(CAMPAIGN_DIR);
+      let economy = loadEconomy(CAMPAIGN_DIR);
+      if (action === "tick") {
+        const out = tickAgents(agents, economy, {
+          campaignDir: CAMPAIGN_DIR,
+          days: Math.max(1, Number(payload.days) || 1),
+        });
+        agents = out.agents;
+        economy = out.economy;
+        saveAgents(CAMPAIGN_DIR, agents);
+        saveEconomy(CAMPAIGN_DIR, economy);
+      } else if (action === "reseed") {
+        agents = seedFromRegistry(CAMPAIGN_DIR);
+        saveAgents(CAMPAIGN_DIR, agents);
+      } else {
+        throw new Error("bad_action");
+      }
+      sendJson(res, { agents, economy }, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "sim_save_failed" }, 400);
     }
     return;
   }

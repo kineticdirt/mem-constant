@@ -1,0 +1,530 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-10T22:48:55.284Z",
+  "present_lock": 2019,
+  "diegetic_date": "2019-06-15",
+  "tick": 0,
+  "seed": "isla-agents-v1",
+  "_doc": "Deterministic person sim (needs/wants/quirks). No LLM. Seeded from visible registry rows.",
+  "agents": [
+    {
+      "id": "alisa-stein",
+      "name": "Alisa Stein",
+      "role": "npc",
+      "status": "npc",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 131,
+      "job": "service",
+      "needs": {
+        "food": 0.519,
+        "shelter": 0.682,
+        "money": 0.63,
+        "safety": 0.603,
+        "belonging": 0.708,
+        "stimulation": 0.432
+      },
+      "wants": [
+        "status",
+        "nature",
+        "quiet"
+      ],
+      "quirks": [
+        "night_owl",
+        "status_seeker"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "cassidy-catharine-cece",
+      "name": "Cassidy Catharine (Cece)",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 151,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.635,
+        "shelter": 0.773,
+        "money": 0.4,
+        "safety": 0.363,
+        "belonging": 0.52,
+        "stimulation": 0.445
+      },
+      "wants": [
+        "nightlife",
+        "quiet",
+        "family"
+      ],
+      "quirks": [
+        "cheapskate",
+        "teetotal"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "celine",
+      "name": "Celine",
+      "role": "npc",
+      "status": "active",
+      "home_region": "r04-villa-miel",
+      "region": "r04-villa-miel",
+      "funds": 145,
+      "job": "informal",
+      "needs": {
+        "food": 0.767,
+        "shelter": 0.733,
+        "money": 0.603,
+        "safety": 0.791,
+        "belonging": 0.723,
+        "stimulation": 0.665
+      },
+      "wants": [
+        "vice",
+        "nightlife",
+        "status"
+      ],
+      "quirks": [
+        "foodie",
+        "status_seeker"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "ellaine-mishpit",
+      "name": "Ellaine Mishpit",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r01-paradise",
+      "region": "r01-paradise",
+      "funds": 137,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.977,
+        "shelter": 0.628,
+        "money": 0.556,
+        "safety": 0.677,
+        "belonging": 0.395,
+        "stimulation": 0.461
+      },
+      "wants": [
+        "family",
+        "work"
+      ],
+      "quirks": [
+        "homebody",
+        "club_regular"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "ellaine-roommate",
+      "name": "Sofia",
+      "role": "npc",
+      "status": "npc",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 203,
+      "job": "service",
+      "needs": {
+        "food": 0.793,
+        "shelter": 0.476,
+        "money": 0.999,
+        "safety": 0.401,
+        "belonging": 0.403,
+        "stimulation": 0.735
+      },
+      "wants": [
+        "nightlife",
+        "tech"
+      ],
+      "quirks": [
+        "teetotal",
+        "risk_tolerant"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "felix",
+      "name": "Felix",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 159,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.816,
+        "shelter": 0.421,
+        "money": 0.62,
+        "safety": 0.412,
+        "belonging": 0.692,
+        "stimulation": 0.649
+      },
+      "wants": [
+        "quiet",
+        "nightlife"
+      ],
+      "quirks": [
+        "church_morning",
+        "foodie"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "harper-maupin",
+      "name": "Harper Maupin",
+      "role": "pc",
+      "status": "retired",
+      "home_region": "r03-crimson-quay",
+      "region": "r03-crimson-quay",
+      "funds": 104,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.412,
+        "shelter": 0.547,
+        "money": 0.859,
+        "safety": 0.426,
+        "belonging": 0.661,
+        "stimulation": 0.556
+      },
+      "wants": [
+        "family",
+        "nightlife"
+      ],
+      "quirks": [
+        "wanderer",
+        "cheapskate"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "harper-sister",
+      "name": "Harper's sister (unnamed)",
+      "role": "npc",
+      "status": "npc",
+      "home_region": "r08-sierra-dorado",
+      "region": "r08-sierra-dorado",
+      "funds": 116,
+      "job": "informal",
+      "needs": {
+        "food": 0.418,
+        "shelter": 0.351,
+        "money": 0.562,
+        "safety": 0.983,
+        "belonging": 0.744,
+        "stimulation": 0.438
+      },
+      "wants": [
+        "tech",
+        "faith"
+      ],
+      "quirks": [
+        "church_morning",
+        "early_riser"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "jinpei-mclaren",
+      "name": "Jinpei McLaren",
+      "role": "npc",
+      "status": "npc",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 238,
+      "job": "service",
+      "needs": {
+        "food": 0.779,
+        "shelter": 0.541,
+        "money": 0.54,
+        "safety": 0.785,
+        "belonging": 0.568,
+        "stimulation": 0.766
+      },
+      "wants": [
+        "nightlife",
+        "faith",
+        "vice"
+      ],
+      "quirks": [
+        "teetotal",
+        "risk_averse"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "lena-litzveil",
+      "name": "Lena Litzveil",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 102,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.475,
+        "shelter": 1,
+        "money": 0.529,
+        "safety": 0.374,
+        "belonging": 0.605,
+        "stimulation": 0.734
+      },
+      "wants": [
+        "status",
+        "vice"
+      ],
+      "quirks": [
+        "teetotal",
+        "risk_averse"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "nelly-stein",
+      "name": "Nelly Stein",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r03-crimson-quay",
+      "region": "r03-crimson-quay",
+      "funds": 46,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.435,
+        "shelter": 0.373,
+        "money": 0.712,
+        "safety": 0.927,
+        "belonging": 0.732,
+        "stimulation": 0.687
+      },
+      "wants": [
+        "nightlife",
+        "faith",
+        "vice"
+      ],
+      "quirks": [
+        "cheapskate",
+        "risk_averse"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "redmond-red-gallagher",
+      "name": "Redmond \"Red\" Gallagher",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r01-paradise",
+      "region": "r01-paradise",
+      "funds": 233,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.596,
+        "shelter": 0.656,
+        "money": 0.629,
+        "safety": 0.993,
+        "belonging": 0.617,
+        "stimulation": 0.361
+      },
+      "wants": [
+        "romance",
+        "faith",
+        "nature"
+      ],
+      "quirks": [
+        "risk_averse",
+        "risk_tolerant"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "rosalina-bonetto",
+      "name": "Rosalina Bonetto",
+      "role": "pc",
+      "status": "retired",
+      "home_region": "r01-paradise",
+      "region": "r01-paradise",
+      "funds": 82,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.72,
+        "shelter": 0.619,
+        "money": 0.535,
+        "safety": 0.964,
+        "belonging": 0.495,
+        "stimulation": 0.67
+      },
+      "wants": [
+        "status",
+        "nature"
+      ],
+      "quirks": [
+        "homebody",
+        "foodie"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "sister-minerva",
+      "name": "Sister Minerva",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r02-porto-lujuria",
+      "region": "r02-porto-lujuria",
+      "funds": 168,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.62,
+        "shelter": 0.9,
+        "money": 0.421,
+        "safety": 0.471,
+        "belonging": 0.512,
+        "stimulation": 0.593
+      },
+      "wants": [
+        "status",
+        "work",
+        "quiet"
+      ],
+      "quirks": [
+        "cheapskate",
+        "early_riser"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    },
+    {
+      "id": "toga",
+      "name": "Toga",
+      "role": "pc",
+      "status": "active",
+      "home_region": "r03-crimson-quay",
+      "region": "r03-crimson-quay",
+      "funds": 134,
+      "job": "player_orbit",
+      "needs": {
+        "food": 0.955,
+        "shelter": 0.438,
+        "money": 0.594,
+        "safety": 0.698,
+        "belonging": 0.633,
+        "stimulation": 0.428
+      },
+      "wants": [
+        "status",
+        "faith",
+        "work"
+      ],
+      "quirks": [
+        "wanderer",
+        "risk_averse"
+      ],
+      "inventory": {
+        "ice": 0,
+        "seafood": 0,
+        "rum": 0
+      },
+      "last_action": null,
+      "satisfaction": 0.5,
+      "demand_pressure": {}
+    }
+  ],
+  "last_summary": null
+}

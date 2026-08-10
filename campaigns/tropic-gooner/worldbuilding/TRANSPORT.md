@@ -10,7 +10,7 @@
 ## Canon status
 
 - **[canon]** — island has major coastal / highland highway language in older place lore; SwitchBack is the highway heart; San Aurelio has rail yards; ports move ships and boats; players drive, walk, and bus in product plans.
-- **[map layer]** — `map/layers.json` lists `highways` (z 42), `streets` (z 41), `transit-rail`, `transit-bus`, `bridges`. **Highways source is currently null** — geometry is not a filled overlay file yet. **Do not wipe `regions-ui.json` GM borders** when adding road art.
+- **[map layer]** — `map/layers.json` → `highways` source `map/highways.json` (labeled overlay, default ON). Terrain image stays the Google-Maps-style baseline. **Do not wipe `regions-ui.json`.** Route paths are **[proposal]** until GM traces the green art exactly.
 - **[GM map note]** — **green lines on the map = highways / freeways.** More roads still need drawing on the map. This file is prose + pointers, not a fake HUD that invents polys.
 - **[proposal]** — mode table and play notes below.
 

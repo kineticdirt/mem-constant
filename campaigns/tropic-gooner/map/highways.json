@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-10T22:50:00Z",
+  "viewBox": "0 0 100 100",
+  "_doc": "Highway / freeway overlay for Google-Maps-style labels on the terrain image. Coordinates are image-percent. [proposal] alignment until GM traces green art exactly. Does NOT touch city pins or regions-ui.",
+  "style": "google_maps_road",
+  "routes": [
+    {
+      "id": "hwy-bay-ring",
+      "name": "Bay Ring",
+      "ref": "IP-1",
+      "canon": "proposal",
+      "kind": "freeway",
+      "note": "Paradise ↔ Porto Lujara ↔ Jackedsonville middle-bay spine (green art).",
+      "points": [
+        [37.35, 53.14],
+        [35.0, 57.5],
+        [29.23, 59.35],
+        [32.5, 61.5],
+        [36.48, 62.88],
+        [37.0, 58.0],
+        [37.35, 53.14]
+      ],
+      "label_at": [34.2, 58.8]
+    },
+    {
+      "id": "hwy-switchback",
+      "name": "SwitchBack",
+      "ref": "IP-2",
+      "canon": "canon",
+      "kind": "highway",
+      "note": "Get-anywhere highland corridor toward Sierra Dorado.",
+      "points": [
+        [37.35, 53.14],
+        [39.5, 48.5],
+        [43.0, 43.0],
+        [40.0, 38.0],
+        [31.0, 38.0]
+      ],
+      "label_at": [41.2, 45.5]
+    },
+    {
+      "id": "hwy-coastal-south",
+      "name": "South Coastal",
+      "ref": "IP-3",
+      "canon": "proposal",
+      "kind": "highway",
+      "note": "Working south belt — Porto / Ruby / San Aurelio spur.",
+      "points": [
+        [36.48, 62.88],
+        [30.0, 72.0],
+        [23.65, 74.89],
+        [23.4, 89.53],
+        [32.85, 93.62]
+      ],
+      "label_at": [26.5, 82.0]
+    },
+    {
+      "id": "hwy-east-lagoon",
+      "name": "Lagooni Spur",
+      "ref": "IP-4",
+      "canon": "proposal",
+      "kind": "highway",
+      "note": "East bay hop toward Lagooni Seika / Portview.",
+      "points": [
+        [37.35, 53.14],
+        [44.0, 62.0],
+        [50.32, 71.88],
+        [51.0, 84.0]
+      ],
+      "label_at": [46.5, 68.0]
+    },
+    {
+      "id": "hwy-seaside",
+      "name": "Seaside Connector",
+      "ref": "IP-5",
+      "canon": "proposal",
+      "kind": "highway",
+      "note": "East connector toward Seaside Springs.",
+      "points": [
+        [37.35, 53.14],
+        [48.0, 53.0],
+        [61.0, 53.0]
+      ],
+      "label_at": [52.0, 51.5]
+    }
+  ]
+}
