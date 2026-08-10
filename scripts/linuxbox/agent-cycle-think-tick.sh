@@ -155,6 +155,7 @@ BOARDS = [
   "campaigns/spacequest/reports/progress.md",
   "agents/LINUXBOX_DASHBOARD_BACKLOG.md",
   "agents/maintenance-progress.md",
+  "agents/daily-deslop-progress.md",
   "agents/system-integrity-progress.md",
   "agents/self-improvement-progress.md",
   "agents/research-studies-progress.md",

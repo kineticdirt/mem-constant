@@ -2099,6 +2099,22 @@ function readMetaLaneSummary() {
         }
       : null;
 
+  // Systems design + daily deslop (read-only pointers — board markdown is SoT).
+  const systemsBoardRel = "agents/SYSTEMS_DESIGN_BOARD.md";
+  const deslopProgressRel = "agents/daily-deslop-progress.md";
+  let deslopOpen = 0;
+  const deslopPath = path.join(REPO, deslopProgressRel);
+  if (fs.existsSync(deslopPath)) {
+    try {
+      deslopOpen = fs
+        .readFileSync(deslopPath, "utf8")
+        .split("\n")
+        .filter((l) => /^- \[ \]/.test(l)).length;
+    } catch {
+      deslopOpen = 0;
+    }
+  }
+
   return {
     blurb:
       "Dashboard self-improvement lane: think/meta picks one Open backlog item → implement → verify (:8790 / smoke) → mark Done.",
@@ -2107,19 +2123,16 @@ function readMetaLaneSummary() {
     open_preview: open.slice(0, 6),
     last_done: lastDone,
     last_meta_run: metaRun,
-    last_think_run: lastThink
-      ? {
-          what: lastThink.blurb,
-          when: lastThink.at,
-          outcome: lastThink.status || (lastThink.task_id ? "done" : "ok"),
-          task_id: lastThink.task_id || null,
-        }
-      : null,
+    last_think_run: lastThinkRun,
     smoke,
     backlog_path: backlogPath,
     task_path: taskPath,
     update_gate: "scripts/linuxbox/safe-update-check.sh (SAFE before upgrades)",
     update_targets: "agents/update-targets.json",
+    systems_design_board: systemsBoardRel,
+    daily_deslop_progress: deslopProgressRel,
+    daily_deslop_open: deslopOpen,
+    git_regression_memory: "agents/git-regression-memory.md",
   };
 }
 

@@ -61,6 +61,8 @@ When a lane finishes all checkboxes → skip it until human adds work.
 | **Tropic Gooner** (island/map) | `agents/TROPIC_GOONER_TASK.md` (RP pod) | `campaigns/tropic-gooner/reports/progress.md` |
 | **NYC Mafia × D&D** | `agents/NYC_MAFIA_DND_TASK.md` | `campaigns/nyc-mafia-dnd/worldbuilding/progress.md` |
 | **Dashboard** | `agents/LINUXBOX_DASHBOARD_TASK.md` | `agents/LINUXBOX_DASHBOARD_BACKLOG.md` |
+| **Daily deslop** | `agents/DAILY_DESLOP_TASK.md` (∥ ponytail) | `agents/daily-deslop-progress.md` |
+| **Systems design** | — | `agents/SYSTEMS_DESIGN_BOARD.md` |
 | **System integrity** | `agents/SYSTEM_INTEGRITY_TASK.md` | `agents/system-integrity-progress.md` |
 | **Ponytail cleanup** | `agents/PONYTAIL_CLEANUP_TASK.md` | `agents/PONYTAIL_CLEANUP_BOARD.md` |
 | **tableslop (map / v1)** | `agents/TABLESLOP_PROJECT_TASK.md` | `agents/tableslop-progress.md` (+ `projects/tableslop/manifest.json`) |

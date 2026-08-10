@@ -7664,6 +7664,12 @@
             <div class="meta-paths">${esc(smoke?.path || "reports/dashboard-ui-smoke/latest.json")}</div>
           </div>
           <div class="meta-card">
+            <div class="aw-label">Systems design</div>
+            <div>${esc(m.systems_design_board || "agents/SYSTEMS_DESIGN_BOARD.md")}</div>
+            <div class="meta-paths">Daily deslop open: ${esc(String(m.daily_deslop_open ?? "—"))} · ${esc(m.daily_deslop_progress || "agents/daily-deslop-progress.md")}</div>
+            <div class="meta-paths">${esc(m.git_regression_memory || "agents/git-regression-memory.md")}</div>
+          </div>
+          <div class="meta-card">
             <div class="aw-label">Paths</div>
             <div class="meta-paths">${esc(m.backlog_path || "agents/LINUXBOX_DASHBOARD_BACKLOG.md")}<br>${esc(m.task_path || "agents/LINUXBOX_DASHBOARD_TASK.md")}</div>
           </div>

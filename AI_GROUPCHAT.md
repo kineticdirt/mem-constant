@@ -1,6 +1,13 @@
 
 
 
+
+
+- **2026-08-10T00:36Z** — [PC] **Intent:** Wire **daily deslop** into daily checkups (paired with ponytail: no-delete refine, atomize by function/goal, reuse helpers). Add **git-regression memory** (errors/reversions). Scaffold **Systems design board** for linuxbox understanding. Holder: `daily-deslop-systems-board`.
+- **2026-08-10T00:39Z** — [PC] **Result:** daily deslop + systems board live (holder `daily-deslop-systems-board`). Lane: `agents/DAILY_DESLOP_TASK.md` + `daily-deslop-progress.md` (∥ ponytail, no deletions); `agents/git-regression-memory.md` seeded (regions-ui wipe, const profile boot, pin PIP, tile opacity, Hub D-state, /world hang); `agents/SYSTEMS_DESIGN_BOARD.md` (product/agent/reuse catalog). Wired maintenance→deslop, think boards list, Hub Meta `systems_design_board`/`daily_deslop_open`/`git_regression_memory`. Potato: files in place; `/api/agent` meta_lane OK (deslop_open=1). Open tick: **dd-02** Discord token helper extract. Hard-refresh Hub Meta.
+- **2026-08-10T00:13Z** — [PC] **Intent:** P0 map pins+borders appear displaced (GM screenshot). Compare live /api/map coords + regions-ui vs potato SoT/watermark; check client override/transform skew. NEVER wipe regions-ui; restore SoT if drifted. Holder: `tableslop-pins-borders-drift`.
+
+- **2026-08-10T00:25Z** — [PC] **Result:** pins/borders drift audit (holder `tableslop-pins-borders-drift`). SoT NOT mutated: API pins = pin-lock (Paradise 48.32/57.47, Porto 41/66, Jacked 35.88/73.85, …); borders guard PASS v25/660; stage/img/svg boxes identical (no CSS transform skew). Real issue: major pins sit **outside** their GM polys (Paradise/Porto/Jacked/Culovera/Ruby in_own=false; only Sierra/Lagoona/Puckall contain pins). containing_area_id=null for those. Likely feel of “moved”: boot fix clears localStorage coord_overrides → pins snap to server. Await GM: (A) re-Edit pins into borders, (B) re-Draw borders around vibes pins, (C) restore specific bak. NEVER auto-wipe regions-ui.
 - **2026-08-09T22:21Z** — [PC] **Intent:** P0 map.tableslop.org blank again (GM screenshot: black viewport, empty legend, REGION NONE). Re-verify potato vs edge; do not trust prior Results. Fix underlay/tiles/data load. NEVER regions-ui. Holder: `tableslop-map-blank-again`.
 
 - **2026-08-09T22:32Z** — [PC] **Result:** P0 blank map (holder `tableslop-map-blank-again`). Root cause: `load()` used `const profile` then reassigned after clearing stale `coord_overrides` → TypeError aborts boot (black viewport, empty legend, REGION NONE) for Edit-OFF users with leftover pin overrides. Fix: `let profile`; smoke gate `TS-MAP-OVERRIDE-BOOT`; build meta `2026-08-09-override-boot`. Potato restarted; override regression PASS. NEVER regions-ui. **GM: Ctrl+Shift+R** on map.tableslop.org.

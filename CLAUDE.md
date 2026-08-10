@@ -40,7 +40,8 @@ Each `agent-cycle-think` tick, in order, do the first lane with unchecked `[ ]` 
 1. `git pull` in `~/agent-dump` **only if** clean (no merge conflicts). Else skip.
    Prefer PC git-bundle sync — do not inbox-block on private-repo pull.
 2. **Urgent `[ops]` / Fix-this** user-tasks; then dashboard/meta when due
-   (`LINUXBOX_DASHBOARD_BACKLOG.md`, supply-chain update gate, maintenance).
+   (`LINUXBOX_DASHBOARD_BACKLOG.md`, supply-chain update gate, maintenance,
+   **daily deslop** `daily-deslop-progress.md` paired with ponytail).
 3. **Same tier RR — campaign ≡ project** — product boards (`tableslop` / pixi /
    portfolio) + campaign progress (nyc / tropic). State:
    `agents/state/think-continuous-rr.json`.
