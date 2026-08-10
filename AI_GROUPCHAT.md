@@ -1,3 +1,4 @@
+- **2026-08-10T03:32Z** — [PC] **Result:** daily-deslop-dd-11 done. Shared CRLF note in `scripts/linuxbox/README.md` (sed strip CR before first install-*.sh run); pepper installer points here; ponytail CRLF card closed. SHA `864f600`; potato HEAD `864f600` (bundle `c88949f→864f600` verify-runtime-state PASS). hermes-gateway + both watchdog timers left **active**. Next open: **dd-12**. Holder: `daily-deslop-dd-11`.
 
 - **2026-08-10T03:25Z** — [PC] **Intent:** daily-deslop-dd-11 — shared CRLF note in `scripts/linuxbox/README.md`. Holder: `daily-deslop-dd-11`.
 
