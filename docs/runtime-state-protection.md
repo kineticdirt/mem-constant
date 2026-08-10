@@ -85,8 +85,9 @@ on every write, and revisions land under `agents/state/chars-registry-revisions/
    (watermarks in `agents/state/protected-versions.json`); a version going DOWN fails.
 2. **Deploy-pair marker** — `<meta name="dash-build">` in `index.html` must equal
    `const DASH_BUILD` in `linuxbox-status-server.js` (bump both together when the
-   HTML↔API shape changes), plus legacy structural markers (`active-work`,
-   `chat-threads-toggle`).
+   HTML↔API shape changes — use `bash scripts/linuxbox/bump-dash-build.sh <id>` /
+   `--check`; do not hand-edit one side), plus legacy structural markers
+   (`active-work`, `chat-threads-toggle`).
 3. **Live service** — `http://127.0.0.1:8790/` returns 200 (box only).
 4. **Roster API** — each manifest `verify.api` endpoint parses as JSON and has
    `>= min_visible` characters.

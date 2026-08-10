@@ -15,6 +15,7 @@
 | 2026-08-09 | Hub `:8790` D-state / VERIFY FAIL after bundle | bundle strips `+x` on `scripts/linuxbox/*.sh`; status hangs under swap | `fix-sh-crlf-remote.sh` / chmod after bundle; `verify-runtime-state.sh` | `docs/runtime-state-protection.md` |
 | 2026-08-10 | Discord token resolver missing on PC while callers imported it | potato had untracked `discord_token.py`; PC callers already `from discord_token import …` | **commit** `scripts/linuxbox/discord_token.py`; refactor euro/nyc/ingest/pepper to use it (dd-02) | `discord_token.py`, configure-hermes-discord-{euro,nyc,hunter}.sh |
 | 2026-08-08 | `/world` hang “checking…” | template-literal newline broke inline JS; marked CDN blocked boot | `\n` escapes; bindMods early; `check-world-page-js.js` | `tableslop-server.js` `worldPageHtml` |
+| 2026-08-08 | Hub UI “no change” / html≠js VERIFY | bump only `DASH_BUILD` or SCP one of HTML/JS | **`bump-dash-build.sh`** writes both; verify-runtime marker-pair; never claim UI live on SCP alone | `scripts/linuxbox/bump-dash-build.sh`, pc-2026-08-08-dash-build-pair-drift |
 
 ## How to append
 

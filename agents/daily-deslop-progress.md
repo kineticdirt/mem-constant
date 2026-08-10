@@ -25,8 +25,17 @@ Tick-sized only. When today’s Open children are `[x]`, archive under Done and 
 - [x] **dd-12** Papercut prevention (bin-shadow): fold `cp -f` repo→`~/bin` refresh for `agent-cycle-think-tick.sh` + `agent-cycle-sync.sh` into `push-linuxbox.sh --finished` or sync tick so `~/bin` shadows cannot drift. Verify: after push, potato `~/bin` matches repo (or installer re-run note). (2026-08-09)
 - [x] **dd-13** Dashboard backlog **Hub-c**: Hub lane chips render last sync + think (+ SSH duration) from `/api/agent` `lane_sync` payload; Meta live lanes include SSH. Verify: curl `lane_sync.ssh_sessions` + dash_build pair. (2026-08-10)
 
+## Open — 2026-08-10 desk clear after dd-13
+
+- [x] **dd-14** Shared `scripts/linuxbox/bump-dash-build.sh`: write `<meta dash-build>` + `DASH_BUILD` to the same id (`--check` / `--self-check`). Prevention for pc-2026-08-08-dash-build-pair-drift (SCP/html≠js). Document in SYSTEMS_DESIGN_BOARD + runtime-state-protection. Verify: `bash -n` + `--self-check`.
+- [ ] **dd-15** Deploy PATHS require-scan guard: fail-loud when `linuxbox-status-server.js` local `require('./…')` files are missing from `push-linuxbox.sh` DASHBOARD_PATHS (pc-2026-08-05-deploy-list-new-file-miss longer-term). Verify: listed OK; synthetic missing → fail.
+- [ ] **dd-16** Pin-freeze bundle settle: on pin-freeze FAIL in `verify-runtime-state` during/after `apply-git-bundle`, sleep+re-check once before FAIL/inbox (pc-2026-08-10-pin-freeze-verify-false-fail). Never auto-`--accept`. Verify: `bash -n`.
+- [ ] **dd-17** Hub `:8790` probe retry: in `verify-runtime-state.sh`, retry dashboard curl 2–3× with short backoff before FAIL (pc-2026-08-09-hub-8790 D-state false VERIFY). Verify: `bash -n`.
+
 ## Done
 
+- [x] **dd-14** `bump-dash-build.sh` (`--check`/`--self-check`); SYSTEMS_DESIGN_BOARD + runtime-state-protection + regression memory; push PATHS — 2026-08-10
+- [x] **dd-13** Hub-c lane chips + SSH duration from `lane_sync`; dash_build `db_20260810-hub-c-ssh-chips-r1` — 2026-08-10
 - [x] **dd-12** push-linuxbox `--finished` + push_tarball + apply-git-bundle refresh `~/bin` shadows (sync tick already); self_check OK — 2026-08-09
 - [x] **dd-11** scripts/linuxbox/README.md shared CRLF note (`sed` strip CR); installer prose points here — 2026-08-09
 - [x] **dd-10** CLAUDE.md cron names aligned to live `agent-cycle-think-1m` (+ legacy Hermes `agent-cycle` noted) — 2026-08-09

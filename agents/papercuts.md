@@ -81,7 +81,7 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Severity:** annoying
 - **Complaint:** On-box agent edits bump server.js `DASH_BUILD` but not index.html meta → verify-runtime marker-pair FAIL (`html≠js`) after deploy. Tripped 2026-08-08 (`hub-next-up-r1` vs `hub-edit-preserve-r1`).
 - **Proposed fix:** on-box edits that bump DASH_BUILD must bump both files in the same change (single build-bump helper), or verify-runtime should not FAIL on forward-only drift where server is newer and meta is stale-by-one.
-- **Status:** fixed 2026-08-08 — meta bumped forward to server build; verify PASS.
+- **Status:** fixed 2026-08-08 — meta bumped forward to server build; verify PASS. **Prevention (dd-14, 2026-08-10):** `scripts/linuxbox/bump-dash-build.sh` writes both sides; `--check` / `--self-check`.
 
 ## pc-2026-08-08-push-linuxbox-misses-lint-config
 - **Date:** 2026-08-08

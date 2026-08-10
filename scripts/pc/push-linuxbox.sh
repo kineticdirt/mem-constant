@@ -78,6 +78,7 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/agent-cycle-fast-tick.sh
   scripts/linuxbox/agent-cycle-think-tick.sh
   scripts/linuxbox/refresh-bin-shadows.sh
+  scripts/linuxbox/bump-dash-build.sh
   scripts/linuxbox/lib/think-log-classify.sh
   scripts/linuxbox/think-continuity-seed.py
   scripts/linuxbox/goal-inject.py
