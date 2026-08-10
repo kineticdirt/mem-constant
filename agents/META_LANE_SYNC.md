@@ -23,8 +23,9 @@ Prefer clear silos over Tasks soup. System sees everything. Correctness over thr
 | chat-threads | Hub Chat | Deploy wipe |
 | think flock | think-tick | Sync holding lock past wall |
 | Hermes ∥ Cursor | twin OK | Same file without lock + ledger Intent |
+| ssh sessions (timew) | sync → ssh-session-track | timew approx; JSONL + Hub `/api/ssh-sessions` SoT |
 
-## Observability triad
+Hub chrome: topbar lane chips show sync / think / think-llm / **ssh** from `lane_sync` (Hub-c).
 
 - Papercuts → `agents/papercuts.md` (`docs/agents/papercuts.md`)
 - Meta-Harness → `GET /api/meta-harness` · runs under `agents/meta-harness/runs/`
