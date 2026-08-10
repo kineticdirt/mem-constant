@@ -33,6 +33,7 @@
 | **Hermes think** | One lane step ~8m | `hermes-gateway` + crontab think | sync tick · lane pick · C0–C8 · free-first | `agent-cycle-think-tick.sh`; `agent-cycle-sync.sh`; `THINK_SECURITY_CHECKS.md` |
 | **Ponytail cleanup** | Refine scripts without deletions | pod `ponytail-cleanup` ~15m | board card · verify · USB mirror | `PONYTAIL_CLEANUP_*`; `sync-ponytail-board-to-usb.sh` |
 | **Daily deslop** | Once-per-day slop/DRY/regression pass | think when `daily-deslop-progress` open | seed · one refine · remember git burns | `DAILY_DESLOP_TASK.md`; `git-regression-memory.md` |
+| **Island economy** | Water/minerals/other → commodity tick | World + map Econ overlay | resources · commodities · tick · overlay | `economy-state.json`; `tableslop-economy-sim.js` |
 | **Cursor Auto (parallel)** | Away/ops coding on potato | `cursor-agent-run.sh` — not 1m cron | twin dispatch · user-tasks | `cursor-twin-dispatch.sh`; free→cursor→paid(C8) |
 
 ## Shared primitives (reuse catalog)
