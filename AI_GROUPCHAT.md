@@ -698,3 +698,7 @@
 
 [PC] Intent: dd-12 — fold repo→`~/bin` refresh (`refresh-bin-shadows.sh`) into `push-linuxbox.sh --finished` (+ push_tarball / apply-git-bundle) so shadows cannot drift. Sync tick already refreshes. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-12`.
 
+## 2026-08-09 ~23:43 ET — [PC] Result: daily deslop dd-12 shipped
+
+[PC] Result (holder `daily-deslop-dd-12`): Folded `refresh-bin-shadows.sh` into `push-linuxbox.sh` push_tarball + `--finished` (cmp-verify tick+sync) and `apply-git-bundle.sh` post-apply (sync tick already refreshed). Self-check OK. SHA `c4b55af` → linuxbox `main` + potato HEAD `c4b55af` (bundle SSH reset mid-apply after restore; remote refresh+`verify-runtime-state` PASS). `~/bin` tick+sync match repo. hermes-gateway + both watchdog timers left **active**. Next open: **dd-13 already [x]** (Hub-c shipped `0de0dd7`) — desk clear pending reseed.
+
