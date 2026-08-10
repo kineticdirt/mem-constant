@@ -1,7 +1,7 @@
 {
   "_doc": "Canonical FREE swap order for think (and Hub free routing). Outer think tick rotates hermes -m through this list on 429/empty. Hermes same-provider fallback_providers does NOT swap model ids (retries -m 3×) — this file is the real failover SoT. Cap ~8–12. Re-probe with .staging/model-probe/probe_free_models.py before editing. Never add paid. Skip sunset/dead in _do_not_readd.",
   "version": 1,
-  "updated": "2026-07-29",
+  "updated": "2026-08-10",
   "probe": ".staging/model-probe/probe_free_models.py",
   "policy": {
     "inbox_when": "entire ordered list 429/fail for the UTC day AND paid last-resort disabled/failed (not primary-only)",
@@ -14,7 +14,6 @@
   },
   "ordered": [
     "poolside/laguna-xs-2.1:free",
-    "inclusionai/ling-3.0-flash:free",
     "nvidia/nemotron-3-super-120b-a12b:free",
     "cohere/north-mini-code:free",
     "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -28,7 +27,6 @@
   ],
   "labels": {
     "poolside/laguna-xs-2.1:free": "Laguna XS 2.1 free (default head)",
-    "inclusionai/ling-3.0-flash:free": "Ling 3.0 Flash free (fast)",
     "nvidia/nemotron-3-super-120b-a12b:free": "Nemotron 3 Super 120B free",
     "cohere/north-mini-code:free": "North Mini Code free",
     "nvidia/nemotron-3-ultra-550b-a55b:free": "Nemotron 3 Ultra 550B free",
@@ -44,7 +42,8 @@
     "tencent/hy3:free": "OpenRouter sunset 2026-07-21",
     "qwen/qwen3-next-80b-a3b-instruct:free": "delisted 2026-07-24 — paid variant only",
     "zenmux:moonshotai/kimi-k3-free": "404 invalid_model, never existed",
-    "stepfun/step-3.7-flash": "paid/demoted — burned think budget"
+    "stepfun/step-3.7-flash": "paid/demoted — burned think budget",
+    "inclusionai/ling-3.0-flash:free": "OpenRouter 404 2026-08-09 — free unavailable; paid slug inclusionai/ling-3.0-flash only"
   },
   "last_probe": {
     "at": "2026-07-25T16:35Z",

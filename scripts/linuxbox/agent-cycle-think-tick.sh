@@ -48,7 +48,21 @@ SELF="${HOME}/bin/agent-cycle-think-tick.sh"
 [[ -x "${SELF}" ]] || SELF="${REPO}/scripts/linuxbox/agent-cycle-think-tick.sh"
 
 exec 200>"${LOCK}"
-flock -n 200 || exit 0
+if ! flock -n 200; then
+  # Fail-loud trail: cron fires every 1m; silent exit left Hub "due" with no LLM
+  # for 25m+ while sync/borders held the flock (pc-2026-08-09).
+  mkdir -p "${REPO}/agents/runs" 2>/dev/null || true
+  echo "$(date -Iseconds) flock_busy pid=$$" >> "${REPO}/agents/runs/think-flock-skip.log" 2>/dev/null || true
+  # Cap log growth
+  if [[ -f "${REPO}/agents/runs/think-flock-skip.log" ]]; then
+    _sz=$(wc -c < "${REPO}/agents/runs/think-flock-skip.log" 2>/dev/null || echo 0)
+    if [[ "${_sz}" -gt 200000 ]]; then
+      tail -n 200 "${REPO}/agents/runs/think-flock-skip.log" > "${REPO}/agents/runs/think-flock-skip.log.tmp" 2>/dev/null || true
+      mv -f "${REPO}/agents/runs/think-flock-skip.log.tmp" "${REPO}/agents/runs/think-flock-skip.log" 2>/dev/null || true
+    fi
+  fi
+  exit 0
+fi
 
 cd "${REPO}"
 mkdir -p "${REPO}/agents/state" "${REPO}/agents/runs"
@@ -58,7 +72,9 @@ date -Iseconds > "${REPO}/agents/state/think-tick.last"
 SYNC_SH="${REPO}/scripts/linuxbox/agent-cycle-sync.sh"
 [[ -x "${SYNC_SH}" ]] || SYNC_SH="${HOME}/bin/agent-cycle-sync.sh"
 if [[ -x "${SYNC_SH}" ]]; then
-  bash "${SYNC_SH}" 2>/dev/null || true
+  # Hard wall: sync holds the think flock. Unbounded borders/bundle hung the
+  # lane for 25m+ while cron flock-failed (Hub "due now", no LLM).
+  timeout "${THINK_SYNC_TIMEOUT_SEC:-120}" bash "${SYNC_SH}" 2>/dev/null || true
 fi
 
 focus() {
@@ -1574,8 +1590,11 @@ cursor_before_paid_gate() {
   local envf="${CURSOR_AGENT_ENV:-${HOME}/.cursor-agent.env}"
   [[ -f "${envf}" ]] || envf="/home/$(id -un)/.cursor-agent.env"
   grep -qE '^[[:space:]]*CURSOR_API_KEY=.+' "${envf}" 2>/dev/null || return 1
-  # Force-allow paid for explicit hermes-only assign.
-  if printf '%s' "${BLURB}" | grep -qiE 'assigned_lane=hermes|\[hermes\]'; then
+  # Force-allow paid for hermes-only assign AND urgent ops (C8 must not NOOP).
+  # Was: only [hermes] — [ops]/Fix-this/hub-backlog skipped paid, Cursor twin
+  # left work open, think stamped done (pc-2026-08-09-think-idle-gateway-false-down).
+  if printf '%s' "${BLURB}${TASK_ID:-}${THINK_TASK_ID:-}" | grep -qiE \
+    'assigned_lane=hermes|\[hermes\]|\[ops\]|fix-this|hub-backlog|system.integrity'; then
     return 1
   fi
   if [[ -f "${CURSOR_TWIN_SH}" ]]; then

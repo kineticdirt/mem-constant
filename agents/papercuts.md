@@ -8,6 +8,15 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 **Entry format** (newest first, one line per field — add entries directly below the `---`):
 
 ```markdown
+## pc-2026-08-09-gateway-watchdog-203-recur
+- **Date:** 2026-08-09
+- **Lane:** ops | hub
+- **Area:** `hermes-gateway-watchdog.sh` + `scripts/linuxbox/*.sh` +x after bundle
+- **Severity:** annoying (watchdog heal dead; gateway unit itself stayed active)
+- **Complaint:** Recurred ~20:45 EDT — Hub red Gateway offline while `hermes-gateway` was active (Ssl since Aug 8). Watchdog oneshot `failed` **203/EXEC** Permission denied (mode `-rw-r--r--`). Health `journalctl` since ActiveEnterTimestamp can take 3–6s; under load Hub `/api/agent` also timed out → false DOWN. Think "fails" were pod `TIMEOUT` 600s on system-integrity intel feeds, not systemd gateway crash.
+- **Proposed fix:** harden apply-git-bundle +x (already noted pc-2026-08-09-hub-8790…); health heartbeat scan use rolling 2h window not since-activation; Hub treat `gateway=unknown`+active systemctl as warn not offline.
+- **Status:** mitigated 2026-08-09 — `chmod +x scripts/linuxbox/*.sh`; watchdog oneshot exit 0; think LLM re-fired Laguna. Bundle for deslop `9a89595` still needed (potato HEAD `6fe1dfd`). Holder `hermes-gateway-down-2045`.
+
 ## pc-YYYY-MM-DD-<slug>
 - **Date:** YYYY-MM-DD
 - **Lane:** think | cursor-auto | hub | tableslop | pixi | nyc | euro | tropic | ops
@@ -19,6 +28,51 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 ```
 
 ---
+
+## pc-2026-08-09-think-idle-gateway-false-down
+- **Date:** 2026-08-09
+- **Lane:** think | ops | hub
+- **Area:** `agent-cycle-think.lock` + `agent-cycle-sync.sh` + `nousagent-health.sh` + Hub Next-due
+- **Severity:** blocking
+- **Complaint:** Hub showed think idle / “due now (~8m)” and sometimes GATEWAY DOWN while ops `hermes-gateway` was active for 1d+. Cron fired every 1m but `flock -n` exited silently when sync (borders/bundle/free-health) held the think flock for tens of minutes — `think-tick.last` froze. Separately `THINK_CURSOR_BEFORE_PAID` skipped paid Hermes on `[ops]` hub-backlog → Cursor twin NOOP, work stayed open. Hub GATEWAY DOWN: `nousagent-health.sh` journalctl’d since unit activation (~days) → collectHealth 15s timeout → `gateway=unknown`. Hub Next used tick `last_run`+480s not `think-llm.last`. Dead `inclusionai/ling-3.0-flash:free` (404) still in free swap.
+- **Proposed fix:** timeout sync steps + think sync wall; flock_busy log; allow paid for `[ops]`/Fix-this; health journal 10m+timeout + collectHealth fallback to systemctl; Hub Next from think-llm.last; demote ling free.
+- **Status:** fixed 2026-08-10 — holder `think-idle-stuck-fix` (coord `hermes-gateway-down-2045`; ops gateway left running, hunter Discord untouched).
+
+## pc-2026-08-09-hub-8790-dstate-after-bundle
+- **Date:** 2026-08-09
+- **Lane:** ops | hub
+- **Area:** `linuxbox-status` `:8790` + `scripts/linuxbox/*.sh` mode bits after git-bundle
+- **Severity:** blocking
+- **Complaint:** bundle-apply `verify-runtime-state` alerted dashboard `000000` + roster non-JSON. Hub node was LISTEN but hung (`STAT=D`, `wchan=folio_wait_bit_*`) under swap thrash (load ~15–20, iowait high) while Hermes think + Cursor twin + disk scans ran. Watchdogs were `failed` (**203/EXEC**) because bundle strip of `+x` on `*.sh` — no auto heal. Registry file was fine (v37/27; API 15 visible stubs).
+- **Proposed fix:** (1) always `chmod +x scripts/linuxbox/*.sh` in apply-git-bundle / `fix-sh-crlf-remote.sh` and fail-loud if watchdog oneshot 203/EXEC; (2) after bundle verify, retry dashboard probe 2–3× with backoff before FAIL; (3) avoid stacking think+Cursor+bundle preserve on 2GB box when iowait already high.
+- **Status:** fixed 2026-08-09 triage — SIGKILL+restart Hub → 200; `chmod +x` all linuxbox `*.sh`; watchdogs reset; `verify-runtime-state` PASS. Holder `runtime-verify-fail-triage`. Related: `pc-hub-watchdog-noexec-2026-08-09`, `pc-2026-08-05-hub-exit-mmap-8790-wedge`.
+
+## pc-2026-08-08-cursor-agent-run-missing
+- **Date:** 2026-08-08
+- **Lane:** cursor-auto | ops
+- **Area:** `scripts/linuxbox/cursor-agent-run.sh` (potato)
+- **Severity:** blocking
+- **Complaint:** After linuxbox reboot/outage, Cursor tick kept “dispatching” but logs were only `No such file or directory` for `cursor-agent-run.sh` (also missing `think-continuity-seed.py` / `cursor-lane-status.sh`). Hub looked idle despite blog+Hub backlog still open — boards not in pick queue until seeded.
+- **Proposed fix:** SCP restore runner+seed+status; preflight in `agent-cycle-cursor-tick.sh` fail-loud + no success stamp if runner missing; keep blog board in `agent-cycle-has-work.py`; seed Cursor tasks from blog/Hub when queue empty.
+- **Status:** fixed 2026-08-08 — runner restored; Cursor running on `[blog] bp-03`; tick guard added.
+
+## pc-2026-08-08-dash-build-pair-drift
+- **Date:** 2026-08-08
+- **Lane:** hub | ops
+- **Area:** `linuxbox-status/index.html` meta vs `linuxbox-status-server.js` DASH_BUILD
+- **Severity:** annoying
+- **Complaint:** On-box agent edits bump server.js `DASH_BUILD` but not index.html meta → verify-runtime marker-pair FAIL (`html≠js`) after deploy. Tripped 2026-08-08 (`hub-next-up-r1` vs `hub-edit-preserve-r1`).
+- **Proposed fix:** on-box edits that bump DASH_BUILD must bump both files in the same change (single build-bump helper), or verify-runtime should not FAIL on forward-only drift where server is newer and meta is stale-by-one.
+- **Status:** fixed 2026-08-08 — meta bumped forward to server build; verify PASS.
+
+## pc-2026-08-08-push-linuxbox-misses-lint-config
+- **Date:** 2026-08-08
+- **Lane:** ops | hub
+- **Area:** `scripts/pc/push-linuxbox.sh` PATHS + `agents/linuxbox-deploy-manifest.json`
+- **Severity:** annoying
+- **Complaint:** The STE linter config (`.cursor/rules/anti-slop.mdc`) and linter (`check_article.py`) are not in the deploy manifest — potato lacked `anti-slop.mdc` until hand-SCP'd. Same class as pc-2026-08-05: new files silently don't ship → crash/fail on box.
+- **Proposed fix:** add `.cursor/rules/anti-slop.mdc`, `.cursor/rules/ai-bad-habits.mdc`, `.cursor/skills/write-source-analysis/check_article.py` to the manifest + push PATHS. Longer-term: generate lists from require/source scan (still open from pc-2026-08-05).
+- **Status:** open
 
 ## pc-2026-08-05-deploy-list-new-file-miss
 - **Date:** 2026-08-05
@@ -100,3 +154,10 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Complaint:** `apt-get install zram-tools` postinst auto-starts `zramswap.service` with built-in DEFAULTS (256MiB) before `/etc/default/zramswap` can be written — box ran a 256MiB zram until `systemctl restart zramswap` picked up the real config (1G lz4 prio 100). Also `dpkg` was found interrupted on potato (needed `sudo dpkg --configure -a` before any apt install).
 - **Proposed fix:** After installing zram-tools, always write config THEN `systemctl restart zramswap` (not just enable --now); check dpkg health first on this box.
 - **Status:** fixed 2026-08-05 — restart post-config; live state verified (zramctl 1G lz4 [SWAP], /proc/swaps prio 100 vs disk 10).
+
+### pc-hub-watchdog-noexec-2026-08-09
+- **Area:** linuxbox Hub hang-watchdog (`linuxbox-status-watchdog.service`)
+- **Severity:** high (when Hub hangs, auto-restart cannot run)
+- **Complaint:** potato script `scripts/linuxbox/linuxbox-status-watchdog.sh` lost `+x` (`rw-r--r--`) → timer unit **203/EXEC** Permission denied; Hub stop-hangs + CF 502 windows had no auto recovery.
+- **Proposed fix:** after git-bundle/SCP always `fix-sh-crlf-remote.sh` / `chmod +x scripts/linuxbox/*.sh`; watchdog oneshot should fail-loud to inbox if EXEC fails.
+- **Status:** recurring 2026-08-09 — chmod +x re-applied after another bundle strip; oneshots SUCCESS; durable mode-bit gate still needed (see pc-2026-08-09-hub-8790-dstate-after-bundle).

@@ -6632,7 +6632,14 @@
         if (today.idle) bits.push(`${today.idle} idle`);
         todayHtml = esc(bits.join(" · "));
       }
-      const thinkLast = data?.lanes?.["agent-cycle-think"]?.last_run || t.when || null;
+      // LLM gate uses think-llm.last (not cron think-tick.last). Using tick.last
+      // falsely showed "due now" whenever flock skipped ticks for >8m.
+      const thinkLlmLast =
+        data?.work_pipeline?.last_think_attempt_at ||
+        data?.meta_lane?.last_think_attempt_at ||
+        data?.think_llm_last ||
+        null;
+      const thinkLast = thinkLlmLast || data?.lanes?.["agent-cycle-think"]?.last_run || t.when || null;
       let nextHtml = `<span class="meta">—</span>`;
       if (t.status === "active") {
         nextHtml = `<span class="meta">now (running)</span>`;
@@ -6641,7 +6648,7 @@
         nextHtml =
           nextMs <= Date.now()
             ? `<span class="meta">due now (~8m gate)</span>`
-            : `<span class="meta" title="~8m interval gate">~${esc(fmtEtTime(new Date(nextMs).toISOString()))}</span>`;
+            : `<span class="meta" title="~8m LLM interval (think-llm.last)">~${esc(fmtEtTime(new Date(nextMs).toISOString()))}</span>`;
       }
       return `<div class="hub-lane-card hub-lane-think" id="hub-lane-think">
         <div class="hub-lane-head">Hermes · OpenRouter think</div>

@@ -14,17 +14,17 @@ gw="$(systemctl --user is-active hermes-gateway 2>/dev/null || echo inactive)"
 if [ "$gw" = "active" ]; then
   pid="$(systemctl --user show -p MainPID --value hermes-gateway 2>/dev/null || echo 0)"
   st="?"
-  if [ -n "$pid" ] && [ "$pid" != "0" ] && [ -d "/proc/$pid" ]; then
-    st="$(ps -o state= -p "$pid" 2>/dev/null | tr -d '[:space:]' || echo '?')"
-  fi
-  since="$(systemctl --user show -p ActiveEnterTimestamp --value hermes-gateway 2>/dev/null || echo '')"
-  blocks=0
-  if [ -n "$since" ] && [ "$since" != "n/a" ]; then
-    blocks="$(journalctl --user -u hermes-gateway --since "$since" --no-pager 2>/dev/null | grep -c 'heartbeat blocked' || true)"
+  # Prefer /proc (cheap) — never spawn ps under Hub poll load.
+  if [ -n "$pid" ] && [ "$pid" != "0" ] && [ -r "/proc/$pid/status" ]; then
+    st="$(awk '/^State:/{print $2; exit}' "/proc/$pid/status" 2>/dev/null || echo '?')"
   fi
   case "$st" in
     D*) gw="hung" ;;
   esac
+  # Rolling 10m window only — scanning journal since unit activation (days)
+  # made Hub collectHealth hit its 15s timeout → gateway=unknown → UI DOWN
+  # while the unit was healthy (pc-2026-08-09-think-idle-gateway-false-down).
+  blocks="$(timeout 2 journalctl --user -u hermes-gateway --since '10 min ago' --no-pager -q 2>/dev/null | grep -c 'heartbeat blocked' || true)"
   if [ "${blocks:-0}" -ge 3 ]; then
     gw="hung"
   fi

@@ -1271,8 +1271,11 @@ async function collectHealth() {
     return fields;
   } catch (err) {
     // Never throw: background refresh + Hub poll must not take down :8790 (CF 502).
+    // Health script timeout under load used to yield gateway=unknown → Hub DOWN
+    // while hermes-gateway was active — fall back to cheap systemctl+/proc probe.
+    const gw = hermesGatewayUp() ? "active" : "unknown";
     return {
-      gateway: "unknown",
+      gateway: gw,
       health_error: String((err && err.message) || "health_failed").slice(0, 200),
     };
   }
@@ -3184,6 +3187,17 @@ async function collectAgentState(lite = false) {
     agent_goals: buildAgentGoalsInsight(),
     free_models_health: readFreeModelsHealth(),
     work_pipeline: buildWorkPipeline(),
+    // Alias for Hub Next-due (LLM gate); same as work_pipeline.last_think_attempt_at.
+    think_llm_last: (() => {
+      try {
+        const lp = path.join(REPO, "agents", "state", "think-llm.last");
+        if (!fs.existsSync(lp)) return null;
+        const raw = fs.readFileSync(lp, "utf8").trim();
+        return raw ? new Date(raw).toISOString() : null;
+      } catch {
+        return null;
+      }
+    })(),
     model_budget: {
       policy: CHAT_FREE_FIRST ? "free_first" : "paid_first",
       ops_daily_usd_target: OPENROUTER_OPS_DAILY_USD,

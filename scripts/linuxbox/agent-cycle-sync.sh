@@ -11,20 +11,22 @@ date -Iseconds > "${REPO}/agents/state/sync-tick.last"
 
 # Keep durable ~/bin shadows (tick re-exec + has-work preference) in lockstep with
 # the repo — stale-shadow prevention (pc-2026-08-05). Atomic mv; no-op when equal.
-bash "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" 2>/dev/null || true
+# Timeouts: this script runs UNDER /tmp/agent-cycle-think.lock — unbounded steps
+# make cron flock-fail for minutes while Hub shows think "due now" (pc-2026-08-09).
+timeout 15 bash "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" 2>/dev/null || true
 
-python3 "${REPO}/scripts/linuxbox/human-inbox-normalize.py" "${REPO}" --quiet 2>/dev/null || true
-bash "${REPO}/scripts/linuxbox/kill-stale-chromium.sh" 2>/dev/null || true
-bash "${REPO}/scripts/linuxbox/apply-git-bundle.sh" 2>/dev/null || true
+timeout 20 python3 "${REPO}/scripts/linuxbox/human-inbox-normalize.py" "${REPO}" --quiet 2>/dev/null || true
+timeout 10 bash "${REPO}/scripts/linuxbox/kill-stale-chromium.sh" 2>/dev/null || true
+timeout 90 bash "${REPO}/scripts/linuxbox/apply-git-bundle.sh" 2>/dev/null || true
 # Bundle hard-reset can replay git HEAD ellipse stubs over GM borders when preserve fails.
-bash "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh" 2>/dev/null || true
+timeout 45 bash "${REPO}/scripts/linuxbox/tableslop-gm-borders-autorestore.sh" 2>/dev/null || true
 # Always-on error corrector (deterministic): refresh tableslop LATEST.json every sync tick.
 timeout 45 bash "${REPO}/scripts/linuxbox/tableslop-error-collect.sh" >/dev/null 2>&1 || true
 # Free-model readiness cache (~30m TTL inside script — avoid re-pinging OR on every free fail).
-timeout 90 bash "${REPO}/scripts/linuxbox/free-models-health.sh" >/dev/null 2>&1 || true
+timeout 45 bash "${REPO}/scripts/linuxbox/free-models-health.sh" >/dev/null 2>&1 || true
 timeout 12 bash "${REPO}/scripts/linuxbox/git-pull-and-deploy.sh" 2>/dev/null || true
-bash "${REPO}/scripts/linuxbox/swarm-dispatch.sh" --once 2>/dev/null || true
-python3 "${REPO}/scripts/linuxbox/consume-inbox-answers.py" --repo "${REPO}" 2>/dev/null || true
+timeout 30 bash "${REPO}/scripts/linuxbox/swarm-dispatch.sh" --once 2>/dev/null || true
+timeout 20 python3 "${REPO}/scripts/linuxbox/consume-inbox-answers.py" --repo "${REPO}" 2>/dev/null || true
 # LLM hand-edits of user-tasks.json sometimes stamp created_at/updated_at in the
 # future (ET→UTC double-conversion). Clamp anything >10min ahead back to now.
 python3 - "${REPO}" <<'PY' 2>/dev/null || true
@@ -59,3 +61,8 @@ if changed:
     p.write_text(json.dumps(d, indent=2) + "\n", encoding="utf-8")
     print(f"user-tasks ts clamp: {changed} future stamps reset", flush=True)
 PY
+
+# SSH session duration tracking (timewarrior) — fail-soft, never blocks sync.
+command -v timew >/dev/null 2>&1 && [ -f "${REPO}/scripts/linuxbox/ssh-session-track.sh" ] && bash "${REPO}/scripts/linuxbox/ssh-session-track.sh" check >/dev/null 2>&1 || true
+# Groupchat ledger rotation — size check lives inside the script; no-op under 500 lines.
+[ -f "${REPO}/scripts/linuxbox/ai-groupchat-rotate.sh" ] && bash "${REPO}/scripts/linuxbox/ai-groupchat-rotate.sh" >/dev/null 2>&1 || true
