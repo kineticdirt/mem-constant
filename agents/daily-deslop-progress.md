@@ -29,11 +29,12 @@ Tick-sized only. When today’s Open children are `[x]`, archive under Done and 
 
 - [x] **dd-14** Shared `scripts/linuxbox/bump-dash-build.sh`: write `<meta dash-build>` + `DASH_BUILD` to the same id (`--check` / `--self-check`). Prevention for pc-2026-08-08-dash-build-pair-drift (SCP/html≠js). Document in SYSTEMS_DESIGN_BOARD + runtime-state-protection. Verify: `bash -n` + `--self-check`.
 - [x] **dd-15** Deploy PATHS require-scan guard: fail-loud when `linuxbox-status-server.js` local `require('./…')` files are missing from `push-linuxbox.sh` DASHBOARD_PATHS (pc-2026-08-05-deploy-list-new-file-miss longer-term). Verify: listed OK; synthetic missing → fail.
-- [ ] **dd-16** Pin-freeze bundle settle: on pin-freeze FAIL in `verify-runtime-state` during/after `apply-git-bundle`, sleep+re-check once before FAIL/inbox (pc-2026-08-10-pin-freeze-verify-false-fail). Never auto-`--accept`. Verify: `bash -n`.
+- [x] **dd-16** Pin-freeze bundle settle: on pin-freeze FAIL in `verify-runtime-state` during/after `apply-git-bundle`, sleep+re-check once before FAIL/inbox (pc-2026-08-10-pin-freeze-verify-false-fail). Never auto-`--accept`. Verify: `bash -n`. (2026-08-10)
 - [ ] **dd-17** Hub `:8790` probe retry: in `verify-runtime-state.sh`, retry dashboard curl 2–3× with short backoff before FAIL (pc-2026-08-09-hub-8790 D-state false VERIFY). Verify: `bash -n`.
 
 ## Done
 
+- [x] **dd-16** pin-freeze settle+re-check once under `bundle-apply` in verify-runtime-state (no auto-accept) — 2026-08-10
 - [x] **dd-15** `check-dashboard-require-paths.sh` (+ `--self-check`); wired into `push-linuxbox.sh` --dashboard/--finished; 8 local requires covered — 2026-08-10
 - [x] **dd-14** `bump-dash-build.sh` (`--check`/`--self-check`); SYSTEMS_DESIGN_BOARD + runtime-state-protection + regression memory; push PATHS — 2026-08-10
 - [x] **dd-13** Hub-c lane chips + SSH duration from `lane_sync`; dash_build `db_20260810-hub-c-ssh-chips-r1` — 2026-08-10

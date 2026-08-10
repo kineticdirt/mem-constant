@@ -186,10 +186,23 @@ PY
     fi
   fi
   # 5c. frozen pin coords (no agent drift)
+  # Bundle apply can race preserve vs freeze on disk (pc-2026-08-10-pin-freeze-verify-false-fail).
+  # One sleep+re-check before FAIL/inbox; never auto --accept / never move pins to "fix" verify.
   PIN_GUARD="${REPO}/scripts/linuxbox/tableslop-pin-coords-guard.sh"
   if [[ -f "${PIN_GUARD}" ]]; then
     if ! bash "${PIN_GUARD}"; then
-      FAILS+=("tableslop pin coords freeze regression (tableslop-pin-coords-guard.sh)")
+      PIN_SETTLED=0
+      if [[ "${CONTEXT}" == "bundle-apply" || "${CONTEXT}" == bundle-* ]]; then
+        echo "verify: pin-freeze FAIL under context=${CONTEXT} — settle 3s + re-check once (no --accept)" >&2
+        sleep 3
+        if bash "${PIN_GUARD}"; then
+          echo "verify: pin-freeze ok after settle"
+          PIN_SETTLED=1
+        fi
+      fi
+      if [[ "${PIN_SETTLED}" -eq 0 ]]; then
+        FAILS+=("tableslop pin coords freeze regression (tableslop-pin-coords-guard.sh)")
+      fi
     fi
   fi
 fi

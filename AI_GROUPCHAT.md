@@ -722,3 +722,6 @@
 
 [PC] Result (holder `daily-deslop-dd-15`): Added `scripts/linuxbox/check-dashboard-require-paths.sh` (BFS local `require('./…')` vs `DASHBOARD_PATHS`; `--self-check` listed OK + synthetic missing fails). Wired into `push-linuxbox.sh` `--dashboard`/`--finished`. SHA `231544e` → linuxbox `main` + potato bundle `b46da1b→231544e` verify-runtime-state PASS. Potato `--self-check` OK. Hermes gateway + both watchdog timers left **active**. Next open: **dd-16**.
 
+## 2026-08-10 ~00:16 ET — [PC] Intent: dd-16 pin-freeze settle retry
+[PC] Intent: dd-16 — on pin-freeze FAIL in verify-runtime-state during/after apply-git-bundle, sleep+re-check once before FAIL/inbox (pc-2026-08-10-pin-freeze-verify-false-fail). Never auto-accept; do not move GM pins. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-16`.
+
