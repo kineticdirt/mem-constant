@@ -662,3 +662,8 @@
 ## 2026-08-09 22:44 ET — [PC] Result: daily deslop dd-07 shipped
 
 [PC] Result (holder `daily-deslop-dd-07`): Fail-loud +x verify for `hermes-gateway-watchdog.sh` + `linuxbox-status-watchdog.sh` in `apply-git-bundle.sh`, `fix-sh-crlf-remote.sh`, and `push-linuxbox-git-bundle.sh` post-chmod. `bash -n` OK. SHA `4b5f706` → linuxbox `main` + potato bundle `18beaf3→4b5f706` verify-runtime-state PASS (+x verified). Both watchdogs `-rwxr-xr-x`; hermes-gateway + both watchdog timers **active**. Next open: **dd-08**.
+
+## 2026-08-09 22:48 ET — [PC] Intent: dd-08 push lint config paths
+
+[PC] Intent: dd-08 — add `.cursor/rules/anti-slop.mdc`, `ai-bad-habits.mdc`, `check_article.py` to `push-linuxbox.sh` PATHS + deploy manifest `paths_hint` (papercut pc-2026-08-08-push-linuxbox-misses-lint-config). LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-08`.
+

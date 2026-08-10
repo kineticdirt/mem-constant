@@ -81,7 +81,7 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Severity:** annoying
 - **Complaint:** The STE linter config (`.cursor/rules/anti-slop.mdc`) and linter (`check_article.py`) are not in the deploy manifest — potato lacked `anti-slop.mdc` until hand-SCP'd. Same class as pc-2026-08-05: new files silently don't ship → crash/fail on box.
 - **Proposed fix:** add `.cursor/rules/anti-slop.mdc`, `.cursor/rules/ai-bad-habits.mdc`, `.cursor/skills/write-source-analysis/check_article.py` to the manifest + push PATHS. Longer-term: generate lists from require/source scan (still open from pc-2026-08-05).
-- **Status:** open
+- **Status:** fixed 2026-08-09 — anti-slop.mdc, ai-bad-habits.mdc, check_article.py added to push AGENT_PATHS + agent-config paths_hint (dd-08).
 
 ## pc-2026-08-05-deploy-list-new-file-miss
 - **Date:** 2026-08-05

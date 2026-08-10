@@ -56,6 +56,9 @@ AGENT_PATHS=(
   agents/meta-harness/domain_spec.md
   agents/meta-harness/runs/README.md
   agents/meta-harness/candidates/README.md
+  .cursor/rules/anti-slop.mdc
+  .cursor/rules/ai-bad-habits.mdc
+  .cursor/skills/write-source-analysis/check_article.py
 )
 
 LINUXBOX_SCRIPT_PATHS=(

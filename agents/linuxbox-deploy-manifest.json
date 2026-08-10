@@ -1,6 +1,6 @@
 {
-  "_doc": "When PC work on a bundle is DONE, run: bash scripts/pc/push-linuxbox.sh --finished. PC is not the deployment target \u2014 linuxbox is.",
-  "policy": "Finish local task \u2192 push matching bundle(s) \u2192 verify \u2192 [PC] Result in AI_GROUPCHAT.md. Gitignored binaries use scp bundles, not git pull alone.",
+  "_doc": "When PC work on a bundle is DONE, run: bash scripts/pc/push-linuxbox.sh --finished. PC is not the deployment target — linuxbox is.",
+  "policy": "Finish local task → push matching bundle(s) → verify → [PC] Result in AI_GROUPCHAT.md. Gitignored binaries use scp bundles, not git pull alone.",
   "bundles": [
     {
       "id": "agent-config",
@@ -14,7 +14,10 @@
       "paths_hint": [
         "agents/archive-meta.json",
         "scripts/linuxbox/lib/archive-paths.sh",
-        "CLAUDE.md"
+        "CLAUDE.md",
+        ".cursor/rules/anti-slop.mdc",
+        ".cursor/rules/ai-bad-habits.mdc",
+        ".cursor/skills/write-source-analysis/check_article.py"
       ]
     },
     {
@@ -31,10 +34,10 @@
         "scripts/linuxbox/linuxbox-docs-wiki.js",
         "scripts/linuxbox/linuxbox-status/index.html",
         "scripts/linuxbox/linuxbox-status/docs-wiki.js",
-  "scripts/linuxbox/chat-offload-handoff.js",
-  "scripts/linuxbox/chars-registry-persist.js",
-  "scripts/linuxbox/chars-registry-merge.js",
-  "scripts/linuxbox/chars-registry-read-cache.js",
+        "scripts/linuxbox/chat-offload-handoff.js",
+        "scripts/linuxbox/chars-registry-persist.js",
+        "scripts/linuxbox/chars-registry-merge.js",
+        "scripts/linuxbox/chars-registry-read-cache.js",
         "scripts/linuxbox/multitask-lock.js",
         "scripts/linuxbox/multitask-lock.sh",
         "scripts/linuxbox/restore-chars-side-npcs.js",
@@ -78,7 +81,7 @@
       ],
       "restart": "linuxbox-tableslop",
       "verify_url": "http://127.0.0.1:8765/",
-      "note": "regions-ui.json is potato-owned (protected runtime); push-tableslop-map excludes it unless PUSH_REGIONS_UI=1 after non-empty potato\u2192PC pull. Auth DB (agents/state/tableslop-auth.db) is gitignored runtime — never deployed; the sql.js vendor files MUST ship with the server or it MODULE_NOT_FOUNDs at boot."
+      "note": "regions-ui.json is potato-owned (protected runtime); push-tableslop-map excludes it unless PUSH_REGIONS_UI=1 after non-empty potato→PC pull. Auth DB (agents/state/tableslop-auth.db) is gitignored runtime — never deployed; the sql.js vendor files MUST ship with the server or it MODULE_NOT_FOUNDs at boot."
     }
   ]
 }
