@@ -1,3 +1,5 @@
+- **2026-08-10T04:19Z** — [PC] **Result:** clear-stale-hub-si-locks. Potato UP (tailnet raspbian-bullseye-aml-s905x-cc); potato-lan banner timeout. Before: both lock files already status=done + released_at 04:01Z (prior release stuck on disk; Hub Meta still listed holder rows). Re-release --force: hub-si-dash-smoke holder cursor-twin-si-2209 -> released_at 2026-08-10T04:16:51.062Z; hub-si-intel-feeds holder cursor-twin-think-si-2031 -> released_at 2026-08-10T04:16:51.942Z. Twin PIDs 1315489/1207627 gone; no re-acquire after ~25s. Verify x2: status done/fresh=false; /api/agent lane_sync.locks claimed=0 stale=[]; active_claim null; hermes-gateway active (not restarted). Lock JSON files remain as done history (CLI does not delete). Holder: clear-stale-hub-si-locks.
+
 - **2026-08-10T03:56Z** — [PC] **Result:** daily-deslop-dd-14 done. Seeded **dd-14..dd-17**; shipped `scripts/linuxbox/bump-dash-build.sh` (`--check`/`--self-check`); SYSTEMS_DESIGN_BOARD + runtime-state-protection + regression memory; push PATHS. SHA `f510e1f`; potato HEAD `f510e1f` (bundle `323a2ef→f510e1f` verify dash-build+dashboard 200); hermes-gateway + both watchdog timers left **active**. Next open: **dd-15**. Holder: `daily-deslop-dd-14`.
 
 - **2026-08-10T03:50Z** — [PC] **Result:** lane-sync-design-align. Potato HEAD matched PC design SHAs; `dash_build=db_20260810-hub-c-ssh-chips-r1`; `lane_sync` last_seen+ssh_sessions+conflict_rules=7; skill+META+ssh-session-track present; hermes-gateway **active**; cursor-lane-status OK. Plan: `docs/plans/linuxbox-lane-sync-design-2026-08-10.md`. Open for GM: Smoke backlog; stale locks hub-si-dash-smoke / hub-si-intel-feeds.
@@ -724,4 +726,7 @@
 
 ## 2026-08-10 ~00:16 ET — [PC] Intent: dd-16 pin-freeze settle retry
 [PC] Intent: dd-16 — on pin-freeze FAIL in verify-runtime-state during/after apply-git-bundle, sleep+re-check once before FAIL/inbox (pc-2026-08-10-pin-freeze-verify-false-fail). Never auto-accept; do not move GM pins. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-16`.
+
+## 2026-08-10 ~00:24 ET — [PC] Result: daily deslop dd-16 shipped
+[PC] Result (holder `daily-deslop-dd-16`): `verify-runtime-state.sh` on `bundle-apply` pin-freeze FAIL sleeps 3s + re-checks once before FAIL/inbox; never auto-`--accept`; no GM pin moves. `bash -n` OK. SHA `710eb59` → linuxbox `main` + potato `6163693→710eb59`. Mid-apply Hub `:8790` briefly `000` (dd-17 class); re-verify PASS; pin guard PASS v1/14. Hermes gateway + both watchdog timers left **active**. Next open: **dd-17**.
 
