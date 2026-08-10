@@ -1,3 +1,6 @@
+- **2026-08-10T03:50Z** — [PC] **Result:** lane-sync-design-align. Potato HEAD matched PC design SHAs; `dash_build=db_20260810-hub-c-ssh-chips-r1`; `lane_sync` last_seen+ssh_sessions+conflict_rules=7; skill+META+ssh-session-track present; hermes-gateway **active**; cursor-lane-status OK. Plan: `docs/plans/linuxbox-lane-sync-design-2026-08-10.md`. Open for GM: Smoke backlog; stale locks hub-si-dash-smoke / hub-si-intel-feeds.
+- **2026-08-10T03:50Z** — [PC] **Intent:** Align potato with Cursor chat **Linuxbox lane sync design** (`4253b3a8`). Verify Hub Meta lane-sync + Hub-c SSH chips + skill/META already live; write `docs/plans/linuxbox-lane-sync-design-2026-08-10.md`; no redesign. Holder: `lane-sync-design-align`.
+
 - **2026-08-10T03:47Z** — [PC] **Intent:** daily-deslop desk clear after dd-13 — seed dd-14..dd-17 (reuse/prevention); implement dd-14 bump-dash-build helper end-to-end; commit+bundle potato; leave hermes-gateway active. Holder: `daily-deslop-dd-14`.
 
 - **2026-08-10T03:41Z** — [PC] **Result:** Hub-c + SSH duration meld live (holder `hub-c-ssh-lane-chips`). Topbar chips from `lane_sync.last_seen` + ssh chip; Meta live lanes include SSH sessions; conflict_rules=7; dash_build `db_20260810-hub-c-ssh-chips-r1` potato :8790 verified. SHA `8d8ede4` (+ META). Hub-c + dd-13 marked. Hard-refresh Hub (Ctrl+Shift+R).
