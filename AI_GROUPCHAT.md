@@ -3,6 +3,9 @@
 
 
 
+- **2026-08-10T03:03:28Z** — [PC] **Result:** Meta UI live after re-deploy. Cause: potato `index.html`+`server.js` had been left/reverted to `db_20260808-chat-cache-revalidate-r1` while PC had lane-sync. Re-SCP both; on-disk+served pair `db_20260810-lane-sync-skill-r1`; lane-sync-panel + hub-observability served. Prevention: after dashboard SCP always md5+grep dash-build pair on potato before claiming UI. Hard-refresh Hub (Ctrl+Shift+R). Holder: `lane-sync-skill-run`.
+- **2026-08-10T03:01:52Z** — [PC] **Result:** Meta UI invisible because potato `index.html` stayed on `db_20260808-chat-cache-revalidate-r1` while API was `lane-sync-skill-r1` (SCP HTML missed / stale). Re-SCP'd HTML; verify pair before claiming UI. Holder: `lane-sync-skill-run`.
+- **2026-08-10T02:58:28Z** — [PC] **Result:** lane-sync skill live (holder `lane-sync-skill-run`). Skill `.cursor/skills/lane-sync` + agent `.cursor/agents/lane-sync.md` + `agents/META_LANE_SYNC.md`; think-setup + cursor-agent-run inject philosophy; Meta fold restored; System Observability run: papercuts open=0 · meta-harness 5 pods · backlog open=2 (Hub-c, Smoke). dash_build `db_20260810-lane-sync-skill-r1` potato 200. Hard-refresh Hub.
 - **2026-08-10T02:52:49Z** — [PC] **Intent:** Promote Meta philosophy + lane-sync into **skill/subagent** (`.cursor/skills/lane-sync` + agent); inject think/cursor setup; keep System Observability (papercuts/harness/backlog) and run live verify now. Holder: `lane-sync-skill-run`.
 - **2026-08-10T02:44:11Z** — [PC] **Result:** Meta panel → lane-sync systems design (holder `hub-meta-lane-sync-panel`). Reused SYSTEMS_DESIGN_BOARD + Hub-a/b heartbeats + multitask locks; `/api/agent` `lane_sync` live (last_seen sync/think/llm + 6 conflict rules). Papercuts · meta-harness · backlog moved to System bottom. dash_build `db_20260810-meta-lane-sync-r1` potato :8790 200. Hard-refresh Hub Meta + System. Open: Hub-c lane chips.
 - **2026-08-10T02:39:22Z** — [PC] **Intent:** Replace Hub Meta panel (philosophy stub / path cards) with **lane-sync systems design** (reuse SYSTEMS_DESIGN_BOARD + Hub-a/b heartbeats + multitask locks). Move papercuts + meta-harness + open backlog to bottom of **System** (`#hub`). No new rail. Holder: `hub-meta-lane-sync-panel`.
@@ -672,3 +675,11 @@
 
 [PC] Result (holder `daily-deslop-dd-08`): Added `.cursor/rules/anti-slop.mdc`, `.cursor/rules/ai-bad-habits.mdc`, `.cursor/skills/write-source-analysis/check_article.py` to `push-linuxbox.sh` AGENT_PATHS + agent-config `paths_hint`; tracked the three files in git; papercut `pc-2026-08-08-push-linuxbox-misses-lint-config` fixed. Verify: paths exist + dry-list includes all three; `bash -n` OK. SHA `b45b659` → linuxbox `main` + potato bundle `5874adc→b45b659` verify-runtime-state PASS. Hermes gateway + both watchdog timers left **active**. Next open: **dd-09**.
 
+
+## 2026-08-09 ~22:58 ET — [PC] Intent: dd-09 Discord token helper docs
+
+[PC] Intent: dd-09 — document Discord token helper (`scripts/linuxbox/discord_token.py`) one-liner in SYSTEMS_DESIGN_BOARD.md Shared primitives; close design checkbox. Docs only. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-09`.
+
+## 2026-08-09 23:04 ET — [PC] Result: daily deslop dd-09 shipped
+
+[PC] Result (holder `daily-deslop-dd-09`): Documented Discord token helper in `SYSTEMS_DESIGN_BOARD.md` Shared primitives + closed design checkbox; marked **dd-09** done. Docs only. SHA `e2e8f4a` → linuxbox `main` + potato bundle `ec905d5→e2e8f4a` verify-runtime-state PASS. Hermes gateway + both watchdog timers left **active**. Next open: **dd-10**.
