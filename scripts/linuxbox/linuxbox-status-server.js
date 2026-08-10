@@ -32,9 +32,10 @@ const charsRegistryReadCache = require("./chars-registry-read-cache");
 const LISTEN_HOST = "127.0.0.1";
 const LISTEN_PORT = 8790;
 // Deploy-pair marker: MUST equal <meta name="dash-build"> in linuxbox-status/index.html.
+// db_20260810-lane-sync-skill-r1 — philosophy via skill/subagent; Meta fold + System observability.
 // Bump BOTH together whenever the HTML↔API shape changes (docs/runtime-state-protection.md);
 // verify-runtime-state.sh fails the deploy when they differ.
-const DASH_BUILD = "db_20260808-chat-cache-revalidate-r1";
+const DASH_BUILD = "db_20260810-lane-sync-skill-r1";
 const TOKEN_ENV_FILE =
   process.env.DASHBOARD_TOKEN_FILE ||
   path.join(process.env.HOME || "/home/abhinav", ".linuxbox-dashboard", ".env");
@@ -2029,6 +2030,169 @@ function buildLastRun(pods, hints) {
   };
 }
 
+/** List multitask lock files (read-only Hub Meta / lane-sync). */
+function readMultitaskLocksSummary() {
+  const dir = path.join(REPO, "agents", "state", "multitask-locks");
+  const checkinPath = path.join(REPO, "agents", "state", "multitask-checkin.json");
+  let checkin = null;
+  try {
+    if (fs.existsSync(checkinPath)) {
+      checkin = JSON.parse(fs.readFileSync(checkinPath, "utf8"));
+    }
+  } catch {
+    checkin = null;
+  }
+  const locks = [];
+  try {
+    if (fs.existsSync(dir)) {
+      for (const name of fs.readdirSync(dir)) {
+        if (!name.endsWith(".json")) continue;
+        try {
+          const j = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+          if (!j || typeof j !== "object") continue;
+          const hb = Date.parse(j.heartbeat_at || j.started_at || 0);
+          const ageMs = Number.isFinite(hb) ? Date.now() - hb : null;
+          const claimed = j.status === "claimed";
+          const fresh = claimed && ageMs != null && ageMs < 5 * 60 * 1000;
+          locks.push({
+            resource: j.resource || name.replace(/\.json$/, "").replace(/__/g, ":"),
+            holder: j.holder || null,
+            status: j.status || null,
+            note: j.note || "",
+            started_at: j.started_at || null,
+            heartbeat_at: j.heartbeat_at || null,
+            fresh: !!fresh,
+            stale: claimed && !fresh,
+          });
+        } catch {
+          /* skip bad lock file */
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  locks.sort((a, b) => String(a.resource).localeCompare(String(b.resource)));
+  return {
+    checkin: checkin
+      ? {
+          active_claim: checkin.active_claim || null,
+          last_completed: checkin.last_completed || null,
+          updated_at: checkin.updated_at || null,
+        }
+      : null,
+    locks,
+    path: "agents/state/multitask-locks/",
+  };
+}
+
+/**
+ * Meta tab lane-sync snapshot — reuses heartbeats + locks + board SoT (Hub-a/b + SYSTEMS_DESIGN_BOARD).
+ * Does not invent a second SoT; board markdown remains canonical for design prose.
+ */
+function readLaneSyncSummary() {
+  const syncLast = readLaneHeartbeat("sync-tick.last");
+  const thinkLast = readLaneHeartbeat("think-tick.last");
+  const thinkLlmLast = readLaneHeartbeat("think-llm.last");
+  let continuousRr = null;
+  try {
+    const rrPath = path.join(REPO, "agents", "state", "think-continuous-rr.json");
+    if (fs.existsSync(rrPath)) {
+      continuousRr = JSON.parse(fs.readFileSync(rrPath, "utf8"));
+    }
+  } catch {
+    continuousRr = null;
+  }
+  let cursorLane = null;
+  try {
+    // Cheap: prefer state file if cursor-lane-status already wrote one; else null (Hub has cursor_lane elsewhere).
+    const cursorState = path.join(REPO, "agents", "state", "cursor-lane-status.json");
+    if (fs.existsSync(cursorState)) {
+      cursorLane = JSON.parse(fs.readFileSync(cursorState, "utf8"));
+    }
+  } catch {
+    cursorLane = null;
+  }
+  const locks = readMultitaskLocksSummary();
+  // Conflict rules — mirrors docs/multitask-shared-state-lock.md + SYSTEMS_DESIGN_BOARD reuse catalog.
+  const conflictRules = [
+    {
+      resource: "chars-registry / portraits",
+      writers: "Chars UI · world ingest · GM Cursor (lock required)",
+      skip: "Blind SCP / bundle clobber; hard-delete rows",
+      lock: "chars-registry:<campaign>",
+    },
+    {
+      resource: "regions-ui.json",
+      writers: "GM Draw only (potato SoT)",
+      skip: "Agent digitize / ellipse stubs / reset without restore",
+      lock: "borders guard + skip-worktree",
+    },
+    {
+      resource: "human-inbox / answered[]",
+      writers: "sync normalize · consume-answers · Hub reply",
+      skip: "Hermes bare-array overwrite; re-seed answered ids",
+      lock: "inbox normalize every sync minute",
+    },
+    {
+      resource: "chat-threads",
+      writers: "Hub Chat only",
+      skip: "Deploy wipe / tarball overwrite",
+      lock: "protected-runtime-paths",
+    },
+    {
+      resource: "think flock",
+      writers: "agent-cycle-think-tick (LLM ~8m)",
+      skip: "Long sync holding /tmp/agent-cycle-think.lock past wall",
+      lock: "/tmp/agent-cycle-think.lock",
+    },
+    {
+      resource: "Hermes ∥ Cursor",
+      writers: "twin dispatch — parallel OK",
+      skip: "Same file without multitask lock / ledger Intent",
+      lock: "AI_GROUPCHAT holder + multitask-lock",
+    },
+  ];
+  return {
+    blurb:
+      "Lane sync: think · sync · Cursor Auto · pods share the box. Locks + pick order keep them from clobbering shared SoT.",
+    last_seen: {
+      sync: syncLast,
+      think: thinkLast,
+      think_llm: thinkLlmLast,
+    },
+    continuous_rr: continuousRr
+      ? {
+          next: continuousRr.next || continuousRr.lane || continuousRr.last || null,
+          updated_at: continuousRr.updated_at || continuousRr.at || null,
+        }
+      : null,
+    cursor: cursorLane
+      ? {
+          status: cursorLane.status || cursorLane.state || null,
+          what: cursorLane.what || cursorLane.goal || cursorLane.prompt || null,
+          when: cursorLane.when || cursorLane.started_at || cursorLane.updated_at || null,
+        }
+      : null,
+    locks,
+    conflict_rules: conflictRules,
+    pick_order: [
+      "[ops] / Fix-this",
+      "campaign ≡ project (RR)",
+      "other user-tasks / meta markers",
+      "education → research → IDLE",
+    ],
+    systems_design_board: "agents/SYSTEMS_DESIGN_BOARD.md",
+    docs: [
+      "agents/META_LANE_SYNC.md",
+      ".cursor/skills/lane-sync/SKILL.md",
+      "docs/agents/continuous-lanes.md",
+      "docs/multitask-shared-state-lock.md",
+      "docs/runtime-state-protection.md",
+    ],
+  };
+}
+
 /** Meta tab: backlog + last done + smoke — no parallel log store. */
 function readMetaLaneSummary() {
   const backlogPath = "agents/LINUXBOX_DASHBOARD_BACKLOG.md";
@@ -2137,6 +2301,8 @@ function readMetaLaneSummary() {
     daily_deslop_progress: deslopProgressRel,
     daily_deslop_open: deslopOpen,
     git_regression_memory: "agents/git-regression-memory.md",
+    // Hub-b: last_seen for Meta lane-sync panel (heartbeats already written by sync/think ticks).
+    lane_sync: readLaneSyncSummary(),
   };
 }
 
@@ -3163,6 +3329,7 @@ async function collectAgentState(lite = false) {
     all_reports: allReports.slice(0, 16),
     dashboard_backlog_open: dashboardBacklog,
     meta_lane: metaLane,
+    lane_sync: metaLane.lane_sync || readLaneSyncSummary(),
     user_tasks: readUserTasksStore().tasks.slice(0, 100),
     user_projects: summarizeUserProjects(readUserTasksStore()),
     user_task_tags: USER_TASK_TAGS,

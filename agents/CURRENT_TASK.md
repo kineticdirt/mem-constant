@@ -63,6 +63,7 @@ When a lane finishes all checkboxes → skip it until human adds work.
 | **Dashboard** | `agents/LINUXBOX_DASHBOARD_TASK.md` | `agents/LINUXBOX_DASHBOARD_BACKLOG.md` |
 | **Daily deslop** | `agents/DAILY_DESLOP_TASK.md` (∥ ponytail) | `agents/daily-deslop-progress.md` |
 | **Systems design** | — | `agents/SYSTEMS_DESIGN_BOARD.md` |
+| **Lane sync / Meta philosophy** | skill + inject | `agents/META_LANE_SYNC.md` · `.cursor/skills/lane-sync` · agent `.cursor/agents/lane-sync.md` |
 | **System integrity** | `agents/SYSTEM_INTEGRITY_TASK.md` | `agents/system-integrity-progress.md` |
 | **Ponytail cleanup** | `agents/PONYTAIL_CLEANUP_TASK.md` | `agents/PONYTAIL_CLEANUP_BOARD.md` |
 | **tableslop (map / v1)** | `agents/TABLESLOP_PROJECT_TASK.md` | `agents/tableslop-progress.md` (+ `projects/tableslop/manifest.json`) |

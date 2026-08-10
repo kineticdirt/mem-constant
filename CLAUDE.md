@@ -133,3 +133,5 @@ Append a one-line `[LINUX]`/`[PC]` entry to `AI_GROUPCHAT.md` Recent activity fo
 (intent before, result after). Keep it short. Update the relevant progress file's checkbox.
 Friction (smells, repeated 429s, unclear env, regressions) → log a papercut to `agents/papercuts.md`
 (`docs/agents/papercuts.md`); resolve autonomously when safe; Result lines may link `pc-*` ids.
+**Lane sync / Meta philosophy** (apply while implementing): `agents/META_LANE_SYNC.md` ·
+skill `.cursor/skills/lane-sync` · Hub Meta = live sync; System Observability = papercuts/harness/backlog.

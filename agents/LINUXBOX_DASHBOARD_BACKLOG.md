@@ -3,20 +3,22 @@
 Agent (`agent-cycle-think`, **meta lane**) implements **one** unchecked item per tick.
 Spec: **`agents/LINUXBOX_DASHBOARD_TASK.md`** · UI: `scripts/linuxbox/linuxbox-status/`
 
-Human may add items via **Meta** tab or edit here.
+Human may add items via **System** tab (Observability / backlog) or edit here.
 
 ## Open
 
 ### Meta: Systems design + daily deslop visibility
 - [x] **Meta-sys:** Meta tab Systems design card + `/api/agent` `meta_lane.systems_design_board` / `daily_deslop_open` (2026-08-10). Board SoT: `agents/SYSTEMS_DESIGN_BOARD.md`.
+- [x] **Meta-lane-sync:** Replace Meta philosophy/path cards with live lane-sync panel (heartbeats · locks · conflict rules · pick order); move papercuts + meta-harness + open backlog to System bottom (2026-08-10). Holder `hub-meta-lane-sync-panel`.
+- [x] **Meta-skill:** Philosophy + conflict rules as skill/subagent (`lane-sync`) + `agents/META_LANE_SYNC.md`; think/Cursor inject; Meta philosophy fold; Observability triad verified live (2026-08-10). Holder `lane-sync-skill-run`.
 
 ### Hub: last fast (~30s crontab) and think (1m cron) activity on lane chips
 Parent intent retained (was one multi-step bullet that timed out at ~300s on think ticks). Split 2026-07-24 into tick-sized steps — do **one** `[ ]` per tick; when all children are `[x]`, move this section under Done with a dated line.
 
-- [ ] **Hub-a:** Tick writers — fast+think ticks call `stamp-lane-tick.sh` / `record-lane-tick.sh` so `agents/dashboard-lane-state.json` (and/or `agents/state/*-tick.last`) get fresh `last_seen`
-- [ ] **Hub-b:** API — expose fast/think `last_seen` (+ status) on `/api/agent` Hub payload from those files
-- [ ] **Hub-c:** UI — Hub lane chips render last fast + think activity from that payload
-- [ ] **Hub-d:** Verify — `curl 127.0.0.1:8790/api/agent` shows timestamps; chips visible on Hub; then archive this section to Done
+- [x] **Hub-a:** Tick writers — sync+think already stamp `agents/state/sync-tick.last` / `think-tick.last` (fast lane removed 2026-08-01); optional `dashboard-lane-state.json` rollup deferred — 2026-08-10
+- [x] **Hub-b:** API — expose sync/think `last_seen` on `/api/agent` as `lane_sync.last_seen` (+ locks / conflict rules) — 2026-08-10 (heartbeats already written by sync/think; fast lane removed)
+- [ ] **Hub-c:** UI — Hub lane chips render last sync + think activity from that payload (Meta panel already shows live lanes)
+- [x] **Hub-d:** Verify — potato `curl 127.0.0.1:8790/api/agent` shows `lane_sync.last_seen` + 6 conflict_rules; dash_build `db_20260810-meta-lane-sync-r1` — 2026-08-10 (Hub-c lane chips still open)
 
 - [ ] **Smoke:** after dashboard edits, run `bash scripts/linuxbox/run-dashboard-ui-smoke.sh`; triage fails into this backlog (see `agents/DASHBOARD_UI_SMOKE_TASK.md`)
 

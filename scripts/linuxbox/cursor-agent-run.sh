@@ -63,8 +63,21 @@ if [[ -z "${PROMPT}" ]]; then
   exit 2
 fi
 
-# Papercuts: Cursor Auto may append friction to agents/papercuts.md at end of run.
+# ponytail: always prepend the STE prose block, not gated on prose-looking tasks —
+# every Cursor run also writes reports/ledger lines, and a fixed 5-line block beats a
+# flaky task-type detector. Tradeoff: ~80 extra prompt tokens on pure-code runs.
+PROMPT="Prose rules (STE) for any text you write:
+- One approved term per concept; active verbs (analyze, not \"perform an analysis\").
+- Sentences ≤20 words (instructions) / ≤25 (descriptions); one idea each; no semicolons.
+- No hedging stacks; no soft phrasal verbs (start/ask/read, not spin up/reach out/dive into).
+Lint SoT: .cursor/rules/anti-slop.mdc
+
+${PROMPT}"
+
+# Papercuts + lane-sync: Cursor Auto applies Meta philosophy while implementing.
 PROMPT="${PROMPT}
+
+(Lane sync) Prefer clear silos; lock shared SoT before write (registry/inbox/regions-ui/chat-threads). Read agents/META_LANE_SYNC.md when touching Hub or parallel Hermes∥Cursor work. Skill: .cursor/skills/lane-sync.
 
 (Optional, end of run) If you hit friction worth remembering — unclear env, repeated failures, misleading UX, regressions — append one entry to agents/papercuts.md per docs/agents/papercuts.md. Never let papercut logging block or replace the task."
 
@@ -135,6 +148,21 @@ set -e
 {
   echo "--- exit ${status} ---"
 } >>"${LOG_FILE}"
+
+# Cross-lane failover (Agent 2 completion): hand back / archive when still open after fail.
+CURSOR_TASK_ID="${CURSOR_TASK_ID:-}"
+LANE_FO_PY="${REPO}/scripts/linuxbox/lane-failover.py"
+if [[ -f "${LANE_FO_PY}" && -n "${CURSOR_TASK_ID}" && "${CURSOR_TASK_ID}" != lane:* ]]; then
+  _fo_n="${LANE_FAILOVER_N:-2}"
+  if [[ "${status}" -eq 124 ]]; then
+    _fo_n="${LANE_FAILOVER_TIMEOUT_N:-1}"
+  fi
+  {
+    echo "======== lane-failover after-run (cursor) exit=${status} n=${_fo_n} ========"
+    python3 "${LANE_FO_PY}" after-run --repo "${REPO}" --task-id "${CURSOR_TASK_ID}" \
+      --lane cursor --exit-code "${status}" --n "${_fo_n}" || true
+  } >>"${LOG_FILE}" 2>&1 || true
+fi
 
 if [[ "${status}" -eq 124 ]]; then
   echo "ERROR: Cursor agent timed out after ${TIMEOUT_SEC}s (log: ${LOG_FILE})" >&2

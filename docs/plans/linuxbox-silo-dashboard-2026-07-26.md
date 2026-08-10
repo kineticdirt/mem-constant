@@ -17,7 +17,7 @@
 | **Docs** | Reports + useful info (Obsidian-like browse) | Existing Docs (`#reports`) + lightweight search filter |
 | **Pixi RP** | Roleplay engine `:8767` | New panel: status + Tailscale/LAN links (no full embed) |
 | **Mazda3** | Sports build (parts/tasks) | Existing Garage/`/api/garage` + mazda3-scoped task links |
-| **Meta** | Design philosophy + observability (TBD) | Stub: philosophy placeholder + existing meta cards/backlog |
+| **Meta** | Lane sync + systems design (locks, pick order, conflict rules) | Live panel from heartbeats + multitask locks + SYSTEMS_DESIGN_BOARD; observability (papercuts/harness/backlog) on **System** |
 | **Maps** | tableslop / campaigns | **Off `/Linuxbox`** — open `map.tableslop.org` / `campaigns.tableslop.org` only |
 
 **Secondary tabs (kept, not primary silos):** Inbox, Camp, Stories, Chars, Host (`systems` — Task Manager detail / services / temp viewers).

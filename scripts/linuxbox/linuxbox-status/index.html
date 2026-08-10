@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <!-- deploy-pair marker: MUST equal DASH_BUILD in linuxbox-status-server.js; bump both together (docs/runtime-state-protection.md) -->
-  <meta name="dash-build" content="db_20260808-chat-cache-revalidate-r1">
+  <meta name="dash-build" content="db_20260810-lane-sync-skill-r1">
   <title>linuxbox</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -139,6 +139,46 @@
     }
     .meta-philosophy h2 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 0.45rem; }
     .meta-philosophy p { margin: 0; font-size: 0.82rem; line-height: 1.45; }
+    .lane-sync-panel { max-width: 56rem; }
+    .lane-sync-panel > h2 {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted); margin: 0 0 0.45rem;
+    }
+    .lane-sync-lead {
+      border: 1px solid var(--line); background: var(--surface);
+      padding: 0.75rem 0.85rem; margin-bottom: 0.75rem;
+    }
+    .lane-sync-lead p { margin: 0; font-size: 0.82rem; line-height: 1.45; max-width: 44rem; }
+    .lane-sync-philosophy {
+      border: 1px dashed var(--line-bright); border-radius: 6px; padding: 0.55rem 0.75rem;
+      margin: 0 0 0.75rem; max-width: 52rem;
+    }
+    .lane-sync-philosophy summary {
+      cursor: pointer; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); list-style: none;
+    }
+    .lane-sync-philosophy summary::-webkit-details-marker { display: none; }
+    .lane-sync-philosophy[open] summary { margin-bottom: 0.45rem; color: var(--fg); }
+    .lane-sync-philosophy p { margin: 0 0 0.45rem; font-size: 0.82rem; line-height: 1.45; }
+    .lane-sync-philosophy p:last-child { margin-bottom: 0; }
+    .lane-sync-rules {
+      width: 100%; border-collapse: collapse; font-size: 0.74rem; margin: 0 0 0.85rem;
+    }
+    .lane-sync-rules th, .lane-sync-rules td {
+      border: 1px solid var(--line); padding: 0.4rem 0.5rem; text-align: left; vertical-align: top;
+    }
+    .lane-sync-rules th {
+      font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); background: #12141a;
+    }
+    .lane-sync-rules code { font-size: 0.68rem; }
+    .hub-obs-block {
+      border-top: 1px solid var(--line-bright); padding-top: 1rem; margin-top: 0.5rem;
+      max-width: 56rem;
+    }
+    .hub-obs-block > h2 {
+      font-size: 0.78rem; letter-spacing: 0.04em; margin: 0 0 0.65rem; color: var(--fg);
+    }
     .docs-search-wrap { padding: 0.5rem 0.65rem 0.65rem; border-bottom: 1px solid var(--line); }
     .docs-search-wrap .field { margin: 0; }
     .docs-search-wrap input[type="search"] {
@@ -1636,6 +1676,9 @@
       border: 1px solid var(--line); background: var(--surface);
       padding: 0.55rem 0.65rem; font-size: 0.78rem;
     }
+    .meta-card.ok { border-color: #1f4d32; }
+    .meta-card.warn { border-color: #4a4a20; }
+    .meta-card.bad { border-color: #5c2828; }
     .meta-card .aw-label {
       font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
       color: var(--muted); margin-bottom: 0.35rem;
@@ -2578,6 +2621,30 @@
             </div>
           </section>
           <details class="debug"><summary>Debug</summary><pre id="debug-json"></pre></details>
+          <section class="hub-obs-block" id="hub-observability" aria-label="Observability — papercuts, harness, backlog">
+            <h2>Observability</h2>
+            <p class="meta" style="margin:0 0 0.75rem">Papercuts · Meta-Harness · dashboard backlog — process improvement triad (same purpose as Meta used to dump here). Agents apply philosophy via <code>lane-sync</code> skill; this panel is the live scoreboard.</p>
+            <div class="meta-backlog-head">
+              <h2>Papercuts</h2>
+              <span class="meta" id="meta-papercuts-count"></span>
+            </div>
+            <div id="meta-papercuts" class="meta-panel-grid"><p class="empty">Loading…</p></div>
+            <div class="meta-backlog-head">
+              <h2>Meta-Harness scores</h2>
+              <span class="meta" id="meta-harness-updated"></span>
+            </div>
+            <div class="meta-panel-grid" id="meta-harness-cards"><p class="empty">Loading…</p></div>
+            <div class="meta-backlog-head">
+              <h2>Open backlog</h2>
+              <span class="meta" id="meta-backlog-count"></span>
+            </div>
+            <ul class="list" id="backlog-open"></ul>
+            <div class="field" style="margin-top:1rem;max-width:480px">
+              <label for="backlog-text">Add dashboard idea</label>
+              <textarea id="backlog-text" rows="2" placeholder="Dashboard idea…"></textarea>
+            </div>
+            <button type="button" class="btn" id="backlog-add">Add</button>
+          </section>
         </section>
 
         <section id="systems" class="panel admin-only">
@@ -3137,35 +3204,41 @@
         </section>
 
         <section id="backlog" class="panel admin-only">
-          <div class="meta-philosophy" id="meta-philosophy">
-            <h2>Design philosophy (stub)</h2>
-            <p>Meta is the overarching observability + design layer for this stack — not a finished product yet. Prefer clear silos over Tasks soup; System sees everything; correctness over thrash. Observability hooks (meta-harness rollups, smoke, update gate) land here over time.</p>
+          <div class="lane-sync-panel" id="lane-sync-panel">
+            <h2>Lane sync · systems design</h2>
+            <details class="lane-sync-philosophy" id="lane-sync-philosophy">
+              <summary>Design philosophy (applied via skill / subagent — not a dead stub)</summary>
+              <p>Prefer clear silos over Tasks soup. System sees everything. Correctness over thrash. Lanes share the box — sync before write. Observability (papercuts · meta-harness · backlog) improves the process on <strong>System</strong>.</p>
+              <p class="meta">Agents: read <code>.cursor/skills/lane-sync</code> · <code>agents/META_LANE_SYNC.md</code> · subagent <code>.cursor/agents/lane-sync.md</code>. Think/Cursor inject these automatically.</p>
+            </details>
+            <div class="lane-sync-lead" id="lane-sync-lead">
+              <p id="lane-sync-blurb">Loading…</p>
+            </div>
+            <div class="meta-backlog-head">
+              <h2>Live lanes</h2>
+              <span class="meta" id="lane-sync-updated"></span>
+            </div>
+            <div class="meta-panel-grid" id="lane-sync-lanes"><p class="empty">Loading…</p></div>
+            <div class="meta-backlog-head">
+              <h2>Shared locks</h2>
+              <span class="meta" id="lane-sync-locks-meta"></span>
+            </div>
+            <div class="meta-panel-grid" id="lane-sync-locks"><p class="empty">Loading…</p></div>
+            <div class="meta-backlog-head">
+              <h2>Conflict rules (who writes · what to skip)</h2>
+            </div>
+            <div id="lane-sync-rules-wrap"><p class="empty">Loading…</p></div>
+            <div class="meta-backlog-head">
+              <h2>Think pick order</h2>
+            </div>
+            <ol class="list" id="lane-sync-pick-order" style="max-width:40rem"></ol>
+            <div class="meta-backlog-head">
+              <h2>Product / agent catalog</h2>
+              <span class="meta">SoT · agents/SYSTEMS_DESIGN_BOARD.md</span>
+            </div>
+            <div class="meta-panel-grid" id="lane-sync-catalog"><p class="empty">Loading…</p></div>
+            <p class="meta" id="lane-sync-docs" style="margin-top:0.5rem"></p>
           </div>
-          <div class="meta-panel-lead" id="meta-lead">
-            <h2>What Meta does today</h2>
-            <p id="meta-blurb">Loading…</p>
-          </div>
-          <div class="meta-panel-grid" id="meta-cards"></div>
-          <div class="meta-backlog-head">
-            <h2>Papercuts</h2>
-            <span class="meta" id="meta-papercuts-count"></span>
-          </div>
-          <div id="meta-papercuts" class="meta-panel-grid"><p class="empty">Loading…</p></div>
-          <div class="meta-backlog-head">
-            <h2>Meta-Harness scores</h2>
-            <span class="meta" id="meta-harness-updated"></span>
-          </div>
-          <div class="meta-panel-grid" id="meta-harness-cards"><p class="empty">Loading…</p></div>
-          <div class="meta-backlog-head">
-            <h2>Open backlog</h2>
-            <span class="meta" id="meta-backlog-count"></span>
-          </div>
-          <ul class="list" id="backlog-open"></ul>
-          <div class="field" style="margin-top:1rem;max-width:480px">
-            <label for="backlog-text">Add dashboard idea</label>
-            <textarea id="backlog-text" rows="2" placeholder="Dashboard idea…"></textarea>
-          </div>
-          <button type="button" class="btn" id="backlog-add">Add</button>
         </section>
       </div>
     </div>
@@ -3173,7 +3246,7 @@
 
   <script>
     const base = window.location.pathname.replace(/\/?$/, "");
-    const titles = { hub: "System", systems: "Host", inbox: "Inbox", reports: "Docs", news: "News", campaigns: "Campaigns", map: "Maps (external)", stories: "Stories", characters: "Characters", chat: "Ops Chat", tasks: "Tasks", pixi: "Pixi RP", garage: "Mazda3", backlog: "Meta" };
+    const titles = { hub: "System", systems: "Host", inbox: "Inbox", reports: "Docs", news: "News", campaigns: "Campaigns", map: "Maps (external)", stories: "Stories", characters: "Characters", chat: "Ops Chat", tasks: "Tasks", pixi: "Pixi RP", garage: "Mazda3", backlog: "Meta · lane sync" };
     const SIZE_KEY = "linuxbox-dash-sizing";
     const SIZE_DEFAULTS = { ui: "1", text: "0.9", width: "68", split: "balanced" };
     const SPLIT_MAP = {
@@ -3693,8 +3766,13 @@
       if (activeTab === "hub" && sessionRole !== "viewer") {
         load();
         refreshSystemHostGlance();
+        if (agentData) {
+          renderMeta(agentData);
+          renderMetaHarness();
+          renderMetaPapercuts();
+        }
       }
-      if (activeTab === "backlog") { renderMeta(agentData); renderMetaHarness(); renderMetaPapercuts(); }
+      if (activeTab === "backlog") { renderMeta(agentData); }
       syncHubResourcesPolling();
     }
 
@@ -7335,7 +7413,7 @@
         { tab: "reports", name: "Docs", st: reportsN ? "ok" : "off", line: `${reportsN} reports` },
         { tab: "pixi", name: "Pixi RP", st: pixiOk ? "ok" : (pixi ? "bad" : "warn"), line: pixiLine },
         { tab: "garage", name: "Mazda3", st: mazdaOpen ? "warn" : "ok", line: `${mazdaOpen} open tasks` },
-        { tab: "backlog", name: "Meta", st: backlogN ? "warn" : "ok", line: `${backlogN} backlog` },
+        { tab: "backlog", name: "Meta", st: backlogN ? "warn" : "ok", line: backlogN ? `lane sync · ${backlogN} backlog` : "lane sync" },
         { tab: null, name: "Maps", st: mapSt, line: mapLine, href: "https://map.tableslop.org/" },
       ];
       grid.innerHTML = cards.map((c) => {
@@ -7614,77 +7692,159 @@
     }
 
     function renderMeta(data) {
+      const sync = data?.lane_sync || data?.meta_lane?.lane_sync || {};
       const m = data?.meta_lane || {};
-      const blurbEl = document.getElementById("meta-blurb");
+      const blurbEl = document.getElementById("lane-sync-blurb");
       if (blurbEl) {
-        blurbEl.textContent = m.blurb
-          || "Dashboard self-improvement lane: backlog → one task → verify → Done.";
+        blurbEl.textContent = sync.blurb
+          || m.blurb
+          || "Lane sync: think · sync · Cursor · pods — locks keep shared SoT safe.";
       }
-      const countEl = document.getElementById("meta-backlog-count");
-      if (countEl) {
-        const n = m.open_count ?? (data?.dashboard_backlog_open || []).length;
-        countEl.textContent = `${n} open`;
+      const upd = document.getElementById("lane-sync-updated");
+      if (upd) upd.textContent = data?.updated_at ? fmtEt(data.updated_at) : "";
+
+      const lanesEl = document.getElementById("lane-sync-lanes");
+      if (lanesEl) {
+        const last = sync.last_seen || {};
+        const lanesObj = data?.lanes || {};
+        const cursor = data?.cursor_lane || sync.cursor || {};
+        const rn = data?.running_now || {};
+        const cards = [];
+        const pushLane = (label, status, when, detail) => {
+          const st = status || "pending";
+          const cls = st === "ok" || st === "active" || st === "running" ? "ok"
+            : (st === "pending" || st === "idle" ? "warn" : (st === "bad" || st === "failed" ? "bad" : ""));
+          cards.push(`<div class="meta-card ${cls}">
+            <div class="aw-label">${esc(label)}</div>
+            <div>${esc(String(status || "—"))}${when ? ` · ${esc(fmtEt(when))}` : ""}</div>
+            ${detail ? `<div class="meta-paths">${esc(String(detail).slice(0, 140))}</div>` : ""}
+          </div>`);
+        };
+        const syncLane = lanesObj["agent-cycle-sync"] || {};
+        const thinkLane = lanesObj["agent-cycle-think"] || {};
+        pushLane("Sync", syncLane.status || (last.sync ? "ok" : "pending"), last.sync || syncLane.last_run, syncLane.schedule || "deterministic");
+        pushLane("Think", thinkLane.status || (last.think ? "active" : "pending"), last.think || thinkLane.last_run, thinkLane.schedule || "1m · LLM ~8m");
+        pushLane("Think LLM", last.think_llm ? "ok" : "idle", last.think_llm, "THINK_INTERVAL gate");
+        const cStat = cursor.status || cursor.state || (rn.cursor_lane && rn.cursor_lane.status) || "idle";
+        const cWhen = cursor.when || cursor.started_at || (rn.cursor_lane && rn.cursor_lane.when);
+        const cWhat = cursor.what || cursor.goal || (rn.cursor_lane && (rn.cursor_lane.what || rn.cursor_lane.goal));
+        pushLane("Cursor Auto", cStat, cWhen, cWhat);
+        if (rn.pod) {
+          pushLane("Current pod", rn.pod.status || "running", rn.pod.when || rn.pod.started_at, rn.pod.name || rn.pod.id || rn.pod.what);
+        }
+        const rr = sync.continuous_rr;
+        if (rr && (rr.next || rr.updated_at)) {
+          pushLane("Campaign≡project RR", "ok", rr.updated_at, rr.next || "rr state");
+        }
+        lanesEl.innerHTML = cards.length ? cards.join("") : '<p class="empty">No lane heartbeats yet</p>';
       }
-      const cardsEl = document.getElementById("meta-cards");
-      if (cardsEl) {
-        const next = m.next_item
-          || (data?.dashboard_backlog_open || [])[0]
-          || null;
-        const lastDone = m.last_done;
-        const smoke = m.smoke;
-        const metaRun = m.last_meta_run;
-        const thinkRun = m.last_think_run;
-        const smokeLine = smoke
-          ? (smoke.failed != null
-            ? `${smoke.failed === 0 ? "pass" : "fail"} · ${smoke.passed ?? "?"} ok · ${smoke.warned ?? "?"} warn · ${smoke.date || "?"}`
-            : smoke.date || "report present")
-          : "no smoke report";
-        const lastDoneLine = lastDone
-          ? `${(lastDone.text || "").replace(/\*\*/g, "").slice(0, 100)}${lastDone.date ? ` · ${lastDone.date}` : ""}`
-          : "—";
-        const metaRunLine = metaRun
-          ? `${metaRun.label || metaRun.name}${metaRun.ts ? ` · ${fmtEt(metaRun.ts)}` : ""}${metaRun.outcome ? ` · ${metaRun.outcome}` : ""}${metaRun.detail ? ` — ${String(metaRun.detail).slice(0, 60)}` : (metaRun.summary ? ` — ${String(metaRun.summary).slice(0, 60)}` : "")}`
-          : "no meta/dashboard tick in recent run-index";
-        const thinkRunLine = thinkRun
-          ? `What: ${String(thinkRun.what || "—").slice(0, 80)} · When: ${thinkRun.when ? fmtEt(thinkRun.when) : "—"} · Outcome: ${thinkRun.outcome || "—"}`
-          : "no think report yet";
-        cardsEl.innerHTML = `
+
+      const locksEl = document.getElementById("lane-sync-locks");
+      const locksMeta = document.getElementById("lane-sync-locks-meta");
+      if (locksEl) {
+        const pack = sync.locks || {};
+        const locks = pack.locks || [];
+        const claim = pack.checkin && pack.checkin.active_claim;
+        if (locksMeta) {
+          const freshN = locks.filter((l) => l.fresh).length;
+          locksMeta.textContent = claim
+            ? `active · ${claim.resource || "?"} · ${claim.holder || "?"}`
+            : (freshN ? `${freshN} fresh` : "no active claim");
+        }
+        if (!locks.length && !claim) {
+          locksEl.innerHTML = '<p class="empty">No locks on disk</p>';
+        } else {
+          const rows = [];
+          if (claim) {
+            rows.push(`<div class="meta-card warn">
+              <div class="aw-label">Active claim</div>
+              <div>${esc(claim.resource || "—")} · ${esc(claim.holder || "—")}</div>
+              <div class="meta-paths">${esc(claim.note || "")}${claim.heartbeat_at ? ` · ${esc(fmtEt(claim.heartbeat_at))}` : ""}</div>
+            </div>`);
+          }
+          for (const l of locks.slice(0, 8)) {
+            const cls = l.fresh ? "warn" : (l.stale ? "bad" : "ok");
+            rows.push(`<div class="meta-card ${cls}">
+              <div class="aw-label">${esc(l.resource || "lock")}</div>
+              <div>${esc(l.status || "—")} · ${esc(l.holder || "—")}</div>
+              <div class="meta-paths">${esc(l.note || "")}${l.heartbeat_at ? ` · ${esc(fmtEt(l.heartbeat_at))}` : ""}</div>
+            </div>`);
+          }
+          locksEl.innerHTML = rows.join("");
+        }
+      }
+
+      const rulesWrap = document.getElementById("lane-sync-rules-wrap");
+      if (rulesWrap) {
+        const rules = sync.conflict_rules || [];
+        if (!rules.length) {
+          rulesWrap.innerHTML = '<p class="empty">No rules</p>';
+        } else {
+          rulesWrap.innerHTML = `<table class="lane-sync-rules"><thead><tr>
+            <th>Resource</th><th>Writers</th><th>Skip</th><th>Lock</th>
+          </tr></thead><tbody>${rules.map((r) => `<tr>
+            <td>${esc(r.resource || "")}</td>
+            <td>${esc(r.writers || "")}</td>
+            <td>${esc(r.skip || "")}</td>
+            <td><code>${esc(r.lock || "")}</code></td>
+          </tr>`).join("")}</tbody></table>`;
+        }
+      }
+
+      const pickEl = document.getElementById("lane-sync-pick-order");
+      if (pickEl) {
+        const order = sync.pick_order || [];
+        pickEl.innerHTML = order.length
+          ? order.map((x) => `<li>${esc(x)}</li>`).join("")
+          : "<li class='empty'>—</li>";
+      }
+
+      const catEl = document.getElementById("lane-sync-catalog");
+      if (catEl) {
+        // Compact catalog from SYSTEMS_DESIGN_BOARD pointers + reuse (board remains SoT in Docs).
+        const board = sync.systems_design_board || m.systems_design_board || "agents/SYSTEMS_DESIGN_BOARD.md";
+        const deslop = m.daily_deslop_open;
+        catEl.innerHTML = `
           <div class="meta-card">
-            <div class="aw-label">Next meta task</div>
-            <div>${next ? esc(String(next).replace(/\*\*/g, "").slice(0, 140)) : '<span class="meta">Backlog clear</span>'}</div>
+            <div class="aw-label">Systems design board</div>
+            <div>${esc(board)}</div>
+            <div class="meta-paths">Open in Docs · update when adding a service</div>
           </div>
           <div class="meta-card">
-            <div class="aw-label">Last Done</div>
-            <div>${esc(lastDoneLine)}</div>
+            <div class="aw-label">Daily deslop</div>
+            <div>${deslop != null ? `${esc(String(deslop))} open` : "—"}</div>
+            <div class="meta-paths">${esc(m.daily_deslop_progress || "agents/daily-deslop-progress.md")}</div>
           </div>
           <div class="meta-card">
-            <div class="aw-label">Last think tick</div>
-            <div>${esc(thinkRunLine)}</div>
-          </div>
-          <div class="meta-card">
-            <div class="aw-label">Last meta-ish tick</div>
-            <div>${esc(metaRunLine)}</div>
-          </div>
-          <div class="meta-card">
-            <div class="aw-label">UI smoke</div>
-            <div>${esc(smokeLine)}</div>
-            <div class="meta-paths">${esc(smoke?.path || "reports/dashboard-ui-smoke/latest.json")}</div>
-          </div>
-          <div class="meta-card">
-            <div class="aw-label">Systems design</div>
-            <div>${esc(m.systems_design_board || "agents/SYSTEMS_DESIGN_BOARD.md")}</div>
-            <div class="meta-paths">Daily deslop open: ${esc(String(m.daily_deslop_open ?? "—"))} · ${esc(m.daily_deslop_progress || "agents/daily-deslop-progress.md")}</div>
-            <div class="meta-paths">${esc(m.git_regression_memory || "agents/git-regression-memory.md")}</div>
-          </div>
-          <div class="meta-card">
-            <div class="aw-label">Paths</div>
-            <div class="meta-paths">${esc(m.backlog_path || "agents/LINUXBOX_DASHBOARD_BACKLOG.md")}<br>${esc(m.task_path || "agents/LINUXBOX_DASHBOARD_TASK.md")}</div>
+            <div class="aw-label">Regression memory</div>
+            <div>${esc(m.git_regression_memory || "agents/git-regression-memory.md")}</div>
           </div>
           <div class="meta-card">
             <div class="aw-label">Update gate</div>
             <div>${esc(m.update_gate || "safe-update-check.sh → SAFE")}</div>
             <div class="meta-paths">${esc(m.update_targets || "agents/update-targets.json")}</div>
+          </div>
+          <div class="meta-card">
+            <div class="aw-label">UI smoke</div>
+            <div>${m.smoke
+              ? (m.smoke.failed != null
+                ? `${m.smoke.failed === 0 ? "pass" : "fail"} · ${m.smoke.passed ?? "?"} ok · ${m.smoke.date || "?"}`
+                : (m.smoke.date || "report present"))
+              : "no smoke report"}</div>
           </div>`;
+      }
+
+      const docsEl = document.getElementById("lane-sync-docs");
+      if (docsEl) {
+        const docs = sync.docs || [];
+        docsEl.textContent = docs.length ? `Docs: ${docs.join(" · ")}` : "";
+      }
+
+      // Observability block lives on System (`#hub`) — keep backlog list filled.
+      const countEl = document.getElementById("meta-backlog-count");
+      if (countEl) {
+        const n = m.open_count ?? (data?.dashboard_backlog_open || []).length;
+        countEl.textContent = `${n} open`;
       }
       const list = document.getElementById("backlog-open");
       if (list) {

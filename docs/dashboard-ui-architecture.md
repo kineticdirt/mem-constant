@@ -10,7 +10,7 @@ Read this **before** any dashboard UI change. Do not add global `input {}` rules
 | Layer | Responsibility |
 |-------|----------------|
 | **Shell** | `.app` → `.rail` (silos + secondary) + `.workspace` (panels) |
-| **Silos (2026-07-26)** | System · Tasks · Ops Chat · News · Docs · Pixi RP · Mazda3 · Meta — Maps off-dashboard (`map.tableslop.org`). Plan: `docs/plans/linuxbox-silo-dashboard-2026-07-26.md` |
+| **Silos (2026-07-26)** | System · Tasks · Ops Chat · News · Docs · Pixi RP · Mazda3 · Meta — Maps off-dashboard (`map.tableslop.org`). Plan: `docs/plans/linuxbox-silo-dashboard-2026-07-26.md`. **Meta** = lane sync / systems design; papercuts · meta-harness · backlog live at bottom of **System**. |
 | **Panels** | One `<section id="{tab}">` per rail tab; only one `.active` at a time (`hub` = System, `systems` = Host detail, `garage` = Mazda3, `pixi` = Pixi RP) |
 | **Data** | `linuxbox-status-server.js` REST under `/api/*`; JSON files in `agents/` |
 | **Client state** | `agentData` (hub/System), `sessionStorage` (inbox drafts, tab prefs), `localStorage` (sizing, camp focus) |
@@ -38,6 +38,8 @@ flowchart TB
 **Process (GM):** when something is wrong → (1) understand *why* → (2) leave a prevention so it cannot silently recur. Symptom-only patches are unfinished.
 
 **2026-08-03 Hub empty / rail-in-center layout:** `.mobile-page-select-wrap` lived as the first child of `.app`. Potato CSS hid it only inside `@media (max-width: 768px)`, so on desktop it stayed a grid item, stole the 64px rail column, pushed `.rail` into the main column, and crushed `.workspace` into a left sliver. **Prevention:** hide the wrap with `display: none` *outside* media queries; pin desktop layout with `grid-template-areas: "rail workspace"` (mobile uses `pagesel` / `workspace` / `rail`); bump `dash-build` pair; Playwright layout smoke (`railLeft≈0`, `wrapDisplay=none`).
+
+**2026-08-08 Hub inputs “tick” / selection reset:** `load()` (~20s) + `pollThinkLive` (~2.5–5s) rebuilt Worker log / Active-now goal / Meta papercuts / debug JSON via `innerHTML`, wiping caret and highlights in Fix this, chat, Tasks goal, and the live log. **Prevention:** `hubUserIsEditing()` — while a textarea/input is focused or a text selection is active, patch Worker Goal/Step/log in place and skip destructive panel rebuilds; dash-build `db_20260808-hub-edit-preserve-r1`.
 
 The dashboard grew as **one HTML file** with:
 

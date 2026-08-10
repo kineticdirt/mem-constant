@@ -83,6 +83,20 @@ Every tick MUST state: SUCCESS METRIC: … and VERIFY: … then end with exactly
 (DONE: … or BLOCKED: … or IDLE: …) only after verify matches.
 SoT: agents/THINK_SECURITY_CHECKS.md §C8."""
 
+STE_RULES = """## Prose rules (STE — every report/ledger/inbox line)
+One approved term per concept; never rotate synonyms (user/customer/client).
+Active verbs; no nominalizations ("analyze", not "perform an analysis").
+Sentences ≤20 words (instructions) / ≤25 (descriptions); one idea each.
+No semicolons. No hedging stacks ("it is important to note", "may potentially").
+No soft phrasal verbs: start/ask/read, not spin up/reach out/dive into.
+Lint SoT: .cursor/rules/anti-slop.mdc (six bans: agents/AI_BAD_HABITS.md)."""
+
+LANE_SYNC_HINT = """## Lane sync (Meta philosophy — apply while implementing)
+Prefer clear silos over Tasks soup; correctness over thrash.
+Before shared SoT writes: ledger Intent + multitask lock when required.
+Observability triad (System panel): papercuts · meta-harness · dashboard backlog.
+SoT: agents/META_LANE_SYNC.md · skill .cursor/skills/lane-sync · board SYSTEMS_DESIGN_BOARD.md."""
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -90,7 +104,11 @@ def main() -> int:
     ap.add_argument("--lane-file", default="")
     args = ap.parse_args()
     repo = Path(args.repo).resolve()
-    parts: list[str] = ["--- AGENT SETUP (injected; not a second lane) ---", PAID_RULES]
+    parts: list[str] = ["--- AGENT SETUP (injected; not a second lane) ---", PAID_RULES, STE_RULES, LANE_SYNC_HINT]
+
+    meta_lane = repo / "agents/META_LANE_SYNC.md"
+    if meta_lane.is_file():
+        parts.append("## META_LANE_SYNC.md\n" + read_capped(meta_lane, 2200))
 
     setup = repo / "agents/think-agent-setup.md"
     if setup.is_file():
