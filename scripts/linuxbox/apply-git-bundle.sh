@@ -132,6 +132,12 @@ unset _wd
 # SCP path is covered by scripts/pc/fix-sh-crlf-remote.sh; same strip here for bundles.
 find "${REPO}/scripts/linuxbox" -name '*.sh' -type f -exec sed -i 's/\r$//' {} + 2>/dev/null || true
 
+# dd-12: after bundle lands new tick/sync scripts, refresh durable ~/bin shadows
+# (tick re-exec prefers ~/bin — stale shadow defeats repo fixes; sync tick also refreshes).
+if [[ -f "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" ]]; then
+  bash "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" "${REPO}" || echo "apply-git-bundle: WARN refresh-bin-shadows failed" >&2
+fi
+
 restart_dashboard=0
 restart_tableslop=0
 restart_campaigns=0

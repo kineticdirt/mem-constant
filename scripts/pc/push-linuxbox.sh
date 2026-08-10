@@ -262,6 +262,10 @@ if [[ -n "\$CHAT_BAK" ]]; then
 fi
 chmod +x "${REMOTE}/scripts/linuxbox/"*.sh 2>/dev/null || true
 chmod +x "${REMOTE}/scripts/linuxbox/lib/"*.sh 2>/dev/null || true
+# dd-12 / pc-2026-08-05-think-tick-stale-bin-shadow: keep ~/bin shadows = repo after SCP.
+if [[ -f "${REMOTE}/scripts/linuxbox/refresh-bin-shadows.sh" ]]; then
+  bash "${REMOTE}/scripts/linuxbox/refresh-bin-shadows.sh" "${REMOTE}" || echo "WARN: refresh-bin-shadows failed" >&2
+fi
 mkdir -p /mnt/archive/logs/agent-runs /mnt/archive/logs/security /mnt/archive/logs/loop-traces 2>/dev/null || true
 mkdir -p "${REMOTE}/agents/state"
 # Always prefer state/ as canonical; legacy path must be a symlink (pods historically wrote agents/human-inbox.json).
@@ -387,6 +391,26 @@ if [[ "${MODE}" == "--finished" ]]; then
       push_tarball PATHS "" "" || echo "WARN: agent-config push failed" >&2
     fi
   done
+  # Explicit --finished refresh (sync tick also refreshes; this covers deploy-before-next-cron).
+  echo "--- refresh ~/bin shadows ---"
+  ssh "${SSH_OPTS[@]}" "${HOST}" bash -s <<'REMOTE_BIN'
+set -euo pipefail
+REPO="${HOME}/agent-dump"
+if [[ -f "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" ]]; then
+  bash "${REPO}/scripts/linuxbox/refresh-bin-shadows.sh" "${REPO}"
+  for f in agent-cycle-think-tick.sh agent-cycle-sync.sh; do
+    if [[ -f "${REPO}/scripts/linuxbox/${f}" && -f "${HOME}/bin/${f}" ]]; then
+      cmp -s "${REPO}/scripts/linuxbox/${f}" "${HOME}/bin/${f}" || {
+        echo "ERROR: ~/bin/${f} still differs from repo after refresh" >&2
+        exit 1
+      }
+      echo "OK ~/bin/${f} matches repo"
+    fi
+  done
+else
+  echo "WARN: refresh-bin-shadows.sh missing on potato" >&2
+fi
+REMOTE_BIN
   echo "=== finished ==="
   exit 0
 fi

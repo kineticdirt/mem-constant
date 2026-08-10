@@ -691,3 +691,8 @@
 ## 2026-08-09 23:04 ET — [PC] Result: daily deslop dd-09 shipped
 
 [PC] Result (holder `daily-deslop-dd-09`): Documented Discord token helper in `SYSTEMS_DESIGN_BOARD.md` Shared primitives + closed design checkbox; marked **dd-09** done. Docs only. SHA `e2e8f4a` → linuxbox `main` + potato bundle `ec905d5→e2e8f4a` verify-runtime-state PASS. Hermes gateway + both watchdog timers left **active**. Next open: **dd-10**.
+
+## 2026-08-09 ~23:35 ET — [PC] Intent: dd-12 bin-shadow refresh on push
+
+[PC] Intent: dd-12 — fold repo→`~/bin` refresh (`refresh-bin-shadows.sh`) into `push-linuxbox.sh --finished` (+ push_tarball / apply-git-bundle) so shadows cannot drift. Sync tick already refreshes. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-12`.
+

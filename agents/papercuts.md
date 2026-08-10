@@ -8,6 +8,15 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 **Entry format** (newest first, one line per field — add entries directly below the `---`):
 
 ```markdown
+## pc-2026-08-10-dashboard-scp-wiped-by-bundle
+- **Date:** 2026-08-10
+- **Lane:** hub | ops
+- **Area:** `linuxbox-status/index.html` + `linuxbox-status-server.js` vs `apply-git-bundle.sh`
+- **Severity:** blocking (UI “no changes” while API claimed new)
+- **Complaint:** SCP’d Meta lane-sync HTML/JS then potato sync tick restored git HEAD old stub (`db_20260808…`). Agent claimed live; Hub still showed philosophy stub.
+- **Proposed fix:** After dashboard edits: commit → `publish-linuxbox-repo.sh` / git-bundle OR `push-linuxbox.sh --dashboard` and verify served `dash-build` grep before Result.
+- **Status:** fixed 2026-08-10 — holder `lane-sync-skill-run` (commit 971fc3b + --dashboard pair ok).
+
 ## pc-2026-08-09-gateway-watchdog-203-recur
 - **Date:** 2026-08-09
 - **Lane:** ops | hub
@@ -108,7 +117,7 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Severity:** blocking
 - **Complaint:** The repo tick re-execs `~/bin/agent-cycle-think-tick.sh` when executable (`SELF` prefers it), and nothing re-ran `install-agent-cycle-think-only.sh` after Aug 1 — the live tick ran the stale copy with `THINK_TIMEOUT_OPS=300`, silently defeating the repo-side 600s fix (and any other repo edit since Aug 1).
 - **Proposed fix:** Refresh the installed copy after every repo change (`cp -f` + chmod, per installer lines 41-43); ideally fold into the deploy path.
-- **Status:** fixed 2026-08-05 — `cp -f` repo→`~/bin` for tick (600 verified live) and `agent-cycle-sync.sh` (17-line Jul-31 shadow missing GM-borders autorestore + error-collect + free-models-health; sync was dormant-stale, repo path preferred). **Prevention proposal (GM):** add the `cp -f ~/bin` refresh to `push-linuxbox.sh --finished` or the sync tick so shadows can never drift again.
+- **Status:** fixed 2026-08-05 — `cp -f` repo→`~/bin` for tick/sync; `refresh-bin-shadows.sh` on sync tick. **Prevention (dd-12, 2026-08-09):** also refresh from `push-linuxbox.sh` push_tarball + `--finished` (cmp-verify tick+sync) and `apply-git-bundle.sh` post-apply — shadows cannot drift across SCP/bundle/cron.
 
 ## pc-2026-08-05-pod-scheduler-missing-profile
 - **Date:** 2026-08-05
