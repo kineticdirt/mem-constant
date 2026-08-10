@@ -99,7 +99,7 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 - **Severity:** annoying
 - **Complaint:** New repo files ride `--finished` only if hand-added to `DASHBOARD_PATHS`/`SCRIPTS_LINUXBOX` lists; a missing entry = deployed server requires a module that never ships → crash loop (`Cannot find module './chars-registry-read-cache'` at 18:22, plus tick would have failed on missing `lib/think-log-classify.sh`).
 - **Proposed fix:** added the 5 missing entries (done); longer-term generate the lists from `require()`/`source` scan or a git-diff check in push.
-- **Status:** fixed 2026-08-05 — `chars-registry-read-cache.js` (dashboard), `refresh-bin-shadows.sh`, `lib/think-log-classify.sh`, `think-continuity-seed.py`, `resource_governor.py` (scripts) added; manifest paths_hint synced.
+- **Status:** fixed 2026-08-05 — `chars-registry-read-cache.js` (dashboard), `refresh-bin-shadows.sh`, `lib/think-log-classify.sh`, `think-continuity-seed.py`, `resource_governor.py` (scripts) added; manifest paths_hint synced. **Prevention (dd-15, 2026-08-10):** `scripts/linuxbox/check-dashboard-require-paths.sh` scans `linuxbox-status-server.js` local `require('./…')` (BFS) vs `DASHBOARD_PATHS`; fail-loud on push `--dashboard`/`--finished`; `--self-check` proves synthetic missing fails.
 
 ## pc-2026-08-05-hub-exit-mmap-8790-wedge
 - **Date:** 2026-08-05

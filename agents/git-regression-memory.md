@@ -26,3 +26,4 @@
 ## Prevention thin (needs a stronger guard)
 
 - Pin∉border for Paradise/Porto/Jacked — **resolved via A** (centroids); optional smoke PIP gate later if GM wants.
+- **deploy PATHS miss new require** (`pc-2026-08-05-deploy-list-new-file-miss`): Hub server ships but local `require('./…')` not on `DASHBOARD_PATHS` → crash loop. Prevention: `check-dashboard-require-paths.sh` on push (dd-15).

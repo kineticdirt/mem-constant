@@ -92,6 +92,9 @@ on every write, and revisions land under `agents/state/chars-registry-revisions/
 4. **Roster API** — each manifest `verify.api` endpoint parses as JSON and has
    `>= min_visible` characters.
 
+**Deploy PATHS require-scan:** before Hub dashboard SCP, `bash scripts/linuxbox/check-dashboard-require-paths.sh` fails if `linuxbox-status-server.js` local `require('./…')` modules are missing from `push-linuxbox.sh` `DASHBOARD_PATHS` (pc-2026-08-05-deploy-list-new-file-miss / dd-15).
+
+
 On failure it appends `agents/state/dashboard-deploy-alerts.jsonl`, opens a
 human-inbox question (stable id `runtime-verify-fail-<YYYYMMDD>` + `fail_sig`), and
 exits 1 — the calling script surfaces the failure (`VERIFY FAILED`) instead of

@@ -47,6 +47,7 @@
 | Supply-chain gate | Upgrade only if SAFE | `safe-update-check.sh` |
 | Regression memory | Don’t re-break known modes | `agents/git-regression-memory.md` |
 | Discord bot token | Canonical `DISCORD_BOT_TOKEN` resolve (env → hunter → tropic → hermes); never log | `scripts/linuxbox/discord_token.py` — shell: `tok=$(python3 scripts/linuxbox/discord_token.py)`; py: `from discord_token import _discord_token` |
+| Deploy require-scan | Hub `require('./…')` modules must be on `DASHBOARD_PATHS` | `scripts/linuxbox/check-dashboard-require-paths.sh` (`--self-check`); push-linuxbox `--dashboard`/`--finished` |
 | Dash-build pair | Keep Hub HTML meta ≡ server `DASH_BUILD` | `scripts/linuxbox/bump-dash-build.sh` (`--check` / `<id>`); verify-runtime-state fails on mismatch |
 
 ## Open design questions (board)

@@ -709,3 +709,12 @@
 
 [PC] Result (holder `daily-deslop-dd-12`): Folded `refresh-bin-shadows.sh` into `push-linuxbox.sh` push_tarball + `--finished` (cmp-verify tick+sync) and `apply-git-bundle.sh` post-apply (sync tick already refreshed). Self-check OK. SHA `c4b55af` → linuxbox `main` + potato HEAD `c4b55af` (bundle SSH reset mid-apply after restore; remote refresh+`verify-runtime-state` PASS). `~/bin` tick+sync match repo. hermes-gateway + both watchdog timers left **active**. Next open: **dd-13 already [x]** (Hub-c shipped `0de0dd7`) — desk clear pending reseed.
 
+
+## 2026-08-10 ~00:01 ET — [PC] Result: clear stale hub-si locks
+
+[PC] Result (holder `clear-stale-hub-si-locks`): GM-authorized release on potato of stale multitask locks `hub-si-dash-smoke` (was holder `cursor-twin-si-2209`, claimed stale) and `hub-si-intel-feeds` (was holder `cursor-twin-think-si-2031`, claimed stale). Both `release` → `status=done` / `released_at` set; `active_claim` null. Unrelated locks left untouched.
+
+## 2026-08-10 ~00:01 ET — [PC] Intent: dd-15 deploy PATHS require-scan
+
+[PC] Intent: dd-15 — fail-loud when `linuxbox-status-server.js` local `require('./…')` modules are missing from `push-linuxbox.sh` DASHBOARD_PATHS (pc-2026-08-05-deploy-list-new-file-miss longer-term). Verify listed OK + synthetic missing → fail. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-15`.
+

@@ -16,6 +16,13 @@ MANIFEST="${REPO}/agents/linuxbox-deploy-manifest.json"
 
 MODE="${1:---all}"
 
+
+# Fail-loud: Hub server require('./…') modules must be on DASHBOARD_PATHS
+# (pc-2026-08-05-deploy-list-new-file-miss).
+check_dashboard_require_paths() {
+  bash "${REPO}/scripts/linuxbox/check-dashboard-require-paths.sh"
+}
+
 # Runtime-truth files (user-tasks, swarm-queue, archive-meta, agents/state/**)
 # are potato-owned and MUST NOT be pushed from PC — see
 # docs/runtime-state-protection.md + agents/protected-runtime-paths.json.
@@ -79,6 +86,7 @@ LINUXBOX_SCRIPT_PATHS=(
   scripts/linuxbox/agent-cycle-think-tick.sh
   scripts/linuxbox/refresh-bin-shadows.sh
   scripts/linuxbox/bump-dash-build.sh
+  scripts/linuxbox/check-dashboard-require-paths.sh
   scripts/linuxbox/lib/think-log-classify.sh
   scripts/linuxbox/think-continuity-seed.py
   scripts/linuxbox/goal-inject.py
@@ -374,6 +382,7 @@ if [[ "${MODE}" == "--finished" ]]; then
         echo "SKIP tableslop-map: no master-enhanced.png"
       fi
     elif [[ "${id}" == "dashboard" ]]; then
+      check_dashboard_require_paths
       PATHS=()
       while IFS= read -r p; do p="${p//$'\r'/}"; [[ -n "${p}" && -e "${REPO}/${p}" ]] && PATHS+=("${p}"); done < <(printf '%s\n' "${DASHBOARD_PATHS[@]}")
       if [[ ${#PATHS[@]} -gt 0 ]]; then
@@ -430,6 +439,7 @@ done < <(pick_paths || { echo "usage: $0 [--finished|--all|--agents|--scripts-li
 restart=""
 verify=""
 if [[ "${MODE}" == "--dashboard" ]]; then
+  check_dashboard_require_paths
   restart="linuxbox-status"
   verify="http://127.0.0.1:8790/"
 fi
