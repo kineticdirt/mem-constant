@@ -718,3 +718,7 @@
 
 [PC] Intent: dd-15 — fail-loud when `linuxbox-status-server.js` local `require('./…')` modules are missing from `push-linuxbox.sh` DASHBOARD_PATHS (pc-2026-08-05-deploy-list-new-file-miss longer-term). Verify listed OK + synthetic missing → fail. LOCK: no hermes stop; no regions-ui/registry wipe. Holder: `daily-deslop-dd-15`.
 
+## 2026-08-10 ~00:12 ET — [PC] Result: daily deslop dd-15 shipped
+
+[PC] Result (holder `daily-deslop-dd-15`): Added `scripts/linuxbox/check-dashboard-require-paths.sh` (BFS local `require('./…')` vs `DASHBOARD_PATHS`; `--self-check` listed OK + synthetic missing fails). Wired into `push-linuxbox.sh` `--dashboard`/`--finished`. SHA `231544e` → linuxbox `main` + potato bundle `b46da1b→231544e` verify-runtime-state PASS. Potato `--self-check` OK. Hermes gateway + both watchdog timers left **active**. Next open: **dd-16**.
+
