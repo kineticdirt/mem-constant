@@ -13,6 +13,7 @@
 | 2026-08-10 | pins must not keep drifting | agent “helpfully” re-centroids / policy A | **FROZEN** `pin-coords-frozen.json` + `tableslop-pin-coords-guard.sh`; no moves without GM + `--accept` | `PIN-COORDS-LOCK.md` |
 | 2026-08-09 | map black (opacity / tiles) | `pickTileZoom` at fit requested maxZoom tiles stuck opacity 0; reduced-motion + map-reveal | scale-based zoom; `#mapImg{opacity:1}`; build meta cache-bust | `tableslop-server.js` map viewer |
 | 2026-08-09 | Hub `:8790` D-state / VERIFY FAIL after bundle | bundle strips `+x` on `scripts/linuxbox/*.sh`; status hangs under swap | `fix-sh-crlf-remote.sh` / chmod after bundle; `verify-runtime-state.sh` | `docs/runtime-state-protection.md` |
+| 2026-08-10 | Discord token resolver missing on PC while callers imported it | potato had untracked `discord_token.py`; PC callers already `from discord_token import …` | **commit** `scripts/linuxbox/discord_token.py`; refactor euro/nyc/ingest/pepper to use it (dd-02) | `discord_token.py`, configure-hermes-discord-{euro,nyc,hunter}.sh |
 | 2026-08-08 | `/world` hang “checking…” | template-literal newline broke inline JS; marked CDN blocked boot | `\n` escapes; bindMods early; `check-world-page-js.js` | `tableslop-server.js` `worldPageHtml` |
 
 ## How to append

@@ -46,21 +46,17 @@ if [[ ! -f "${SOUL}" ]]; then
 fi
 
 # Discover Big Apples channel ids via REST, then keep listen-only subset
-CATEGORY_ID="${CATEGORY_ID}" CHANNELS_OUT="${CHANNELS_OUT}" ENV_FILE="${ENV_FILE}" python3 - <<'PY'
-import json, os, urllib.request
+CATEGORY_ID="${CATEGORY_ID}" CHANNELS_OUT="${CHANNELS_OUT}" REPO="${REPO}" python3 - <<'PY'
+import json, os, sys, urllib.request
 from pathlib import Path
+
+sys.path.insert(0, str(Path(os.environ["REPO"]) / "scripts" / "linuxbox"))
+from discord_token import _discord_token
 
 category_id = os.environ["CATEGORY_ID"]
 out_path = Path(os.environ["CHANNELS_OUT"])
-env_path = Path(os.environ["ENV_FILE"])
 
-def token_from_env(p: Path) -> str:
-    for line in p.read_text(encoding="utf-8").splitlines():
-        if line.startswith("DISCORD_BOT_TOKEN="):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("DISCORD_BOT_TOKEN missing in hunter profile .env")
-
-tok = token_from_env(env_path)
+tok = _discord_token()
 req = urllib.request.Request(
     "https://discord.com/api/v10/guilds/1012888284222988409/channels",
     headers={"Authorization": f"Bot {tok}", "User-Agent": "nyc-discord-wire (agent-dump)"},

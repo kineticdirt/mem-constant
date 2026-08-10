@@ -2,8 +2,9 @@
 """Probe Discord visibility + last-activity for campaign trackers.
 
 Writes agents/state/campaign-discord-status.json (no tokens, no message bodies).
-Uses shared _discord_token() from discord_token.py (checks DISCORD_BOT_TOKEN,
-DISCORD_TOKEN, BOT_TOKEN across campaign .env, hunter profile, and ~/.hermes/.env).
+Uses shared `_discord_token()` from `discord_token.py` (process env, then hunter
+profile → tropic `.env` → `~/.hermes/.env`; keys `DISCORD_BOT_TOKEN` then
+`DISCORD_TOKEN`).
 
 Specs: campaigns/*/discord.json, else tracker.json discord{} for TRACKED ids.
 

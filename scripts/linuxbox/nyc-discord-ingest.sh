@@ -11,7 +11,6 @@ REPO="${HOME}/agent-dump"
 CAMPAIGN="${REPO}/campaigns/nyc-mafia-dnd"
 EXPORT_PY="${CAMPAIGN}/export_discord_lore.py"
 ENV_FILE="${CAMPAIGN}/.env"
-HUNTER_ENV="${HOME}/.hermes/profiles/hunter-reckoning/.env"
 GUILD_ID="1012888284222988409"
 CATEGORY_ID="1528215677272330300"
 STAMP_FILE="${HOME}/.hermes/state/nyc-discord-ingest-last.json"
@@ -24,20 +23,17 @@ if [[ ! -f "${EXPORT_PY}" ]]; then
 fi
 
 # Ensure campaign .env has token + ids (gitignored)
-ENV_FILE="${ENV_FILE}" HUNTER_ENV="${HUNTER_ENV}" GUILD_ID="${GUILD_ID}" CATEGORY_ID="${CATEGORY_ID}" python3 - <<'PY'
+ENV_FILE="${ENV_FILE}" REPO="${REPO}" GUILD_ID="${GUILD_ID}" CATEGORY_ID="${CATEGORY_ID}" python3 - <<'PY'
 from pathlib import Path
 import os
+import sys
+
+sys.path.insert(0, str(Path(os.environ["REPO"]) / "scripts" / "linuxbox"))
+from discord_token import _discord_token
+
 env_path = Path(os.environ["ENV_FILE"])
-hunter = Path(os.environ["HUNTER_ENV"])
 guild, cat = os.environ["GUILD_ID"], os.environ["CATEGORY_ID"]
-tok = ""
-if hunter.exists():
-    for ln in hunter.read_text(encoding="utf-8").splitlines():
-        if ln.startswith("DISCORD_BOT_TOKEN="):
-            tok = ln.split("=", 1)[1].strip()
-            break
-if not tok:
-    raise SystemExit("no DISCORD_BOT_TOKEN in hunter profile .env")
+tok = _discord_token()
 lines = []
 if env_path.exists():
     for ln in env_path.read_text(encoding="utf-8").splitlines():

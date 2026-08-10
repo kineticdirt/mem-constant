@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import subprocess
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -48,19 +49,15 @@ CURSOR_RUN = REPO / "scripts" / "linuxbox" / "cursor-agent-run.sh"
 SOUL = REPO / "campaigns" / "nyc-mafia-dnd" / "SOUL-discord-qa.md"
 TIMEOUT = int(os.environ.get("PEPPER_CURSOR_TIMEOUT_SEC", "240"))
 
-
-def _token() -> str:
-    env = Path(os.environ.get("HERMES_HOME") or (REAL_HOME / ".hermes/profiles/hunter-reckoning")) / ".env"
-    if not env.is_file():
-        env = REAL_HOME / ".hermes/profiles/hunter-reckoning/.env"
-    for ln in env.read_text(encoding="utf-8").splitlines():
-        if ln.startswith("DISCORD_BOT_TOKEN="):
-            return ln.split("=", 1)[1].strip().strip('"').strip("'")
-    raise RuntimeError("DISCORD_BOT_TOKEN missing")
+sys.path.insert(0, str(REPO / "scripts" / "linuxbox"))
+from discord_token import _discord_token  # noqa: E402  # after REPO path seed
 
 
 def _discord_post(channel_id: str, content: str, reply_to: Optional[str] = None) -> None:
-    tok = _token()
+    try:
+        tok = _discord_token()
+    except SystemExit as exc:
+        raise RuntimeError(str(exc)) from exc
     body: Dict[str, Any] = {"content": content[:1900]}
     if reply_to:
         body["message_reference"] = {"message_id": str(reply_to)}

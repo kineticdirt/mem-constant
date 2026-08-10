@@ -29,6 +29,15 @@ Models/lanes log **paper cuts** here — small frictions, smells, and recurring 
 
 ---
 
+## pc-2026-08-10-pin-freeze-verify-false-fail
+- **Date:** 2026-08-10
+- **Lane:** ops | tableslop
+- **Area:** `tableslop-pin-coords-guard.sh` + `verify-runtime-state.sh` during git-bundle apply
+- **Severity:** annoying (false VERIFY FAIL / inbox noise)
+- **Complaint:** Bundle apply logged pin-freeze drift + inbox `runtime-verify-fail-20260810` right after policy-A pin moves. Live potato now: pin guard **PASS v1/14** matching post-A centroids; full `verify-runtime-state` PASS. Likely apply-time preserve vs freeze skew (or freeze not yet on disk mid-apply), not GM pin sabotage.
+- **Proposed fix:** treat pin-freeze FAIL during bundle as re-check after apply settles; only `--accept` with explicit GM OK. Do not move pins to “fix” verify.
+- **Status:** fixed 2026-08-10 — potato PASS; no pin moves; freeze SoT left as-is (matches live). Holder `daily-deslop-dd-02`.
+
 ## pc-2026-08-09-think-idle-gateway-false-down
 - **Date:** 2026-08-09
 - **Lane:** think | ops | hub
