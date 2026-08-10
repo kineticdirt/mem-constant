@@ -33,9 +33,11 @@ Optimize **resources**, not clock time: (1) **search tokens** — local/repo fir
 ## Lane rotation (per `agents/CURRENT_TASK.md`)
 
 Four continuous content lanes — **campaign · project · research · education**
-(`docs/agents/continuous-lanes.md`). Code SoT: `agent-cycle-think-tick.sh`.
+(`docs/agents/continuous-lanes.md`). Code SoT: `scripts/linuxbox/agent-cycle-think-tick.sh`.
 
-Each `agent-cycle-think` tick, in order, do the first lane with unchecked `[ ]` work:
+**Cron names (potato truth, verified):** crontab marker `# agent-cycle-think-1m` runs the think tick every minute (LLM gated by `THINK_INTERVAL_SEC`). Companion `# agent-cycle-cursor-5m` for Cursor. Legacy Hermes cron job names `agent-cycle` / `agent-cycle-think` / `agent-cycle-fast` are **paused** by `install-agent-cycle-think-only.sh` — do not treat bare `agent-cycle` as the live crontab. Prefer saying **think tick** / `agent-cycle-think-tick.sh` in docs.
+
+Each think tick (`agent-cycle-think-1m` → `agent-cycle-think-tick.sh`), in order, do the first lane with unchecked `[ ]` work:
 
 1. `git pull` in `~/agent-dump` **only if** clean (no merge conflicts). Else skip.
    Prefer PC git-bundle sync — do not inbox-block on private-repo pull.
@@ -60,7 +62,7 @@ If nothing is unchecked anywhere → reply `IDLE` only.
 
 **Sync (deterministic, no LLM):** `agent-cycle-sync.sh` runs at the start of every think crontab minute (inbox normalize, git bundle, consume-inbox-answers, swarm-dispatch). Former **fast** lane removed 2026-08-01.
 
-`agent-cycle-think` (crontab **1m**, LLM interval-gated ~8m via `THINK_INTERVAL_SEC=480`) does lane work + setup-file injection (`think-setup-context.py` → `CLAUDE.md` + lane SoT). No Cursor on cron.
+Think crontab **`# agent-cycle-think-1m`** (every minute; LLM interval-gated ~8m via `THINK_INTERVAL_SEC=480`) does lane work + setup-file injection (`think-setup-context.py` → `CLAUDE.md` + lane SoT). Cursor is a separate crontab (`# agent-cycle-cursor-5m`), not this think tick.
 
 **Parallel (Cursor Auto ∥ Hermes OR+ZenMux):** Lane A = potato `cursor:auto` / `cursor-agent-run.sh` (Hub or SSH/nohup). Lane B = Hermes think/chat free-first OpenRouter+ZenMux. Think never waits on Cursor; Hub Chat uses separate workers so Agent-coding Cursor does not block Hermes Hub chat. Status: `bash scripts/linuxbox/cursor-lane-status.sh`.
 

@@ -3,6 +3,7 @@
 
 
 
+- **2026-08-10T03:08Z** — [PC] **Intent:** daily-deslop-dd-10 — align CLAUDE.md cron names with live potato (`agent-cycle-think-1m` / think-tick); note legacy Hermes `agent-cycle`; mark dd-10; commit + git-bundle. Holder: `daily-deslop-dd-10`.
 - **2026-08-10T03:03:28Z** — [PC] **Result:** Meta UI live after re-deploy. Cause: potato `index.html`+`server.js` had been left/reverted to `db_20260808-chat-cache-revalidate-r1` while PC had lane-sync. Re-SCP both; on-disk+served pair `db_20260810-lane-sync-skill-r1`; lane-sync-panel + hub-observability served. Prevention: after dashboard SCP always md5+grep dash-build pair on potato before claiming UI. Hard-refresh Hub (Ctrl+Shift+R). Holder: `lane-sync-skill-run`.
 - **2026-08-10T03:01:52Z** — [PC] **Result:** Meta UI invisible because potato `index.html` stayed on `db_20260808-chat-cache-revalidate-r1` while API was `lane-sync-skill-r1` (SCP HTML missed / stale). Re-SCP'd HTML; verify pair before claiming UI. Holder: `lane-sync-skill-run`.
 - **2026-08-10T02:58:28Z** — [PC] **Result:** lane-sync skill live (holder `lane-sync-skill-run`). Skill `.cursor/skills/lane-sync` + agent `.cursor/agents/lane-sync.md` + `agents/META_LANE_SYNC.md`; think-setup + cursor-agent-run inject philosophy; Meta fold restored; System Observability run: papercuts open=0 · meta-harness 5 pods · backlog open=2 (Hub-c, Smoke). dash_build `db_20260810-lane-sync-skill-r1` potato 200. Hard-refresh Hub.
