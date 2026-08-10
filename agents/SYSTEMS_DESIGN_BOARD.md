@@ -46,12 +46,13 @@
 | Inbox normalize | Keep `answered[]` | `human-inbox-normalize.py` |
 | Supply-chain gate | Upgrade only if SAFE | `safe-update-check.sh` |
 | Regression memory | Don’t re-break known modes | `agents/git-regression-memory.md` |
+| Discord bot token | Canonical `DISCORD_BOT_TOKEN` resolve (env → hunter → tropic → hermes); never log | `scripts/linuxbox/discord_token.py` — shell: `tok=$(python3 scripts/linuxbox/discord_token.py)`; py: `from discord_token import _discord_token` |
 
 ## Open design questions (board)
 
 - [x] Hub Meta card: systems board + daily-deslop open count (2026-08-10)
 - [x] Tableslop: pin vs border SoT → **A** (pins into borders; borders sacred) 2026-08-10
-- [ ] Document Discord token helper once extracted (euro/nyc/tropic configure scripts)
+- [x] Document Discord token helper once extracted — `scripts/linuxbox/discord_token.py` in Shared primitives (dd-09 / 2026-08-09)
 
 ## Related docs
 
