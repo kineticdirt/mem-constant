@@ -13,10 +13,11 @@ Tick-sized only. When today’s Open children are `[x]`, archive under Done and 
 
 ## Open — next desk
 
-- [ ] **dd-04** Ponytail: `agent-pod-scheduler.sh` — explicit prompt branch for `ponytail-cleanup` pod (board path + Goal/Feature/Keep/Verify); verify `bash -n`
+- [ ] **dd-05** Ponytail: `campaigns/tropic-gooner/export_discord_lore.py` — add `from __future__ import annotations` for `Path | None` on Py3.9; verify `python3 -m py_compile`
 
 ## Done
 
+- [x] **dd-04** `agent-pod-scheduler.sh` `ponytail-cleanup` prompt branch: board path + Goal/Feature/Keep/Verify (not generic task_spec); `bash -n` — 2026-08-10
 - [x] **dd-02** `scripts/linuxbox/discord_token.py` shared resolver; euro/nyc configure + nyc ingest + pepper use it; list/probe/hunter already imported — 2026-08-10
 - [x] **dd-01** git-regression-memory seeded — 2026-08-10
 - [x] **dd-03** SYSTEMS_DESIGN_BOARD + Meta systems card — 2026-08-10

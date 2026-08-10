@@ -160,12 +160,15 @@ def read_task_prompt(pod: dict) -> str:
             "Do not git pull (deterministic apply-git-bundle + git-pull-and-deploy already ran). No RP, no dashboard coding, no campaigns/ edits.",
         ]
     elif pod["name"] == "ponytail-cleanup":
+        # Explicit branch (not generic task_spec soup): board + Goal/Feature/Keep/Verify.
         parts = [
-            "Ponytail cleanup pod (code profile). Read agents/PONYTAIL_CLEANUP_TASK.md.",
+            "Ponytail cleanup pod (code profile). Read agents/PONYTAIL_CLEANUP_TASK.md and .cursor/rules/ponytail.mdc.",
             INTENT,
-            "Board: agents/PONYTAIL_CLEANUP_BOARD.md — ONE Backlog card only.",
-            "Fix/refine in place; do NOT delete any files. Verify with py_compile/bash -n.",
-            "Move card to Done; run sync-ponytail-board-to-usb.sh if USB mounted.",
+            "Board: agents/PONYTAIL_CLEANUP_BOARD.md — take ONE unchecked Backlog card only.",
+            "Before editing, state Goal / Feature / Keep? / Verify (ponytail card format); keep that block in the Done line.",
+            "Fix/refine in place; do NOT delete any files. Verify with py_compile/bash -n/node --check as fits the edit.",
+            "Move card to Done; append one [LINUX] line to AI_GROUPCHAT.md; run sync-ponytail-board-to-usb.sh if USB mounted.",
+            "If nothing actionable, reply IDLE only.",
         ]
     elif pod["name"] == "think":
         active = Path(repo) / "agents" / "meta-harness" / "active" / "think-prompt.md"
