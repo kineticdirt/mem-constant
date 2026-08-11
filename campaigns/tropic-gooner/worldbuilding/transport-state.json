@@ -18,7 +18,7 @@
     "Quay alleys are not freeway on-ramps",
     "Federal roads look maintained; county roads look loved or ignored"
   ],
-  "highway_note": "Map Roads overlay labels SwitchBack (IP-2), Bay Ring (IP-1), South Coastal, Lagooni Spur, Seaside Connector — see map/highways.json. Green art remains the visual cue; overlay is Google-Maps-style labels. Geometry [proposal] until GM traces exact green lines.",
+  "highway_note": "Main Freeway/highway geometry is art-traced from black road markers on the terrain (green lines = SoT) via scripts/tableslop/extract-art-highways.py → map/highways.json. Named: Bay Ring IP-1, SwitchBack IP-2, South Coastal IP-3, Lagooni Spur IP-4, Seaside Connector IP-5. Prior yellow proposal sketches kept under highways.json proposals[].",
   "highways_track": {
     "layer_id": "highways",
     "geometry_owner": "map",
