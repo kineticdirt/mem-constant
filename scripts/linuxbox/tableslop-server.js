@@ -2154,7 +2154,7 @@ function viewerHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
 <!-- Eager underlay: pyramid-matched master (not mislabeled 1024 "2k") so Roads lock to green art. -->
-<meta name="tableslop-build" content="2026-08-10-hwy-labels-only"/>
+<meta name="tableslop-build" content="2026-08-10-hwy-wireframe-plane"/>
 <link rel="preload" as="image" href="/map-image?v=20260810roads"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
@@ -6112,7 +6112,10 @@ function initEconToggle(data, profile) {
 }
 
 function roadsUiEnabled() {
-  return mapDataCache && mapDataCache.highways_data && uiRoadsVisible;
+  return !!(mapDataCache && uiRoadsVisible && (
+    mapDataCache.highways_wireframe_url
+    || (mapDataCache.highways_data && (mapDataCache.highways_data.routes || []).length)
+  ));
 }
 
 function syncRoadsLayerVisibility() {
@@ -6120,29 +6123,40 @@ function syncRoadsLayerVisibility() {
 }
 
 function placeHighways(container, hwy) {
-  // Labels only — no yellow road strokes. Green terrain lines ARE the freeways.
+  // Plane overlay: wireframe PNG copied from green+black art + named labels.
   if (!container || !hwy) return;
   container.innerHTML = '';
   const NS = 'http://www.w3.org/2000/svg';
+  const wrap = document.createElement('div');
+  wrap.className = 'hwy-plane';
+  wrap.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+  const wireUrl = (mapDataCache && mapDataCache.highways_wireframe_url)
+    || '/map-highways-wireframe?v=20260810wf';
+  const img = document.createElement('img');
+  img.className = 'hwy-wireframe-img';
+  img.alt = 'highway wireframe';
+  img.draggable = false;
+  img.src = wireUrl;
+  img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;';
+  wrap.appendChild(img);
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('class', 'hwy-svg');
   svg.setAttribute('viewBox', hwy.viewBox || '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'none');
   (hwy.routes || []).forEach(function(route) {
     if (route.canon === 'proposal') return;
+    if (!route.ref) return; // PNG carries full wireframe; labels only for named IP routes
     const pts = route.points || [];
     const lab = route.label_at || (pts.length ? pts[Math.floor(pts.length / 2)] : null);
     if (!lab) return;
     const lx = Array.isArray(lab) ? lab[0] : lab.x;
     const ly = Array.isArray(lab) ? lab[1] : lab.y;
-    if (route.ref) {
-      const shield = document.createElementNS(NS, 'text');
-      shield.setAttribute('x', String(lx));
-      shield.setAttribute('y', String(ly - 0.9));
-      shield.setAttribute('class', 'hwy-shield');
-      shield.textContent = route.ref;
-      svg.appendChild(shield);
-    }
+    const shield = document.createElementNS(NS, 'text');
+    shield.setAttribute('x', String(lx));
+    shield.setAttribute('y', String(ly - 0.9));
+    shield.setAttribute('class', 'hwy-shield');
+    shield.textContent = route.ref;
+    svg.appendChild(shield);
     const text = document.createElementNS(NS, 'text');
     text.setAttribute('x', String(lx));
     text.setAttribute('y', String(ly + 1.1));
@@ -6150,28 +6164,31 @@ function placeHighways(container, hwy) {
     text.textContent = route.name || route.id;
     svg.appendChild(text);
   });
-  container.appendChild(svg);
+  wrap.appendChild(svg);
+  container.appendChild(wrap);
 }
 
 function initRoadsToggle(data, profile) {
   const btn = document.getElementById('roadsToggle');
   if (!btn) return;
-  if (!data.highways_data || !(data.highways_data.routes || []).length) {
+  const hasData = data.highways_data && (
+    (data.highways_data.routes || []).length || data.highways_wireframe_url
+  );
+  if (!hasData) {
     btn.hidden = true;
     return;
   }
   btn.hidden = false;
-  // Opt-out: labels default ON so named freeways are findable; no yellow strokes.
   uiRoadsVisible = profile.showRoads !== false;
-  btn.textContent = uiRoadsVisible ? 'Hwy labels ON' : 'Hwy labels OFF';
+  btn.textContent = uiRoadsVisible ? 'Hwy wire ON' : 'Hwy wire OFF';
   btn.onclick = function() {
     uiRoadsVisible = !uiRoadsVisible;
-    btn.textContent = uiRoadsVisible ? 'Hwy labels ON' : 'Hwy labels OFF';
+    btn.textContent = uiRoadsVisible ? 'Hwy wire ON' : 'Hwy wire OFF';
     saveProfile({ showRoads: uiRoadsVisible });
     const layer = document.querySelector('[data-layer-id="highways"]');
     if (layer) {
       layer.innerHTML = '';
-      if (uiRoadsVisible) placeHighways(layer, mapDataCache.highways_data);
+      if (uiRoadsVisible) placeHighways(layer, mapDataCache.highways_data || {});
     }
     syncRoadsLayerVisibility();
   };
@@ -6439,8 +6456,8 @@ function finishMapStage(stage, markers, profile) {
   const hwyLayer = layerEl(stack, 'highways');
   if (hwyLayer) {
     hwyLayer.innerHTML = '';
-    if (uiRoadsVisible && mapDataCache && mapDataCache.highways_data) {
-      placeHighways(hwyLayer, mapDataCache.highways_data);
+    if (uiRoadsVisible && mapDataCache && (mapDataCache.highways_data || mapDataCache.highways_wireframe_url)) {
+      placeHighways(hwyLayer, mapDataCache.highways_data || { viewBox: '0 0 100 100', routes: [] });
     }
   }
   if (labelLayer) {
@@ -7467,6 +7484,10 @@ function loadMapJson() {
     } catch {
       data.highways_data = null;
     }
+    const hwyWireAbs = path.join(CAMPAIGN_DIR, "map", "highways-wireframe.png");
+    data.highways_wireframe_url = fs.existsSync(hwyWireAbs)
+      ? "/map-highways-wireframe?v=20260810wf"
+      : null;
     const layersRel = data.layers_manifest;
     const layersAbs = layersRel && !layersRel.includes("..")
       ? path.join(CAMPAIGN_DIR, layersRel)
@@ -9568,6 +9589,25 @@ async function handleRequest(req, res) {
     const headers = {
       "Content-Type": types[ext] || "application/octet-stream",
       "Cache-Control": "public, max-age=86400",
+    };
+    if (size > 0) headers["Content-Length"] = String(size);
+    res.writeHead(200, headers);
+    fs.createReadStream(abs).pipe(res);
+    return;
+  }
+
+  if (url === "/map-highways-wireframe") {
+    const abs = path.join(CAMPAIGN_DIR, "map", "highways-wireframe.png");
+    if (!fs.existsSync(abs)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    let size = 0;
+    try { size = fs.statSync(abs).size; } catch { size = 0; }
+    const headers = {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=3600",
     };
     if (size > 0) headers["Content-Length"] = String(size);
     res.writeHead(200, headers);

@@ -1,408 +1,1853 @@
 {
-  "version": 2,
-  "updated_at": "2026-08-11T00:31Z",
+  "version": 3,
+  "updated_at": "2026-08-11T01:10Z",
   "viewBox": "0 0 100 100",
-  "_doc": "Main Freeway/highway geometry traced from black road markers on master-enhanced.png (green art = SoT). Prior yellow proposal sketches kept under proposals[] for reference. Does NOT touch pins/regions-ui.",
-  "style": "google_maps_road",
-  "source": "art-black-markers",
+  "_doc": "Wireframe highway components copied from green+black road art on master-enhanced.png (template \u2192 skeleton \u2192 polylines). Render as wireframe overlay on the map plane. Does NOT touch pins/regions-ui.",
+  "style": "wireframe",
+  "source": "art-green-black-skeleton",
   "marker_count": 142,
+  "skel_px": 8600,
   "routes": [
     {
-      "id": "hwy-bay-ring",
-      "name": "Bay Ring",
-      "ref": "IP-1",
-      "canon": "art-traced",
-      "kind": "freeway",
-      "note": "Traced along black road markers on master-enhanced (cities: Paradise \u2192 Porto Lujara \u2192 Jackedsonville \u2192 Paradise). Green art = SoT.",
+      "id": "hwy-wire-010",
+      "name": "Wire 10",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
       "points": [
         [
-          37.268,
-          55.232
+          20.557,
+          88.29
         ],
         [
-          41.077,
-          60.979
+          20.581,
+          88.362
         ],
         [
-          36.975,
-          64.14
+          20.728,
+          88.362
         ],
         [
-          33.167,
-          61.937
-        ],
-        [
-          30.725,
-          59.351
-        ],
-        [
-          33.167,
-          61.937
-        ],
-        [
-          36.975,
-          64.14
-        ],
-        [
-          41.077,
-          60.979
-        ],
-        [
-          37.268,
-          55.232
+          20.752,
+          88.29
         ]
       ],
       "label_at": [
-        30.725,
-        59.351
+        20.728,
+        88.362
       ]
     },
     {
-      "id": "hwy-switchback",
+      "id": "hwy-wire-066",
+      "name": "Wire 66",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          43.213,
+          70.642
+        ],
+        [
+          43.164,
+          70.546
+        ],
+        [
+          43.091,
+          70.546
+        ],
+        [
+          43.042,
+          70.642
+        ]
+      ],
+      "label_at": [
+        43.091,
+        70.546
+      ]
+    },
+    {
+      "id": "hwy-wire-067",
+      "name": "Wire 67",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          33.838,
+          26.58
+        ],
+        [
+          33.813,
+          26.485
+        ],
+        [
+          33.667,
+          26.485
+        ],
+        [
+          33.667,
+          26.7
+        ]
+      ],
+      "label_at": [
+        33.667,
+        26.485
+      ]
+    },
+    {
+      "id": "hwy-wire-091",
+      "name": "Wire 91",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          64.893,
+          48.611
+        ],
+        [
+          64.893,
+          48.443
+        ],
+        [
+          65.063,
+          48.42
+        ],
+        [
+          65.088,
+          48.587
+        ],
+        [
+          64.99,
+          48.611
+        ]
+      ],
+      "label_at": [
+        65.063,
+        48.42
+      ]
+    },
+    {
+      "id": "hwy-wire-126",
+      "name": "Wire 126",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          44.775,
+          35.68
+        ],
+        [
+          44.873,
+          35.704
+        ],
+        [
+          44.873,
+          35.848
+        ],
+        [
+          44.775,
+          35.872
+        ]
+      ],
+      "label_at": [
+        44.873,
+        35.848
+      ]
+    },
+    {
+      "id": "hwy-wire-224",
       "name": "SwitchBack",
       "ref": "IP-2",
-      "canon": "art-traced",
+      "canon": "art-wireframe",
       "kind": "freeway",
-      "note": "Traced along black road markers on master-enhanced (cities: Paradise \u2192 Sierra Dorado \u2192 InterFederal Shores). Green art = SoT.",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
       "points": [
         [
-          37.268,
-          55.232
+          42.041,
+          46.552
         ],
         [
-          40.1,
-          51.305
+          42.188,
+          46.48
         ],
         [
-          42.053,
-          46.324
+          42.261,
+          46.336
         ],
         [
-          44.788,
-          41.535
-        ],
-        [
-          42.053,
-          46.324
-        ],
-        [
-          35.608,
-          46.037
-        ],
-        [
-          34.587,
-          42.569
+          42.188,
+          46.001
         ]
       ],
       "label_at": [
-        44.788,
-        41.535
+        42.261,
+        46.336
       ]
     },
     {
-      "id": "hwy-south-coastal",
-      "name": "South Coastal",
-      "ref": "IP-3",
-      "canon": "art-traced",
-      "kind": "freeway",
-      "note": "Traced along black road markers on master-enhanced (cities: Villa Miel \u2192 Ruby Harbor \u2192 San Aurelio). Green art = SoT.",
-      "points": [
-        [
-          22.913,
-          76.114
-        ],
-        [
-          21.643,
-          79.945
-        ],
-        [
-          19.495,
-          83.776
-        ],
-        [
-          22.522,
-          86.075
-        ],
-        [
-          24.475,
-          89.619
-        ],
-        [
-          26.819,
-          89.715
-        ],
-        [
-          30.627,
-          90.769
-        ],
-        [
-          32.483,
-          94.504
-        ]
-      ],
-      "label_at": [
-        24.475,
-        89.619
-      ]
-    },
-    {
-      "id": "hwy-lagooni",
-      "name": "Lagooni Spur",
-      "ref": "IP-4",
-      "canon": "art-traced",
+      "id": "hwy-wire-244",
+      "name": "Wire 244",
+      "ref": null,
+      "canon": "art-wireframe",
       "kind": "highway",
-      "note": "Traced along black road markers on master-enhanced (cities: Portview \u2192 Lagooni Seika). Green art = SoT.",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
       "points": [
         [
-          49.866,
-          75.156
+          52.026,
+          39.607
         ],
         [
-          46.741,
-          80.711
+          51.807,
+          39.631
+        ],
+        [
+          51.831,
+          39.799
+        ],
+        [
+          51.978,
+          39.799
+        ],
+        [
+          52.002,
+          39.727
         ]
       ],
       "label_at": [
-        46.741,
-        80.711
+        51.831,
+        39.799
       ]
     },
     {
-      "id": "hwy-seaside",
+      "id": "hwy-wire-264",
+      "name": "Wire 264",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          45.215,
+          54.454
+        ],
+        [
+          45.068,
+          54.478
+        ],
+        [
+          45.068,
+          54.622
+        ],
+        [
+          45.215,
+          54.67
+        ]
+      ],
+      "label_at": [
+        45.068,
+        54.622
+      ]
+    },
+    {
+      "id": "hwy-wire-322",
+      "name": "Wire 322",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          28.662,
+          57.807
+        ],
+        [
+          28.662,
+          57.639
+        ],
+        [
+          28.833,
+          57.615
+        ],
+        [
+          28.857,
+          57.783
+        ],
+        [
+          28.76,
+          57.807
+        ]
+      ],
+      "label_at": [
+        28.833,
+        57.615
+      ]
+    },
+    {
+      "id": "hwy-wire-406",
+      "name": "Wire 406",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          43.921,
+          74.689
+        ],
+        [
+          43.994,
+          74.713
+        ],
+        [
+          44.019,
+          74.856
+        ],
+        [
+          44.165,
+          74.856
+        ],
+        [
+          44.189,
+          74.689
+        ],
+        [
+          44.067,
+          74.665
+        ]
+      ],
+      "label_at": [
+        44.165,
+        74.856
+      ]
+    },
+    {
+      "id": "hwy-wire-664",
+      "name": "Wire 664",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          30.811,
+          23.252
+        ],
+        [
+          30.908,
+          23.204
+        ],
+        [
+          30.908,
+          23.084
+        ],
+        [
+          30.981,
+          23.036
+        ]
+      ],
+      "label_at": [
+        30.908,
+        23.084
+      ]
+    },
+    {
+      "id": "hwy-wire-791",
+      "name": "Wire 791",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          36.694,
+          32.663
+        ],
+        [
+          36.67,
+          32.567
+        ],
+        [
+          36.743,
+          32.519
+        ],
+        [
+          36.768,
+          32.591
+        ],
+        [
+          36.694,
+          32.663
+        ]
+      ],
+      "label_at": [
+        36.743,
+        32.519
+      ]
+    },
+    {
+      "id": "hwy-wire-896",
+      "name": "Wire 896",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          30.859,
+          23.515
+        ],
+        [
+          30.933,
+          23.372
+        ],
+        [
+          31.104,
+          23.3
+        ],
+        [
+          31.128,
+          23.18
+        ]
+      ],
+      "label_at": [
+        31.104,
+        23.3
+      ]
+    },
+    {
+      "id": "hwy-wire-906",
       "name": "Seaside Connector",
       "ref": "IP-5",
-      "canon": "art-traced",
+      "canon": "art-wireframe",
       "kind": "highway",
-      "note": "Traced along black road markers on master-enhanced (cities: Seaside Springs \u2192 East Bayby \u2192 Portview). Green art = SoT.",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
       "points": [
         [
-          60.51,
-          52.838
+          57.788,
+          51.868
         ],
         [
-          57.776,
-          51.784
+          57.666,
+          51.844
         ],
         [
-          57.776,
-          46.228
+          57.69,
+          51.676
         ],
         [
-          57.092,
-          42.684
+          57.861,
+          51.7
         ],
         [
-          57.874,
-          39.619
-        ],
-        [
-          55.92,
-          35.405
-        ],
-        [
-          55.237,
-          38.566
-        ],
-        [
-          52.6,
-          41.535
-        ],
-        [
-          50.159,
-          45.366
-        ],
-        [
-          47.424,
-          51.114
-        ],
-        [
-          46.252,
-          52.455
-        ],
-        [
-          41.467,
-          55.999
-        ],
-        [
-          41.077,
-          60.979
-        ],
-        [
-          39.612,
-          64.715
-        ],
-        [
-          41.174,
-          70.175
-        ],
-        [
-          42.346,
-          70.654
-        ],
-        [
-          43.616,
-          71.42
-        ],
-        [
-          43.811,
-          72.186
-        ],
-        [
-          44.104,
-          74.773
-        ],
-        [
-          47.522,
-          75.635
-        ],
-        [
-          49.866,
-          75.156
+          57.861,
+          51.868
         ]
       ],
       "label_at": [
-        46.252,
-        52.455
+        57.69,
+        51.676
       ]
     },
     {
-      "id": "hwy-art-extra-01",
-      "name": "Art corridor 1",
+      "id": "hwy-wire-998",
+      "name": "Wire 998",
       "ref": null,
-      "canon": "art-traced",
-      "kind": "freeway",
-      "note": "Extra trunk from black road markers not covered by named corridors.",
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
       "points": [
         [
-          26.819,
-          89.715
+          24.243,
+          87.979
         ],
         [
-          28.674,
-          86.937
+          24.365,
+          88.003
         ],
         [
-          32.776,
-          84.351
+          24.365,
+          88.147
         ],
         [
-          38.928,
-          83.776
-        ],
-        [
-          42.932,
-          79.562
-        ],
-        [
-          44.983,
-          77.646
-        ],
-        [
-          44.104,
-          74.773
-        ],
-        [
-          43.811,
-          72.186
-        ],
-        [
-          43.127,
-          70.654
-        ],
-        [
-          41.174,
-          70.175
-        ],
-        [
-          39.612,
-          64.715
-        ],
-        [
-          41.077,
-          60.979
-        ],
-        [
-          41.467,
-          55.999
-        ],
-        [
-          46.252,
-          52.455
-        ],
-        [
-          46.838,
-          48.048
-        ],
-        [
-          50.159,
-          45.366
-        ],
-        [
-          56.116,
-          45.75
-        ],
-        [
-          57.776,
-          46.228
-        ],
-        [
-          57.776,
-          51.784
-        ],
-        [
-          57.288,
-          54.274
-        ],
-        [
-          58.948,
-          59.83
-        ],
-        [
-          57.092,
-          63.182
-        ],
-        [
-          53.381,
-          67.205
+          24.268,
+          88.17
         ]
       ],
       "label_at": [
-        41.077,
-        60.979
+        24.365,
+        88.147
       ]
     },
     {
-      "id": "hwy-art-extra-02",
-      "name": "Art corridor 2",
+      "id": "hwy-wire-1055",
+      "name": "Wire 1055",
       "ref": null,
-      "canon": "art-traced",
-      "kind": "freeway",
-      "note": "Extra trunk from black road markers not covered by named corridors.",
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
       "points": [
         [
-          36.682,
-          32.914
+          57.3,
+          54.167
         ],
         [
-          37.756,
-          28.7
+          57.178,
+          54.191
         ],
         [
-          33.752,
-          26.592
+          57.178,
+          54.334
         ],
         [
-          32.483,
-          20.462
-        ],
-        [
-          34.045,
-          18.546
+          57.397,
+          54.358
         ]
       ],
       "label_at": [
-        33.752,
-        26.592
+        57.178,
+        54.334
+      ]
+    },
+    {
+      "id": "hwy-wire-1087",
+      "name": "Bay Ring",
+      "ref": "IP-1",
+      "canon": "art-wireframe",
+      "kind": "freeway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          28.76,
+          62.5
+        ],
+        [
+          28.735,
+          62.404
+        ],
+        [
+          28.564,
+          62.428
+        ],
+        [
+          28.589,
+          62.596
+        ],
+        [
+          28.784,
+          62.596
+        ]
+      ],
+      "label_at": [
+        28.564,
+        62.428
+      ]
+    },
+    {
+      "id": "hwy-wire-1097",
+      "name": "Wire 1097",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          27.002,
+          27.083
+        ],
+        [
+          27.026,
+          27.251
+        ],
+        [
+          27.173,
+          27.251
+        ],
+        [
+          27.197,
+          27.083
+        ],
+        [
+          27.075,
+          27.059
+        ]
+      ],
+      "label_at": [
+        27.173,
+        27.251
+      ]
+    },
+    {
+      "id": "hwy-wire-1208",
+      "name": "Wire 1208",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          39.233,
+          70.307
+        ],
+        [
+          39.185,
+          70.354
+        ],
+        [
+          39.014,
+          70.307
+        ],
+        [
+          39.014,
+          70.187
+        ],
+        [
+          39.111,
+          70.115
+        ]
+      ],
+      "label_at": [
+        39.014,
+        70.307
+      ]
+    },
+    {
+      "id": "hwy-wire-1239",
+      "name": "Wire 1239",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          40.283,
+          70.738
+        ],
+        [
+          40.479,
+          70.761
+        ],
+        [
+          40.479,
+          70.905
+        ],
+        [
+          40.308,
+          70.929
+        ]
+      ],
+      "label_at": [
+        40.479,
+        70.905
+      ]
+    },
+    {
+      "id": "hwy-wire-1249",
+      "name": "Wire 1249",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          42.969,
+          79.67
+        ],
+        [
+          42.822,
+          79.622
+        ],
+        [
+          42.847,
+          79.454
+        ],
+        [
+          43.262,
+          79.43
+        ]
+      ],
+      "label_at": [
+        42.847,
+        79.454
+      ]
+    },
+    {
+      "id": "hwy-wire-1351",
+      "name": "Wire 1351",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          62.427,
+          34.363
+        ],
+        [
+          62.476,
+          34.052
+        ],
+        [
+          62.622,
+          34.052
+        ],
+        [
+          62.646,
+          34.219
+        ]
+      ],
+      "label_at": [
+        62.622,
+        34.052
+      ]
+    },
+    {
+      "id": "hwy-wire-1387",
+      "name": "Wire 1387",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          33.252,
+          62.021
+        ],
+        [
+          33.252,
+          61.853
+        ],
+        [
+          33.081,
+          61.83
+        ],
+        [
+          33.057,
+          61.997
+        ],
+        [
+          33.179,
+          62.021
+        ]
+      ],
+      "label_at": [
+        33.081,
+        61.83
+      ]
+    },
+    {
+      "id": "hwy-wire-1471",
+      "name": "Wire 1471",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          34.814,
+          52.562
+        ],
+        [
+          34.79,
+          52.634
+        ],
+        [
+          34.644,
+          52.634
+        ],
+        [
+          34.619,
+          52.466
+        ]
+      ],
+      "label_at": [
+        34.644,
+        52.634
+      ]
+    },
+    {
+      "id": "hwy-wire-1557",
+      "name": "Wire 1557",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          24.365,
+          89.535
+        ],
+        [
+          24.39,
+          89.703
+        ],
+        [
+          24.536,
+          89.703
+        ],
+        [
+          24.585,
+          89.583
+        ]
+      ],
+      "label_at": [
+        24.536,
+        89.703
+      ]
+    },
+    {
+      "id": "hwy-wire-1571",
+      "name": "Wire 1571",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          46.851,
+          48.132
+        ],
+        [
+          46.753,
+          48.132
+        ],
+        [
+          46.729,
+          48.012
+        ],
+        [
+          46.802,
+          47.941
+        ],
+        [
+          46.948,
+          47.941
+        ]
+      ],
+      "label_at": [
+        46.729,
+        48.012
+      ]
+    },
+    {
+      "id": "hwy-wire-1622",
+      "name": "Wire 1622",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          35.327,
+          94.492
+        ],
+        [
+          35.474,
+          94.492
+        ],
+        [
+          35.498,
+          94.66
+        ],
+        [
+          35.303,
+          94.684
+        ]
+      ],
+      "label_at": [
+        35.498,
+        94.66
+      ]
+    },
+    {
+      "id": "hwy-wire-1676",
+      "name": "Wire 1676",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          35.229,
+          94.444
+        ],
+        [
+          35.083,
+          94.492
+        ],
+        [
+          35.034,
+          94.588
+        ],
+        [
+          35.156,
+          94.612
+        ],
+        [
+          35.254,
+          94.54
+        ]
+      ],
+      "label_at": [
+        35.034,
+        94.588
+      ]
+    },
+    {
+      "id": "hwy-wire-1723",
+      "name": "Wire 1723",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          41.748,
+          62.404
+        ],
+        [
+          41.846,
+          62.428
+        ],
+        [
+          41.821,
+          62.596
+        ],
+        [
+          41.65,
+          62.572
+        ],
+        [
+          41.65,
+          62.428
+        ]
+      ],
+      "label_at": [
+        41.821,
+        62.596
+      ]
+    },
+    {
+      "id": "hwy-wire-1744",
+      "name": "Wire 1744",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          98.242,
+          98.803
+        ],
+        [
+          98.193,
+          98.875
+        ],
+        [
+          98.267,
+          98.898
+        ],
+        [
+          98.34,
+          98.755
+        ]
+      ],
+      "label_at": [
+        98.267,
+        98.898
+      ]
+    },
+    {
+      "id": "hwy-wire-1775",
+      "name": "Wire 1775",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          60.547,
+          52.73
+        ],
+        [
+          60.4,
+          52.754
+        ],
+        [
+          60.4,
+          52.898
+        ],
+        [
+          60.522,
+          52.921
+        ]
+      ],
+      "label_at": [
+        60.4,
+        52.898
+      ]
+    },
+    {
+      "id": "hwy-wire-1942",
+      "name": "Wire 1942",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          92.041,
+          98.827
+        ],
+        [
+          91.968,
+          98.803
+        ],
+        [
+          91.943,
+          98.875
+        ],
+        [
+          92.017,
+          98.898
+        ],
+        [
+          92.041,
+          98.827
+        ]
+      ],
+      "label_at": [
+        91.943,
+        98.875
+      ]
+    },
+    {
+      "id": "hwy-wire-1961",
+      "name": "Wire 1961",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          32.69,
+          84.243
+        ],
+        [
+          32.837,
+          84.243
+        ],
+        [
+          32.861,
+          84.411
+        ],
+        [
+          32.69,
+          84.435
+        ],
+        [
+          32.666,
+          84.267
+        ]
+      ],
+      "label_at": [
+        32.861,
+        84.411
+      ]
+    },
+    {
+      "id": "hwy-wire-2121",
+      "name": "Wire 2121",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          56.128,
+          45.833
+        ],
+        [
+          56.006,
+          45.785
+        ],
+        [
+          56.079,
+          45.642
+        ],
+        [
+          56.201,
+          45.666
+        ],
+        [
+          56.201,
+          45.833
+        ]
+      ],
+      "label_at": [
+        56.079,
+        45.642
+      ]
+    },
+    {
+      "id": "hwy-wire-2124",
+      "name": "Wire 2124",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          46.729,
+          80.603
+        ],
+        [
+          46.826,
+          80.627
+        ],
+        [
+          46.826,
+          80.771
+        ],
+        [
+          46.631,
+          80.795
+        ]
+      ],
+      "label_at": [
+        46.826,
+        80.771
+      ]
+    },
+    {
+      "id": "hwy-wire-2259",
+      "name": "Wire 2259",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          43.408,
+          51.102
+        ],
+        [
+          43.604,
+          51.078
+        ],
+        [
+          43.579,
+          50.91
+        ],
+        [
+          43.408,
+          50.934
+        ]
+      ],
+      "label_at": [
+        43.579,
+        50.91
+      ]
+    },
+    {
+      "id": "hwy-wire-2327",
+      "name": "Wire 2327",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          51.611,
+          36.255
+        ],
+        [
+          51.587,
+          36.159
+        ],
+        [
+          51.416,
+          36.183
+        ],
+        [
+          51.416,
+          36.327
+        ],
+        [
+          51.538,
+          36.351
+        ]
+      ],
+      "label_at": [
+        51.416,
+        36.183
+      ]
+    },
+    {
+      "id": "hwy-wire-2345",
+      "name": "Wire 2345",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          47.29,
+          75.838
+        ],
+        [
+          47.339,
+          75.718
+        ],
+        [
+          47.607,
+          75.694
+        ],
+        [
+          47.583,
+          75.527
+        ],
+        [
+          47.412,
+          75.551
+        ]
+      ],
+      "label_at": [
+        47.607,
+        75.694
+      ]
+    },
+    {
+      "id": "hwy-wire-2472",
+      "name": "Wire 2472",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          35.205,
+          69.109
+        ],
+        [
+          35.229,
+          69.013
+        ],
+        [
+          35.4,
+          69.037
+        ],
+        [
+          35.376,
+          69.205
+        ],
+        [
+          35.205,
+          69.205
+        ]
+      ],
+      "label_at": [
+        35.4,
+        69.037
+      ]
+    },
+    {
+      "id": "hwy-wire-2488",
+      "name": "Wire 2488",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          21.533,
+          79.933
+        ],
+        [
+          21.558,
+          79.837
+        ],
+        [
+          21.729,
+          79.861
+        ],
+        [
+          21.704,
+          80.029
+        ],
+        [
+          21.533,
+          80.029
+        ]
+      ],
+      "label_at": [
+        21.729,
+        79.861
+      ]
+    },
+    {
+      "id": "hwy-wire-2514",
+      "name": "Wire 2514",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          39.404,
+          48.012
+        ],
+        [
+          39.404,
+          47.869
+        ],
+        [
+          39.575,
+          47.845
+        ],
+        [
+          39.6,
+          48.036
+        ]
+      ],
+      "label_at": [
+        39.575,
+        47.845
+      ]
+    },
+    {
+      "id": "hwy-wire-2613",
+      "name": "Wire 2613",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          30.811,
+          59.435
+        ],
+        [
+          30.811,
+          59.267
+        ],
+        [
+          30.64,
+          59.243
+        ],
+        [
+          30.615,
+          59.411
+        ],
+        [
+          30.737,
+          59.435
+        ]
+      ],
+      "label_at": [
+        30.64,
+        59.243
+      ]
+    },
+    {
+      "id": "hwy-wire-2646",
+      "name": "Wire 2646",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          32.373,
+          94.516
+        ],
+        [
+          32.397,
+          94.588
+        ],
+        [
+          32.568,
+          94.564
+        ],
+        [
+          32.544,
+          94.397
+        ],
+        [
+          32.373,
+          94.397
+        ]
+      ],
+      "label_at": [
+        32.568,
+        94.564
+      ]
+    },
+    {
+      "id": "hwy-wire-2664",
+      "name": "Wire 2664",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          55.908,
+          35.297
+        ],
+        [
+          56.006,
+          35.321
+        ],
+        [
+          56.006,
+          35.465
+        ],
+        [
+          55.908,
+          35.512
+        ]
+      ],
+      "label_at": [
+        56.006,
+        35.465
+      ]
+    },
+    {
+      "id": "hwy-wire-2752",
+      "name": "Wire 2752",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          22.412,
+          86.087
+        ],
+        [
+          22.437,
+          86.159
+        ],
+        [
+          22.583,
+          86.159
+        ],
+        [
+          22.607,
+          85.991
+        ]
+      ],
+      "label_at": [
+        22.583,
+        86.159
+      ]
+    },
+    {
+      "id": "hwy-wire-2756",
+      "name": "Wire 2756",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          35.547,
+          94.42
+        ],
+        [
+          35.547,
+          94.325
+        ],
+        [
+          35.425,
+          94.253
+        ],
+        [
+          35.327,
+          94.277
+        ],
+        [
+          35.254,
+          94.42
+        ]
+      ],
+      "label_at": [
+        35.425,
+        94.253
+      ]
+    },
+    {
+      "id": "hwy-wire-2813",
+      "name": "Wire 2813",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          41.553,
+          55.987
+        ],
+        [
+          41.528,
+          55.891
+        ],
+        [
+          41.382,
+          55.891
+        ],
+        [
+          41.357,
+          56.011
+        ]
+      ],
+      "label_at": [
+        41.382,
+        55.891
+      ]
+    },
+    {
+      "id": "hwy-wire-2918",
+      "name": "Wire 2918",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          54.834,
+          27.155
+        ],
+        [
+          54.858,
+          27.059
+        ],
+        [
+          55.029,
+          27.083
+        ],
+        [
+          55.005,
+          27.251
+        ],
+        [
+          54.834,
+          27.251
+        ]
+      ],
+      "label_at": [
+        55.029,
+        27.083
+      ]
+    },
+    {
+      "id": "hwy-wire-2971",
+      "name": "Wire 2971",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          63.647,
+          30.22
+        ],
+        [
+          63.525,
+          30.196
+        ],
+        [
+          63.525,
+          30.053
+        ],
+        [
+          63.647,
+          30.029
+        ]
+      ],
+      "label_at": [
+        63.525,
+        30.053
+      ]
+    },
+    {
+      "id": "hwy-wire-3020",
+      "name": "Wire 3020",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          28.296,
+          21.791
+        ],
+        [
+          28.076,
+          21.815
+        ],
+        [
+          28.076,
+          21.959
+        ],
+        [
+          28.223,
+          22.007
+        ]
+      ],
+      "label_at": [
+        28.076,
+        21.959
+      ]
+    },
+    {
+      "id": "hwy-wire-3047",
+      "name": "Wire 3047",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          56.836,
+          40.326
+        ],
+        [
+          56.909,
+          40.421
+        ],
+        [
+          56.86,
+          40.469
+        ],
+        [
+          56.763,
+          40.421
+        ]
+      ],
+      "label_at": [
+        56.86,
+        40.469
+      ]
+    },
+    {
+      "id": "hwy-wire-3184",
+      "name": "Wire 3184",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          53.271,
+          67.122
+        ],
+        [
+          53.271,
+          67.265
+        ],
+        [
+          53.442,
+          67.289
+        ],
+        [
+          53.467,
+          67.122
+        ],
+        [
+          53.345,
+          67.098
+        ]
+      ],
+      "label_at": [
+        53.442,
+        67.289
+      ]
+    },
+    {
+      "id": "hwy-wire-3228",
+      "name": "Wire 3228",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          30.518,
+          90.757
+        ],
+        [
+          30.542,
+          90.661
+        ],
+        [
+          30.713,
+          90.685
+        ],
+        [
+          30.688,
+          90.852
+        ],
+        [
+          30.542,
+          90.852
+        ],
+        [
+          30.518,
+          90.757
+        ]
+      ],
+      "label_at": [
+        30.688,
+        90.852
+      ]
+    },
+    {
+      "id": "hwy-wire-3229",
+      "name": "South Coastal",
+      "ref": "IP-3",
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          22.925,
+          76.006
+        ],
+        [
+          22.803,
+          76.03
+        ],
+        [
+          22.827,
+          76.197
+        ],
+        [
+          22.998,
+          76.173
+        ],
+        [
+          22.998,
+          76.03
+        ],
+        [
+          22.925,
+          76.006
+        ]
+      ],
+      "label_at": [
+        22.998,
+        76.173
+      ]
+    },
+    {
+      "id": "hwy-wire-3230",
+      "name": "Wire 3230",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          19.824,
+          79.741
+        ],
+        [
+          19.678,
+          79.717
+        ],
+        [
+          19.702,
+          79.55
+        ],
+        [
+          19.873,
+          79.574
+        ],
+        [
+          19.824,
+          79.741
+        ]
+      ],
+      "label_at": [
+        19.702,
+        79.55
+      ]
+    },
+    {
+      "id": "hwy-wire-3231",
+      "name": "Wire 3231",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          41.064,
+          70.187
+        ],
+        [
+          41.138,
+          70.067
+        ],
+        [
+          41.26,
+          70.115
+        ],
+        [
+          41.235,
+          70.259
+        ],
+        [
+          41.089,
+          70.259
+        ],
+        [
+          41.064,
+          70.187
+        ]
+      ],
+      "label_at": [
+        41.235,
+        70.259
+      ]
+    },
+    {
+      "id": "hwy-wire-3232",
+      "name": "Wire 3232",
+      "ref": null,
+      "canon": "art-wireframe",
+      "kind": "highway",
+      "note": "Skeletonized from green+black road art on master-enhanced (template copy).",
+      "points": [
+        [
+          93.799,
+          98.587
+        ],
+        [
+          93.848,
+          98.491
+        ],
+        [
+          93.921,
+          98.563
+        ],
+        [
+          93.799,
+          98.587
+        ]
+      ],
+      "label_at": [
+        93.921,
+        98.563
       ]
     }
   ],
@@ -572,6 +2017,581 @@
         52.0,
         51.5
       ]
+    }
+  ],
+  "exports": {
+    "png": "map/highways-wireframe.png",
+    "svg": "map/highways-wireframe.svg",
+    "blender": "map/highways-blender-plane.py"
+  },
+  "nodes": [
+    {
+      "x": 34.033,
+      "y": 18.534
+    },
+    {
+      "x": 32.471,
+      "y": 20.45
+    },
+    {
+      "x": 28.174,
+      "y": 21.887
+    },
+    {
+      "x": 30.811,
+      "y": 23.132
+    },
+    {
+      "x": 28.467,
+      "y": 25.527
+    },
+    {
+      "x": 30.322,
+      "y": 26.389
+    },
+    {
+      "x": 63.818,
+      "y": 26.389
+    },
+    {
+      "x": 33.74,
+      "y": 26.58
+    },
+    {
+      "x": 27.1,
+      "y": 27.155
+    },
+    {
+      "x": 54.932,
+      "y": 27.155
+    },
+    {
+      "x": 64.502,
+      "y": 28.4
+    },
+    {
+      "x": 37.744,
+      "y": 28.688
+    },
+    {
+      "x": 55.225,
+      "y": 29.646
+    },
+    {
+      "x": 45.361,
+      "y": 30.125
+    },
+    {
+      "x": 63.623,
+      "y": 30.125
+    },
+    {
+      "x": 35.986,
+      "y": 30.508
+    },
+    {
+      "x": 38.135,
+      "y": 30.508
+    },
+    {
+      "x": 54.834,
+      "y": 32.328
+    },
+    {
+      "x": 36.67,
+      "y": 32.902
+    },
+    {
+      "x": 48.193,
+      "y": 32.998
+    },
+    {
+      "x": 50.732,
+      "y": 33.285
+    },
+    {
+      "x": 44.775,
+      "y": 33.86
+    },
+    {
+      "x": 62.549,
+      "y": 34.148
+    },
+    {
+      "x": 37.061,
+      "y": 34.626
+    },
+    {
+      "x": 50.146,
+      "y": 35.297
+    },
+    {
+      "x": 55.908,
+      "y": 35.393
+    },
+    {
+      "x": 44.775,
+      "y": 35.776
+    },
+    {
+      "x": 60.303,
+      "y": 35.776
+    },
+    {
+      "x": 51.514,
+      "y": 36.255
+    },
+    {
+      "x": 47.021,
+      "y": 36.638
+    },
+    {
+      "x": 57.861,
+      "y": 37.596
+    },
+    {
+      "x": 45.361,
+      "y": 37.883
+    },
+    {
+      "x": 55.225,
+      "y": 38.554
+    },
+    {
+      "x": 57.861,
+      "y": 39.607
+    },
+    {
+      "x": 43.896,
+      "y": 39.703
+    },
+    {
+      "x": 51.904,
+      "y": 39.703
+    },
+    {
+      "x": 56.787,
+      "y": 40.565
+    },
+    {
+      "x": 44.775,
+      "y": 41.523
+    },
+    {
+      "x": 52.588,
+      "y": 41.523
+    },
+    {
+      "x": 34.595,
+      "y": 42.577
+    },
+    {
+      "x": 34.668,
+      "y": 42.601
+    },
+    {
+      "x": 57.08,
+      "y": 42.672
+    },
+    {
+      "x": 51.514,
+      "y": 43.439
+    },
+    {
+      "x": 35.4,
+      "y": 43.822
+    },
+    {
+      "x": 57.08,
+      "y": 44.397
+    },
+    {
+      "x": 50.146,
+      "y": 45.354
+    },
+    {
+      "x": 56.104,
+      "y": 45.738
+    },
+    {
+      "x": 35.596,
+      "y": 46.025
+    },
+    {
+      "x": 57.764,
+      "y": 46.216
+    },
+    {
+      "x": 42.041,
+      "y": 46.312
+    },
+    {
+      "x": 39.502,
+      "y": 47.941
+    },
+    {
+      "x": 46.826,
+      "y": 48.036
+    },
+    {
+      "x": 64.99,
+      "y": 48.515
+    },
+    {
+      "x": 43.506,
+      "y": 51.006
+    },
+    {
+      "x": 47.412,
+      "y": 51.102
+    },
+    {
+      "x": 40.088,
+      "y": 51.293
+    },
+    {
+      "x": 57.764,
+      "y": 51.772
+    },
+    {
+      "x": 46.24,
+      "y": 52.443
+    },
+    {
+      "x": 34.717,
+      "y": 52.538
+    },
+    {
+      "x": 64.795,
+      "y": 52.73
+    },
+    {
+      "x": 60.498,
+      "y": 52.826
+    },
+    {
+      "x": 57.275,
+      "y": 54.262
+    },
+    {
+      "x": 45.166,
+      "y": 54.55
+    },
+    {
+      "x": 37.256,
+      "y": 55.22
+    },
+    {
+      "x": 41.455,
+      "y": 55.987
+    },
+    {
+      "x": 23.486,
+      "y": 56.753
+    },
+    {
+      "x": 60.303,
+      "y": 56.849
+    },
+    {
+      "x": 28.76,
+      "y": 57.711
+    },
+    {
+      "x": 30.713,
+      "y": 59.339
+    },
+    {
+      "x": 58.936,
+      "y": 59.818
+    },
+    {
+      "x": 41.064,
+      "y": 60.967
+    },
+    {
+      "x": 33.154,
+      "y": 61.925
+    },
+    {
+      "x": 28.662,
+      "y": 62.5
+    },
+    {
+      "x": 41.748,
+      "y": 62.5
+    },
+    {
+      "x": 21.045,
+      "y": 62.692
+    },
+    {
+      "x": 57.08,
+      "y": 63.17
+    },
+    {
+      "x": 20.361,
+      "y": 64.128
+    },
+    {
+      "x": 36.963,
+      "y": 64.128
+    },
+    {
+      "x": 39.6,
+      "y": 64.703
+    },
+    {
+      "x": 28.564,
+      "y": 66.044
+    },
+    {
+      "x": 53.369,
+      "y": 67.193
+    },
+    {
+      "x": 34.424,
+      "y": 67.289
+    },
+    {
+      "x": 38.721,
+      "y": 67.577
+    },
+    {
+      "x": 19.971,
+      "y": 67.672
+    },
+    {
+      "x": 35.303,
+      "y": 69.109
+    },
+    {
+      "x": 36.865,
+      "y": 70.067
+    },
+    {
+      "x": 41.162,
+      "y": 70.163
+    },
+    {
+      "x": 39.111,
+      "y": 70.259
+    },
+    {
+      "x": 42.334,
+      "y": 70.642
+    },
+    {
+      "x": 43.115,
+      "y": 70.642
+    },
+    {
+      "x": 40.381,
+      "y": 70.833
+    },
+    {
+      "x": 41.357,
+      "y": 70.833
+    },
+    {
+      "x": 43.506,
+      "y": 71.121
+    },
+    {
+      "x": 43.604,
+      "y": 71.408
+    },
+    {
+      "x": 19.775,
+      "y": 71.504
+    },
+    {
+      "x": 43.799,
+      "y": 72.174
+    },
+    {
+      "x": 19.873,
+      "y": 72.749
+    },
+    {
+      "x": 44.092,
+      "y": 74.761
+    },
+    {
+      "x": 21.143,
+      "y": 75.144
+    },
+    {
+      "x": 49.854,
+      "y": 75.144
+    },
+    {
+      "x": 48.682,
+      "y": 75.239
+    },
+    {
+      "x": 47.51,
+      "y": 75.623
+    },
+    {
+      "x": 22.9,
+      "y": 76.102
+    },
+    {
+      "x": 44.971,
+      "y": 77.634
+    },
+    {
+      "x": 21.631,
+      "y": 77.921
+    },
+    {
+      "x": 42.92,
+      "y": 79.55
+    },
+    {
+      "x": 19.775,
+      "y": 79.646
+    },
+    {
+      "x": 21.631,
+      "y": 79.933
+    },
+    {
+      "x": 46.729,
+      "y": 80.699
+    },
+    {
+      "x": 19.482,
+      "y": 83.764
+    },
+    {
+      "x": 37.842,
+      "y": 83.764
+    },
+    {
+      "x": 38.916,
+      "y": 83.764
+    },
+    {
+      "x": 32.764,
+      "y": 84.339
+    },
+    {
+      "x": 41.943,
+      "y": 85.01
+    },
+    {
+      "x": 19.58,
+      "y": 85.68
+    },
+    {
+      "x": 22.51,
+      "y": 86.063
+    },
+    {
+      "x": 20.068,
+      "y": 86.351
+    },
+    {
+      "x": 28.662,
+      "y": 86.925
+    },
+    {
+      "x": 24.268,
+      "y": 88.075
+    },
+    {
+      "x": 20.654,
+      "y": 88.266
+    },
+    {
+      "x": 31.006,
+      "y": 88.649
+    },
+    {
+      "x": 24.463,
+      "y": 89.607
+    },
+    {
+      "x": 26.807,
+      "y": 89.703
+    },
+    {
+      "x": 30.615,
+      "y": 90.757
+    },
+    {
+      "x": 30.713,
+      "y": 93.918
+    },
+    {
+      "x": 32.471,
+      "y": 94.492
+    },
+    {
+      "x": 35.4,
+      "y": 94.588
+    },
+    {
+      "x": 0.293,
+      "y": 98.42
+    },
+    {
+      "x": 90.332,
+      "y": 98.372
+    },
+    {
+      "x": 0.024,
+      "y": 98.563
+    },
+    {
+      "x": 88.525,
+      "y": 98.707
+    },
+    {
+      "x": 89.722,
+      "y": 98.707
+    },
+    {
+      "x": 91.016,
+      "y": 98.707
+    },
+    {
+      "x": 91.479,
+      "y": 98.755
+    },
+    {
+      "x": 92.09,
+      "y": 98.779
+    },
+    {
+      "x": 95.068,
+      "y": 98.755
+    },
+    {
+      "x": 97.9,
+      "y": 98.731
+    },
+    {
+      "x": 98.34,
+      "y": 98.779
+    },
+    {
+      "x": 0.269,
+      "y": 98.803
+    },
+    {
+      "x": 89.16,
+      "y": 98.851
+    },
+    {
+      "x": 94.531,
+      "y": 98.851
+    },
+    {
+      "x": 88.477,
+      "y": 99.066
     }
   ]
 }

@@ -1,0 +1,206 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="4096" height="4176">
+<!-- Wireframe highways traced from green+black terrain art -->
+<g fill="none" stroke="#7ef6ff" stroke-width="0.28" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+  <path id="hwy-wire-010" d="M 20.557 88.29 L 20.581 88.362 L 20.728 88.362 L 20.752 88.29" />
+  <path id="hwy-wire-066" d="M 43.213 70.642 L 43.164 70.546 L 43.091 70.546 L 43.042 70.642" />
+  <path id="hwy-wire-067" d="M 33.838 26.58 L 33.813 26.485 L 33.667 26.485 L 33.667 26.7" />
+  <path id="hwy-wire-091" d="M 64.893 48.611 L 64.893 48.443 L 65.063 48.42 L 65.088 48.587 L 64.99 48.611" />
+  <path id="hwy-wire-126" d="M 44.775 35.68 L 44.873 35.704 L 44.873 35.848 L 44.775 35.872" />
+  <path id="hwy-wire-224" d="M 42.041 46.552 L 42.188 46.48 L 42.261 46.336 L 42.188 46.001" />
+  <path id="hwy-wire-244" d="M 52.026 39.607 L 51.807 39.631 L 51.831 39.799 L 51.978 39.799 L 52.002 39.727" />
+  <path id="hwy-wire-264" d="M 45.215 54.454 L 45.068 54.478 L 45.068 54.622 L 45.215 54.67" />
+  <path id="hwy-wire-322" d="M 28.662 57.807 L 28.662 57.639 L 28.833 57.615 L 28.857 57.783 L 28.76 57.807" />
+  <path id="hwy-wire-406" d="M 43.921 74.689 L 43.994 74.713 L 44.019 74.856 L 44.165 74.856 L 44.189 74.689 L 44.067 74.665" />
+  <path id="hwy-wire-664" d="M 30.811 23.252 L 30.908 23.204 L 30.908 23.084 L 30.981 23.036" />
+  <path id="hwy-wire-791" d="M 36.694 32.663 L 36.67 32.567 L 36.743 32.519 L 36.768 32.591 L 36.694 32.663" />
+  <path id="hwy-wire-896" d="M 30.859 23.515 L 30.933 23.372 L 31.104 23.3 L 31.128 23.18" />
+  <path id="hwy-wire-906" d="M 57.788 51.868 L 57.666 51.844 L 57.69 51.676 L 57.861 51.7 L 57.861 51.868" />
+  <path id="hwy-wire-998" d="M 24.243 87.979 L 24.365 88.003 L 24.365 88.147 L 24.268 88.17" />
+  <path id="hwy-wire-1055" d="M 57.3 54.167 L 57.178 54.191 L 57.178 54.334 L 57.397 54.358" />
+  <path id="hwy-wire-1087" d="M 28.76 62.5 L 28.735 62.404 L 28.564 62.428 L 28.589 62.596 L 28.784 62.596" />
+  <path id="hwy-wire-1097" d="M 27.002 27.083 L 27.026 27.251 L 27.173 27.251 L 27.197 27.083 L 27.075 27.059" />
+  <path id="hwy-wire-1208" d="M 39.233 70.307 L 39.185 70.354 L 39.014 70.307 L 39.014 70.187 L 39.111 70.115" />
+  <path id="hwy-wire-1239" d="M 40.283 70.738 L 40.479 70.761 L 40.479 70.905 L 40.308 70.929" />
+  <path id="hwy-wire-1249" d="M 42.969 79.67 L 42.822 79.622 L 42.847 79.454 L 43.262 79.43" />
+  <path id="hwy-wire-1351" d="M 62.427 34.363 L 62.476 34.052 L 62.622 34.052 L 62.646 34.219" />
+  <path id="hwy-wire-1387" d="M 33.252 62.021 L 33.252 61.853 L 33.081 61.83 L 33.057 61.997 L 33.179 62.021" />
+  <path id="hwy-wire-1471" d="M 34.814 52.562 L 34.79 52.634 L 34.644 52.634 L 34.619 52.466" />
+  <path id="hwy-wire-1557" d="M 24.365 89.535 L 24.39 89.703 L 24.536 89.703 L 24.585 89.583" />
+  <path id="hwy-wire-1571" d="M 46.851 48.132 L 46.753 48.132 L 46.729 48.012 L 46.802 47.941 L 46.948 47.941" />
+  <path id="hwy-wire-1622" d="M 35.327 94.492 L 35.474 94.492 L 35.498 94.66 L 35.303 94.684" />
+  <path id="hwy-wire-1676" d="M 35.229 94.444 L 35.083 94.492 L 35.034 94.588 L 35.156 94.612 L 35.254 94.54" />
+  <path id="hwy-wire-1723" d="M 41.748 62.404 L 41.846 62.428 L 41.821 62.596 L 41.65 62.572 L 41.65 62.428" />
+  <path id="hwy-wire-1744" d="M 98.242 98.803 L 98.193 98.875 L 98.267 98.898 L 98.34 98.755" />
+  <path id="hwy-wire-1775" d="M 60.547 52.73 L 60.4 52.754 L 60.4 52.898 L 60.522 52.921" />
+  <path id="hwy-wire-1942" d="M 92.041 98.827 L 91.968 98.803 L 91.943 98.875 L 92.017 98.898 L 92.041 98.827" />
+  <path id="hwy-wire-1961" d="M 32.69 84.243 L 32.837 84.243 L 32.861 84.411 L 32.69 84.435 L 32.666 84.267" />
+  <path id="hwy-wire-2121" d="M 56.128 45.833 L 56.006 45.785 L 56.079 45.642 L 56.201 45.666 L 56.201 45.833" />
+  <path id="hwy-wire-2124" d="M 46.729 80.603 L 46.826 80.627 L 46.826 80.771 L 46.631 80.795" />
+  <path id="hwy-wire-2259" d="M 43.408 51.102 L 43.604 51.078 L 43.579 50.91 L 43.408 50.934" />
+  <path id="hwy-wire-2327" d="M 51.611 36.255 L 51.587 36.159 L 51.416 36.183 L 51.416 36.327 L 51.538 36.351" />
+  <path id="hwy-wire-2345" d="M 47.29 75.838 L 47.339 75.718 L 47.607 75.694 L 47.583 75.527 L 47.412 75.551" />
+  <path id="hwy-wire-2472" d="M 35.205 69.109 L 35.229 69.013 L 35.4 69.037 L 35.376 69.205 L 35.205 69.205" />
+  <path id="hwy-wire-2488" d="M 21.533 79.933 L 21.558 79.837 L 21.729 79.861 L 21.704 80.029 L 21.533 80.029" />
+  <path id="hwy-wire-2514" d="M 39.404 48.012 L 39.404 47.869 L 39.575 47.845 L 39.6 48.036" />
+  <path id="hwy-wire-2613" d="M 30.811 59.435 L 30.811 59.267 L 30.64 59.243 L 30.615 59.411 L 30.737 59.435" />
+  <path id="hwy-wire-2646" d="M 32.373 94.516 L 32.397 94.588 L 32.568 94.564 L 32.544 94.397 L 32.373 94.397" />
+  <path id="hwy-wire-2664" d="M 55.908 35.297 L 56.006 35.321 L 56.006 35.465 L 55.908 35.512" />
+  <path id="hwy-wire-2752" d="M 22.412 86.087 L 22.437 86.159 L 22.583 86.159 L 22.607 85.991" />
+  <path id="hwy-wire-2756" d="M 35.547 94.42 L 35.547 94.325 L 35.425 94.253 L 35.327 94.277 L 35.254 94.42" />
+  <path id="hwy-wire-2813" d="M 41.553 55.987 L 41.528 55.891 L 41.382 55.891 L 41.357 56.011" />
+  <path id="hwy-wire-2918" d="M 54.834 27.155 L 54.858 27.059 L 55.029 27.083 L 55.005 27.251 L 54.834 27.251" />
+  <path id="hwy-wire-2971" d="M 63.647 30.22 L 63.525 30.196 L 63.525 30.053 L 63.647 30.029" />
+  <path id="hwy-wire-3020" d="M 28.296 21.791 L 28.076 21.815 L 28.076 21.959 L 28.223 22.007" />
+  <path id="hwy-wire-3047" d="M 56.836 40.326 L 56.909 40.421 L 56.86 40.469 L 56.763 40.421" />
+  <path id="hwy-wire-3184" d="M 53.271 67.122 L 53.271 67.265 L 53.442 67.289 L 53.467 67.122 L 53.345 67.098" />
+  <path id="hwy-wire-3228" d="M 30.518 90.757 L 30.542 90.661 L 30.713 90.685 L 30.688 90.852 L 30.542 90.852 L 30.518 90.757" />
+  <path id="hwy-wire-3229" d="M 22.925 76.006 L 22.803 76.03 L 22.827 76.197 L 22.998 76.173 L 22.998 76.03 L 22.925 76.006" />
+  <path id="hwy-wire-3230" d="M 19.824 79.741 L 19.678 79.717 L 19.702 79.55 L 19.873 79.574 L 19.824 79.741" />
+  <path id="hwy-wire-3231" d="M 41.064 70.187 L 41.138 70.067 L 41.26 70.115 L 41.235 70.259 L 41.089 70.259 L 41.064 70.187" />
+  <path id="hwy-wire-3232" d="M 93.799 98.587 L 93.848 98.491 L 93.921 98.563 L 93.799 98.587" />
+</g>
+<g fill="#0d0221" stroke="#fffb96" stroke-width="0.06">
+  <circle cx="34.033" cy="18.534" r="0.22" data-node="0" />
+  <circle cx="32.471" cy="20.45" r="0.22" data-node="1" />
+  <circle cx="28.174" cy="21.887" r="0.22" data-node="2" />
+  <circle cx="30.811" cy="23.132" r="0.22" data-node="3" />
+  <circle cx="28.467" cy="25.527" r="0.22" data-node="4" />
+  <circle cx="30.322" cy="26.389" r="0.22" data-node="5" />
+  <circle cx="63.818" cy="26.389" r="0.22" data-node="6" />
+  <circle cx="33.74" cy="26.58" r="0.22" data-node="7" />
+  <circle cx="27.1" cy="27.155" r="0.22" data-node="8" />
+  <circle cx="54.932" cy="27.155" r="0.22" data-node="9" />
+  <circle cx="64.502" cy="28.4" r="0.22" data-node="10" />
+  <circle cx="37.744" cy="28.688" r="0.22" data-node="11" />
+  <circle cx="55.225" cy="29.646" r="0.22" data-node="12" />
+  <circle cx="45.361" cy="30.125" r="0.22" data-node="13" />
+  <circle cx="63.623" cy="30.125" r="0.22" data-node="14" />
+  <circle cx="35.986" cy="30.508" r="0.22" data-node="15" />
+  <circle cx="38.135" cy="30.508" r="0.22" data-node="16" />
+  <circle cx="54.834" cy="32.328" r="0.22" data-node="17" />
+  <circle cx="36.67" cy="32.902" r="0.22" data-node="18" />
+  <circle cx="48.193" cy="32.998" r="0.22" data-node="19" />
+  <circle cx="50.732" cy="33.285" r="0.22" data-node="20" />
+  <circle cx="44.775" cy="33.86" r="0.22" data-node="21" />
+  <circle cx="62.549" cy="34.148" r="0.22" data-node="22" />
+  <circle cx="37.061" cy="34.626" r="0.22" data-node="23" />
+  <circle cx="50.146" cy="35.297" r="0.22" data-node="24" />
+  <circle cx="55.908" cy="35.393" r="0.22" data-node="25" />
+  <circle cx="44.775" cy="35.776" r="0.22" data-node="26" />
+  <circle cx="60.303" cy="35.776" r="0.22" data-node="27" />
+  <circle cx="51.514" cy="36.255" r="0.22" data-node="28" />
+  <circle cx="47.021" cy="36.638" r="0.22" data-node="29" />
+  <circle cx="57.861" cy="37.596" r="0.22" data-node="30" />
+  <circle cx="45.361" cy="37.883" r="0.22" data-node="31" />
+  <circle cx="55.225" cy="38.554" r="0.22" data-node="32" />
+  <circle cx="57.861" cy="39.607" r="0.22" data-node="33" />
+  <circle cx="43.896" cy="39.703" r="0.22" data-node="34" />
+  <circle cx="51.904" cy="39.703" r="0.22" data-node="35" />
+  <circle cx="56.787" cy="40.565" r="0.22" data-node="36" />
+  <circle cx="44.775" cy="41.523" r="0.22" data-node="37" />
+  <circle cx="52.588" cy="41.523" r="0.22" data-node="38" />
+  <circle cx="34.595" cy="42.577" r="0.22" data-node="39" />
+  <circle cx="34.668" cy="42.601" r="0.22" data-node="40" />
+  <circle cx="57.08" cy="42.672" r="0.22" data-node="41" />
+  <circle cx="51.514" cy="43.439" r="0.22" data-node="42" />
+  <circle cx="35.4" cy="43.822" r="0.22" data-node="43" />
+  <circle cx="57.08" cy="44.397" r="0.22" data-node="44" />
+  <circle cx="50.146" cy="45.354" r="0.22" data-node="45" />
+  <circle cx="56.104" cy="45.738" r="0.22" data-node="46" />
+  <circle cx="35.596" cy="46.025" r="0.22" data-node="47" />
+  <circle cx="57.764" cy="46.216" r="0.22" data-node="48" />
+  <circle cx="42.041" cy="46.312" r="0.22" data-node="49" />
+  <circle cx="39.502" cy="47.941" r="0.22" data-node="50" />
+  <circle cx="46.826" cy="48.036" r="0.22" data-node="51" />
+  <circle cx="64.99" cy="48.515" r="0.22" data-node="52" />
+  <circle cx="43.506" cy="51.006" r="0.22" data-node="53" />
+  <circle cx="47.412" cy="51.102" r="0.22" data-node="54" />
+  <circle cx="40.088" cy="51.293" r="0.22" data-node="55" />
+  <circle cx="57.764" cy="51.772" r="0.22" data-node="56" />
+  <circle cx="46.24" cy="52.443" r="0.22" data-node="57" />
+  <circle cx="34.717" cy="52.538" r="0.22" data-node="58" />
+  <circle cx="64.795" cy="52.73" r="0.22" data-node="59" />
+  <circle cx="60.498" cy="52.826" r="0.22" data-node="60" />
+  <circle cx="57.275" cy="54.262" r="0.22" data-node="61" />
+  <circle cx="45.166" cy="54.55" r="0.22" data-node="62" />
+  <circle cx="37.256" cy="55.22" r="0.22" data-node="63" />
+  <circle cx="41.455" cy="55.987" r="0.22" data-node="64" />
+  <circle cx="23.486" cy="56.753" r="0.22" data-node="65" />
+  <circle cx="60.303" cy="56.849" r="0.22" data-node="66" />
+  <circle cx="28.76" cy="57.711" r="0.22" data-node="67" />
+  <circle cx="30.713" cy="59.339" r="0.22" data-node="68" />
+  <circle cx="58.936" cy="59.818" r="0.22" data-node="69" />
+  <circle cx="41.064" cy="60.967" r="0.22" data-node="70" />
+  <circle cx="33.154" cy="61.925" r="0.22" data-node="71" />
+  <circle cx="28.662" cy="62.5" r="0.22" data-node="72" />
+  <circle cx="41.748" cy="62.5" r="0.22" data-node="73" />
+  <circle cx="21.045" cy="62.692" r="0.22" data-node="74" />
+  <circle cx="57.08" cy="63.17" r="0.22" data-node="75" />
+  <circle cx="20.361" cy="64.128" r="0.22" data-node="76" />
+  <circle cx="36.963" cy="64.128" r="0.22" data-node="77" />
+  <circle cx="39.6" cy="64.703" r="0.22" data-node="78" />
+  <circle cx="28.564" cy="66.044" r="0.22" data-node="79" />
+  <circle cx="53.369" cy="67.193" r="0.22" data-node="80" />
+  <circle cx="34.424" cy="67.289" r="0.22" data-node="81" />
+  <circle cx="38.721" cy="67.577" r="0.22" data-node="82" />
+  <circle cx="19.971" cy="67.672" r="0.22" data-node="83" />
+  <circle cx="35.303" cy="69.109" r="0.22" data-node="84" />
+  <circle cx="36.865" cy="70.067" r="0.22" data-node="85" />
+  <circle cx="41.162" cy="70.163" r="0.22" data-node="86" />
+  <circle cx="39.111" cy="70.259" r="0.22" data-node="87" />
+  <circle cx="42.334" cy="70.642" r="0.22" data-node="88" />
+  <circle cx="43.115" cy="70.642" r="0.22" data-node="89" />
+  <circle cx="40.381" cy="70.833" r="0.22" data-node="90" />
+  <circle cx="41.357" cy="70.833" r="0.22" data-node="91" />
+  <circle cx="43.506" cy="71.121" r="0.22" data-node="92" />
+  <circle cx="43.604" cy="71.408" r="0.22" data-node="93" />
+  <circle cx="19.775" cy="71.504" r="0.22" data-node="94" />
+  <circle cx="43.799" cy="72.174" r="0.22" data-node="95" />
+  <circle cx="19.873" cy="72.749" r="0.22" data-node="96" />
+  <circle cx="44.092" cy="74.761" r="0.22" data-node="97" />
+  <circle cx="21.143" cy="75.144" r="0.22" data-node="98" />
+  <circle cx="49.854" cy="75.144" r="0.22" data-node="99" />
+  <circle cx="48.682" cy="75.239" r="0.22" data-node="100" />
+  <circle cx="47.51" cy="75.623" r="0.22" data-node="101" />
+  <circle cx="22.9" cy="76.102" r="0.22" data-node="102" />
+  <circle cx="44.971" cy="77.634" r="0.22" data-node="103" />
+  <circle cx="21.631" cy="77.921" r="0.22" data-node="104" />
+  <circle cx="42.92" cy="79.55" r="0.22" data-node="105" />
+  <circle cx="19.775" cy="79.646" r="0.22" data-node="106" />
+  <circle cx="21.631" cy="79.933" r="0.22" data-node="107" />
+  <circle cx="46.729" cy="80.699" r="0.22" data-node="108" />
+  <circle cx="19.482" cy="83.764" r="0.22" data-node="109" />
+  <circle cx="37.842" cy="83.764" r="0.22" data-node="110" />
+  <circle cx="38.916" cy="83.764" r="0.22" data-node="111" />
+  <circle cx="32.764" cy="84.339" r="0.22" data-node="112" />
+  <circle cx="41.943" cy="85.01" r="0.22" data-node="113" />
+  <circle cx="19.58" cy="85.68" r="0.22" data-node="114" />
+  <circle cx="22.51" cy="86.063" r="0.22" data-node="115" />
+  <circle cx="20.068" cy="86.351" r="0.22" data-node="116" />
+  <circle cx="28.662" cy="86.925" r="0.22" data-node="117" />
+  <circle cx="24.268" cy="88.075" r="0.22" data-node="118" />
+  <circle cx="20.654" cy="88.266" r="0.22" data-node="119" />
+  <circle cx="31.006" cy="88.649" r="0.22" data-node="120" />
+  <circle cx="24.463" cy="89.607" r="0.22" data-node="121" />
+  <circle cx="26.807" cy="89.703" r="0.22" data-node="122" />
+  <circle cx="30.615" cy="90.757" r="0.22" data-node="123" />
+  <circle cx="30.713" cy="93.918" r="0.22" data-node="124" />
+  <circle cx="32.471" cy="94.492" r="0.22" data-node="125" />
+  <circle cx="35.4" cy="94.588" r="0.22" data-node="126" />
+  <circle cx="0.293" cy="98.42" r="0.22" data-node="127" />
+  <circle cx="90.332" cy="98.372" r="0.22" data-node="128" />
+  <circle cx="0.024" cy="98.563" r="0.22" data-node="129" />
+  <circle cx="88.525" cy="98.707" r="0.22" data-node="130" />
+  <circle cx="89.722" cy="98.707" r="0.22" data-node="131" />
+  <circle cx="91.016" cy="98.707" r="0.22" data-node="132" />
+  <circle cx="91.479" cy="98.755" r="0.22" data-node="133" />
+  <circle cx="92.09" cy="98.779" r="0.22" data-node="134" />
+  <circle cx="95.068" cy="98.755" r="0.22" data-node="135" />
+  <circle cx="97.9" cy="98.731" r="0.22" data-node="136" />
+  <circle cx="98.34" cy="98.779" r="0.22" data-node="137" />
+  <circle cx="0.269" cy="98.803" r="0.22" data-node="138" />
+  <circle cx="89.16" cy="98.851" r="0.22" data-node="139" />
+  <circle cx="94.531" cy="98.851" r="0.22" data-node="140" />
+  <circle cx="88.477" cy="99.066" r="0.22" data-node="141" />
+</g>
+</svg>
