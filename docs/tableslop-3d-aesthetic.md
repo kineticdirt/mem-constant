@@ -148,3 +148,19 @@ Other planned upgrades (not built, noted for honesty): true polygon-offset inset
 (clipper), concave island hull (alpha shape over the convex blob), soft shadows
 (shadow map off for phone), day/night to match the 2D Day toggle (the neon profile
 is the natural night mode for Crimson Quay), streets layer from city-map `streets[]`.
+
+## Minecraft-like elevation + roads (2026-08-10)
+
+The 2D map art is a **guide** for ground height and freeways — not flat chrome.
+
+| Piece | Path / rule |
+|-------|-------------|
+| Bake | `scripts/tableslop/bake-isla-heightmap.py` → `map/heightmap-256.bin` + `roadmask-256.bin` + `heightmap-256.json` |
+| Serve | `/map-heightmap-256.json`, `/map-heightmap-256.bin`, `/map-roadmask-256.bin` |
+| Runtime | `scripts/linuxbox/tableslop-static/3d/terrain.js` — InstancedMesh columns by height band |
+| Grid | 256×256 over viewBox `0..100`; `maxH` 32; `blockH` 0.14 vu |
+| Bands | 1–7 grass · 8–15 dirt · 16–23 stone · 24–32 peak |
+| Roads | `roadmask` cells get a dark grey top slab (from green+black / highways.json bake) |
+| Buildings | Lot/centroid samples heightmap so pastel blocks sit on terrain |
+
+Never mutate `regions-ui.json` or frozen pins from this path.

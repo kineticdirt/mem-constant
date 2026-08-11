@@ -6727,6 +6727,7 @@ const STATIC_MIME = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".wasm": "application/wasm",
+  ".bin": "application/octet-stream",
 };
 
 function serveStaticFile(res, abs, cacheSec) {
@@ -9607,6 +9608,27 @@ async function handleRequest(req, res) {
     try { size = fs.statSync(abs).size; } catch { size = 0; }
     const headers = {
       "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=3600",
+    };
+    if (size > 0) headers["Content-Length"] = String(size);
+    res.writeHead(200, headers);
+    fs.createReadStream(abs).pipe(res);
+    return;
+  }
+
+  if (url === "/map-heightmap-256.json" || url === "/map-heightmap-256.bin" || url === "/map-roadmask-256.bin") {
+    const name = url.slice("/map-".length);
+    const abs = path.join(CAMPAIGN_DIR, "map", name);
+    if (!fs.existsSync(abs)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    const ext = path.extname(abs).toLowerCase();
+    let size = 0;
+    try { size = fs.statSync(abs).size; } catch { size = 0; }
+    const headers = {
+      "Content-Type": ext === ".json" ? "application/json; charset=utf-8" : "application/octet-stream",
       "Cache-Control": "public, max-age=3600",
     };
     if (size > 0) headers["Content-Length"] = String(size);

@@ -8,6 +8,7 @@
  */
 import * as THREE from 'three';
 import { OrbitControls } from '/3d/vendor/three/OrbitControls.js';
+import { loadHeightField, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js';
 
 /* ---- Aesthetic constants (keep in sync with docs/tableslop-3d-aesthetic.md) ---- */
 const CFG = {
@@ -24,7 +25,8 @@ const CFG = {
   palmSpacing: 2.4,       // vu along region border
   palmChance: 0.7,
   maxBorderPalms: 42,
-  groundLift: 0.02,       // vu — region ground above island blob
+  groundLift: 0.02,       // vu — region ground above island blob (fallback without heightmap)
+  blockH: TERRAIN_CFG.blockH, // synced with terrain.js Minecraft columns
   palette: {
     walls: ['#a8d8b9', '#f2997b', '#f2d383', '#8fcfc9', '#f5ebd7', '#f4b8c1', '#f2c4a0', '#cfe0a8'],
     barrelRoofs: ['#b5523f', '#c96a4a', '#a84638', '#c25b45'],
@@ -331,6 +333,19 @@ async function init() {
   sun.position.set(isleC.x * S + E * 0.6, E * 1.1, isleC.y * S + E * 0.35);
   scene.add(sun);
 
+  /* ---- Minecraft-like heightmap terrain (map art = elevation + road guide) ---- */
+  const heightField = await loadHeightField();
+  const sampleH = heightField
+    ? heightField.sampleHeightVu
+    : () => CFG.groundLift;
+  if (heightField) {
+    const tstats = addVoxelTerrain(world, heightField);
+    stats.terrain = tstats;
+    stats.heightmap = true;
+  } else {
+    stats.heightmap = false;
+  }
+
   /* ---- sea + island base (layered discs + convex-hull blob) ---- */
   const flatY = (geo, y) => { geo.rotateX(-Math.PI / 2); geo.translate(0, y, 0); return geo; };
   const lam = (color, extra) => new THREE.MeshLambertMaterial({ color, flatShading: true, ...extra });
@@ -343,15 +358,18 @@ async function init() {
   disc(extentVu * 1.9, P.deepSea, -0.06);
   disc(extentVu * 1.35, P.midSea, -0.045);
   disc(extentVu * 1.12, P.shallow, -0.03);
-  const hull = convexHull(allPts);
-  const hullC = centroid(hull);
-  const hullScaled = (f) => hull.map((p) => ({ x: hullC.x + (p.x - hullC.x) * f, y: hullC.y + (p.y - hullC.y) * f }));
-  const blob = (pts, color, y) => {
-    const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, -p.y)));
-    world.add(new THREE.Mesh(flatY(new THREE.ShapeGeometry(shape), y), lam(color, { side: THREE.DoubleSide })));
-  };
-  blob(hullScaled(1.1), P.wetSand, -0.028);
-  blob(hullScaled(1.045), P.sand, -0.015);
+  // Flat sand blob only when heightmap missing (terrain columns replace it)
+  if (!heightField) {
+    const hull = convexHull(allPts);
+    const hullC = centroid(hull);
+    const hullScaled = (f) => hull.map((p) => ({ x: hullC.x + (p.x - hullC.x) * f, y: hullC.y + (p.y - hullC.y) * f }));
+    const blob = (pts, color, y) => {
+      const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, -p.y)));
+      world.add(new THREE.Mesh(flatY(new THREE.ShapeGeometry(shape), y), lam(color, { side: THREE.DoubleSide })));
+    };
+    blob(hullScaled(1.1), P.wetSand, -0.028);
+    blob(hullScaled(1.045), P.sand, -0.015);
+  }
 
   /* ---- per-region generation (entries tagged with regionIdx for click lookup) ---- */
   const walls = [], flatRoofs = [], gabled = [], trunks = [], crowns = [], crates = [], neon = [];
@@ -374,7 +392,8 @@ async function init() {
     const c = centroid(pts);
     const inset = insetPolygon(pts, CFG.inset);
     const bb = bboxOf(inset);
-    const groundY = CFG.groundLift + regionIdx * 0.0012; // kills z-fighting where borders abut
+    // Sit region on heightmap (Minecraft terrain); tiny regionIdx epsilon avoids z-fight
+    const groundY = sampleH(c.x, c.y) + 0.02 + regionIdx * 0.0012;
 
     // grid-over-polygon subdivision → buildable lots (centers inside inset AND original)
     const cell = Math.min(CFG.maxCell, Math.max(CFG.minCell, Math.sqrt(areaVu / CFG.targetLots)));
@@ -402,8 +421,9 @@ async function init() {
 
     let buildings = 0, palms = 0, maxY = 0;
     for (const lot of lots) {
+      const lotY = sampleH(lot.x, lot.y) + 0.02 + regionIdx * 0.0012;
       if (rng() < CFG.emptyLotChance) {
-        if (rng() < sty.courtyardPalmChance) { placePalm(lot.x, lot.y, groundY); palms++; }
+        if (rng() < sty.courtyardPalmChance) { placePalm(lot.x, lot.y, lotY); palms++; }
         continue;
       }
       const isLandmark = lot === landmarkLot;
@@ -419,19 +439,19 @@ async function init() {
       const w = cell * (0.58 + rng() * 0.22), d = cell * (0.58 + rng() * 0.22);
       const x = lot.x + (rng() - 0.5) * cell * 0.16, z = lot.y + (rng() - 0.5) * cell * 0.16;
       const rot = (rng() - 0.5) * 0.06;
-      walls.push({ x, y: groundY + h / 2, z, w, h, d, rot, color: isLandmark ? pick(P.landmark) : pick(wallsPal), regionIdx });
+      walls.push({ x, y: lotY + h / 2, z, w, h, d, rot, color: isLandmark ? pick(P.landmark) : pick(wallsPal), regionIdx });
       const trimBucket = sty.neonTrim ? neon : flatRoofs; // neon trim = unlit slabs that read as signage
       if (isLandmark) {
         // deco stepped cap: two shrinking trim slabs
-        trimBucket.push({ x, y: groundY + h + 0.05, z, w: w * 0.72, h: 0.1, d: d * 0.72, rot, color: pick(sty.trim), regionIdx });
-        trimBucket.push({ x, y: groundY + h + 0.15, z, w: w * 0.45, h: 0.1, d: d * 0.45, rot, color: pick(sty.trim), regionIdx });
+        trimBucket.push({ x, y: lotY + h + 0.05, z, w: w * 0.72, h: 0.1, d: d * 0.72, rot, color: pick(sty.trim), regionIdx });
+        trimBucket.push({ x, y: lotY + h + 0.15, z, w: w * 0.45, h: 0.1, d: d * 0.45, rot, color: pick(sty.trim), regionIdx });
       } else if (rng() < gabledCh) {
-        gabled.push({ x, y: groundY + h, z, w: w * 1.07, h: 0.22 + rng() * 0.18, d: d * 1.07, rot: rng() < 0.5 ? 0 : Math.PI / 2, color: pick(sty.barrelRoofs), regionIdx });
+        gabled.push({ x, y: lotY + h, z, w: w * 1.07, h: 0.22 + rng() * 0.18, d: d * 1.07, rot: rng() < 0.5 ? 0 : Math.PI / 2, color: pick(sty.barrelRoofs), regionIdx });
       } else {
         const decoTrim = rng() < sty.trimRoofChance;
-        (decoTrim ? trimBucket : flatRoofs).push({ x, y: groundY + h + 0.045, z, w: w * 1.08, h: 0.09, d: d * 1.08, rot, color: decoTrim ? pick(sty.trim) : pick(flatPal), regionIdx });
+        (decoTrim ? trimBucket : flatRoofs).push({ x, y: lotY + h + 0.045, z, w: w * 1.08, h: 0.09, d: d * 1.08, rot, color: decoTrim ? pick(sty.trim) : pick(flatPal), regionIdx });
       }
-      maxY = Math.max(maxY, groundY + h + 0.25);
+      maxY = Math.max(maxY, lotY + h + 0.25);
       buildings++;
     }
 
@@ -453,7 +473,11 @@ async function init() {
           const pull = Math.min(0.4, dl * 0.5);
           const ix = px + (dx / dl) * pull + (rng() - 0.5) * 0.15;
           const iy = py + (dy / dl) * pull + (rng() - 0.5) * 0.15;
-          if (pointInPoly({ x: ix, y: iy }, pts)) { placePalm(ix, iy, groundY); planted++; palms++; }
+          if (pointInPoly({ x: ix, y: iy }, pts)) {
+            placePalm(ix, iy, sampleH(ix, iy) + 0.02 + regionIdx * 0.0012);
+            planted++;
+            palms++;
+          }
         }
         nextAt += CFG.palmSpacing * (0.85 + rng() * 0.4);
       }
@@ -467,14 +491,21 @@ async function init() {
       const s = 0.28 + rng() * 0.3;
       const cx = lot.x + (rng() - 0.5) * cell * 0.9, cz = lot.y + (rng() - 0.5) * cell * 0.9;
       if (!pointInPoly({ x: cx, y: cz }, pts)) continue;
-      crates.push({ x: cx, y: groundY + s / 2, z: cz, w: s, h: s, d: s, rot: rng() * Math.PI, color: pick(sty.cratePalette), regionIdx });
+      crates.push({ x: cx, y: sampleH(cx, cz) + 0.02 + regionIdx * 0.0012 + s / 2, z: cz, w: s, h: s, d: s, rot: rng() * Math.PI, color: pick(sty.cratePalette), regionIdx });
       crateCount++;
     }
 
-    // region ground (district tint = area fill lerped toward sand) + sacred border line
+    // region ground tint — translucent when heightmap present so Minecraft columns show through
     const tint = new THREE.Color(a.fill || '#cccccc').lerp(new THREE.Color(P.sand), 0.62);
     const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, -p.y)));
-    const ground = new THREE.Mesh(flatY(new THREE.ShapeGeometry(shape), groundY), lam(tint, { side: THREE.DoubleSide }));
+    const ground = new THREE.Mesh(
+      flatY(new THREE.ShapeGeometry(shape), groundY),
+      lam(tint, {
+        side: THREE.DoubleSide,
+        transparent: !!heightField,
+        opacity: heightField ? 0.28 : 1,
+      }),
+    );
     ground.userData.regionIdx = regionIdx;
     world.add(ground);
     groundMeshes.push(ground);
@@ -557,9 +588,11 @@ async function init() {
 
   /* ---- camera + controls: frame the whole island ---- */
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, E * 6);
-  camera.position.set(isleC.x * S + E * 0.5, E * 0.72, isleC.y * S + E * 0.85);
+  const camH = heightField ? E * 0.95 : E * 0.72;
+  camera.position.set(isleC.x * S + E * 0.5, camH, isleC.y * S + E * 0.85);
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(isleC.x * S, 0, isleC.y * S);
+  const targetY = heightField ? E * 0.08 : 0;
+  controls.target.set(isleC.x * S, targetY, isleC.y * S);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.maxPolarAngle = 1.45; // stay above the sea plane
