@@ -26,7 +26,10 @@
     padding:3px 10px; font:inherit; font-size:.8rem; cursor:pointer; border-radius:2px; text-decoration:none; }
   .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
   .hud-spacer { margin-left:auto; }
-  #scene { position:fixed; inset:0; }
+  body.embed .hud { display:none; }
+  body.embed .hint { display:none; }
+  #scene { position:fixed; inset:0; top:44px; }
+  body.embed #scene { top:0; }
   #scene canvas { display:block; }
   .panel { position:fixed; left:14px; bottom:14px; z-index:10; min-width:190px; max-width:min(320px, 80vw);
     background:rgba(22,8,42,.88); border:1px solid var(--cyan); border-radius:4px; padding:10px 12px;
@@ -65,6 +68,13 @@
   <span class="hud-spacer"></span>
   <a class="hud-res" href="/" title="Back to the 2D overworld map">2D map</a>
 </header>
+<script>
+(function () {
+  if (new URLSearchParams(location.search).get('embed') === '1') {
+    document.body.classList.add('embed');
+  }
+})();
+</script>
 <div id="scene" aria-label="3D island view"></div>
 <div class="panel" id="panel" hidden>
   <div class="panel-name"><span class="panel-swatch" id="panelSwatch"></span><span id="panelName"></span></div>
