@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "name": "agent-role-cluster",
+  "repo": "https://github.com/kineticdirt/agent-role-cluster",
+  "install": {
+    "cursor_agents_dir": ".cursor/agents/roles",
+    "cursor_skills_dir": ".cursor/skills",
+    "mem_constant_flag": "--with-role-agents"
+  },
+  "roles": [
+    {
+      "id": "orchestrator",
+      "agent": "agents/role-orchestrator.md",
+      "cursor_path": ".cursor/agents/roles/role-orchestrator.md",
+      "tags": [
+        "orchestrator"
+      ],
+      "when": "when starting multi-role work or when the user asks for the role-agent cluster."
+    },
+    {
+      "id": "ui",
+      "agent": "agents/role-ui.md",
+      "cursor_path": ".cursor/agents/roles/role-ui.md",
+      "tags": [
+        "ui"
+      ],
+      "when": "for Hub/panels look and structure, not deep interaction research."
+    },
+    {
+      "id": "ux",
+      "agent": "agents/role-ux.md",
+      "cursor_path": ".cursor/agents/roles/role-ux.md",
+      "tags": [
+        "ux"
+      ],
+      "when": "when L0-L2 depth, NN/g patterns, or flow clarity."
+    },
+    {
+      "id": "frontend",
+      "agent": "agents/role-frontend.md",
+      "cursor_path": ".cursor/agents/roles/role-frontend.md",
+      "tags": [
+        "frontend"
+      ],
+      "when": "for JS/TS behavior in Hub or web UIs."
+    },
+    {
+      "id": "backend",
+      "agent": "agents/role-backend.md",
+      "cursor_path": ".cursor/agents/roles/role-backend.md",
+      "tags": [
+        "backend"
+      ],
+      "when": "for /api/*, stores, auth gates."
+    },
+    {
+      "id": "cicd",
+      "agent": "agents/role-cicd.md",
+      "cursor_path": ".cursor/agents/roles/role-cicd.md",
+      "tags": [
+        "cicd"
+      ],
+      "when": "when verify loops or automation gates."
+    },
+    {
+      "id": "devops",
+      "agent": "agents/role-devops.md",
+      "cursor_path": ".cursor/agents/roles/role-devops.md",
+      "tags": [
+        "devops"
+      ],
+      "when": "for linuxbox host ops and push-linuxbox."
+    },
+    {
+      "id": "cloud",
+      "agent": "agents/role-cloud.md",
+      "cursor_path": ".cursor/agents/roles/role-cloud.md",
+      "tags": [
+        "cloud"
+      ],
+      "when": "for edge routing and remote access."
+    }
+  ],
+  "dispatch_hints": {
+    "hub_clickthrough": [
+      "ux",
+      "ui",
+      "frontend",
+      "backend",
+      "cicd"
+    ],
+    "potato_deploy": [
+      "devops",
+      "cicd"
+    ],
+    "tunnel_dns": [
+      "cloud",
+      "devops"
+    ],
+    "api_only": [
+      "backend",
+      "cicd"
+    ]
+  }
+}

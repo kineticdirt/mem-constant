@@ -46,6 +46,7 @@ mem_constant = [
   "templates/*.mdc",
   "templates/hooks/*.py",
   "templates/workflow-skills/**/*",
+  "templates/role-agents/**/*",
 ]
 
 [tool.pytest.ini_options]

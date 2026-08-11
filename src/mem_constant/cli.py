@@ -38,6 +38,8 @@ def cmd_init(ns: argparse.Namespace) -> int:
             with_ide_scaffolds=ns.with_ide_scaffolds,
             with_cli_scaffolds=ns.with_cli_scaffolds,
             with_workflow_skills=ns.with_workflow_skills,
+            with_role_agents=ns.with_role_agents,
+            role_agents_repo=ns.role_agents_repo,
             skip_specs=ns.skip_specs,
         ):
             print(line)
@@ -268,6 +270,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--with-workflow-skills",
         action="store_true",
         help="Drop bundled AI-coding workflow skills under .cursor/skills/ (34 skills; see docs/WORKFLOW-SKILLS.md).",
+    )
+    p_init.add_argument(
+        "--with-role-agents",
+        action="store_true",
+        help=(
+            "Install role-agent cluster under .cursor/agents/roles/ + role-cluster skill "
+            "(UI/UX/FE/BE/CI/DevOps/Cloud). Pulls GitHub when reachable; else bundled templates. "
+            "See docs/ROLE-AGENTS.md."
+        ),
+    )
+    p_init.add_argument(
+        "--role-agents-repo",
+        default=None,
+        metavar="URL",
+        help=(
+            "Git URL for --with-role-agents (default: "
+            "https://github.com/kineticdirt/agent-role-cluster.git)."
+        ),
     )
     p_init.add_argument(
         "--skip-specs",

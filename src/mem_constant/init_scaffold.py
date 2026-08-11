@@ -209,6 +209,136 @@ def _install_workflow_skills(target: Path, yes: bool, log: list[str]) -> None:
     )
 
 
+DEFAULT_ROLE_AGENTS_REPO = "https://github.com/kineticdirt/agent-role-cluster.git"
+
+
+def _copy_role_agents_tree(src_root: Path, target: Path, yes: bool, log: list[str]) -> None:
+    """Install agents/ + skills/role-cluster + catalog into the project."""
+    agents_src = src_root / "agents"
+    skill_src = src_root / "skills" / "role-cluster"
+    catalog_src = src_root / "catalog.json"
+
+    dest_agents = target / ".cursor" / "agents" / "roles"
+    dest_agents.mkdir(parents=True, exist_ok=True)
+    wrote_agents = 0
+    skipped_agents = 0
+    if agents_src.is_dir():
+        for path in sorted(agents_src.glob("*.md")):
+            out = dest_agents / path.name
+            if out.exists() and not yes:
+                skipped_agents += 1
+                continue
+            out.write_bytes(path.read_bytes())
+            wrote_agents += 1
+
+    dest_skill = target / ".cursor" / "skills" / "role-cluster"
+    if skill_src.is_dir():
+        if dest_skill.exists() and not yes:
+            log.append("skip .cursor/skills/role-cluster (exists; use --yes to overwrite)")
+        else:
+            dest_skill.mkdir(parents=True, exist_ok=True)
+            for path in skill_src.rglob("*"):
+                if not path.is_file():
+                    continue
+                out = dest_skill / path.relative_to(skill_src)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_bytes(path.read_bytes())
+            log.append(f"wrote {dest_skill.relative_to(target)}")
+
+    pointer = target / ".mem-constant" / "role-agents"
+    pointer.mkdir(parents=True, exist_ok=True)
+    if catalog_src.is_file():
+        (pointer / "catalog.json").write_bytes(catalog_src.read_bytes())
+        log.append(f"wrote {pointer.relative_to(target)}/catalog.json")
+    (pointer / "README.md").write_text(
+        "# Role agents (mem-constant)\n\n"
+        "Installed by `mem-constant init --with-role-agents`.\n"
+        f"Upstream: {DEFAULT_ROLE_AGENTS_REPO}\n"
+        "Cursor agents: `.cursor/agents/roles/`\n"
+        "Skill: `.cursor/skills/role-cluster/`\n",
+        encoding="utf-8",
+    )
+    log.append(
+        f"role-agents: wrote {wrote_agents} agents under {dest_agents.relative_to(target)} "
+        f"({skipped_agents} existing skipped; use --yes to overwrite)"
+    )
+
+
+def _install_role_agents(
+    target: Path,
+    yes: bool,
+    log: list[str],
+    *,
+    role_agents_repo: str | None = None,
+) -> None:
+    """Install role-agent cluster into ``.cursor/agents/roles`` + skill + ``.mem-constant/role-agents``.
+
+    Prefer a shallow git clone when ``role_agents_repo`` (or default GitHub URL) is reachable;
+    otherwise fall back to bundled ``templates/role-agents/``.
+    """
+    import shutil
+    import subprocess
+    import tempfile
+
+    repo = (role_agents_repo or "").strip() or DEFAULT_ROLE_AGENTS_REPO
+    cloned: Path | None = None
+    tmp_parent: Path | None = None
+    try:
+        tmp_parent = Path(tempfile.mkdtemp(prefix="mem-constant-role-agents-"))
+        proc = subprocess.run(
+            ["git", "clone", "--depth", "1", repo, str(tmp_parent / "src")],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        if proc.returncode == 0 and (tmp_parent / "src" / "catalog.json").is_file():
+            cloned = tmp_parent / "src"
+            log.append(f"role-agents: cloned {repo}")
+        else:
+            err = (proc.stderr or proc.stdout or "").strip().splitlines()
+            hint = err[-1] if err else f"exit {proc.returncode}"
+            log.append(f"role-agents: git clone failed ({hint}); using bundled templates")
+    except (OSError, subprocess.SubprocessError) as exc:
+        log.append(f"role-agents: git clone unavailable ({exc}); using bundled templates")
+
+    if cloned is not None:
+        try:
+            _copy_role_agents_tree(cloned, target, yes, log)
+        finally:
+            if tmp_parent is not None:
+                shutil.rmtree(tmp_parent, ignore_errors=True)
+        return
+
+    if tmp_parent is not None:
+        shutil.rmtree(tmp_parent, ignore_errors=True)
+
+    root = ir.files("mem_constant.templates").joinpath("role-agents")
+    if not root.is_dir():
+        log.append("skip role-agents: bundled templates/role-agents/ not found")
+        return
+
+    with tempfile.TemporaryDirectory(prefix="mem-constant-role-bundle-") as td:
+        dest = Path(td)
+        agents_t = root.joinpath("agents")
+        if agents_t.is_dir():
+            (dest / "agents").mkdir(parents=True, exist_ok=True)
+            for item in agents_t.iterdir():
+                if item.is_file() and item.name.endswith(".md"):
+                    (dest / "agents" / item.name).write_bytes(item.read_bytes())
+        skill_t = root.joinpath("skills").joinpath("role-cluster")
+        if skill_t.is_dir():
+            out_skill = dest / "skills" / "role-cluster"
+            out_skill.mkdir(parents=True, exist_ok=True)
+            for item in skill_t.iterdir():
+                if item.is_file():
+                    (out_skill / item.name).write_bytes(item.read_bytes())
+        cat = root.joinpath("catalog.json")
+        if cat.is_file():
+            (dest / "catalog.json").write_bytes(cat.read_bytes())
+        _copy_role_agents_tree(dest, target, yes, log)
+
+
 def _iter_files(traversable):
     """Yield every file under a Traversable (recursive). Works for filesystem-backed resources."""
     for item in traversable.iterdir():
@@ -268,6 +398,8 @@ def run_init(
     with_ide_scaffolds: bool,
     with_cli_scaffolds: bool = False,
     with_workflow_skills: bool = False,
+    with_role_agents: bool = False,
+    role_agents_repo: str | None = None,
     skip_specs: bool,
 ) -> list[str]:
     """Apply scaffold under ``target`` (usually cwd). Returns human-readable log lines."""
@@ -319,6 +451,9 @@ def run_init(
 
     if with_workflow_skills:
         _install_workflow_skills(target, yes, log)
+
+    if with_role_agents:
+        _install_role_agents(target, yes, log, role_agents_repo=role_agents_repo)
 
     ensure_carryover_scaffold(target, log)
 
