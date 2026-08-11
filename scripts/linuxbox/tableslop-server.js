@@ -2153,9 +2153,9 @@ function viewerHtml() {
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
-<!-- Eager underlay: start 2k fetch during HTML parse (before 100KB+ map JS boots). -->
-<meta name="tableslop-build" content="2026-08-09-override-boot"/>
-<link rel="preload" as="image" href="/map-image?res=2k&v=20260809n"/>
+<!-- Eager underlay: pyramid-matched master (not mislabeled 1024 "2k") so Roads lock to green art. -->
+<meta name="tableslop-build" content="2026-08-10-roads-zoom-lock"/>
+<link rel="preload" as="image" href="/map-image?v=20260810roads"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -2388,12 +2388,16 @@ function viewerHtml() {
     position:absolute; display:block; image-rendering:auto;
     transition:opacity .12s ease;
   }
+  /* Glow on the layer, not the img — a 2px border on #mapImg inset the underlay
+     vs full-bleed Roads/regions and grew in screen-px as you zoomed (roads looked like they drifted). */
+  .map-layer--terrain-base {
+    box-shadow:0 0 40px var(--glow-pink), 0 0 80px rgba(1,205,254,.15);
+  }
   .map-layer--terrain-base img#mapImg {
     display:block; width:100%; height:100%;
     opacity:1; /* hard visible — do not rely on animation fill */
-    border:2px solid transparent;
-    border-image:linear-gradient(135deg, var(--pink), var(--cyan)) 1;
-    box-shadow:0 0 40px var(--glow-pink), 0 0 80px rgba(1,205,254,.15);
+    border:0;
+    box-shadow:none;
   }
   .map-load-chip {
     position:absolute; top:42px; left:50%; transform:translateX(-50%); z-index:8;
@@ -2595,6 +2599,7 @@ function viewerHtml() {
   .map-layer--economy-resources.is-hidden { display:none; }
   .map-layer--highways.is-hidden { display:none; }
   .hwy-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+  /* Stroke in viewBox units so roads scale with the stage (same transform as green art). */
   .hwy-road-casing { fill:none; stroke:#b0a070; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; opacity:.95; }
   .hwy-road { fill:none; stroke:#f6e27a; stroke-width:0.65; stroke-linecap:round; stroke-linejoin:round; }
   .hwy-road--freeway { stroke:#f7d44a; stroke-width:0.85; }
@@ -3762,6 +3767,12 @@ function updateVisibleTiles() {
     img.src = '/map-tiles/' + zz + '/' + ty + '/' + tx + '.webp';
     layer.appendChild(img);
   });
+  // Once tiles paint, hide underlay so Roads/SVG never fight a differently-sampled base.
+  const under = document.getElementById('mapImg');
+  if (under && layer.querySelectorAll('img').length > 0) {
+    under.style.opacity = '0';
+    under.style.pointerEvents = 'none';
+  }
 }
 
 function applyCamera(animate) {
@@ -6528,20 +6539,20 @@ function renderMapPyramid(stage, data, profile) {
   stage.appendChild(stack);
   buildLayerStack(stack);
   // Instant underlay so fit-view is never a black void while pyramid tiles stream in.
-  // Prefers 2k (preloaded in <head>); browser cache makes this a warm hit after HTML parse.
+  // Prefer master (pyramid source) over mislabeled 1024 "2k" — stretched 2k drifted vs tiles/Roads on zoom.
   const terrainBase = layerEl(stack, 'terrain-base') || layerEl(stack, 'terrain-tiles');
-  const underUrl = data.base_image_2k_url || data.base_image_url;
+  const underUrl = data.base_image_url || data.base_image_2k_url;
   if (terrainBase && underUrl) {
     const img = document.createElement('img');
     img.id = 'mapImg';
-    img.src = underUrl.indexOf('?') >= 0 ? underUrl + '&v=20260809n' : underUrl + '?v=20260809n';
+    img.src = underUrl.indexOf('?') >= 0 ? underUrl + '&v=20260810roads' : underUrl + '?v=20260810roads';
     img.alt = data.title || 'campaign map';
     img.draggable = false;
     img.fetchPriority = 'high';
     img.style.opacity = '1';
     img.onerror = function() {
-      if (data.base_image_url && img.src.indexOf('res=2k') >= 0) {
-        img.src = data.base_image_url + (data.base_image_url.indexOf('?') >= 0 ? '&' : '?') + 'v=20260809n';
+      if (data.base_image_2k_url && img.src.indexOf('res=2k') < 0) {
+        img.src = data.base_image_2k_url + (data.base_image_2k_url.indexOf('?') >= 0 ? '&' : '?') + 'v=20260810roads';
         return;
       }
       setMapLoadChip('Map underlay URL failed (HTTP error). Try hard-refresh.', true);

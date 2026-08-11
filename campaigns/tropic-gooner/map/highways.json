@@ -2,7 +2,7 @@
   "version": 1,
   "updated_at": "2026-08-10T22:50:00Z",
   "viewBox": "0 0 100 100",
-  "_doc": "Highway / freeway overlay for Google-Maps-style labels on the terrain image. Coordinates are image-percent. [proposal] alignment until GM traces green art exactly. Does NOT touch city pins or regions-ui.",
+  "_doc": "Yellow Roads overlay = labels/proposal paths in image-percent (viewBox 0..100). Green+black-dot lines on the terrain ARE the freeways/bridges SoT — trace those into this file; do not invent geometry over them. Zoom-lock: overlay shares map-stage with pyramid tiles (no underlay border inset). Does NOT touch city pins or regions-ui.",
   "style": "google_maps_road",
   "routes": [
     {
