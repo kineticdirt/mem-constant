@@ -27,7 +27,10 @@
   .hud-res:hover { background:rgba(255,113,206,.12); border-color:var(--pink); color:var(--pink); }
   .hud-spacer { margin-left:auto; }
   body.embed .hud { display:none; }
-  body.embed .hint { display:none; }
+  body.embed .hint {
+    display:block; left:auto; right:10px; bottom:8px; max-width:min(280px,70vw);
+    font-size:.72rem; padding:4px 8px; opacity:.85;
+  }
   #scene { position:fixed; inset:0; top:44px; }
   body.embed #scene { top:0; }
   #scene canvas { display:block; }
