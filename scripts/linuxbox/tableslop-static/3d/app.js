@@ -8,7 +8,10 @@
  */
 import * as THREE from 'three';
 import { OrbitControls } from '/3d/vendor/three/OrbitControls.js';
-import { loadHeightField, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js';
+import { loadHeightField, addPaintedHeightMesh, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js';
+
+const QS = new URLSearchParams(location.search);
+const WANT_VOXELS = QS.get('voxels') === '1';
 
 /* ---- Aesthetic constants (keep in sync with docs/tableslop-3d-aesthetic.md) ---- */
 const CFG = {
@@ -333,17 +336,22 @@ async function init() {
   sun.position.set(isleC.x * S + E * 0.6, E * 1.1, isleC.y * S + E * 0.35);
   scene.add(sun);
 
-  /* ---- Minecraft-like heightmap terrain (map art = elevation + road guide) ---- */
+  /* ---- 2.5D painted heightmesh (default) or ?voxels=1 columns ---- */
   const heightField = await loadHeightField();
   const sampleH = heightField
     ? heightField.sampleHeightVu
     : () => CFG.groundLift;
   if (heightField) {
-    const tstats = addVoxelTerrain(world, heightField);
-    stats.terrain = tstats;
     stats.heightmap = true;
+    if (WANT_VOXELS) {
+      stats.terrain = addVoxelTerrain(world, heightField);
+    } else {
+      stats.terrain = await addPaintedHeightMesh(world, heightField);
+    }
+    stats.mode = stats.terrain.mode || (WANT_VOXELS ? 'voxels' : 'iso25d');
   } else {
     stats.heightmap = false;
+    stats.mode = 'flat';
   }
 
   /* ---- sea + island base (layered discs + convex-hull blob) ---- */
@@ -358,7 +366,7 @@ async function init() {
   disc(extentVu * 1.9, P.deepSea, -0.06);
   disc(extentVu * 1.35, P.midSea, -0.045);
   disc(extentVu * 1.12, P.shallow, -0.03);
-  // Flat sand blob only when heightmap missing (terrain columns replace it)
+  // Flat sand blob only when no heightfield (painted/voxel terrain replaces it)
   if (!heightField) {
     const hull = convexHull(allPts);
     const hullC = centroid(hull);
@@ -495,7 +503,7 @@ async function init() {
       crateCount++;
     }
 
-    // region ground tint — translucent when heightmap present so Minecraft columns show through
+    // region ground tint — whisper only in 2.5D so painted map stays readable
     const tint = new THREE.Color(a.fill || '#cccccc').lerp(new THREE.Color(P.sand), 0.62);
     const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, -p.y)));
     const ground = new THREE.Mesh(
@@ -503,7 +511,7 @@ async function init() {
       lam(tint, {
         side: THREE.DoubleSide,
         transparent: !!heightField,
-        opacity: heightField ? 0.28 : 1,
+        opacity: heightField ? (stats.mode === 'iso25d' ? 0.12 : 0.28) : 1,
       }),
     );
     ground.userData.regionIdx = regionIdx;
@@ -586,19 +594,46 @@ async function init() {
     return sp;
   }
 
-  /* ---- camera + controls: frame the whole island ---- */
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, E * 6);
-  const camH = heightField ? E * 0.95 : E * 0.72;
-  camera.position.set(isleC.x * S + E * 0.5, camH, isleC.y * S + E * 0.85);
+  /* ---- isometric 2.5D board: orthographic, pan+zoom only (no free orbit) ---- */
+  const aspect0 = window.innerWidth / Math.max(1, window.innerHeight);
+  let frustumSize = E * 1.15;
+  const camera = new THREE.OrthographicCamera(
+    (-frustumSize * aspect0) / 2,
+    (frustumSize * aspect0) / 2,
+    frustumSize / 2,
+    -frustumSize / 2,
+    0.1,
+    E * 40,
+  );
+  const targetY = heightField ? E * 0.06 : 0;
+  const look = new THREE.Vector3(isleC.x * S, targetY, isleC.y * S);
+  // classic isometric: equal X/Z offset, slight Y bias for board read
+  const isoD = E * 1.55;
+  camera.position.set(look.x + isoD, look.y + isoD * 0.92, look.z + isoD);
+  camera.lookAt(look);
+  camera.zoom = 1;
+  camera.updateProjectionMatrix();
+
   const controls = new OrbitControls(camera, renderer.domElement);
-  const targetY = heightField ? E * 0.08 : 0;
-  controls.target.set(isleC.x * S, targetY, isleC.y * S);
+  controls.target.copy(look);
+  controls.enableRotate = false;
+  controls.enablePan = true;
   controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.maxPolarAngle = 1.45; // stay above the sea plane
-  controls.minDistance = E * 0.12;
-  controls.maxDistance = E * 2.2;
+  controls.dampingFactor = 0.1;
+  controls.screenSpacePanning = true;
+  controls.mouseButtons = {
+    LEFT: THREE.MOUSE.PAN,
+    MIDDLE: THREE.MOUSE.DOLLY,
+    RIGHT: THREE.MOUSE.PAN,
+  };
+  controls.touches = {
+    ONE: THREE.TOUCH.PAN,
+    TWO: THREE.TOUCH.DOLLY_PAN,
+  };
+  controls.minZoom = 0.45;
+  controls.maxZoom = 4.5;
   controls.update();
+  stats.camera = 'orthographic-iso';
 
   /* ---- click (not drag) → region corner panel ---- */
   const panel = document.getElementById('panel');
@@ -628,7 +663,11 @@ async function init() {
   });
 
   window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+    camera.left = (-frustumSize * aspect) / 2;
+    camera.right = (frustumSize * aspect) / 2;
+    camera.top = frustumSize / 2;
+    camera.bottom = -frustumSize / 2;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });

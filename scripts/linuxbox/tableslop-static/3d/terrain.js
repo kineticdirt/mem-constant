@@ -1,6 +1,7 @@
 /**
- * Minecraft-like heightmap terrain + road tops for Isla Primavera /3d.
- * Data: /map-heightmap-256.json + .bin + /map-roadmask-256.bin (baked from map art).
+ * Isla Primavera terrain for /3d.
+ * Default: painted 2.5D heightmesh (master-enhanced on heightmap).
+ * Optional: ?voxels=1 Minecraft columns (debug).
  */
 import * as THREE from 'three';
 
@@ -9,17 +10,18 @@ export const TERRAIN_CFG = {
   fetchMeta: '/map-heightmap-256.json',
   fetchHeight: '/map-heightmap-256.bin',
   fetchRoads: '/map-roadmask-256.bin',
-  // Minecraft-ish bands
+  /** Prefer 2k for phone; falls back to full master via /map-image */
+  mapTextureUrl: '/map-image?res=2k',
+  mapTextureFallback: '/map-image',
   grass: '#5a9e4a',
   dirt: '#8b6914',
   stone: '#7a756c',
   peak: '#e8e4dc',
   road: '#4a4a4a',
-  roadEdge: '#3a3a3a',
 };
 
 /**
- * @returns {Promise<{meta: object, height: Uint8Array, roads: Uint8Array, sampleHeightVu: Function}|null>}
+ * @returns {Promise<{meta: object, height: Uint8Array, roads: Uint8Array, sampleHeightVu: Function, w: number, h: number, blockH: number}|null>}
  */
 export async function loadHeightField() {
   try {
@@ -48,6 +50,74 @@ export async function loadHeightField() {
   }
 }
 
+async function loadMapTexture() {
+  const loader = new THREE.TextureLoader();
+  for (const url of [TERRAIN_CFG.mapTextureUrl, TERRAIN_CFG.mapTextureFallback]) {
+    try {
+      const tex = await loader.loadAsync(url);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 8;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      return { tex, url };
+    } catch {
+      /* try next */
+    }
+  }
+  return { tex: null, url: null };
+}
+
+/**
+ * Displaced plane with painted map albedo — primary 2.5D board surface.
+ * @returns {Promise<{drawCalls: number, landCells: number, roadCells: number, mode: string, textureUrl: string|null}>}
+ */
+export async function addPaintedHeightMesh(world, field) {
+  const { height, roads, w, h, blockH } = field;
+  let landCells = 0;
+  let roadCells = 0;
+  for (let i = 0; i < height.length; i++) {
+    if (height[i]) landCells++;
+    if (roads[i] && height[i]) roadCells++;
+  }
+
+  // segments = cells; vertices = w * h
+  const geo = new THREE.PlaneGeometry(100, 100, w - 1, h - 1);
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(50, 0, 50);
+
+  const pos = geo.attributes.position;
+  const uv = geo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    const gx = Math.max(0, Math.min(w - 1, Math.round((x / 100) * (w - 1))));
+    const gy = Math.max(0, Math.min(h - 1, Math.round((z / 100) * (h - 1))));
+    pos.setY(i, (height[gy * w + gx] || 0) * blockH);
+    // PNG row0 = image top = viewBox y=0 (north); world z = viewBox y
+    uv.setXY(i, x / 100, 1 - z / 100);
+  }
+  pos.needsUpdate = true;
+  uv.needsUpdate = true;
+  geo.computeVertexNormals();
+
+  const { tex, url } = await loadMapTexture();
+  const mat = tex
+    ? new THREE.MeshLambertMaterial({ map: tex })
+    : new THREE.MeshLambertMaterial({ color: '#5a9e4a', flatShading: true });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.userData.terrain = true;
+  mesh.userData.mode = 'iso25d';
+  world.add(mesh);
+
+  return {
+    drawCalls: 1,
+    landCells,
+    roadCells,
+    mode: 'iso25d',
+    textureUrl: url,
+  };
+}
+
 function bandColor(hv) {
   if (hv >= 24) return TERRAIN_CFG.peak;
   if (hv >= 16) return TERRAIN_CFG.stone;
@@ -56,25 +126,16 @@ function bandColor(hv) {
 }
 
 /**
- * Add chunked InstancedMesh columns + road tops into world (viewBox units).
- * @returns {{drawCalls: number, landCells: number, roadCells: number}}
+ * Optional Minecraft columns (?voxels=1).
+ * @returns {{drawCalls: number, landCells: number, roadCells: number, mode: string}}
  */
 export function addVoxelTerrain(world, field) {
   const { height, roads, w, h, blockH } = field;
   const cell = 100 / w;
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-  const lam = (hex) =>
-    new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
+  const lam = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 
-  // Bucket instances by material key to keep draw calls low
-  const buckets = {
-    grass: [],
-    dirt: [],
-    stone: [],
-    peak: [],
-    road: [],
-  };
-
+  const buckets = { grass: [], dirt: [], stone: [], peak: [], road: [] };
   let landCells = 0;
   let roadCells = 0;
   for (let gy = 0; gy < h; gy++) {
@@ -86,7 +147,6 @@ export function addVoxelTerrain(world, field) {
       const x = (gx + 0.5) * cell;
       const z = (gy + 0.5) * cell;
       const colH = hv * blockH;
-      // column from y=0 up — Minecraft block column feel
       const entry = {
         x,
         y: colH / 2,
@@ -151,5 +211,5 @@ export function addVoxelTerrain(world, field) {
   addBucket('peak', TERRAIN_CFG.peak);
   addBucket('road', TERRAIN_CFG.road);
 
-  return { drawCalls, landCells, roadCells };
+  return { drawCalls, landCells, roadCells, mode: 'voxels' };
 }

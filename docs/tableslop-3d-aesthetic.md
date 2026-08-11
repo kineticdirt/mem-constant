@@ -157,10 +157,21 @@ The 2D map art is a **guide** for ground height and freeways — not flat chrome
 |-------|-------------|
 | Bake | `scripts/tableslop/bake-isla-heightmap.py` → `map/heightmap-256.bin` + `roadmask-256.bin` + `heightmap-256.json` |
 | Serve | `/map-heightmap-256.json`, `/map-heightmap-256.bin`, `/map-roadmask-256.bin` |
-| Runtime | `scripts/linuxbox/tableslop-static/3d/terrain.js` — InstancedMesh columns by height band |
+| Runtime | `scripts/linuxbox/tableslop-static/3d/terrain.js` |
 | Grid | 256×256 over viewBox `0..100`; `maxH` 32; `blockH` 0.14 vu |
-| Bands | 1–7 grass · 8–15 dirt · 16–23 stone · 24–32 peak |
-| Roads | `roadmask` cells get a dark grey top slab (from green+black / highways.json bake) |
-| Buildings | Lot/centroid samples heightmap so pastel blocks sit on terrain |
 
 Never mutate `regions-ui.json` or frozen pins from this path.
+
+## Isometric 2.5D board (default, 2026-08-10)
+
+Product default is a **map board**, not a free-orbit voxel sandbox:
+
+| Piece | Rule |
+|-------|------|
+| Terrain | Displaced plane textured with `/map-image?res=2k` (painted master) |
+| Camera | `OrthographicCamera`, classic isometric tilt; **pan + zoom only** (`enableRotate=false`) |
+| Cities | Existing pastel blocks/palms still sit on sampled height |
+| Region tints | Very light (≈12% opacity) so the painted map stays readable |
+| Debug | `?voxels=1` restores Minecraft column terrain |
+
+HUD hint: drag to pan · scroll to zoom · click a district.
