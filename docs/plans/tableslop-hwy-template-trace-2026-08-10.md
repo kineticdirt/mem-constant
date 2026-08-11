@@ -48,12 +48,24 @@ Trace the green template into editable road components, then show those as Googl
 ### T5 — Traffic (later)
 - [ ] Congestion on graph edges — see `docs/plans/isla-highways-traffic-2026-08-07.md`
 
-## Recommended first ship
+## Shipped 2026-08-10 (wireframe plane)
 
-**T2 + T3** — Draw Highways like borders, save to `highways.json`, render those paths as the GMaps roads. Template (green) stays the guide in the background.
+- Extract green+black from `master-enhanced.png` → skeleton → `map/highways-wireframe.png` (+ SVG, nodes in `highways.json`)
+- Map stage = plane; overlay wireframe PNG expanded to 100% of stage; yellow dots = black markers; IP labels for named corridors
+- Blender (PC): `map/highways-blender-plane.py` — textured map plane + wireframe overlay plane
+- Re-run: `python scripts/tableslop/extract-art-highways.py`
 
-## Open for GM
+## Superseded for product 3D (2026-08-10)
 
-1. Start with **Draw Highways** (T2) now?
-2. Or seed drafts from black-dot extract (T4) first, then draw/refine?
-3. Component look: classic GMaps yellow, or quieter grey/white so it doesn’t fight the green template while tracing?
+Flat wireframe-as-product is **not** the goal. Elevation track wins:
+
+- Bake `heightmap-256` + `roadmask-256` from map art (`scripts/tableslop/bake-isla-heightmap.py`)
+- `/3d` Minecraft-like columns + road tops (`terrain.js`); buildings sample local height
+- Spec: `docs/tableslop-3d-aesthetic.md` § Minecraft-like elevation
+
+Wireframe PNG may remain a debug/trace aid; HUD **3D** is the playable surface.
+
+## Next (optional)
+
+- **T2** Draw Highways to refine/name segments for GMaps chrome / traffic graph
+- Finer height grid / player walk on heightfield (after terrain exists)
