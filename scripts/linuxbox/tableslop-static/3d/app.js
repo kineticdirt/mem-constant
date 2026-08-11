@@ -326,13 +326,16 @@ async function init() {
 
   const allPts = areas.flatMap(({ pts }) => pts);
   const isle = bboxOf(allPts);
+  // Poly bbox for city layout; board camera uses full 100×100 when heightmesh present
   const isleC = { x: (isle.x0 + isle.x1) / 2, y: (isle.y0 + isle.y1) / 2 };
-  const extentVu = Math.max(isle.x1 - isle.x0, isle.y1 - isle.y0);
-  const E = extentVu * S; // world-space island extent (camera/light/fog distances)
+  const extentVu = Math.max(isle.x1 - isle.x0, isle.y1 - isle.y0, 1);
+  let camC = { ...isleC };
+  let extentCamVu = extentVu;
+  const Epoly = extentVu * S;
 
   scene.add(new THREE.HemisphereLight(new THREE.Color(P.sky), new THREE.Color(P.sand), 1.0));
   const sun = new THREE.DirectionalLight(new THREE.Color(P.sun), 1.7);
-  sun.position.set(isleC.x * S + E * 0.6, E * 1.1, isleC.y * S + E * 0.35);
+  sun.position.set(isleC.x * S + Epoly * 0.6, Epoly * 1.1, isleC.y * S + Epoly * 0.35);
   scene.add(sun);
 
   /* ---- 2.5D painted heightmesh (default) or ?voxels=1 columns ---- */
@@ -348,17 +351,22 @@ async function init() {
       stats.terrain = await addPaintedHeightMesh(world, heightField);
     }
     stats.mode = stats.terrain.mode || (WANT_VOXELS ? 'voxels' : 'iso25d');
+    if (stats.mode === 'iso25d') {
+      camC = { x: 50, y: 50 };
+      extentCamVu = 100;
+    }
   } else {
     stats.heightmap = false;
     stats.mode = 'flat';
   }
+  const E = extentCamVu * S;
 
-  // Fog after mode is known — iso board needs longer range so painted art stays readable
-  scene.fog = new THREE.Fog(
-    new THREE.Color(P.fog),
-    stats.mode === 'iso25d' ? E * 2.4 : E * 1.3,
-    stats.mode === 'iso25d' ? E * 5.5 : E * 3.0,
-  );
+  // Fog after mode is known — iso board: far/light so painted ocean stays readable
+  if (stats.mode === 'iso25d') {
+    scene.fog = new THREE.Fog(new THREE.Color(P.fog), E * 5.5, E * 14);
+  } else {
+    scene.fog = new THREE.Fog(new THREE.Color(P.fog), E * 1.3, E * 3.0);
+  }
 
   /* ---- sea + island base (layered discs + convex-hull blob) ---- */
   const flatY = (geo, y) => { geo.rotateX(-Math.PI / 2); geo.translate(0, y, 0); return geo; };
@@ -369,10 +377,12 @@ async function init() {
     m.position.set(isleC.x, 0, isleC.y);
     world.add(m);
   };
-  disc(extentVu * 1.9, P.deepSea, -0.06);
-  disc(extentVu * 1.35, P.midSea, -0.045);
-  // Shallow shelf only when not showing painted ocean on the heightmesh
-  if (stats.mode !== 'iso25d') disc(extentVu * 1.12, P.shallow, -0.03);
+  // Painted heightmesh already shows ocean — skip Lambert sea discs in iso25d
+  if (stats.mode !== 'iso25d') {
+    disc(extentVu * 1.9, P.deepSea, -0.06);
+    disc(extentVu * 1.35, P.midSea, -0.045);
+    disc(extentVu * 1.12, P.shallow, -0.03);
+  }
   // Flat sand blob only when no heightfield (painted/voxel terrain replaces it)
   if (!heightField) {
     const hull = convexHull(allPts);
@@ -603,7 +613,8 @@ async function init() {
 
   /* ---- isometric 2.5D board: orthographic, pan+zoom only (no free orbit) ---- */
   const aspect0 = window.innerWidth / Math.max(1, window.innerHeight);
-  let frustumSize = E * 1.15;
+  // Iso foreshortening needs margin over AABB; frame full board when heightmesh
+  let frustumSize = E * (stats.mode === 'iso25d' ? 1.45 : 1.15);
   const camera = new THREE.OrthographicCamera(
     (-frustumSize * aspect0) / 2,
     (frustumSize * aspect0) / 2,
@@ -612,9 +623,8 @@ async function init() {
     0.1,
     E * 40,
   );
-  const targetY = heightField ? E * 0.06 : 0;
-  const look = new THREE.Vector3(isleC.x * S, targetY, isleC.y * S);
-  // classic isometric: equal X/Z offset, slight Y bias for board read
+  const targetY = heightField ? E * 0.04 : 0;
+  const look = new THREE.Vector3(camC.x * S, targetY, camC.y * S);
   const isoD = E * 1.55;
   camera.position.set(look.x + isoD, look.y + isoD * 0.92, look.z + isoD);
   camera.lookAt(look);
@@ -641,6 +651,8 @@ async function init() {
   controls.maxZoom = 4.5;
   controls.update();
   stats.camera = 'orthographic-iso';
+  stats.enableRotate = false;
+  stats.frustumVu = extentCamVu;
 
   /* ---- click (not drag) → region corner panel ---- */
   const panel = document.getElementById('panel');
