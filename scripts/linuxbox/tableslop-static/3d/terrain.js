@@ -6,7 +6,8 @@
 import * as THREE from 'three';
 
 export const TERRAIN_CFG = {
-  blockH: 0.06, // vu per height step (maxH 32 → ~1.9 vu board relief; was 0.14 cliffs)
+  // Relief in viewBox units — world scale (~100×) multiplies this in app.js CFG.scale
+  blockH: 0.08, // maxH 32 → ~2.6 vu (~520 wu at scale 200) — readable hills when zoomed in
   fetchMeta: '/map-heightmap-256.json',
   fetchHeight: '/map-heightmap-256.bin',
   fetchRoads: '/map-roadmask-256.bin',
@@ -17,7 +18,8 @@ export const TERRAIN_CFG = {
   dirt: '#8b6914',
   stone: '#7a756c',
   peak: '#e8e4dc',
-  road: '#4a4a4a',
+  road: '#3a3a3a',
+  roadMark: '#c9a227',
 };
 
 /**
@@ -124,8 +126,8 @@ export async function addPaintedHeightMesh(world, field) {
     : new THREE.MeshLambertMaterial({ color: '#5a9e4a', flatShading: true });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.userData.terrain = true;
-  mesh.userData.mode = 'iso25d';
-  // Slight polygon offset so region borders/buildings win depth fights on flats
+  mesh.userData.mode = 'heightmesh';
+  // Slight polygon offset so streets/borders win depth fights on flats
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;
@@ -135,9 +137,99 @@ export async function addPaintedHeightMesh(world, field) {
     drawCalls: 1,
     landCells,
     roadCells,
-    mode: 'iso25d',
+    mode: 'heightmesh',
     textureUrl: url,
   };
+}
+
+/**
+ * Street slabs from roadmask (dilated) — primary detail layer at large world scale.
+ * @returns {{drawCalls: number, streetCells: number}}
+ */
+export function addStreetSlabs(world, field) {
+  const { height, roads, w, h, blockH } = field;
+  const cell = 100 / w;
+  const thick = new Uint8Array(roads.length);
+  for (let gy = 0; gy < h; gy++) {
+    for (let gx = 0; gx < w; gx++) {
+      const i = gy * w + gx;
+      if (!roads[i]) continue;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const yy = gy + dy;
+          const xx = gx + dx;
+          if (yy < 0 || xx < 0 || yy >= h || xx >= w) continue;
+          if (height[yy * w + xx]) thick[yy * w + xx] = 1;
+        }
+      }
+    }
+  }
+
+  const entries = [];
+  const marks = [];
+  for (let gy = 0; gy < h; gy++) {
+    for (let gx = 0; gx < w; gx++) {
+      const i = gy * w + gx;
+      if (!thick[i]) continue;
+      const hv = height[i] || 1;
+      const x = (gx + 0.5) * cell;
+      const z = (gy + 0.5) * cell;
+      const yTop = hv * blockH;
+      entries.push({
+        x,
+        y: yTop + blockH * 0.35,
+        z,
+        w: cell * 1.02,
+        h: blockH * 0.55,
+        d: cell * 1.02,
+        rot: 0,
+        color: TERRAIN_CFG.road,
+      });
+      if (roads[i]) {
+        marks.push({
+          x,
+          y: yTop + blockH * 0.7,
+          z,
+          w: cell * 0.18,
+          h: blockH * 0.12,
+          d: cell * 0.85,
+          rot: 0,
+          color: TERRAIN_CFG.roadMark,
+        });
+      }
+    }
+  }
+
+  const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+  const tmpM = new THREE.Matrix4();
+  const tmpQ = new THREE.Quaternion();
+  const tmpE = new THREE.Euler();
+  const tmpV = new THREE.Vector3();
+  const tmpS = new THREE.Vector3();
+  const tmpC = new THREE.Color();
+
+  function addBucket(list, hex) {
+    if (!list.length) return 0;
+    const mat = new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
+    const im = new THREE.InstancedMesh(boxGeo, mat, list.length);
+    list.forEach((e, idx) => {
+      tmpE.set(0, e.rot || 0, 0);
+      tmpQ.setFromEuler(tmpE);
+      tmpM.compose(tmpV.set(e.x, e.y, e.z), tmpQ, tmpS.set(e.w, e.h, e.d));
+      im.setMatrixAt(idx, tmpM);
+      im.setColorAt(idx, tmpC.set(e.color));
+    });
+    im.instanceMatrix.needsUpdate = true;
+    if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    im.userData.streets = true;
+    world.add(im);
+    return 1;
+  }
+
+  let drawCalls = 0;
+  drawCalls += addBucket(entries, TERRAIN_CFG.road);
+  drawCalls += addBucket(marks, TERRAIN_CFG.roadMark);
+  return { drawCalls, streetCells: entries.length, centerline: marks.length };
 }
 
 function bandColor(hv) {

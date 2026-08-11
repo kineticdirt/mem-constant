@@ -8,14 +8,17 @@
  */
 import * as THREE from 'three';
 import { OrbitControls } from '/3d/vendor/three/OrbitControls.js';
-import { loadHeightField, addPaintedHeightMesh, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js';
+import { loadHeightField, addPaintedHeightMesh, addStreetSlabs, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js';
 
 const QS = new URLSearchParams(location.search);
 const WANT_VOXELS = QS.get('voxels') === '1';
+const WANT_BUILDINGS = QS.get('buildings') === '1'; // default OFF — streets-first at large scale
+const WANT_ISO = QS.get('iso') === '1'; // default OFF — full perspective 3D
 
 /* ---- Aesthetic constants (keep in sync with docs/tableslop-3d-aesthetic.md) ---- */
 const CFG = {
-  scale: 2,               // world units per viewBox unit
+  // ~100× prior board scale (was 2) so zoom-in has room for street detail
+  scale: 200,             // world units per viewBox unit
   storyH: 0.42,           // vu per story
   inset: 0.55,            // vu centroid-shrink inset → street ring at borders
   targetLots: 150,        // buildable-lot target per region (drives grid cell size)
@@ -29,7 +32,7 @@ const CFG = {
   palmChance: 0.7,
   maxBorderPalms: 42,
   groundLift: 0.02,       // vu — region ground above island blob (fallback without heightmap)
-  blockH: TERRAIN_CFG.blockH, // synced with terrain.js Minecraft columns
+  blockH: TERRAIN_CFG.blockH,
   palette: {
     walls: ['#a8d8b9', '#f2997b', '#f2d383', '#8fcfc9', '#f5ebd7', '#f4b8c1', '#f2c4a0', '#cfe0a8'],
     barrelRoofs: ['#b5523f', '#c96a4a', '#a84638', '#c25b45'],
@@ -347,11 +350,13 @@ async function init() {
     stats.heightmap = true;
     if (WANT_VOXELS) {
       stats.terrain = addVoxelTerrain(world, heightField);
+      stats.mode = 'voxels';
     } else {
       stats.terrain = await addPaintedHeightMesh(world, heightField);
+      stats.streets = addStreetSlabs(world, heightField);
+      stats.mode = WANT_ISO ? 'iso25d' : 'full3d';
     }
-    stats.mode = stats.terrain.mode || (WANT_VOXELS ? 'voxels' : 'iso25d');
-    if (stats.mode === 'iso25d') {
+    if (stats.mode === 'iso25d' || stats.mode === 'full3d') {
       camC = { x: 50, y: 50 };
       extentCamVu = 100;
     }
@@ -360,10 +365,12 @@ async function init() {
     stats.mode = 'flat';
   }
   const E = extentCamVu * S;
+  stats.worldScale = S;
+  stats.buildingsEnabled = WANT_BUILDINGS;
 
-  // Fog after mode is known — iso board: far/light so painted ocean stays readable
-  if (stats.mode === 'iso25d') {
-    scene.fog = new THREE.Fog(new THREE.Color(P.fog), E * 5.5, E * 14);
+  // Fog: far out so street-scale flyovers stay clear
+  if (stats.mode === 'full3d' || stats.mode === 'iso25d') {
+    scene.fog = new THREE.Fog(new THREE.Color(P.fog), E * 0.35, E * 2.8);
   } else {
     scene.fog = new THREE.Fog(new THREE.Color(P.fog), E * 1.3, E * 3.0);
   }
@@ -377,8 +384,8 @@ async function init() {
     m.position.set(isleC.x, 0, isleC.y);
     world.add(m);
   };
-  // Painted heightmesh already shows ocean — skip Lambert sea discs in iso25d
-  if (stats.mode !== 'iso25d') {
+  // Painted mesh shows ocean — skip Lambert sea under heightmesh modes
+  if (stats.mode !== 'full3d' && stats.mode !== 'iso25d') {
     disc(extentVu * 1.9, P.deepSea, -0.06);
     disc(extentVu * 1.35, P.midSea, -0.045);
     disc(extentVu * 1.12, P.shallow, -0.03);
@@ -396,7 +403,7 @@ async function init() {
     blob(hullScaled(1.045), P.sand, -0.015);
   }
 
-  /* ---- per-region generation (entries tagged with regionIdx for click lookup) ---- */
+  /* ---- per-region: borders always; buildings only with ?buildings=1 ---- */
   const walls = [], flatRoofs = [], gabled = [], trunks = [], crowns = [], crates = [], neon = [];
   const hitMeshes = [];
   const groundMeshes = [];
@@ -415,14 +422,14 @@ async function init() {
       return hit ? hit.d : null;
     };
     const c = centroid(pts);
-    const inset = insetPolygon(pts, CFG.inset);
-    const bb = bboxOf(inset);
-    // Sit region on heightmap (Minecraft terrain); tiny regionIdx epsilon avoids z-fight
     const groundY = sampleH(c.x, c.y) + 0.02 + regionIdx * 0.0012;
 
-    // grid-over-polygon subdivision → buildable lots (centers inside inset AND original)
+    let buildings = 0, palms = 0, crateCount = 0, lots = [], maxY = groundY;
+
+    if (WANT_BUILDINGS) {
+    const inset = insetPolygon(pts, CFG.inset);
+    const bb = bboxOf(inset);
     const cell = Math.min(CFG.maxCell, Math.max(CFG.minCell, Math.sqrt(areaVu / CFG.targetLots)));
-    const lots = [];
     for (let gx = bb.x0; gx + cell <= bb.x1 + 1e-6; gx += cell) {
       for (let gz = bb.y0; gz + cell <= bb.y1 + 1e-6; gz += cell) {
         const ctr = { x: gx + cell / 2, y: gz + cell / 2 };
@@ -430,7 +437,6 @@ async function init() {
       }
     }
 
-    // landmark = buildable lot nearest the region centroid
     let landmarkLot = null, best = Infinity;
     for (const lot of lots) {
       const d = (lot.x - c.x) ** 2 + (lot.y - c.y) ** 2;
@@ -444,7 +450,6 @@ async function init() {
       crowns.push({ x, y: y + h, z, w: 0.9 + rng() * 0.4, h: 0.5, d: 0.9 + rng() * 0.4, rot: rng() * Math.PI * 2, tilt, color: pick(P.palmCrowns), regionIdx });
     };
 
-    let buildings = 0, palms = 0, maxY = 0;
     for (const lot of lots) {
       const lotY = sampleH(lot.x, lot.y) + 0.02 + regionIdx * 0.0012;
       if (rng() < CFG.emptyLotChance) {
@@ -465,9 +470,8 @@ async function init() {
       const x = lot.x + (rng() - 0.5) * cell * 0.16, z = lot.y + (rng() - 0.5) * cell * 0.16;
       const rot = (rng() - 0.5) * 0.06;
       walls.push({ x, y: lotY + h / 2, z, w, h, d, rot, color: isLandmark ? pick(P.landmark) : pick(wallsPal), regionIdx });
-      const trimBucket = sty.neonTrim ? neon : flatRoofs; // neon trim = unlit slabs that read as signage
+      const trimBucket = sty.neonTrim ? neon : flatRoofs;
       if (isLandmark) {
-        // deco stepped cap: two shrinking trim slabs
         trimBucket.push({ x, y: lotY + h + 0.05, z, w: w * 0.72, h: 0.1, d: d * 0.72, rot, color: pick(sty.trim), regionIdx });
         trimBucket.push({ x, y: lotY + h + 0.15, z, w: w * 0.45, h: 0.1, d: d * 0.45, rot, color: pick(sty.trim), regionIdx });
       } else if (rng() < gabledCh) {
@@ -480,8 +484,6 @@ async function init() {
       buildings++;
     }
 
-    // border palms — walk the boundary by ARC LENGTH (GM polys have dense short
-    // segments; per-edge spacing would starve), jittered, nudged inland
     let planted = 0;
     let acc = 0;
     let nextAt = CFG.palmSpacing * (0.6 + rng() * 0.8);
@@ -492,7 +494,6 @@ async function init() {
         const t = (nextAt - acc) / segLen;
         if (rng() < sty.palmChance) {
           const px = p0.x + (p1.x - p0.x) * t, py = p0.y + (p1.y - p0.y) * t;
-          // fixed-distance inland pull (proportional pull strands palms on tiny polys)
           const dx = c.x - px, dy = c.y - py;
           const dl = Math.hypot(dx, dy) || 1;
           const pull = Math.min(0.4, dl * 0.5);
@@ -509,39 +510,43 @@ async function init() {
       acc += segLen;
     }
 
-    // dockside clutter: crate/container stacks near random lots (working-port texture)
-    let crateCount = 0;
     for (let i = 0; i < (sty.crates || 0) && lots.length; i++) {
       const lot = lots[Math.floor(rng() * lots.length)];
       const s = 0.28 + rng() * 0.3;
-      const cx = lot.x + (rng() - 0.5) * cell * 0.9, cz = lot.y + (rng() - 0.5) * cell * 0.9;
+      const cellW = CFG.maxCell;
+      const cx = lot.x + (rng() - 0.5) * cellW * 0.9, cz = lot.y + (rng() - 0.5) * cellW * 0.9;
       if (!pointInPoly({ x: cx, y: cz }, pts)) continue;
       crates.push({ x: cx, y: sampleH(cx, cz) + 0.02 + regionIdx * 0.0012 + s / 2, z: cz, w: s, h: s, d: s, rot: rng() * Math.PI, color: pick(sty.cratePalette), regionIdx });
       crateCount++;
     }
+    } // end WANT_BUILDINGS
 
-    // region ground tint — whisper only in 2.5D so painted map stays readable
-    const tint = new THREE.Color(a.fill || '#cccccc').lerp(new THREE.Color(P.sand), 0.62);
-    const shape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, -p.y)));
-    const ground = new THREE.Mesh(
-      flatY(new THREE.ShapeGeometry(shape), groundY),
-      lam(tint, {
-        side: THREE.DoubleSide,
-        transparent: !!heightField,
-        opacity: heightField ? (stats.mode === 'iso25d' ? 0.12 : 0.28) : 1,
-      }),
+    // Thin border only (no opaque ground wash over streets)
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(p.x, groundY + 0.02, p.y)));
+    const border = new THREE.LineLoop(lineGeo, new THREE.LineBasicMaterial({ color: a.stroke || '#888888', transparent: true, opacity: 0.45 }));
+    border.userData.regionIdx = regionIdx;
+    world.add(border);
+
+    // Invisible hit pad for region click (LineLoop is a poor raycast target)
+    const hitShape = new THREE.Shape(pts.map((p) => new THREE.Vector2(p.x, -p.y)));
+    const hitPad = new THREE.Mesh(
+      flatY(new THREE.ShapeGeometry(hitShape), groundY + 0.01),
+      new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }),
     );
-    ground.userData.regionIdx = regionIdx;
-    world.add(ground);
-    groundMeshes.push(ground);
-    hitMeshes.push(ground);
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(p.x, groundY + 0.012, p.y)));
-    world.add(new THREE.LineLoop(lineGeo, new THREE.LineBasicMaterial({ color: a.stroke || '#888888', transparent: true, opacity: 0.55 })));
+    hitPad.userData.regionIdx = regionIdx;
+    world.add(hitPad);
+    hitMeshes.push(hitPad);
 
-    // floating label sprite above the tallest building
-    const label = makeLabel(a.name || a.id);
-    label.position.set(c.x, maxY + 2.6, c.y);
-    world.add(label);
+    if (WANT_BUILDINGS) {
+      const label = makeLabel(a.name || a.id);
+      label.position.set(c.x, maxY + 2.6, c.y);
+      world.add(label);
+    } else {
+      const label = makeLabel(a.name || a.id);
+      label.position.set(c.x, groundY + 1.2, c.y);
+      label.scale.multiplyScalar(0.55);
+      world.add(label);
+    }
 
     stats.regions.push({ id: a.id, name: a.name, region: a.region, profile: prof.kind, style: sty.label, districts: districts.length, lots: lots.length, buildings, palms, crates: crateCount });
   });
@@ -611,47 +616,59 @@ async function init() {
     return sp;
   }
 
-  /* ---- isometric 2.5D board: orthographic, pan+zoom only (no free orbit) ---- */
-  const aspect0 = window.innerWidth / Math.max(1, window.innerHeight);
-  // Iso foreshortening needs margin over AABB; frame full board when heightmesh
-  let frustumSize = E * (stats.mode === 'iso25d' ? 1.45 : 1.15);
-  const camera = new THREE.OrthographicCamera(
-    (-frustumSize * aspect0) / 2,
-    (frustumSize * aspect0) / 2,
-    frustumSize / 2,
-    -frustumSize / 2,
-    0.1,
-    E * 40,
-  );
-  const targetY = heightField ? E * 0.04 : 0;
-  const look = new THREE.Vector3(camC.x * S, targetY, camC.y * S);
-  const isoD = E * 1.55;
-  camera.position.set(look.x + isoD, look.y + isoD * 0.92, look.z + isoD);
-  camera.lookAt(look);
-  camera.zoom = 1;
-  camera.updateProjectionMatrix();
+  /* ---- full 3D perspective (default); ?iso=1 keeps orthographic board ---- */
+  let camera;
+  let frustumSize = E * 1.45;
+  const look = new THREE.Vector3(camC.x * S, heightField ? E * 0.02 : 0, camC.y * S);
+
+  if (WANT_ISO) {
+    const aspect0 = window.innerWidth / Math.max(1, window.innerHeight);
+    camera = new THREE.OrthographicCamera(
+      (-frustumSize * aspect0) / 2,
+      (frustumSize * aspect0) / 2,
+      frustumSize / 2,
+      -frustumSize / 2,
+      0.1,
+      E * 40,
+    );
+    const isoD = E * 1.55;
+    camera.position.set(look.x + isoD, look.y + isoD * 0.92, look.z + isoD);
+    camera.lookAt(look);
+    camera.zoom = 1;
+    camera.updateProjectionMatrix();
+    stats.camera = 'orthographic-iso';
+  } else {
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / Math.max(1, window.innerHeight), Math.max(0.5, E * 0.00015), E * 8);
+    // Start high enough to see the island, zoom in for street scale
+    camera.position.set(look.x + E * 0.55, E * 0.42, look.z + E * 0.55);
+    camera.lookAt(look);
+    stats.camera = 'perspective-3d';
+  }
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(look);
-  controls.enableRotate = false;
-  controls.enablePan = true;
   controls.enableDamping = true;
-  controls.dampingFactor = 0.1;
-  controls.screenSpacePanning = true;
-  controls.mouseButtons = {
-    LEFT: THREE.MOUSE.PAN,
-    MIDDLE: THREE.MOUSE.DOLLY,
-    RIGHT: THREE.MOUSE.PAN,
-  };
-  controls.touches = {
-    ONE: THREE.TOUCH.PAN,
-    TWO: THREE.TOUCH.DOLLY_PAN,
-  };
-  controls.minZoom = 0.45;
-  controls.maxZoom = 4.5;
+  controls.dampingFactor = 0.08;
+  if (WANT_ISO) {
+    controls.enableRotate = false;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
+    controls.mouseButtons = {
+      LEFT: THREE.MOUSE.PAN,
+      MIDDLE: THREE.MOUSE.DOLLY,
+      RIGHT: THREE.MOUSE.PAN,
+    };
+    controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.minZoom = 0.45;
+    controls.maxZoom = 4.5;
+  } else {
+    controls.enableRotate = true;
+    controls.maxPolarAngle = 1.35;
+    controls.minDistance = E * 0.008; // street-level zoom-in
+    controls.maxDistance = E * 2.2;
+  }
   controls.update();
-  stats.camera = 'orthographic-iso';
-  stats.enableRotate = false;
+  stats.enableRotate = controls.enableRotate;
   stats.frustumVu = extentCamVu;
 
   /* ---- click (not drag) → region corner panel ---- */
@@ -677,16 +694,22 @@ async function init() {
     const st = stats.regions[idx];
     panelSwatch.style.background = a.fill || '#cccccc';
     panelName.textContent = a.name || a.id;
-    panelMeta.textContent = `Region R${a.region} · ${st.profile} · ${st.style}${st.districts ? ` · ${st.districts} districts` : ''} · ${st.buildings} buildings · ${st.palms} palms${st.crates ? ` · ${st.crates} crates` : ''}`;
+    panelMeta.textContent = WANT_BUILDINGS
+      ? `Region R${a.region} · ${st.profile} · ${st.style}${st.districts ? ` · ${st.districts} districts` : ''} · ${st.buildings} buildings · ${st.palms} palms${st.crates ? ` · ${st.crates} crates` : ''}`
+      : `Region R${a.region} · streets-first · scale×${S / 2} vs old board · ?buildings=1 to restore cities`;
     panel.hidden = false;
   });
 
   window.addEventListener('resize', () => {
     const aspect = window.innerWidth / Math.max(1, window.innerHeight);
-    camera.left = (-frustumSize * aspect) / 2;
-    camera.right = (frustumSize * aspect) / 2;
-    camera.top = frustumSize / 2;
-    camera.bottom = -frustumSize / 2;
+    if (camera.isOrthographicCamera) {
+      camera.left = (-frustumSize * aspect) / 2;
+      camera.right = (frustumSize * aspect) / 2;
+      camera.top = frustumSize / 2;
+      camera.bottom = -frustumSize / 2;
+    } else {
+      camera.aspect = aspect;
+    }
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
