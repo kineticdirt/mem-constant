@@ -330,7 +330,6 @@ async function init() {
   const extentVu = Math.max(isle.x1 - isle.x0, isle.y1 - isle.y0);
   const E = extentVu * S; // world-space island extent (camera/light/fog distances)
 
-  scene.fog = new THREE.Fog(new THREE.Color(P.fog), E * 1.3, E * 3.0);
   scene.add(new THREE.HemisphereLight(new THREE.Color(P.sky), new THREE.Color(P.sand), 1.0));
   const sun = new THREE.DirectionalLight(new THREE.Color(P.sun), 1.7);
   sun.position.set(isleC.x * S + E * 0.6, E * 1.1, isleC.y * S + E * 0.35);
@@ -354,6 +353,13 @@ async function init() {
     stats.mode = 'flat';
   }
 
+  // Fog after mode is known — iso board needs longer range so painted art stays readable
+  scene.fog = new THREE.Fog(
+    new THREE.Color(P.fog),
+    stats.mode === 'iso25d' ? E * 2.4 : E * 1.3,
+    stats.mode === 'iso25d' ? E * 5.5 : E * 3.0,
+  );
+
   /* ---- sea + island base (layered discs + convex-hull blob) ---- */
   const flatY = (geo, y) => { geo.rotateX(-Math.PI / 2); geo.translate(0, y, 0); return geo; };
   const lam = (color, extra) => new THREE.MeshLambertMaterial({ color, flatShading: true, ...extra });
@@ -365,7 +371,8 @@ async function init() {
   };
   disc(extentVu * 1.9, P.deepSea, -0.06);
   disc(extentVu * 1.35, P.midSea, -0.045);
-  disc(extentVu * 1.12, P.shallow, -0.03);
+  // Shallow shelf only when not showing painted ocean on the heightmesh
+  if (stats.mode !== 'iso25d') disc(extentVu * 1.12, P.shallow, -0.03);
   // Flat sand blob only when no heightfield (painted/voxel terrain replaces it)
   if (!heightField) {
     const hull = convexHull(allPts);

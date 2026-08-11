@@ -101,12 +101,17 @@ export async function addPaintedHeightMesh(world, field) {
   geo.computeVertexNormals();
 
   const { tex, url } = await loadMapTexture();
+  // Unlit albedo so the painted map reads like a 2.5D board (Lambert washes greens flat)
   const mat = tex
-    ? new THREE.MeshLambertMaterial({ map: tex })
+    ? new THREE.MeshBasicMaterial({ map: tex })
     : new THREE.MeshLambertMaterial({ color: '#5a9e4a', flatShading: true });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.userData.terrain = true;
   mesh.userData.mode = 'iso25d';
+  // Slight polygon offset so region borders/buildings win depth fights on flats
+  mat.polygonOffset = true;
+  mat.polygonOffsetFactor = 1;
+  mat.polygonOffsetUnits = 1;
   world.add(mesh);
 
   return {
