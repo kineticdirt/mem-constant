@@ -20,7 +20,7 @@
     { "id": "waterways", "z": 40, "kind": "svg", "label": "Waterways", "toggle": true, "default": false, "source": null },
     { "id": "economy-resources", "z": 40.5, "kind": "html", "label": "Economy resources", "toggle": true, "default": false, "source": "map/economy-overlay.json", "optional": true },
     { "id": "streets", "z": 41, "kind": "svg", "label": "Streets", "toggle": true, "default": false, "source": null },
-    { "id": "highways", "z": 42, "kind": "svg", "label": "Highways", "toggle": true, "default": false, "source": "map/highways.json" },
+    { "id": "highways", "z": 42, "kind": "svg", "label": "Highways", "toggle": true, "default": true, "source": "map/highways.json" },
     { "id": "transit-rail", "z": 43, "kind": "svg", "label": "Rail", "toggle": true, "default": false, "source": null },
     { "id": "transit-bus", "z": 44, "kind": "svg", "label": "Bus routes", "toggle": true, "default": false, "source": null },
     { "id": "bridges", "z": 45, "kind": "svg", "label": "Bridges", "toggle": true, "default": false, "source": null },

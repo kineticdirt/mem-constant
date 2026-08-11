@@ -2154,7 +2154,7 @@ function viewerHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
 <!-- Eager underlay: pyramid-matched master (not mislabeled 1024 "2k") so Roads lock to green art. -->
-<meta name="tableslop-build" content="2026-08-10-no-yellow-roads"/>
+<meta name="tableslop-build" content="2026-08-10-hwy-labels-only"/>
 <link rel="preload" as="image" href="/map-image?v=20260810roads"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
@@ -2604,17 +2604,21 @@ function viewerHtml() {
   .hwy-road { fill:none; stroke:#f6e27a; stroke-width:0.65; stroke-linecap:round; stroke-linejoin:round; }
   .hwy-road--freeway { stroke:#f7d44a; stroke-width:0.85; }
   .hwy-label {
-    font: 700 1.6px "Segoe UI", system-ui, sans-serif;
-    fill:#1a1a1a;
-    stroke:#fff8dc;
-    stroke-width:0.35px;
+    font: 700 2.1px "Segoe UI", system-ui, sans-serif;
+    fill:#f4f0e0;
+    stroke:#0d0221;
+    stroke-width:0.45px;
     paint-order:stroke fill;
     text-anchor:middle;
     pointer-events:none;
   }
   .hwy-shield {
-    font: 700 1.35px "Segoe UI", system-ui, sans-serif;
-    fill:#1a4480;
+    font: 700 1.8px "Segoe UI", system-ui, sans-serif;
+    fill:#fffb96;
+    stroke:#0d0221;
+    stroke-width:0.4px;
+    paint-order:stroke fill;
+    text-anchor:middle;
   }
   .map-label-layer {
     position:absolute; inset:0; pointer-events:none;
@@ -3280,7 +3284,7 @@ let uiLabelsVisible = true;
 let uiAreasVisible = true;
 let uiCitiesVisible = true;
 let uiEconVisible = false;
-let uiRoadsVisible = false; /* green terrain art = roads; yellow SVG overlay off */
+let uiRoadsVisible = true; /* labels only — green terrain art is the road paint */
 let editMode = false;
 let drawMode = false;
 let drawVerts = [];
@@ -6116,22 +6120,62 @@ function syncRoadsLayerVisibility() {
 }
 
 function placeHighways(container, hwy) {
-  // Yellow SVG strokes removed — green terrain art is the visible freeway network.
-  // Route graph stays in highways.json for sim/labels later; do not paint over the art.
-  if (!container) return;
+  // Labels only — no yellow road strokes. Green terrain lines ARE the freeways.
+  if (!container || !hwy) return;
   container.innerHTML = '';
-  void hwy;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'hwy-svg');
+  svg.setAttribute('viewBox', hwy.viewBox || '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  (hwy.routes || []).forEach(function(route) {
+    if (route.canon === 'proposal') return;
+    const pts = route.points || [];
+    const lab = route.label_at || (pts.length ? pts[Math.floor(pts.length / 2)] : null);
+    if (!lab) return;
+    const lx = Array.isArray(lab) ? lab[0] : lab.x;
+    const ly = Array.isArray(lab) ? lab[1] : lab.y;
+    if (route.ref) {
+      const shield = document.createElementNS(NS, 'text');
+      shield.setAttribute('x', String(lx));
+      shield.setAttribute('y', String(ly - 0.9));
+      shield.setAttribute('class', 'hwy-shield');
+      shield.textContent = route.ref;
+      svg.appendChild(shield);
+    }
+    const text = document.createElementNS(NS, 'text');
+    text.setAttribute('x', String(lx));
+    text.setAttribute('y', String(ly + 1.1));
+    text.setAttribute('class', 'hwy-label');
+    text.textContent = route.name || route.id;
+    svg.appendChild(text);
+  });
+  container.appendChild(svg);
 }
 
 function initRoadsToggle(data, profile) {
   const btn = document.getElementById('roadsToggle');
   if (!btn) return;
-  // Hide Roads chrome: overlay paint retired; data remains for World/sim.
-  btn.hidden = true;
-  uiRoadsVisible = false;
-  if (profile && profile.showRoads === true) saveProfile({ showRoads: false });
+  if (!data.highways_data || !(data.highways_data.routes || []).length) {
+    btn.hidden = true;
+    return;
+  }
+  btn.hidden = false;
+  // Opt-out: labels default ON so named freeways are findable; no yellow strokes.
+  uiRoadsVisible = profile.showRoads !== false;
+  btn.textContent = uiRoadsVisible ? 'Hwy labels ON' : 'Hwy labels OFF';
+  btn.onclick = function() {
+    uiRoadsVisible = !uiRoadsVisible;
+    btn.textContent = uiRoadsVisible ? 'Hwy labels ON' : 'Hwy labels OFF';
+    saveProfile({ showRoads: uiRoadsVisible });
+    const layer = document.querySelector('[data-layer-id="highways"]');
+    if (layer) {
+      layer.innerHTML = '';
+      if (uiRoadsVisible) placeHighways(layer, mapDataCache.highways_data);
+    }
+    syncRoadsLayerVisibility();
+  };
   syncRoadsLayerVisibility();
-  void data;
 }
 
 function placeMapLabels(container, markers) {
