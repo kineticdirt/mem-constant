@@ -52,13 +52,29 @@ export async function loadHeightField() {
 
 async function loadMapTexture() {
   const loader = new THREE.TextureLoader();
+  const tryUrl = (url) =>
+    new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error(`texture timeout ${url}`)), 12000);
+      loader.load(
+        url,
+        (tex) => {
+          clearTimeout(t);
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.anisotropy = 8;
+          tex.wrapS = THREE.ClampToEdgeWrapping;
+          tex.wrapT = THREE.ClampToEdgeWrapping;
+          resolve(tex);
+        },
+        undefined,
+        (err) => {
+          clearTimeout(t);
+          reject(err);
+        },
+      );
+    });
   for (const url of [TERRAIN_CFG.mapTextureUrl, TERRAIN_CFG.mapTextureFallback]) {
     try {
-      const tex = await loader.loadAsync(url);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 8;
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
+      const tex = await tryUrl(url);
       return { tex, url };
     } catch {
       /* try next */
