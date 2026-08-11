@@ -6143,27 +6143,8 @@ function placeHighways(container, hwy) {
   svg.setAttribute('class', 'hwy-svg');
   svg.setAttribute('viewBox', hwy.viewBox || '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'none');
-  (hwy.routes || []).forEach(function(route) {
-    if (route.canon === 'proposal') return;
-    if (!route.ref) return; // PNG carries full wireframe; labels only for named IP routes
-    const pts = route.points || [];
-    const lab = route.label_at || (pts.length ? pts[Math.floor(pts.length / 2)] : null);
-    if (!lab) return;
-    const lx = Array.isArray(lab) ? lab[0] : lab.x;
-    const ly = Array.isArray(lab) ? lab[1] : lab.y;
-    const shield = document.createElementNS(NS, 'text');
-    shield.setAttribute('x', String(lx));
-    shield.setAttribute('y', String(ly - 0.9));
-    shield.setAttribute('class', 'hwy-shield');
-    shield.textContent = route.ref;
-    svg.appendChild(shield);
-    const text = document.createElementNS(NS, 'text');
-    text.setAttribute('x', String(lx));
-    text.setAttribute('y', String(ly + 1.1));
-    text.setAttribute('class', 'hwy-label');
-    text.textContent = route.name || route.id;
-    svg.appendChild(text);
-  });
+  // Named IP labels (Bay Ring / SwitchBack / …) hidden — GM clear view for terrain/3D.
+  // Wireframe PNG alone stays when Hwy wire ON. Restore label SVG here when asked.
   wrap.appendChild(svg);
   container.appendChild(wrap);
 }
