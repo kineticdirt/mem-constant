@@ -44,14 +44,25 @@
   .hint { position:fixed; right:14px; bottom:14px; z-index:10; color:var(--muted); font-size:.72rem;
     background:rgba(22,8,42,.6); border:1px solid rgba(157,143,201,.35); border-radius:4px; padding:6px 10px; }
   .overlay { position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
-    background:rgba(13,2,33,.72); transition:opacity .35s; }
+    background:rgba(13,2,33,.78); transition:opacity .35s; }
   .overlay[hidden] { display:none; }
   .overlay.fade { opacity:0; pointer-events:none; }
-  .overlay-card { text-align:center; padding:22px 30px; border:1px solid var(--cyan); border-radius:4px;
-    background:rgba(22,8,42,.9); max-width:min(420px, 86vw); }
+  .overlay-card { text-align:center; padding:26px 32px; border:1px solid var(--cyan); border-radius:4px;
+    background:rgba(22,8,42,.94); max-width:min(420px, 86vw);
+    box-shadow:0 0 28px rgba(1,205,254,.2); }
+  .overlay-spin {
+    width:42px; height:42px; margin:0 auto 14px;
+    border:3px solid rgba(1,205,254,.22);
+    border-top-color:var(--cyan);
+    border-right-color:var(--pink);
+    border-radius:50%;
+    animation:ts3d-spin .75s linear infinite;
+  }
+  @keyframes ts3d-spin { to { transform:rotate(360deg); } }
   .overlay-title { font:1.4rem VT323, monospace; color:var(--sun); }
-  .overlay-msg { color:var(--muted); font-size:.8rem; margin-top:8px; line-height:1.5; }
+  .overlay-msg { color:var(--muted); font-size:.8rem; margin-top:8px; line-height:1.5; min-height:2.4em; }
   .overlay-msg a { color:var(--cyan); }
+  .overlay.is-error .overlay-spin { display:none; animation:none; }
   @media (max-width:720px) {
     .hud { gap:7px; padding:7px 10px; }
     .hud-brand { font-size:.85rem; }
@@ -84,10 +95,11 @@
   <div class="panel-meta" id="panelMeta"></div>
 </div>
 <div class="hint">drag to orbit · scroll to zoom in on streets · click a district · scale×100 streets-first</div>
-<div class="overlay" id="overlay">
+<div class="overlay" id="overlay" role="status" aria-live="polite" aria-busy="true">
   <div class="overlay-card">
+    <div class="overlay-spin" aria-hidden="true"></div>
     <div class="overlay-title" id="overlayTitle">loading island…</div>
-    <div class="overlay-msg" id="overlayMsg">Full 3D terrain + streets (buildings off). Zoom in for detail.</div>
+    <div class="overlay-msg" id="overlayMsg">Fetching map + heightfield — this can take a few seconds.</div>
   </div>
 </div>
 <script type="module" src="/3d/app.js"></script>

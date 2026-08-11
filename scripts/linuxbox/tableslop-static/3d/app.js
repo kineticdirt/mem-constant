@@ -253,7 +253,23 @@ const overlayMsg = document.getElementById('overlayMsg');
 const stats = { regions: [], skipped: [], meshes: {}, totals: {}, drawCalls: 0, triangles: 0 };
 window.__ts3d = { ready: false, error: null, stats };
 
+function setLoading(title, msg) {
+  if (overlay) {
+    overlay.hidden = false;
+    overlay.classList.remove('fade', 'is-error');
+    overlay.setAttribute('aria-busy', 'true');
+  }
+  if (overlayTitle) overlayTitle.textContent = title;
+  if (overlayMsg) overlayMsg.textContent = msg;
+}
+
 function fail(title, msgHtml) {
+  if (overlay) {
+    overlay.hidden = false;
+    overlay.classList.remove('fade');
+    overlay.classList.add('is-error');
+    overlay.setAttribute('aria-busy', 'false');
+  }
   overlayTitle.textContent = title;
   overlayMsg.innerHTML = msgHtml;
   window.__ts3d.error = title;
@@ -273,6 +289,7 @@ init().catch((err) => {
 });
 
 async function init() {
+  setLoading('loading island…', 'Fetching map regions…');
   const res = await fetch('/api/map');
   if (!res.ok) {
     fail('map data unavailable', res.status === 401
@@ -341,7 +358,8 @@ async function init() {
   sun.position.set(isleC.x * S + Epoly * 0.6, Epoly * 1.1, isleC.y * S + Epoly * 0.35);
   scene.add(sun);
 
-  /* ---- 2.5D painted heightmesh (default) or ?voxels=1 columns ---- */
+  /* ---- painted heightmesh + streets (default) or ?voxels=1 ---- */
+  setLoading('raising terrain…', 'Loading heightmap + painted map texture…');
   const heightField = await loadHeightField();
   const sampleH = heightField
     ? heightField.sampleHeightVu
@@ -349,9 +367,11 @@ async function init() {
   if (heightField) {
     stats.heightmap = true;
     if (WANT_VOXELS) {
+      setLoading('raising terrain…', 'Building voxel columns…');
       stats.terrain = addVoxelTerrain(world, heightField);
       stats.mode = 'voxels';
     } else {
+      setLoading('painting island…', 'Draping map art + laying street slabs…');
       stats.terrain = await addPaintedHeightMesh(world, heightField);
       stats.streets = addStreetSlabs(world, heightField);
       stats.mode = WANT_ISO ? 'iso25d' : 'full3d';
@@ -404,6 +424,9 @@ async function init() {
   }
 
   /* ---- per-region: borders always; buildings only with ?buildings=1 ---- */
+  setLoading(WANT_BUILDINGS ? 'building cities…' : 'marking districts…', WANT_BUILDINGS
+    ? 'Placing pastel blocks on the heightfield…'
+    : 'Borders + street network only (buildings off)…');
   const walls = [], flatRoofs = [], gabled = [], trunks = [], crowns = [], crates = [], neon = [];
   const hitMeshes = [];
   const groundMeshes = [];
@@ -721,6 +744,7 @@ async function init() {
     stats.triangles = renderer.info.render.triangles;
   });
   overlay.classList.add('fade');
+  overlay.setAttribute('aria-busy', 'false');
   setTimeout(() => { overlay.hidden = true; }, 400);
   window.__ts3d.ready = true;
 }
