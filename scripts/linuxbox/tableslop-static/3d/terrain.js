@@ -186,7 +186,7 @@ export async function addPaintedHeightMesh(world, field) {
 
   const { tex, url } = await loadMapTexture();
   const mat = tex
-    ? new THREE.MeshBasicMaterial({ map: tex })
+    ? new THREE.MeshLambertMaterial({ map: tex })
     : new THREE.MeshLambertMaterial({ color: '#5a9e4a', flatShading: true });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.userData.terrain = true;

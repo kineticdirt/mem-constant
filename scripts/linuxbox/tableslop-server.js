@@ -3454,7 +3454,7 @@ function setMap3dOverlay(on) {
   if (overlay) {
     if (map3dOn) {
       // Always (re)load so terrain/scale deploys are not stuck behind data-loaded
-      overlay.src = '/3d/?embed=1&v=20260811sea';
+      overlay.src = '/3d/?embed=1&v=20260811persp3';
       overlay.setAttribute('data-loaded', '1');
       overlay.hidden = false;
     } else {
@@ -6685,7 +6685,7 @@ const cityCache = new Map(); // id -> { mtimeMs, data }
 /** Standalone silo UIs under tableslop-static/ — public view, no auth gate. */
 const STATIC_ROOT = path.join(__dirname, "tableslop-static");
 const STATIC_MOUNTS = {
-  "3d": { dir: path.join(STATIC_ROOT, "3d"), cacheSec: 300 },
+  "3d": { dir: path.join(STATIC_ROOT, "3d"), cacheSec: 15 },
   radio: { dir: path.join(STATIC_ROOT, "radio"), cacheSec: 300 },
   phone: { dir: path.join(STATIC_ROOT, "phone"), cacheSec: 300 },
   hunter: { dir: path.join(STATIC_ROOT, "hunter"), cacheSec: 300 },

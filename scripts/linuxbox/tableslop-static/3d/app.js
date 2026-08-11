@@ -8,7 +8,7 @@
  */
 import * as THREE from 'three';
 import { OrbitControls } from '/3d/vendor/three/OrbitControls.js';
-import { loadHeightField, addPaintedHeightMesh, addStreetSlabs, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js';
+import { loadHeightField, addPaintedHeightMesh, addStreetSlabs, addVoxelTerrain, TERRAIN_CFG } from '/3d/terrain.js?v=20260811persp3';
 
 const QS = new URLSearchParams(location.search);
 const WANT_VOXELS = QS.get('voxels') === '1';
@@ -661,10 +661,19 @@ async function init() {
     camera.updateProjectionMatrix();
     stats.camera = 'orthographic-iso';
   } else {
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / Math.max(1, window.innerHeight), Math.max(0.5, E * 0.00015), E * 8);
-    // Start high enough to see the island, zoom in for street scale
-    camera.position.set(look.x + E * 0.55, E * 0.42, look.z + E * 0.55);
-    camera.lookAt(look);
+    // Perspective: start LOW and CLOSE so foreshortening reads as real 3D (not god-view iso)
+    camera = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / Math.max(1, window.innerHeight),
+      Math.max(0.25, E * 0.00008),
+      E * 10,
+    );
+    const groundY = (heightField ? TERRAIN_CFG.beachShelf : 0) * S;
+    const target = new THREE.Vector3(look.x, groundY, look.z);
+    // ~street/district altitude — scroll out for island overview
+    camera.position.set(target.x - E * 0.045, E * 0.022, target.z + E * 0.07);
+    camera.lookAt(target);
+    look.copy(target);
     stats.camera = 'perspective-3d';
   }
 
@@ -686,9 +695,9 @@ async function init() {
     controls.maxZoom = 4.5;
   } else {
     controls.enableRotate = true;
-    controls.maxPolarAngle = 1.35;
-    controls.minDistance = E * 0.008; // street-level zoom-in
-    controls.maxDistance = E * 2.2;
+    controls.maxPolarAngle = 1.42;
+    controls.minDistance = E * 0.004;
+    controls.maxDistance = E * 2.5;
   }
   controls.update();
   stats.enableRotate = controls.enableRotate;
