@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-08-11T01:37Z",
+  "updated_at": "2026-08-11T01:56Z",
   "w": 256,
   "h": 256,
   "maxH": 32,
@@ -9,11 +9,11 @@
   "roads_source": "art+highways.json",
   "block_vu": 0.390625,
   "stats": {
-    "land_cells": 25568,
+    "land_cells": 25559,
     "road_cells": 1820,
     "water_cells": 39968,
     "max_height": 32,
-    "mean_land_h": 19.6659887359199,
+    "mean_land_h": 16.30650651433937,
     "corner_NW": 0,
     "corner_SE": 1,
     "center": 32

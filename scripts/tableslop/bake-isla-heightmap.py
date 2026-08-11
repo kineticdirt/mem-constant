@@ -200,7 +200,7 @@ def bake():
     water_g = downsample_any(water, GRID)
 
     hi = fill_nans_from_neighbors(hi)
-    # smooth lightly
+    # Pre-stretch light smooth (final board smooth is after u8 — stretch re-amplifies cliffs)
     hi = ndimage.gaussian_filter(hi, sigma=0.8)
     # water cells stay 0
     hi = np.where(water_g > 0, 0.0, hi)
@@ -238,6 +238,20 @@ def bake():
     else:
         height_u8 = np.zeros((GRID, GRID), dtype=np.uint8)
     height_u8 = np.where(water_g > 0, 0, height_u8).astype(np.uint8)
+
+    # Board smooth AFTER stretch (blur before stretch was undone by 1..32 remap)
+    hf = height_u8.astype(np.float32)
+    hf = ndimage.gaussian_filter(hf, sigma=1.75)
+    height_u8 = np.clip(np.round(hf), 0, MAX_H).astype(np.uint8)
+    height_u8 = np.where(water_g > 0, 0, height_u8)
+    # Soft coast: land touching water capped so silhouette isn't a wall
+    water_touch = ndimage.binary_dilation(water_g > 0, iterations=1)
+    coast = (height_u8 > 0) & water_touch
+    height_u8[coast] = np.minimum(height_u8[coast], np.uint8(8))
+    # Restore any road cell zeroed by blur
+    for gy, gx in zip(*np.where(road_g > 0)):
+        if height_u8[gy, gx] == 0 and water_g[gy, gx] == 0:
+            height_u8[gy, gx] = 4
 
     return height_u8, road_g.astype(np.uint8), {
         "version": 1,

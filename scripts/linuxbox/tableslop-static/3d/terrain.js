@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 
 export const TERRAIN_CFG = {
-  blockH: 0.14, // vu per height step (maxH 32 → ~4.5 vu mountains)
+  blockH: 0.06, // vu per height step (maxH 32 → ~1.9 vu board relief; was 0.14 cliffs)
   fetchMeta: '/map-heightmap-256.json',
   fetchHeight: '/map-heightmap-256.bin',
   fetchRoads: '/map-roadmask-256.bin',
@@ -40,8 +40,9 @@ export async function loadHeightField() {
     const roads = rb && rb.byteLength >= n ? new Uint8Array(rb.slice(0, n)) : new Uint8Array(n);
     const blockH = TERRAIN_CFG.blockH;
     function sampleHeightVu(x, y) {
-      const gx = Math.max(0, Math.min(w - 1, Math.floor((x / 100) * w)));
-      const gy = Math.max(0, Math.min(h - 1, Math.floor((y / 100) * h)));
+      // round to match painted mesh vertex indexing (floor left half-cell mismatch)
+      const gx = Math.max(0, Math.min(w - 1, Math.round((x / 100) * (w - 1))));
+      const gy = Math.max(0, Math.min(h - 1, Math.round((y / 100) * (h - 1))));
       return (height[gy * w + gx] || 0) * blockH;
     }
     return { meta, height, roads, sampleHeightVu, w, h, blockH };
