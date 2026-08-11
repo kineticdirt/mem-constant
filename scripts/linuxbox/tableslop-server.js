@@ -2154,7 +2154,7 @@ function viewerHtml() {
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>tableslop — ${CAMPAIGN}</title>
 <!-- Eager underlay: pyramid-matched master (not mislabeled 1024 "2k") so Roads lock to green art. -->
-<meta name="tableslop-build" content="2026-08-10-roads-zoom-lock"/>
+<meta name="tableslop-build" content="2026-08-10-no-yellow-roads"/>
 <link rel="preload" as="image" href="/map-image?v=20260810roads"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
@@ -3280,7 +3280,7 @@ let uiLabelsVisible = true;
 let uiAreasVisible = true;
 let uiCitiesVisible = true;
 let uiEconVisible = false;
-let uiRoadsVisible = true;
+let uiRoadsVisible = false; /* green terrain art = roads; yellow SVG overlay off */
 let editMode = false;
 let drawMode = false;
 let drawVerts = [];
@@ -6116,71 +6116,22 @@ function syncRoadsLayerVisibility() {
 }
 
 function placeHighways(container, hwy) {
-  if (!container || !hwy) return;
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('class', 'hwy-svg');
-  svg.setAttribute('viewBox', hwy.viewBox || '0 0 100 100');
-  svg.setAttribute('preserveAspectRatio', 'none');
-  (hwy.routes || []).forEach(function(route) {
-    const pts = route.points || [];
-    if (pts.length < 2) return;
-    const d = pts.map(function(p, i) {
-      const x = Array.isArray(p) ? p[0] : p.x;
-      const y = Array.isArray(p) ? p[1] : p.y;
-      return (i === 0 ? 'M' : 'L') + x + ' ' + y;
-    }).join(' ');
-    const casing = document.createElementNS(NS, 'path');
-    casing.setAttribute('d', d);
-    casing.setAttribute('class', 'hwy-road-casing');
-    svg.appendChild(casing);
-    const road = document.createElementNS(NS, 'path');
-    road.setAttribute('d', d);
-    road.setAttribute('class', 'hwy-road' + (route.kind === 'freeway' ? ' hwy-road--freeway' : ''));
-    svg.appendChild(road);
-    const lab = route.label_at || pts[Math.floor(pts.length / 2)];
-    const lx = Array.isArray(lab) ? lab[0] : lab.x;
-    const ly = Array.isArray(lab) ? lab[1] : lab.y;
-    if (route.ref) {
-      const shield = document.createElementNS(NS, 'text');
-      shield.setAttribute('x', String(lx));
-      shield.setAttribute('y', String(ly - 1.2));
-      shield.setAttribute('class', 'hwy-shield');
-      shield.textContent = route.ref;
-      svg.appendChild(shield);
-    }
-    const text = document.createElementNS(NS, 'text');
-    text.setAttribute('x', String(lx));
-    text.setAttribute('y', String(ly + 0.9));
-    text.setAttribute('class', 'hwy-label');
-    text.textContent = route.name || route.id;
-    svg.appendChild(text);
-  });
-  container.appendChild(svg);
+  // Yellow SVG strokes removed — green terrain art is the visible freeway network.
+  // Route graph stays in highways.json for sim/labels later; do not paint over the art.
+  if (!container) return;
+  container.innerHTML = '';
+  void hwy;
 }
 
 function initRoadsToggle(data, profile) {
   const btn = document.getElementById('roadsToggle');
   if (!btn) return;
-  if (!data.highways_data || !(data.highways_data.routes || []).length) {
-    btn.hidden = true;
-    return;
-  }
-  btn.hidden = false;
-  uiRoadsVisible = profile.showRoads !== false;
-  btn.textContent = uiRoadsVisible ? 'Roads ON' : 'Roads OFF';
-  btn.onclick = function() {
-    uiRoadsVisible = !uiRoadsVisible;
-    btn.textContent = uiRoadsVisible ? 'Roads ON' : 'Roads OFF';
-    saveProfile({ showRoads: uiRoadsVisible });
-    const layer = document.querySelector('[data-layer-id="highways"]');
-    if (layer) {
-      layer.innerHTML = '';
-      if (uiRoadsVisible) placeHighways(layer, mapDataCache.highways_data);
-    }
-    syncRoadsLayerVisibility();
-  };
+  // Hide Roads chrome: overlay paint retired; data remains for World/sim.
+  btn.hidden = true;
+  uiRoadsVisible = false;
+  if (profile && profile.showRoads === true) saveProfile({ showRoads: false });
   syncRoadsLayerVisibility();
+  void data;
 }
 
 function placeMapLabels(container, markers) {
