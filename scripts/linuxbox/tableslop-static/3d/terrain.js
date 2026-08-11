@@ -7,7 +7,11 @@ import * as THREE from 'three';
 
 export const TERRAIN_CFG = {
   // Relief in viewBox units — world scale (~100×) multiplies this in app.js CFG.scale
-  blockH: 0.08, // maxH 32 → ~2.6 vu (~520 wu at scale 200) — readable hills when zoomed in
+  blockH: 0.08, // maxH 32 → ~2.6 vu hills when zoomed in
+  /** Ocean surface sits BELOW land shelf (fixes “sea higher than land” cliff) */
+  oceanY: -0.45,
+  /** Minimum land lift above ocean */
+  beachShelf: 0.55,
   fetchMeta: '/map-heightmap-256.json',
   fetchHeight: '/map-heightmap-256.bin',
   fetchRoads: '/map-roadmask-256.bin',
@@ -23,7 +27,70 @@ export const TERRAIN_CFG = {
 };
 
 /**
- * @returns {Promise<{meta: object, height: Uint8Array, roads: Uint8Array, sampleHeightVu: Function, w: number, h: number, blockH: number}|null>}
+ * Soft elevation field in viewBox units: ocean below shelf, land ramps up from beach.
+ * @returns {Float32Array} length w*h
+ */
+export function buildElevVu(height, w, h, blockH) {
+  const n = w * h;
+  const oceanY = TERRAIN_CFG.oceanY;
+  const shelf = TERRAIN_CFG.beachShelf;
+  // blur raw heights for gradual slopes (water stays 0 source)
+  let soft = new Float32Array(n);
+  for (let i = 0; i < n; i++) soft[i] = height[i];
+  for (let pass = 0; pass < 2; pass++) {
+    const next = new Float32Array(n);
+    for (let gy = 0; gy < h; gy++) {
+      for (let gx = 0; gx < w; gx++) {
+        let sum = 0;
+        let c = 0;
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            const yy = gy + dy;
+            const xx = gx + dx;
+            if (yy < 0 || xx < 0 || yy >= h || xx >= w) continue;
+            sum += soft[yy * w + xx];
+            c++;
+          }
+        }
+        next[gy * w + gx] = sum / c;
+      }
+    }
+    soft = next;
+  }
+
+  const elev = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    if (!height[i]) {
+      elev[i] = oceanY;
+    } else {
+      elev[i] = shelf + soft[i] * blockH;
+    }
+  }
+
+  // Pull true coastline toward shelf so shore is a beach, not a wall
+  for (let gy = 0; gy < h; gy++) {
+    for (let gx = 0; gx < w; gx++) {
+      const i = gy * w + gx;
+      if (!height[i]) continue;
+      let nearWater = false;
+      for (let dy = -2; dy <= 2 && !nearWater; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const yy = gy + dy;
+          const xx = gx + dx;
+          if (yy < 0 || xx < 0 || yy >= h || xx >= w) continue;
+          if (!height[yy * w + xx]) nearWater = true;
+        }
+      }
+      if (nearWater) {
+        elev[i] = shelf + (elev[i] - shelf) * 0.28;
+      }
+    }
+  }
+  return elev;
+}
+
+/**
+ * @returns {Promise<{meta: object, height: Uint8Array, roads: Uint8Array, elev: Float32Array, sampleHeightVu: Function, w: number, h: number, blockH: number}|null>}
  */
 export async function loadHeightField() {
   try {
@@ -41,13 +108,13 @@ export async function loadHeightField() {
     const height = new Uint8Array(hb.slice(0, n));
     const roads = rb && rb.byteLength >= n ? new Uint8Array(rb.slice(0, n)) : new Uint8Array(n);
     const blockH = TERRAIN_CFG.blockH;
+    const elev = buildElevVu(height, w, h, blockH);
     function sampleHeightVu(x, y) {
-      // round to match painted mesh vertex indexing (floor left half-cell mismatch)
       const gx = Math.max(0, Math.min(w - 1, Math.round((x / 100) * (w - 1))));
       const gy = Math.max(0, Math.min(h - 1, Math.round((y / 100) * (h - 1))));
-      return (height[gy * w + gx] || 0) * blockH;
+      return elev[gy * w + gx];
     }
-    return { meta, height, roads, sampleHeightVu, w, h, blockH };
+    return { meta, height, roads, elev, sampleHeightVu, w, h, blockH };
   } catch {
     return null;
   }
@@ -91,7 +158,7 @@ async function loadMapTexture() {
  * @returns {Promise<{drawCalls: number, landCells: number, roadCells: number, mode: string, textureUrl: string|null}>}
  */
 export async function addPaintedHeightMesh(world, field) {
-  const { height, roads, w, h, blockH } = field;
+  const { height, roads, elev, w, h, blockH } = field;
   let landCells = 0;
   let roadCells = 0;
   for (let i = 0; i < height.length; i++) {
@@ -99,7 +166,6 @@ export async function addPaintedHeightMesh(world, field) {
     if (roads[i] && height[i]) roadCells++;
   }
 
-  // segments = cells; vertices = w * h
   const geo = new THREE.PlaneGeometry(100, 100, w - 1, h - 1);
   geo.rotateX(-Math.PI / 2);
   geo.translate(50, 0, 50);
@@ -111,8 +177,7 @@ export async function addPaintedHeightMesh(world, field) {
     const z = pos.getZ(i);
     const gx = Math.max(0, Math.min(w - 1, Math.round((x / 100) * (w - 1))));
     const gy = Math.max(0, Math.min(h - 1, Math.round((z / 100) * (h - 1))));
-    pos.setY(i, (height[gy * w + gx] || 0) * blockH);
-    // PNG row0 = image top = viewBox y=0 (north); world z = viewBox y
+    pos.setY(i, elev[gy * w + gx]);
     uv.setXY(i, x / 100, 1 - z / 100);
   }
   pos.needsUpdate = true;
@@ -120,14 +185,12 @@ export async function addPaintedHeightMesh(world, field) {
   geo.computeVertexNormals();
 
   const { tex, url } = await loadMapTexture();
-  // Unlit albedo so the painted map reads like a 2.5D board (Lambert washes greens flat)
   const mat = tex
     ? new THREE.MeshBasicMaterial({ map: tex })
     : new THREE.MeshLambertMaterial({ color: '#5a9e4a', flatShading: true });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.userData.terrain = true;
   mesh.userData.mode = 'heightmesh';
-  // Slight polygon offset so streets/borders win depth fights on flats
   mat.polygonOffset = true;
   mat.polygonOffsetFactor = 1;
   mat.polygonOffsetUnits = 1;
@@ -139,6 +202,8 @@ export async function addPaintedHeightMesh(world, field) {
     roadCells,
     mode: 'heightmesh',
     textureUrl: url,
+    oceanY: TERRAIN_CFG.oceanY,
+    beachShelf: TERRAIN_CFG.beachShelf,
   };
 }
 
@@ -147,7 +212,7 @@ export async function addPaintedHeightMesh(world, field) {
  * @returns {{drawCalls: number, streetCells: number}}
  */
 export function addStreetSlabs(world, field) {
-  const { height, roads, w, h, blockH } = field;
+  const { height, roads, elev, w, h, blockH } = field;
   const cell = 100 / w;
   const thick = new Uint8Array(roads.length);
   for (let gy = 0; gy < h; gy++) {
@@ -171,10 +236,9 @@ export function addStreetSlabs(world, field) {
     for (let gx = 0; gx < w; gx++) {
       const i = gy * w + gx;
       if (!thick[i]) continue;
-      const hv = height[i] || 1;
+      const yTop = elev[i];
       const x = (gx + 0.5) * cell;
       const z = (gy + 0.5) * cell;
-      const yTop = hv * blockH;
       entries.push({
         x,
         y: yTop + blockH * 0.35,

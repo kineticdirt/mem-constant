@@ -3453,10 +3453,9 @@ function setMap3dOverlay(on) {
   const btn = document.getElementById('map3dToggle');
   if (overlay) {
     if (map3dOn) {
-      if (overlay.getAttribute('data-loaded') !== '1') {
-        overlay.src = '/3d/?embed=1';
-        overlay.setAttribute('data-loaded', '1');
-      }
+      // Always (re)load so terrain/scale deploys are not stuck behind data-loaded
+      overlay.src = '/3d/?embed=1&v=20260811sea';
+      overlay.setAttribute('data-loaded', '1');
       overlay.hidden = false;
     } else {
       overlay.hidden = true;
