@@ -1,52 +1,48 @@
 # Role agents (`--with-role-agents`)
 
-Programmatic **specialist Cursor subagents** (UI, UX, Frontend, Backend, CI/CD,
-DevOps, Cloud, Orchestrator) with a machine-readable catalog.
+Programmatic **specialist Cursor subagents** + **project lane agents** + **Pixel 3a**.
 
 ## Upstream SoT
 
 GitHub: **[kineticdirt/agent-role-cluster](https://github.com/kineticdirt/agent-role-cluster)**
 
-mem-constant **bundles** a snapshot under `src/mem_constant/templates/role-agents/`
-and prefers a **git clone** of that repo when reachable.
+mem-constant bundles `src/mem_constant/templates/role-agents/` and prefers a git clone.
 
 ## Install
 
 ```bash
 mem-constant init --with-role-agents --yes
-# force a specific remote:
 mem-constant init --with-role-agents --role-agents-repo git@github.com:kineticdirt/agent-role-cluster.git --yes
 ```
 
-### What lands in the project
-
 | Path | Role |
 |------|------|
-| `.cursor/agents/roles/role-*.md` | Callable Cursor agents |
+| `.cursor/agents/roles/` | Discipline + `role-new-project` + `role-android-pixel3a` |
+| `.cursor/agents/projects/` | Product lanes (Hub, tableslop, Pixi, …) |
 | `.cursor/skills/role-cluster/` | Dispatch skill |
-| `.mem-constant/role-agents/catalog.json` | Machine index + `dispatch_hints` |
+| `.mem-constant/role-agents/catalog.json` | Machine index (`roles`, `projects`, `devices`, `dispatch_hints`) |
 
-## Dispatch
+## Catalog v2
 
-1. Read `.mem-constant/role-agents/catalog.json`.
-2. Match the ask to a role `id` or a `dispatch_hints` key (e.g. `hub_clickthrough`).
-3. Invoke the matching `role-*` agent (Task tool / Cursor custom agents).
-4. Orchestrator (`role-orchestrator`) merges; one verify per domain.
+- **roles** — orchestrator, ui, ux, frontend, backend, cicd, devops, cloud, new-project, android-pixel3a
+- **projects** — hub, tableslop, pixi, portfolio, mazda3, infranet, euro-adventure, nyc-mafia
+- **devices** — Pixel 3a (legacy Android reader)
 
-## Regenerate bundled templates
-
-From agent-dump (dogfood tree):
+## New project when scope demands it
 
 ```bash
-python scripts/pc/gen-role-agent-cluster.py
+# from a clone of agent-role-cluster:
+python scripts/new-project-agent.py --id cool-app --title "Cool App" \
+  --purpose "Cool App product lane." --path apps/cool-app/
 ```
 
-Keeps `../agent-role-cluster` and `src/mem_constant/templates/role-agents` in sync.
+Or invoke Cursor agent **`role-new-project`**. Then re-run `scripts/pc/gen-role-agent-cluster.py` only when dogfooding the generator SoT; for upstream-only edits, commit in **agent-role-cluster** and re-init with `--yes`.
 
-## Related (Hub-only, agent-dump)
+## Pixel 3a
 
-Not part of this package — live in Linuxbox/agent-dump:
+Agent: `role-android-pixel3a`. Tailscale + Chrome PWA + JuiceSSH; Hub `/Linuxbox/`; map PWA; no Telegram requirement. See `docs/agents/android-tailscale-interface.md`.
 
-- `.cursor/skills/hub-ui-depth`
-- `.cursor/skills/hub-drawer-sheet`
+## Related Hub-only (agent-dump)
+
+- `.cursor/skills/hub-ui-depth` · `hub-drawer-sheet`
 - `.cursor/agents/hub-dashboard-builder.md`

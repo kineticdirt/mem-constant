@@ -213,8 +213,9 @@ DEFAULT_ROLE_AGENTS_REPO = "https://github.com/kineticdirt/agent-role-cluster.gi
 
 
 def _copy_role_agents_tree(src_root: Path, target: Path, yes: bool, log: list[str]) -> None:
-    """Install agents/ + skills/role-cluster + catalog into the project."""
+    """Install agents/ (+ projects/) + skills/role-cluster + catalog into the project."""
     agents_src = src_root / "agents"
+    projects_src = src_root / "agents" / "projects"
     skill_src = src_root / "skills" / "role-cluster"
     catalog_src = src_root / "catalog.json"
 
@@ -230,6 +231,19 @@ def _copy_role_agents_tree(src_root: Path, target: Path, yes: bool, log: list[st
                 continue
             out.write_bytes(path.read_bytes())
             wrote_agents += 1
+
+    dest_projects = target / ".cursor" / "agents" / "projects"
+    dest_projects.mkdir(parents=True, exist_ok=True)
+    wrote_projects = 0
+    skipped_projects = 0
+    if projects_src.is_dir():
+        for path in sorted(projects_src.glob("*.md")):
+            out = dest_projects / path.name
+            if out.exists() and not yes:
+                skipped_projects += 1
+                continue
+            out.write_bytes(path.read_bytes())
+            wrote_projects += 1
 
     dest_skill = target / ".cursor" / "skills" / "role-cluster"
     if skill_src.is_dir():
@@ -254,13 +268,17 @@ def _copy_role_agents_tree(src_root: Path, target: Path, yes: bool, log: list[st
         "# Role agents (mem-constant)\n\n"
         "Installed by `mem-constant init --with-role-agents`.\n"
         f"Upstream: {DEFAULT_ROLE_AGENTS_REPO}\n"
-        "Cursor agents: `.cursor/agents/roles/`\n"
-        "Skill: `.cursor/skills/role-cluster/`\n",
+        "Cursor agents: `.cursor/agents/roles/` + `.cursor/agents/projects/`\n"
+        "Skill: `.cursor/skills/role-cluster/`\n"
+        "New project: invoke `role-new-project` or upstream `scripts/new-project-agent.py`\n"
+        "Device: Pixel 3a → `role-android-pixel3a`\n",
         encoding="utf-8",
     )
     log.append(
-        f"role-agents: wrote {wrote_agents} agents under {dest_agents.relative_to(target)} "
-        f"({skipped_agents} existing skipped; use --yes to overwrite)"
+        f"role-agents: wrote {wrote_agents} roles under {dest_agents.relative_to(target)} "
+        f"({skipped_agents} skipped); "
+        f"{wrote_projects} projects under {dest_projects.relative_to(target)} "
+        f"({skipped_projects} skipped); use --yes to overwrite"
     )
 
 
@@ -326,6 +344,13 @@ def _install_role_agents(
             for item in agents_t.iterdir():
                 if item.is_file() and item.name.endswith(".md"):
                     (dest / "agents" / item.name).write_bytes(item.read_bytes())
+            projects_t = agents_t.joinpath("projects")
+            if projects_t.is_dir():
+                out_proj = dest / "agents" / "projects"
+                out_proj.mkdir(parents=True, exist_ok=True)
+                for item in projects_t.iterdir():
+                    if item.is_file() and item.name.endswith(".md"):
+                        (out_proj / item.name).write_bytes(item.read_bytes())
         skill_t = root.joinpath("skills").joinpath("role-cluster")
         if skill_t.is_dir():
             out_skill = dest / "skills" / "role-cluster"

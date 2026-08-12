@@ -14,6 +14,7 @@ Part of **agent-role-cluster**. Orchestrator: `role-orchestrator`. Catalog: `cat
 2. Prefer summary L1 then detail L2; side sheet on mobile; master-detail on desktop.
 3. Cite NN/g terms: Drawer Menu vs Side Sheet vs Dialog.
 4. Specify open/close/focus/scroll invariants before coding.
+5. Coordinate with role-android-pixel3a for phone-first flows.
 
 ## Do not
 
