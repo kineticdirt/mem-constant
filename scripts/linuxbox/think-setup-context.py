@@ -98,6 +98,28 @@ Observability triad (System panel): papercuts · meta-harness · dashboard backl
 SoT: agents/META_LANE_SYNC.md · skill .cursor/skills/lane-sync · board SYSTEMS_DESIGN_BOARD.md."""
 
 
+def role_agents_block(repo: Path) -> str:
+    """Inject Meta-Harness role/project catalog (same source as role-agents-inject.py)."""
+    try:
+        from role_agents_inject import build_block, load_catalog  # type: ignore
+    except ImportError:
+        # same directory as this script when run as file
+        inj = Path(__file__).resolve().parent / "role-agents-inject.py"
+        if not inj.is_file():
+            return ""
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("role_agents_inject", inj)
+        if spec is None or spec.loader is None:
+            return ""
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        cat = mod.load_catalog(repo)
+        return mod.build_block(cat) if cat else ""
+    cat = load_catalog(repo)
+    return build_block(cat) if cat else ""
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default=".")
@@ -105,6 +127,10 @@ def main() -> int:
     args = ap.parse_args()
     repo = Path(args.repo).resolve()
     parts: list[str] = ["--- AGENT SETUP (injected; not a second lane) ---", PAID_RULES, STE_RULES, LANE_SYNC_HINT]
+
+    ra = role_agents_block(repo)
+    if ra:
+        parts.append(ra)
 
     meta_lane = repo / "agents/META_LANE_SYNC.md"
     if meta_lane.is_file():

@@ -1,0 +1,282 @@
+{
+  "version": 2,
+  "name": "agent-role-cluster",
+  "repo": "https://github.com/kineticdirt/agent-role-cluster",
+  "install": {
+    "cursor_agents_dir": ".cursor/agents/roles",
+    "cursor_projects_dir": ".cursor/agents/projects",
+    "cursor_skills_dir": ".cursor/skills",
+    "mem_constant_flag": "--with-role-agents"
+  },
+  "roles": [
+    {
+      "id": "orchestrator",
+      "agent": "agents/role-orchestrator.md",
+      "cursor_path": ".cursor/agents/roles/role-orchestrator.md",
+      "tags": [
+        "orchestrator"
+      ],
+      "when": "when starting multi-role work or when the user asks for the role-agent cluster."
+    },
+    {
+      "id": "ui",
+      "agent": "agents/role-ui.md",
+      "cursor_path": ".cursor/agents/roles/role-ui.md",
+      "tags": [
+        "ui"
+      ],
+      "when": "for Hub/panels look and structure, not deep interaction research."
+    },
+    {
+      "id": "ux",
+      "agent": "agents/role-ux.md",
+      "cursor_path": ".cursor/agents/roles/role-ux.md",
+      "tags": [
+        "ux"
+      ],
+      "when": "when L0-L2 depth, NN/g patterns, or flow clarity."
+    },
+    {
+      "id": "frontend",
+      "agent": "agents/role-frontend.md",
+      "cursor_path": ".cursor/agents/roles/role-frontend.md",
+      "tags": [
+        "frontend"
+      ],
+      "when": "for JS/TS behavior in Hub or web UIs."
+    },
+    {
+      "id": "backend",
+      "agent": "agents/role-backend.md",
+      "cursor_path": ".cursor/agents/roles/role-backend.md",
+      "tags": [
+        "backend"
+      ],
+      "when": "for /api/*, stores, auth gates."
+    },
+    {
+      "id": "cicd",
+      "agent": "agents/role-cicd.md",
+      "cursor_path": ".cursor/agents/roles/role-cicd.md",
+      "tags": [
+        "cicd"
+      ],
+      "when": "when verify loops or automation gates."
+    },
+    {
+      "id": "devops",
+      "agent": "agents/role-devops.md",
+      "cursor_path": ".cursor/agents/roles/role-devops.md",
+      "tags": [
+        "devops"
+      ],
+      "when": "for linuxbox host ops and push-linuxbox."
+    },
+    {
+      "id": "cloud",
+      "agent": "agents/role-cloud.md",
+      "cursor_path": ".cursor/agents/roles/role-cloud.md",
+      "tags": [
+        "cloud"
+      ],
+      "when": "for edge routing and remote access."
+    },
+    {
+      "id": "new-project",
+      "agent": "agents/role-new-project.md",
+      "cursor_path": ".cursor/agents/roles/role-new-project.md",
+      "tags": [
+        "new-project"
+      ],
+      "when": "when no existing project agent fits and the work will recur."
+    },
+    {
+      "id": "android-pixel3a",
+      "agent": "agents/role-android-pixel3a.md",
+      "cursor_path": ".cursor/agents/roles/role-android-pixel3a.md",
+      "tags": [
+        "android-pixel3a"
+      ],
+      "when": "for Hub/map PWA, Tailscale, JuiceSSH, mobile UX constraints \u2014 not Telegram."
+    }
+  ],
+  "projects": [
+    {
+      "id": "hub",
+      "agent": "agents/projects/project-hub.md",
+      "cursor_path": ".cursor/agents/projects/project-hub.md",
+      "tags": [
+        "project",
+        "hub"
+      ],
+      "when": "for dashboard click-through, Active Now, dash_build, protected runtime.",
+      "pair": [
+        "ux",
+        "ui",
+        "frontend",
+        "backend",
+        "cicd",
+        "android-pixel3a"
+      ]
+    },
+    {
+      "id": "tableslop",
+      "agent": "agents/projects/project-tableslop.md",
+      "cursor_path": ".cursor/agents/projects/project-tableslop.md",
+      "tags": [
+        "project",
+        "tableslop"
+      ],
+      "when": "for map, regions-ui, cast, Discord OAuth, /world, /3d.",
+      "pair": [
+        "frontend",
+        "backend",
+        "devops",
+        "cicd",
+        "android-pixel3a"
+      ]
+    },
+    {
+      "id": "pixi",
+      "agent": "agents/projects/project-pixi.md",
+      "cursor_path": ".cursor/agents/projects/project-pixi.md",
+      "tags": [
+        "project",
+        "pixi"
+      ],
+      "when": "for Send pipeline, WORLD_DELTA, sheets, hygiene, OpenRouter-only.",
+      "pair": [
+        "backend",
+        "frontend",
+        "ux",
+        "devops",
+        "android-pixel3a"
+      ]
+    },
+    {
+      "id": "portfolio",
+      "agent": "agents/projects/project-portfolio.md",
+      "cursor_path": ".cursor/agents/projects/project-portfolio.md",
+      "tags": [
+        "project",
+        "portfolio"
+      ],
+      "when": "for sites/abhinavall.net, staging redesign, Playwright portfolio smoke.",
+      "pair": [
+        "ui",
+        "frontend",
+        "cicd",
+        "cloud"
+      ]
+    },
+    {
+      "id": "mazda3",
+      "agent": "agents/projects/project-mazda3.md",
+      "cursor_path": ".cursor/agents/projects/project-mazda3.md",
+      "tags": [
+        "project",
+        "mazda3"
+      ],
+      "when": "for parts.json, EV-swap notes, garage silo.",
+      "pair": [
+        "frontend",
+        "backend",
+        "hub"
+      ]
+    },
+    {
+      "id": "infranet",
+      "agent": "agents/projects/project-infranet.md",
+      "cursor_path": ".cursor/agents/projects/project-infranet.md",
+      "tags": [
+        "project",
+        "infranet"
+      ],
+      "when": "for docs/infranet + projects/infranet PoC.",
+      "pair": [
+        "backend",
+        "cloud",
+        "devops"
+      ]
+    },
+    {
+      "id": "euro-adventure",
+      "agent": "agents/projects/project-euro-adventure.md",
+      "cursor_path": ".cursor/agents/projects/project-euro-adventure.md",
+      "tags": [
+        "project",
+        "euro-adventure"
+      ],
+      "when": "for campaigns/euro-adventure-2026 worldbuilding and bot allowlists.",
+      "pair": [
+        "backend",
+        "devops"
+      ]
+    },
+    {
+      "id": "nyc-mafia",
+      "agent": "agents/projects/project-nyc-mafia.md",
+      "cursor_path": ".cursor/agents/projects/project-nyc-mafia.md",
+      "tags": [
+        "project",
+        "nyc-mafia"
+      ],
+      "when": "for worldbuilding prose, Docs surfaces, not Discord-required SoT.",
+      "pair": [
+        "hub"
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "id": "pixel3a",
+      "agent": "agents/role-android-pixel3a.md",
+      "model": "Pixel 3a",
+      "notes": "Legacy Android; Tailscale + Chrome PWA + JuiceSSH; Hub/map reader"
+    }
+  ],
+  "dispatch_hints": {
+    "hub_clickthrough": [
+      "hub",
+      "ux",
+      "ui",
+      "frontend",
+      "backend",
+      "cicd",
+      "android-pixel3a"
+    ],
+    "potato_deploy": [
+      "devops",
+      "cicd"
+    ],
+    "tunnel_dns": [
+      "cloud",
+      "devops"
+    ],
+    "api_only": [
+      "backend",
+      "cicd"
+    ],
+    "phone_pwa": [
+      "android-pixel3a",
+      "ux",
+      "hub"
+    ],
+    "tableslop": [
+      "tableslop",
+      "frontend",
+      "backend",
+      "cicd"
+    ],
+    "pixi": [
+      "pixi",
+      "backend",
+      "frontend",
+      "android-pixel3a"
+    ],
+    "new_lane": [
+      "new-project",
+      "orchestrator"
+    ]
+  }
+}

@@ -81,6 +81,14 @@ PROMPT="${PROMPT}
 
 (Optional, end of run) If you hit friction worth remembering — unclear env, repeated failures, misleading UX, regressions — append one entry to agents/papercuts.md per docs/agents/papercuts.md. Never let papercut logging block or replace the task."
 
+# Role/project cluster (Meta-Harness SoT) — same catalog think injects
+ROLE_INJECT="$(python3 "${REPO}/scripts/linuxbox/role-agents-inject.py" --repo "${REPO}" 2>/dev/null || true)"
+if [[ -n "${ROLE_INJECT}" ]]; then
+  PROMPT="${ROLE_INJECT}
+
+${PROMPT}"
+fi
+
 # Human goals from Hub Tasks → Active now — same injection the think lane gets,
 # so this run can check its actions against what is expected. Pause NOT honored
 # here: an explicit Cursor run is itself a human launch.

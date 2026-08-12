@@ -10,6 +10,8 @@
 
 **What we improve:** The **harness** around fixed Hermes/OpenRouter models on linuxbox — pod prompts, env bootstrap, context injection, scheduler cadence, and post-run verification hooks — not the LLM weights.
 
+**Role-agent cluster (live):** `agents/meta-harness/role-agents/catalog.json` is injected every think tick (`think-setup-context.py`) and Cursor run (`role-agents-inject.py` → `cursor-agent-run.sh`). Agents: `.cursor/agents/role-*.md` · `project-*.md`. Upstream: `kineticdirt/agent-role-cluster`. New lanes: `role-new-project`. Phone: `role-android-pixel3a`.
+
 **Unit of evaluation:** One **pod tick** — a single `agent-pod-scheduler` invocation running one pod (fast, think, hunter-reckoning, ponytail-cleanup, etc.) against its task spec + progress file.
 
 **Fixed:**
