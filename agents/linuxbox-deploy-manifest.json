@@ -70,6 +70,7 @@
         "scripts/linuxbox/vendor/sql-js/LICENSE",
         "scripts/linuxbox/tableslop-static/3d/index.html",
         "scripts/linuxbox/tableslop-static/3d/app.js",
+        "scripts/linuxbox/tableslop-static/3d/terrain.js",
         "scripts/linuxbox/tableslop-static/3d/INTEGRATION-NOTE.md",
         "scripts/linuxbox/tableslop-static/3d/vendor/three/README.md",
         "scripts/linuxbox/tableslop-static/3d/vendor/three/three.module.min.js",
