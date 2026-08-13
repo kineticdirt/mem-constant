@@ -1,3 +1,4 @@
+- **2026-08-13T04:31Z** — [PC] **Intent:** Fix Hub last-run / Running Now / Meta What·When(ET)·Outcome honesty. Potato stamps + /api/agent + UI. Holder: `hub-last-run-fix-2026-08-13`. NEVER regions-ui. NEVER potato shutdown.
 - **2026-08-13T04:31Z** — [PC] **Result:** M0 World plan CLOSED — INDEX + 5 docs under docs/plans/tableslop-world-*-2026-08-12.md; §8 defaults locked; dev-calendar 911/voice/2D ids; local commit. Next=M1 Paradise 2D (not /3d). NEVER regions-ui.
 - **2026-08-13T04:30Z** — [PC] **Intent:** Finish M0 World plan package — lock §8 defaults, index, local git commit of plan docs; handoff M1. NEVER regions-ui. /3d shelved.
 - **2026-08-13T04:00Z** — [PC] **Result:** Agentic harness Mermaid map written `docs/ops/agentic-harness-map.md` (2 diagrams + legend + bullet index). Calls out ★ lane-rereset + +x verify gate. No potato SSH; cron names from install scripts. NEVER regions-ui. Holder: `harness-mermaid-map-2026-08-12`.
