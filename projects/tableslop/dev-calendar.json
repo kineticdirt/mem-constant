@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated_at": "2026-08-09T04:09:00Z",
-  "notes": "Product roadmap for map.tableslop.org — GM-editable estimates, not diegetic lore. Dates are rough targets.",
+  "updated_at": "2026-08-13T03:55:00Z",
+  "notes": "Product roadmap — see docs/plans/tableslop-world-full-plan-2026-08-12.md. 2D working SoT; /3d shelved; phone 911+voice planned.",
   "timeline": [
     {
       "id": "tl-discord-auth",
@@ -65,6 +65,20 @@
       "when": "est. later Aug / TBD",
       "status": "planned",
       "notes": "Phone currently stubs map (≤800px); journal + docks only until rebuild."
+    },
+    {
+      "id": "tl-2d-working-sot",
+      "title": "2D map = working SoT (roads/overlays); /3d shelved",
+      "when": "2026-08-12 (locked)",
+      "status": "doing",
+      "notes": "GMaps-style highways/roads + wind/water/logistics on 2D first; transfer to 3D later only."
+    },
+    {
+      "id": "tl-phone-911-voice",
+      "title": "Phone emergency tree + PC voice gen spike",
+      "when": "est. late Aug / Sep (GM)",
+      "status": "planned",
+      "notes": "911/dispatch realism; natural speech+moans on PC (not robotic); cache for phone — not potato TTS."
     }
   ],
   "features": [
@@ -97,6 +111,20 @@
       "notes": "Multi-app shell already docks; deepen in-world apps next."
     },
     {
+      "id": "feat-phone-911",
+      "title": "Diegetic 911 / emergency dispatch + non-emergency split",
+      "target": "est. late Aug / Sep",
+      "status": "planned",
+      "notes": "Triage tree, ringback/hold, location from World pins, storm load-shedding. Today unknown numbers = not-in-service."
+    },
+    {
+      "id": "feat-phone-voice-pc",
+      "title": "PC AI voice gen (speech + moans) for phone calls",
+      "target": "spike first — then cache",
+      "status": "planned",
+      "notes": "Goal: find non-robotic generation on PC (clone TTS / RVC / SFX banks). Potato serves cache only. Blind A/B naturalness."
+    },
+    {
       "id": "feat-cast-on-map",
       "title": "Cast templates + undo on map product",
       "target": "est. Sep (GM)",
@@ -125,6 +153,27 @@
       "severity": "med",
       "status": "open",
       "notes": "Ops/chat concern more than map UI; failover must rotate free pool."
+    },
+    {
+      "id": "bug-phone-no-911",
+      "title": "Dial 911 / emergency → not-in-service (no dispatch)",
+      "severity": "med",
+      "status": "open",
+      "notes": "lookupNumber unknowns are dead; need diegetic emergency intercept + script tree. Tracked feat-phone-911."
+    },
+    {
+      "id": "bug-phone-beep-only-audio",
+      "title": "Phone call audio is oscillator beeps only (no voice)",
+      "severity": "med",
+      "status": "open",
+      "notes": "phone.js beep(); no TTS/voice cache. Blocks realism for dispatch and intimacy calls. Tracked feat-phone-voice-pc."
+    },
+    {
+      "id": "bug-issue-finding-gap",
+      "title": "Need recurring phone dial matrix + Dev log bug intake",
+      "severity": "low",
+      "status": "open",
+      "notes": "Extend .staging/tableslop-phone smoke: 911, non-emergency, contact, dead number; file failures into dev-calendar bugs / papercuts."
     }
   ]
 }
