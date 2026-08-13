@@ -1,3 +1,4 @@
+- **2026-08-13T05:08Z** — [PC] **Result:** Session close — M1 Paradise + SFX bank shipped (dd77f78/083d9a9); potato map+sfx live; regions-ui untouched; /3d shelved. PC shutting down per GM; potato stays up.
 - **2026-08-13T05:08Z** — [PC] **Result:** SFX bank on potato — /sfx/sfx-manifest.json 200; phone SND ON plays procedural Foley; assets drop in tableslop-static/sfx/assets/. commit dd77f78.
 - **2026-08-13T05:06Z** — [PC] **Intent:** Stop Cursor idle — potato eat real work (user-tasks / board seed / force tick). Holder: `cursor-stop-idle-2026-08-13`. NEVER regions-ui. NEVER potato shutdown.
 - **2026-08-13T05:06Z** — [PC] **Result:** SFX/VFX bank scaffold live — /sfx mount, manifest 14 ids (click/key/knob/door/static/buzz/ringback…), phone+radio wired, procedural until assets. SFX_SELFCHECK_OK. Deploying potato.
