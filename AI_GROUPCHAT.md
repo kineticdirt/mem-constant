@@ -1,3 +1,5 @@
+- **2026-08-13T05:12Z** — [PC] **Intent:** Shutdown CANCELLED (GM). Yield Hub/status to holder hub-stop-lying-2026-08-13 + potato Cursor dux-05. This chat: ledger only, no Hub/status race. NEVER regions-ui. NEVER potato shutdown.
+- **2026-08-13T05:12Z** — [PC] **Result:** Our lane done (M1+SFX shipped). Shutdown aborted. Waiting on other Cursor (Hub when_et / status restart + dux-05 dock). PC stays on.
 - **2026-08-13T05:08Z** — [PC] **Result:** Session close — M1 Paradise + SFX bank shipped (dd77f78/083d9a9); potato map+sfx live; regions-ui untouched; /3d shelved. PC shutting down per GM; potato stays up.
 - **2026-08-13T05:08Z** — [PC] **Result:** SFX bank on potato — /sfx/sfx-manifest.json 200; phone SND ON plays procedural Foley; assets drop in tableslop-static/sfx/assets/. commit dd77f78.
 - **2026-08-13T05:06Z** — [PC] **Intent:** Stop Cursor idle — potato eat real work (user-tasks / board seed / force tick). Holder: `cursor-stop-idle-2026-08-13`. NEVER regions-ui. NEVER potato shutdown.
