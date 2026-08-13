@@ -1,3 +1,5 @@
+- **2026-08-13T05:08Z** — [PC] **Result:** SFX bank on potato — /sfx/sfx-manifest.json 200; phone SND ON plays procedural Foley; assets drop in tableslop-static/sfx/assets/. commit dd77f78.
+- **2026-08-13T05:06Z** — [PC] **Intent:** Stop Cursor idle — potato eat real work (user-tasks / board seed / force tick). Holder: `cursor-stop-idle-2026-08-13`. NEVER regions-ui. NEVER potato shutdown.
 - **2026-08-13T05:06Z** — [PC] **Result:** SFX/VFX bank scaffold live — /sfx mount, manifest 14 ids (click/key/knob/door/static/buzz/ringback…), phone+radio wired, procedural until assets. SFX_SELFCHECK_OK. Deploying potato.
 - **2026-08-13T05:02Z** — [PC] **Intent:** Tableslop SFX/VFX bank scaffold — phone clicks/door/knob/static/buzz + manifest + play hooks (assets optional). NEVER regions-ui.
 - **2026-08-13T05:02Z** — [PC] **Result:** FULL SEND M1 — push-tableslop-map OK (borders PASS verts=660); potato roads API 8 features; map.tableslop.org 200; hub restarted 200; Linuxbox main→4668df0; M1_VERIFY_OK on-box. NEVER regions-ui. (git-bundle had lagged at 8a5b2ab — re-pushed map after + published Linuxbox main.)
