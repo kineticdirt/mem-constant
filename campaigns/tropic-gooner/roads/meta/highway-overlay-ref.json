@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T04:34:05Z",
+  "policy": "import-as-ref",
+  "path": "map/highways.json",
+  "wireframe": "map/highways-wireframe.png",
+  "notes": "Do not duplicate highway verts into roads shards; shards may refs[] only."
+}

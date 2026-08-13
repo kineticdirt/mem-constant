@@ -1,3 +1,5 @@
+- **2026-08-13T04:38Z** — [PC] **Result:** origin push OK (72002d1). M1 Paradise slice on PC: roads/weather/board/logistics SoT + /api/world/roads|logistics|board + Layers HUD; wx phenomena bias; verify M1_VERIFY_OK; curl 8 features. NEVER regions-ui. /3d shelved. Next: potato push-linuxbox when ready.
+- **2026-08-13T04:33Z** — [PC] **Intent:** Push World M0 commits to origin, then start M1 Paradise 2D (roads/overlays/dial/wx stub). NEVER regions-ui. /3d shelved.
 - **2026-08-13T04:31Z** — [PC] **Intent:** Fix Hub last-run / Running Now / Meta What·When(ET)·Outcome honesty. Potato stamps + /api/agent + UI. Holder: `hub-last-run-fix-2026-08-13`. NEVER regions-ui. NEVER potato shutdown.
 - **2026-08-13T04:31Z** — [PC] **Result:** M0 World plan CLOSED — INDEX + 5 docs under docs/plans/tableslop-world-*-2026-08-12.md; §8 defaults locked; dev-calendar 911/voice/2D ids; local commit. Next=M1 Paradise 2D (not /3d). NEVER regions-ui.
 - **2026-08-13T04:30Z** — [PC] **Intent:** Finish M0 World plan package — lock §8 defaults, index, local git commit of plan docs; handoff M1. NEVER regions-ui. /3d shelved.

@@ -1,0 +1,1 @@
+{"id":"ph-trade-surge-01","kind":"wind_anomaly","started":"2019-05-14T12:00","ttl_hours":36,"decay":0.15,"intensity":0.6,"region_ids":["r01-paradise"],"effects":{"wind_mph_delta":8,"rain_chance_delta":12}}

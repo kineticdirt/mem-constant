@@ -19,6 +19,16 @@ const {
   applyWeatherAction,
 } = require("./tableslop-world-weather.js");
 const {
+  readRoadsIndex,
+  readRoadsRegion,
+  readLogisticsIndex,
+  readLogisticsRoutes,
+  readBoardIndex,
+  readBoardThreads,
+  writeBoardResolve,
+  readWeatherPhenomenaIndex,
+} = require("./tableslop-world-roads.js");
+const {
   readModuleState,
   writeModuleState,
   applyModulePatch,
@@ -2598,6 +2608,20 @@ function viewerHtml() {
   .econ-site--industry, .econ-site--logistics, .econ-site--tech, .econ-site--energy { background:#9d8fc9; }
   .map-layer--economy-resources.is-hidden { display:none; }
   .map-layer--highways.is-hidden { display:none; }
+  .map-layer--roads-local.is-hidden { display:none; }
+  .map-layer--wind.is-hidden { display:none; }
+  .map-layer--water.is-hidden { display:none; }
+  .map-layer--logistics.is-hidden { display:none; }
+  .layers-panel {
+    position:absolute; top:52px; right:12px; z-index:40;
+    min-width:180px; padding:10px 12px; border:1px solid var(--line,#334);
+    background:rgba(8,10,14,.92); color:var(--ink,#eee); font-size:12px;
+  }
+  .layers-panel[hidden] { display:none !important; }
+  .layers-panel h3 { margin:0 0 8px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted,#889); }
+  .layers-panel label { display:flex; align-items:center; gap:8px; margin:6px 0; cursor:pointer; }
+  .layers-panel .swatch { width:12px; height:12px; border:1px solid #666; flex:0 0 auto; }
+
   .hwy-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
   /* Stroke in viewBox units so roads scale with the stage (same transform as green art). */
   .hwy-road-casing { fill:none; stroke:#b0a070; stroke-width:1.1; stroke-linecap:round; stroke-linejoin:round; opacity:.95; }
@@ -3092,11 +3116,20 @@ function viewerHtml() {
   <button type="button" class="hud-res" id="citiesToggle" hidden>Cities</button>
   <button type="button" class="hud-res" id="econToggle" hidden>Econ</button>
   <button type="button" class="hud-res" id="roadsToggle" hidden>Roads</button>
+  <button type="button" class="hud-res" id="layersToggle" hidden title="Map overlays (roads / wind / water / logistics / pins)">Layers</button>
+  <div class="layers-panel" id="layersPanel" hidden role="dialog" aria-label="Map layers">
+    <h3>Layers</h3>
+    <label><input type="checkbox" id="layerSwitchRoads" role="switch"/> Roads <span class="swatch" style="background:#c9a227"></span></label>
+    <label><input type="checkbox" id="layerSwitchWind" role="switch"/> Wind <span class="swatch" style="background:#7ec8e3"></span></label>
+    <label><input type="checkbox" id="layerSwitchWater" role="switch"/> Water <span class="swatch" style="background:#2a6f9e"></span></label>
+    <label><input type="checkbox" id="layerSwitchLogistics" role="switch"/> Logistics <span class="swatch" style="background:#e07a3d"></span></label>
+    <label><input type="checkbox" id="layerSwitchPins" role="switch"/> Pins <span class="swatch" style="background:#e8e8e8"></span></label>
+  </div>
   <button type="button" class="hud-res hud-edit" id="editToggle" hidden>Edit</button>
   <button type="button" class="hud-res" id="drawToggle" hidden>Draw borders</button>
   <button type="button" class="hud-res hud-save" id="saveCoordsBtn" hidden>Save coords</button>
   <button type="button" class="hud-res" id="dayToggle" aria-pressed="false" title="Day / night theme">Day</button>
-  <button type="button" class="hud-res hud-3d" id="map3dToggle" aria-pressed="false" title="Toggle 3D overlay on the 2D map (Google Maps-style)">3D</button>
+  <button type="button" class="hud-res hud-3d" id="map3dToggle" aria-pressed="false" title="3D shelved — 2D map is working SoT" hidden>3D</button>
   <a class="hud-res" href="/hunter/" title="Hunter board">Hunter</a>
   <button type="button" class="hud-dock" id="dockRadio" data-dock="radio" aria-pressed="false" title="Radio — expands over cast/info">Radio</button>
   <button type="button" class="hud-dock" id="dockPhone" data-dock="phone" aria-pressed="false" title="Phone (call + text) — expands over cast/info">Phone</button>
@@ -3285,6 +3318,10 @@ let uiAreasVisible = true;
 let uiCitiesVisible = true;
 let uiEconVisible = false;
 let uiRoadsVisible = true; /* labels only — green terrain art is the road paint */
+let uiWindVisible = false;
+let uiWaterVisible = false;
+let uiLogisticsVisible = false;
+let roadsLocalCache = null;
 let editMode = false;
 let drawMode = false;
 let drawVerts = [];
@@ -3454,7 +3491,7 @@ function setMap3dOverlay(on) {
   if (overlay) {
     if (map3dOn) {
       // Always (re)load so terrain/scale deploys are not stuck behind data-loaded
-      overlay.src = '/3d/?embed=1&v=20260811persp3';
+      overlay.src = '/3d/?embed=1&v=20260811gmaps2';
       overlay.setAttribute('data-loaded', '1');
       overlay.hidden = false;
     } else {
@@ -6119,7 +6156,231 @@ function roadsUiEnabled() {
 
 function syncRoadsLayerVisibility() {
   syncLayerVisibility('highways', roadsUiEnabled());
+  syncLayerVisibility('roads-local', !!(uiRoadsVisible && roadsLocalCache && (roadsLocalCache.features || []).length));
+  syncLayerVisibility('wind', uiWindVisible);
+  syncLayerVisibility('water', uiWaterVisible);
+  syncLayerVisibility('logistics', uiLogisticsVisible);
 }
+
+function placeLocalRoads(container, payload) {
+  if (!container) return;
+  container.innerHTML = '';
+  const feats = (payload && payload.features) || [];
+  if (!feats.length) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'roads-local-svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+  feats.forEach(function(f) {
+    const coords = f.coords || [];
+    if (coords.length < 2) return;
+    const d = coords.map(function(c, i) {
+      return (i ? 'L' : 'M') + Number(c[0]).toFixed(3) + ' ' + Number(c[1]).toFixed(3);
+    }).join(' ');
+    const pathEl = document.createElementNS(NS, 'path');
+    pathEl.setAttribute('d', d);
+    pathEl.setAttribute('fill', 'none');
+    pathEl.setAttribute('stroke-linecap', 'round');
+    pathEl.setAttribute('stroke-linejoin', 'round');
+    const kind = f.kind || 'local';
+    if (kind === 'hwy') {
+      pathEl.setAttribute('stroke', '#f0d060');
+      pathEl.setAttribute('stroke-width', '0.55');
+    } else if (kind === 'arterial') {
+      pathEl.setAttribute('stroke', '#e8e0c8');
+      pathEl.setAttribute('stroke-width', '0.35');
+    } else {
+      pathEl.setAttribute('stroke', '#c8c0a8');
+      pathEl.setAttribute('stroke-width', '0.22');
+    }
+    pathEl.setAttribute('data-road-id', f.id || '');
+    pathEl.setAttribute('data-road-kind', kind);
+    svg.appendChild(pathEl);
+  });
+  container.appendChild(svg);
+}
+
+function placeWindStub(container) {
+  if (!container) return;
+  container.innerHTML = '';
+  const c = document.createElement('canvas');
+  c.id = 'envOverlayCanvas';
+  c.width = 320; c.height = 200;
+  c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.35;';
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.strokeStyle = 'rgba(126,200,227,0.7)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 12; i++) {
+      const y = 10 + i * 15;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(80, y - 8, 160, y + 8, 320, y);
+      ctx.stroke();
+    }
+  }
+  container.appendChild(c);
+}
+
+function placeWaterStub(container) {
+  if (!container) return;
+  container.innerHTML = '';
+  const c = document.createElement('canvas');
+  c.width = 320; c.height = 200;
+  c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.28;';
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = 'rgba(42,111,158,0.25)';
+    ctx.fillRect(0, 140, 320, 60);
+    ctx.strokeStyle = 'rgba(90,170,220,0.8)';
+    for (let i = 0; i < 6; i++) {
+      const y = 150 + i * 8;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.quadraticCurveTo(160, y + 6, 320, y);
+      ctx.stroke();
+    }
+  }
+  container.appendChild(c);
+}
+
+function placeLogistics(container, routes) {
+  if (!container) return;
+  container.innerHTML = '';
+  const list = routes || [];
+  if (!list.length) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+  list.forEach(function(r) {
+    const coords = r.coords || [];
+    if (coords.length < 2) return;
+    const d = coords.map(function(c, i) {
+      return (i ? 'L' : 'M') + Number(c[0]).toFixed(3) + ' ' + Number(c[1]).toFixed(3);
+    }).join(' ');
+    const pathEl = document.createElementNS(NS, 'path');
+    pathEl.setAttribute('d', d);
+    pathEl.setAttribute('fill', 'none');
+    pathEl.setAttribute('stroke', '#e07a3d');
+    pathEl.setAttribute('stroke-width', '0.45');
+    pathEl.setAttribute('stroke-dasharray', '1.2 0.8');
+    svg.appendChild(pathEl);
+  });
+  container.appendChild(svg);
+}
+
+async function loadRoadsLocalShard() {
+  try {
+    const r = await fetch('/api/world/roads?region_id=r01-paradise', { cache: 'no-store' });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+async function loadLogisticsRoutes() {
+  try {
+    const r = await fetch('/api/world/logistics', { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.routes || [];
+  } catch (e) { return []; }
+}
+
+function refreshOverlayLayers() {
+  const stack = document.querySelector('#mapStack') || document.querySelector('.map-stack');
+  if (!stack) return;
+  const local = layerEl(stack, 'roads-local');
+  if (local) {
+    local.innerHTML = '';
+    if (uiRoadsVisible && roadsLocalCache) placeLocalRoads(local, roadsLocalCache);
+  }
+  const wind = layerEl(stack, 'wind');
+  if (wind) {
+    wind.innerHTML = '';
+    if (uiWindVisible) placeWindStub(wind);
+  }
+  const water = layerEl(stack, 'water');
+  if (water) {
+    water.innerHTML = '';
+    if (uiWaterVisible) placeWaterStub(water);
+  }
+  const logi = layerEl(stack, 'logistics');
+  if (logi) {
+    logi.innerHTML = '';
+    if (uiLogisticsVisible && mapDataCache && mapDataCache.logistics_routes) {
+      placeLogistics(logi, mapDataCache.logistics_routes);
+    }
+  }
+  syncRoadsLayerVisibility();
+  syncLayerVisibility('poi-pins', uiCitiesVisible !== false);
+}
+
+function initLayersPanel(profile) {
+  const btn = document.getElementById('layersToggle');
+  const panel = document.getElementById('layersPanel');
+  if (!btn || !panel) return;
+  btn.hidden = false;
+  uiWindVisible = profile.showWind === true;
+  uiWaterVisible = profile.showWater === true;
+  uiLogisticsVisible = profile.showLogistics === true;
+  const swRoads = document.getElementById('layerSwitchRoads');
+  const swWind = document.getElementById('layerSwitchWind');
+  const swWater = document.getElementById('layerSwitchWater');
+  const swLogi = document.getElementById('layerSwitchLogistics');
+  const swPins = document.getElementById('layerSwitchPins');
+  if (swRoads) swRoads.checked = uiRoadsVisible;
+  if (swWind) swWind.checked = uiWindVisible;
+  if (swWater) swWater.checked = uiWaterVisible;
+  if (swLogi) swLogi.checked = uiLogisticsVisible;
+  if (swPins) swPins.checked = uiCitiesVisible !== false;
+  function countOn() {
+    let n = 0;
+    if (uiRoadsVisible) n++;
+    if (uiWindVisible) n++;
+    if (uiWaterVisible) n++;
+    if (uiLogisticsVisible) n++;
+    if (uiCitiesVisible !== false) n++;
+    btn.textContent = 'Layers (' + n + ')';
+  }
+  countOn();
+  btn.onclick = function() {
+    panel.hidden = !panel.hidden;
+  };
+  function bind(sw, key, apply) {
+    if (!sw) return;
+    sw.onchange = function() {
+      apply(!!sw.checked);
+      const patch = {};
+      patch[key] = !!sw.checked;
+      saveProfile(patch);
+      refreshOverlayLayers();
+      countOn();
+    };
+  }
+  bind(swRoads, 'showRoads', function(v) {
+    uiRoadsVisible = v;
+    const rbtn = document.getElementById('roadsToggle');
+    if (rbtn) rbtn.textContent = uiRoadsVisible ? 'Hwy wire ON' : 'Hwy wire OFF';
+    const layer = document.querySelector('[data-layer-id="highways"]');
+    if (layer) {
+      layer.innerHTML = '';
+      if (uiRoadsVisible) placeHighways(layer, mapDataCache.highways_data || {});
+    }
+  });
+  bind(swWind, 'showWind', function(v) { uiWindVisible = v; });
+  bind(swWater, 'showWater', function(v) { uiWaterVisible = v; });
+  bind(swLogi, 'showLogistics', function(v) { uiLogisticsVisible = v; });
+  bind(swPins, 'showCities', function(v) {
+    uiCitiesVisible = v;
+    const cbtn = document.getElementById('citiesToggle');
+    if (cbtn) cbtn.textContent = uiCitiesVisible ? 'Cities ON' : 'Cities OFF';
+  });
+}
+
 
 function placeHighways(container, hwy) {
   // Plane overlay: wireframe PNG copied from green+black art + named labels.
@@ -6330,6 +6591,14 @@ async function load() {
   initCitiesToggle(data, profile);
   initEconToggle(data, profile);
   initRoadsToggle(data, profile);
+  initLayersPanel(profile);
+  loadRoadsLocalShard().then(function(shard) {
+    roadsLocalCache = shard;
+    return loadLogisticsRoutes();
+  }).then(function(routes) {
+    if (mapDataCache) mapDataCache.logistics_routes = routes || [];
+    refreshOverlayLayers();
+  });
   initEditMode(profile);
   initDrawMode();
   initFeedbackUi();
@@ -6440,6 +6709,8 @@ function finishMapStage(stage, markers, profile) {
       placeHighways(hwyLayer, mapDataCache.highways_data || { viewBox: '0 0 100 100', routes: [] });
     }
   }
+
+  refreshOverlayLayers();
   if (labelLayer) {
     labelLayer.classList.add('map-label-layer');
     labelLayer.innerHTML = '';
@@ -9259,7 +9530,72 @@ async function handleRequest(req, res) {
     }
     return;
   }
+  if (url === "/api/world/roads") {
+    try {
+      const regionId = (q.searchParams.get("region_id") || "").trim();
+      if (regionId) {
+        sendJson(res, readRoadsRegion(CAMPAIGN_DIR, regionId), 200, 0);
+      } else {
+        const idx = readRoadsIndex(CAMPAIGN_DIR);
+        if (!idx) sendJson(res, { error: "roads_missing" }, 404);
+        else sendJson(res, idx, 200, 0);
+      }
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "roads_failed" }, 500);
+    }
+    return;
+  }
+  if (url === "/api/world/logistics") {
+    try {
+      sendJson(res, {
+        index: readLogisticsIndex(CAMPAIGN_DIR),
+        routes: readLogisticsRoutes(CAMPAIGN_DIR),
+      }, 200, 0);
+    } catch (err) {
+      sendJson(res, { error: (err && err.message) || "logistics_failed" }, 500);
+    }
+    return;
+  }
+  if (url === "/api/world/board") {
+    if (req.method === "GET") {
+      try {
+        const threadId = (q.searchParams.get("thread_id") || "").trim();
+        const index = readBoardIndex(CAMPAIGN_DIR);
+        const threads = readBoardThreads(CAMPAIGN_DIR);
+        if (threadId) {
+          const t = threads.find((x) => x.id === threadId) || null;
+          sendJson(res, { index, thread: t }, t ? 200 : 404, 0);
+        } else {
+          sendJson(res, { index, threads }, 200, 0);
+        }
+      } catch (err) {
+        sendJson(res, { error: (err && err.message) || "board_failed" }, 500);
+      }
+      return;
+    }
+    if (req.method === "PATCH" || req.method === "POST") {
+      const gate = editGate(session);
+      if (gate) {
+        sendJson(res, { error: gate.error }, gate.code);
+        return;
+      }
+      try {
+        const body = await readBody(req);
+        const payload = JSON.parse(body || "{}");
+        const out = writeBoardResolve(CAMPAIGN_DIR, payload);
+        sendJson(res, out, 200, 0);
+      } catch (err) {
+        if (err && err.code === "version_conflict") {
+          sendJson(res, { error: "version_conflict", version: err.version }, 409);
+        } else {
+          sendJson(res, { error: (err && err.message) || "board_resolve_failed" }, 400);
+        }
+      }
+      return;
+    }
+  }
   if (url === "/api/world/weather" && req.method === "GET") {
+
     const gate = editGate(session);
     if (gate) {
       sendJson(res, { error: gate.error }, gate.code);
@@ -9596,25 +9932,29 @@ async function handleRequest(req, res) {
     return;
   }
 
-  if (url === "/map-heightmap-256.json" || url === "/map-heightmap-256.bin" || url === "/map-roadmask-256.bin") {
-    const name = url.slice("/map-".length);
-    const abs = path.join(CAMPAIGN_DIR, "map", name);
-    if (!fs.existsSync(abs)) {
-      res.writeHead(404);
-      res.end("Not found");
+  // heightmap / roadmask grids (256 legacy, 512 expand, …)
+  {
+    const hm = url.match(/^\/map-(heightmap|roadmask)-(\d+)\.(json|bin)$/);
+    if (hm) {
+      const name = `${hm[1]}-${hm[2]}.${hm[3]}`;
+      const abs = path.join(CAMPAIGN_DIR, "map", name);
+      if (!fs.existsSync(abs)) {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
+      }
+      const ext = path.extname(abs).toLowerCase();
+      let size = 0;
+      try { size = fs.statSync(abs).size; } catch { size = 0; }
+      const headers = {
+        "Content-Type": ext === ".json" ? "application/json; charset=utf-8" : "application/octet-stream",
+        "Cache-Control": "public, max-age=120",
+      };
+      if (size > 0) headers["Content-Length"] = String(size);
+      res.writeHead(200, headers);
+      fs.createReadStream(abs).pipe(res);
       return;
     }
-    const ext = path.extname(abs).toLowerCase();
-    let size = 0;
-    try { size = fs.statSync(abs).size; } catch { size = 0; }
-    const headers = {
-      "Content-Type": ext === ".json" ? "application/json; charset=utf-8" : "application/octet-stream",
-      "Cache-Control": "public, max-age=3600",
-    };
-    if (size > 0) headers["Content-Length"] = String(size);
-    res.writeHead(200, headers);
-    fs.createReadStream(abs).pipe(res);
-    return;
   }
 
   const tileMatch = url.match(/^\/map-tiles\/(\d+)\/(\d+)\/(\d+)\.webp$/);

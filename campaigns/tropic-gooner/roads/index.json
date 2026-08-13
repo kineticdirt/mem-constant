@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T04:34:05Z",
+  "campaign": "tropic-gooner",
+  "shards": [
+    {
+      "id": "r01-paradise",
+      "path": "shards/r01-paradise.ndjson",
+      "feature_count": 8,
+      "bytes": 1937
+    }
+  ],
+  "region_to_shard": {
+    "r01-paradise": "r01-paradise"
+  },
+  "notes": "M1 Paradise ring-0; 2D working SoT; /3d shelved; regions-ui untouched"
+}

@@ -123,11 +123,55 @@ function crtOptics(cityId, conditions, humidity, rand) {
       : "bay glare + light CRT edge at marina";
 }
 
-function dayRoll(seed, cityId, ymd) {
+function loadActivePhenomena(campaignDir) {
+  const phenPath = path.join(campaignDir, "weather", "phenomena.ndjson");
+  const idxPath = path.join(campaignDir, "weather", "index.json");
+  if (!fs.existsSync(phenPath)) return [];
+  let active = null;
+  try {
+    if (fs.existsSync(idxPath)) {
+      const idx = JSON.parse(fs.readFileSync(idxPath, "utf8"));
+      active = Array.isArray(idx.active_ids) ? new Set(idx.active_ids) : null;
+    }
+  } catch {
+    active = null;
+  }
+  const out = [];
+  for (const line of fs.readFileSync(phenPath, "utf8").split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      const row = JSON.parse(t);
+      if (active && !active.has(row.id)) continue;
+      out.push(row);
+    } catch {
+      /* skip */
+    }
+  }
+  return out;
+}
+
+function phenomenonModsForCity(phenomena, city) {
+  const mods = { wind_mph_delta: 0, rain_chance_delta: 0 };
+  const regionId = city && city.region_id;
+  for (const ph of phenomena || []) {
+    const scope = ph.region_ids || [];
+    if (scope.length && regionId && !scope.includes(regionId)) continue;
+    const fx = ph.effects || {};
+    const intensity = Number(ph.intensity);
+    const scale = Number.isFinite(intensity) ? intensity : 1;
+    if (fx.wind_mph_delta != null) mods.wind_mph_delta += Number(fx.wind_mph_delta) * scale;
+    if (fx.rain_chance_delta != null) mods.rain_chance_delta += Number(fx.rain_chance_delta) * scale;
+  }
+  return mods;
+}
+
+function dayRoll(seed, cityId, ymd, phenomena) {
   const p = parseYmd(ymd) || { y: 2019, mo: 5, d: 14 };
   const wet = isWetSeason(p.mo);
   const city = CITIES.find((c) => c.id === cityId) || CITIES[0];
   const rand = mulberry32(hash32(`${seed}|${cityId}|${ymd}`));
+  const mods = phenomenonModsForCity(phenomena, city);
 
   const baseTemp = wet ? 82 : 80;
   const temp = Math.round(
@@ -137,14 +181,20 @@ function dayRoll(seed, cityId, ymd) {
     clamp((wet ? 82 : 74) + city.bias.humidity + (rand() * 14 - 4), 70, 90)
   );
   let rain = Math.round(
-    clamp((wet ? 55 : 18) + city.bias.rain + (rand() * 40 - 12), 5, 95)
+    clamp(
+      (wet ? 55 : 18) + city.bias.rain + (rand() * 40 - 12) + mods.rain_chance_delta,
+      5,
+      95
+    )
   );
   const condIdx = Math.min(
     CONDITIONS.length - 1,
     Math.floor(rain / 14) + (rand() > 0.65 ? 1 : 0)
   );
   const conditions = CONDITIONS[clamp(condIdx, 0, CONDITIONS.length - 1)];
-  const wind_mph = Math.round(clamp(6 + rand() * 18 + (wet ? 2 : 0), 4, 28));
+  const wind_mph = Math.round(
+    clamp(6 + rand() * 18 + (wet ? 2 : 0) + mods.wind_mph_delta, 4, 40)
+  );
   const wind_dir = windDir(rand);
   const festival_risk = festivalRisk(cityId, p.mo, rain, rand);
   const crt_optics = crtOptics(cityId, conditions, humidity, rand);
@@ -167,6 +217,7 @@ function dayRoll(seed, cityId, ymd) {
     crt_optics,
     flood_watch,
     season: wet ? "wet" : "dry",
+    phenomenon_mods: mods,
   };
 }
 
@@ -195,12 +246,13 @@ function generateWeatherState(campaignDir, opts) {
   const seed = String(o.seed || "isla-primavera-weather");
   const days = clamp(Number(o.forecast_days) || 7, 3, 7);
   const baseDate = String(o.diegetic_date || readDiegeticDate(campaignDir));
+  const phenomena = loadActivePhenomena(campaignDir);
   const cities = {};
   for (const c of CITIES) {
-    const current = dayRoll(seed, c.id, baseDate);
+    const current = dayRoll(seed, c.id, baseDate, phenomena);
     const forecast = [];
     for (let i = 0; i < days; i++) {
-      forecast.push(dayRoll(seed, c.id, addDays(baseDate, i)));
+      forecast.push(dayRoll(seed, c.id, addDays(baseDate, i), phenomena));
     }
     cities[c.id] = {
       id: c.id,
@@ -227,6 +279,8 @@ function generateWeatherState(campaignDir, opts) {
       present_lock: 2019,
     },
     cities,
+    active_phenomena: phenomena.map((ph) => ph.id),
+    geo: { lat: 23.0, lon: -152.0 },
     notes_path: "worldbuilding/CLIMATE.md",
   };
 }
@@ -355,4 +409,6 @@ module.exports = {
   readDiegeticDate,
   addDays,
   applyWeatherAction,
+  loadActivePhenomena,
+  phenomenonModsForCity,
 };

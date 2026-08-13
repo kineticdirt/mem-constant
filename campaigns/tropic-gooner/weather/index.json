@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T04:34:05Z",
+  "campaign": "tropic-gooner",
+  "active_ids": [
+    "ph-trade-surge-01"
+  ],
+  "phenomena_path": "phenomena.ndjson",
+  "hot_summary": "worldbuilding/weather-state.json",
+  "geo": {
+    "lat": 23.0,
+    "lon": -152.0,
+    "note": "~100mi N + 400mi E of Hawaii"
+  }
+}

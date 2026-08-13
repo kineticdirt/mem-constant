@@ -1,0 +1,1 @@
+{"id":"thr-m1-road-closure-demo","title":"M1 demo: Marina Spur closure","class":"ops","impact":true,"when":"2019-05-14","where":"r01-paradise","actors":["gm"],"branches":[{"id":"close","p":1.0}],"resolved":false,"updated_at":"2026-08-13T04:34:05Z"}

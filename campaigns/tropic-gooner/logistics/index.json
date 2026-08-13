@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T04:34:05Z",
+  "route_ids": [
+    "lg-par-ferry-bus-01"
+  ],
+  "modes": [
+    "freight",
+    "ferry",
+    "bus"
+  ],
+  "notes": "M1 Paradise corridor only"
+}

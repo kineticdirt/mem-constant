@@ -1,6 +1,6 @@
 # Tableslop World — full plan + deliverables (2026-08-12)
 
-**Status:** M0 COMPLETE — plan package locked. Next: M1 Paradise 2D slice (implementation).  
+**Status:** M1 IN PROGRESS / PC slice landed — Paradise roads SoT + Layers UI + wx phenomena + board resolve smoke. Next: potato deploy + visual O-checklist.  
 **Holder:** `tableslop-world-full-plan`  
 **Lane agent:** `project-tableslop` (+ `role-ux` · `role-backend` · `role-frontend` · `role-cicd`)  
 **Hard locks:** NEVER wipe `regions-ui.json`. **/3d SHELVED** — 2D map is working SoT; transfer later.
