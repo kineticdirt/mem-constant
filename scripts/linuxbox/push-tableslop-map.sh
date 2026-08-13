@@ -19,8 +19,17 @@ TARBALL="/tmp/tableslop-map-deploy.tgz"
 PATHS=(
   "scripts/linuxbox/tableslop-server.js"
   "scripts/linuxbox/tableslop-auth.js"
+  "scripts/linuxbox/tableslop-world-roads.js"
+  "scripts/linuxbox/tableslop-world-weather.js"
+  "scripts/linuxbox/tableslop-world-sot.js"
   "scripts/linuxbox/vendor/sql-js"
   "scripts/linuxbox/tableslop-static/3d"
+  "scripts/tableslop/m1-paradise-verify.cjs"
+  "scripts/tableslop/phone-responder.js"
+  "campaigns/tropic-gooner/roads"
+  "campaigns/tropic-gooner/weather"
+  "campaigns/tropic-gooner/board"
+  "campaigns/tropic-gooner/logistics"
   "${MAP}/map.json"
   "${MAP}/cities"
   "${MAP}/coords.json"
@@ -30,6 +39,18 @@ PATHS=(
   "${MAP}/heightmap-256.bin"
   "${MAP}/heightmap-256.json"
   "${MAP}/roadmask-256.bin"
+  "${MAP}/heightmap-512.bin"
+  "${MAP}/heightmap-512.json"
+  "${MAP}/roadmask-512.bin"
+  "${MAP}/heightmap-1024.bin"
+  "${MAP}/heightmap-1024.json"
+  "${MAP}/roadmask-1024.bin"
+  "${MAP}/heightmap-4096.bin"
+  "${MAP}/heightmap-4096.json"
+  "${MAP}/roadmask-4096.bin"
+  "${MAP}/heightmap-8192.bin"
+  "${MAP}/heightmap-8192.json"
+  "${MAP}/roadmask-8192.bin"
   "${MAP}/tiles"
   "${MAP}/output-onlinetools4k.png"
   "${MAP}/output-onlinetools-2k.png"
@@ -153,9 +174,18 @@ scp "${SSH_OPTS[@]}" "${TARBALL}" "${HOST}:/tmp/tableslop-map-deploy.tgz"
 ssh "${SSH_OPTS[@]}" "${HOST}" bash -s <<EOF
 set -euo pipefail
 tar xzf /tmp/tableslop-map-deploy.tgz -C "${REMOTE_REPO}"
-sudo systemctl restart linuxbox-tableslop
-sleep 2
-systemctl is-active linuxbox-tableslop
+# Prefer user unit; fall back to bare node if unit missing (potato often runs nohup)
+if systemctl --user cat linuxbox-tableslop.service >/dev/null 2>&1; then
+  systemctl --user restart linuxbox-tableslop
+  sleep 2
+  systemctl --user is-active linuxbox-tableslop
+else
+  pkill -f 'node .*tableslop-server.js' || true
+  sleep 1
+  cd "${REMOTE_REPO}"
+  nohup /usr/bin/node scripts/linuxbox/tableslop-server.js >> /tmp/tableslop-server.log 2>&1 &
+  sleep 3
+fi
 curl -s -o /dev/null -w "tableslop8765:%{http_code}\\n" http://127.0.0.1:8765/health
 # Content gate: HTTP health alone does not prove map.json landed (see reports/agent-mistake-patterns-2026-07-26.md).
 python3 - <<'PY'
@@ -168,6 +198,14 @@ print(f"api/map markers={len(markers)} labels={labels}")
 if len(markers) < 1:
     sys.exit("push-tableslop-map: /api/map returned 0 markers")
 PY
+# Prevention: never claim 3D live if god-view scale=2 / missing heightmesh watermark
+IDX="${REMOTE_REPO}/scripts/linuxbox/tableslop-static/3d/index.html"
+APP="${REMOTE_REPO}/scripts/linuxbox/tableslop-static/3d/app.js"
+grep -q 'tableslop-3d-watermark: gmaps2' "\$IDX" || { echo "FAIL: /3d index missing gmaps2 watermark" >&2; exit 1; }
+grep -q 'scale: 200' "\$APP" || { echo "FAIL: /3d app.js not scale 200 (stale god-view?)" >&2; exit 1; }
+curl -s -o /dev/null -w "hm4096:%{http_code} %{size_download}\\n" http://127.0.0.1:8765/map-heightmap-4096.bin
+code=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8765/map-heightmap-4096.bin)
+test "\$code" = "200" || { echo "FAIL: heightmap-4096 not served" >&2; exit 1; }
 EOF
 
 
