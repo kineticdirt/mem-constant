@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T05:00:00Z",
+  "campaign": "tropic-gooner",
+  "_doc": "Tableslop shared SFX/VFX catalog. Drop real assets under assets/ (ogg/wav/mp3). Until a file exists, the bank plays the procedural fallback. Never block dial/UI if audio fails.",
+  "base_url": "/sfx/assets/",
+  "defaults": {
+    "volume": 0.35,
+    "enabled_storage_key": "tableslop-sfx-on"
+  },
+  "entries": [
+    {
+      "id": "ui.click",
+      "kind": "sfx",
+      "tags": ["ui", "phone", "map"],
+      "file": "ui-click.ogg",
+      "proc": "click",
+      "vfx": "flash-soft",
+      "ready": "proc"
+    },
+    {
+      "id": "ui.key",
+      "kind": "sfx",
+      "tags": ["ui", "phone", "keypad"],
+      "file": "ui-key.ogg",
+      "proc": "key",
+      "vfx": "flash-key",
+      "ready": "proc"
+    },
+    {
+      "id": "ui.toggle",
+      "kind": "sfx",
+      "tags": ["ui"],
+      "file": "ui-toggle.ogg",
+      "proc": "toggle",
+      "ready": "proc"
+    },
+    {
+      "id": "ui.knob",
+      "kind": "sfx",
+      "tags": ["ui", "radio", "sim"],
+      "file": "ui-knob.ogg",
+      "proc": "knob",
+      "vfx": "knob-tick",
+      "ready": "proc"
+    },
+    {
+      "id": "door.open",
+      "kind": "sfx",
+      "tags": ["world", "place", "phone-apps"],
+      "file": "door-open.ogg",
+      "proc": "door_open",
+      "ready": "proc"
+    },
+    {
+      "id": "door.close",
+      "kind": "sfx",
+      "tags": ["world", "place", "phone-apps"],
+      "file": "door-close.ogg",
+      "proc": "door_close",
+      "ready": "proc"
+    },
+    {
+      "id": "line.static",
+      "kind": "sfx",
+      "tags": ["phone", "radio", "line"],
+      "file": "line-static.ogg",
+      "proc": "static",
+      "vfx": "static-snow",
+      "ready": "proc"
+    },
+    {
+      "id": "line.buzz",
+      "kind": "sfx",
+      "tags": ["phone", "line"],
+      "file": "line-buzz.ogg",
+      "proc": "buzz",
+      "ready": "proc"
+    },
+    {
+      "id": "line.ringback",
+      "kind": "sfx",
+      "tags": ["phone"],
+      "file": "line-ringback.ogg",
+      "proc": "ringback",
+      "ready": "proc"
+    },
+    {
+      "id": "line.hangup",
+      "kind": "sfx",
+      "tags": ["phone"],
+      "file": "line-hangup.ogg",
+      "proc": "hangup",
+      "ready": "proc"
+    },
+    {
+      "id": "line.deny",
+      "kind": "sfx",
+      "tags": ["phone"],
+      "file": "line-deny.ogg",
+      "proc": "deny",
+      "ready": "proc"
+    },
+    {
+      "id": "line.busy",
+      "kind": "sfx",
+      "tags": ["phone"],
+      "file": "line-busy.ogg",
+      "proc": "busy",
+      "ready": "proc"
+    },
+    {
+      "id": "vfx.whoosh",
+      "kind": "sfx",
+      "tags": ["vfx", "ui", "transition"],
+      "file": "vfx-whoosh.ogg",
+      "proc": "whoosh",
+      "vfx": "whoosh",
+      "ready": "proc"
+    },
+    {
+      "id": "voice.placeholder",
+      "kind": "voice",
+      "tags": ["phone", "pc-voice-cache"],
+      "file": null,
+      "proc": null,
+      "ready": "slot",
+      "note": "PC-generated speech/moans land via voice-manifest; potato caches only."
+    }
+  ]
+}

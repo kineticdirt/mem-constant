@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T05:00:00Z",
+  "campaign": "tropic-gooner",
+  "_doc": "PC-generated voice utterances → potato static cache. Empty until D-VOICE spike fills rows. Potato never runs TTS.",
+  "cache_root": "/phone/voice/",
+  "utterances": []
+}

@@ -30,7 +30,31 @@ const state = {
   tickerTimer: null,
   audioCtx: null,
   staticNodes: null,
+  sfx: null,
 };
+
+async function ensureSfx() {
+  if (state.sfx) return state.sfx;
+  try {
+    const m = await import('/sfx/sfx-bank.js');
+    state.sfx = m.TableslopSfx;
+    await state.sfx.load();
+    /* radio FX follow phone mute key if set; default off until gesture */
+    if (typeof state.sfx.isEnabled === 'function' && !state.sfx.isEnabled()) {
+      /* leave muted; first dial click can enable softly via force */
+    }
+  } catch {
+    state.sfx = null;
+  }
+  return state.sfx;
+}
+
+function sfx(id, opts) {
+  ensureSfx().then((bank) => {
+    if (!bank) return;
+    bank.play(id, opts || { force: true });
+  }).catch(() => {});
+}
 
 function setStatus(text, mode) {
   el.status.textContent = text;
@@ -191,6 +215,7 @@ function renderSheetList() {
 function selectStation(id, autoplay) {
   const s = state.stations.find((x) => x.id === id);
   if (!s) return;
+  sfx('ui.knob');
   state.selected = s;
   state.tickerIdx = 0;
   for (const btn of el.dial.querySelectorAll('.station')) {
@@ -248,6 +273,7 @@ function buildDial() {
 
 el.playBtn.addEventListener('click', () => {
   if (!state.selected) return;
+  sfx('ui.click');
   if (state.playing) pauseAll();
   else playSelected();
 });
@@ -295,3 +321,6 @@ async function boot() {
 }
 
 boot();
+if (new URLSearchParams(location.search).get('embed') === '1') {
+  document.body.classList.add('embed');
+}

@@ -3395,7 +3395,7 @@ let map3dOn = false;
 
 const DOCK_SRC = {
   radio: '/radio/?embed=1',
-  phone: '/phone/?embed=1&v=20260807d',
+  phone: '/phone/?embed=1&v=20260813sfx',
   sim: '/sim/?embed=1',
 };
 const DOCK_TITLE = {
@@ -6959,6 +6959,7 @@ const STATIC_MOUNTS = {
   "3d": { dir: path.join(STATIC_ROOT, "3d"), cacheSec: 15 },
   radio: { dir: path.join(STATIC_ROOT, "radio"), cacheSec: 300 },
   phone: { dir: path.join(STATIC_ROOT, "phone"), cacheSec: 300 },
+  sfx: { dir: path.join(STATIC_ROOT, "sfx"), cacheSec: 300 },
   hunter: { dir: path.join(STATIC_ROOT, "hunter"), cacheSec: 300 },
   sim: { dir: path.join(STATIC_ROOT, "sim"), cacheSec: 60, jsonCacheSec: 30 },
   "lived-in": { dir: path.join(STATIC_ROOT, "lived-in"), cacheSec: 120, jsonCacheSec: 30 },

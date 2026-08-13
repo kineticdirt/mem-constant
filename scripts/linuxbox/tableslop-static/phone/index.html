@@ -18,7 +18,12 @@
       </header>
 
       <main class="views" id="views">
+        <section class="view" id="view-home" data-view="home" aria-label="home"></section>
         <section class="view" id="view-contacts" data-view="contacts" aria-label="contacts"></section>
+        <section class="view" id="view-messages" data-view="messages" aria-label="messages"></section>
+        <section class="view" id="view-actions" data-view="actions" aria-label="actions"></section>
+        <section class="view" id="view-app" data-view="app" aria-label="app"></section>
+        <section class="view" id="view-settings" data-view="settings" aria-label="settings"></section>
         <section class="view" id="view-recents" data-view="recents" aria-label="recents"></section>
         <section class="view" id="view-keypad" data-view="keypad" aria-label="keypad"></section>
         <section class="view" id="view-thread" data-view="thread" aria-label="thread"></section>
@@ -26,9 +31,23 @@
       </main>
 
       <nav class="softkeys" aria-label="navigation">
-        <button type="button" data-nav="contacts" class="active">CONTACTS</button>
-        <button type="button" data-nav="keypad">KEYPAD</button>
-        <button type="button" data-nav="recents">RECENTS <span class="badge" id="recents-badge" hidden></span></button>
+        <button type="button" data-nav="home" class="active" title="Home">
+          <span class="sk-ico" aria-hidden="true">⌂</span>
+          <span class="sk-lbl">HOME</span>
+        </button>
+        <button type="button" data-nav="messages" title="Texts">
+          <span class="sk-ico" aria-hidden="true">✉</span>
+          <span class="sk-lbl">TEXTS</span>
+          <span class="badge" id="texts-badge" hidden></span>
+        </button>
+        <button type="button" data-nav="keypad" title="Phone">
+          <span class="sk-ico" aria-hidden="true">☎</span>
+          <span class="sk-lbl">PHONE</span>
+        </button>
+        <button type="button" data-nav="back" title="Back">
+          <span class="sk-ico" aria-hidden="true">‹</span>
+          <span class="sk-lbl">BACK</span>
+        </button>
       </nav>
     </div>
     <div class="phone-chin">PB-2026 &middot; ISLA PRIMAVERA</div>

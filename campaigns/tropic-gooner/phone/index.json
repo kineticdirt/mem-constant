@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-13T05:00:00Z",
+  "campaign": "tropic-gooner",
+  "emergency_codes": ["911"],
+  "directory_sha": null,
+  "sfx_manifest": "sfx-manifest.json",
+  "voice_manifest": "voice-manifest.json",
+  "notes": "M1 phone SoT stubs — emergency routing still xfail until D-911"
+}

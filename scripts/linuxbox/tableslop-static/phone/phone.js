@@ -6,9 +6,13 @@
  * ?force=pickup|voicemail  ?date=YYYY-MM-DD  ?heat=0..1
  */
 import "./contacts.js";
+import "./apps-data.js";
 import * as Engine from "../../../tableslop/phone-responder.js";
+import { TableslopSfx } from "../sfx/sfx-bank.js";
 
 const CONTACTS = globalThis.PHONE_CONTACTS;
+const APPS = globalThis.PHONE_APPS || [];
+const MAP_FALLBACK = globalThis.PHONE_MAP_DESTINATIONS || [];
 const params = new URLSearchParams(location.search);
 const FORCE = params.get("force");
 const DATE = params.get("date");
@@ -38,6 +42,11 @@ let unread = load("ip-phone-unread", {});
 let spamList = load("ip-phone-spam-list", []);
 let spamDay = localStorage.getItem("ip-phone-spam-day") || "";
 let soundOn = load("ip-phone-sound", false);
+let carts = load("ip-phone-carts", {});
+let activeTrip = load("ip-phone-trip", null);
+let activeAppId = null;
+let mapMode = load("ip-phone-map-mode", "walk");
+let mapDestCache = null;
 
 function todayStr() {
   if (DATE) return DATE;
@@ -55,6 +64,9 @@ function persistAll() {
   save("ip-phone-threads", threads);
   save("ip-phone-history", callLog);
   save("ip-phone-unread", unread);
+  save("ip-phone-carts", carts);
+  save("ip-phone-trip", activeTrip);
+  save("ip-phone-map-mode", mapMode);
 }
 
 // --- ambient inbound spam ------------------------------------------------------
@@ -81,7 +93,7 @@ function spamById(spamId) {
   return spamList.find(s => s.spamId === spamId) || null;
 }
 
-// --- sound (optional, off by default) -------------------------------------------
+// --- sound (SFX bank — files optional; procedural until assets drop) ----------
 
 let audioCtx = null;
 function beep(freq, dur, when) {
@@ -102,39 +114,116 @@ function beep(freq, dur, when) {
     /* audio is a garnish, never a blocker */
   }
 }
-function ringback() {
-  for (let ring = 0; ring < 3; ring++) {
-    beep(440, 0.4, ring * 0.9);
-    beep(480, 0.4, ring * 0.9 + 0.05);
+function sfx(id, opts) {
+  const o = opts || {};
+  if (!soundOn && !o.force) return;
+  try {
+    TableslopSfx.play(id, o);
+  } catch {
+    /* garnish */
   }
+}
+function ringback() {
+  sfx("line.ringback");
 }
 
 function renderSoundToggle() {
   const btn = $("#sb-sound");
   btn.textContent = soundOn ? "SND ON" : "SND OFF";
   btn.classList.toggle("on", soundOn);
+  try { TableslopSfx.setEnabled(soundOn); } catch { /* ignore */ }
 }
 
 // --- view switching ---------------------------------------------------------------
 
-const VIEWS = ["contacts", "recents", "keypad", "thread", "call"];
-function showView(name) {
+/** Built-in apps on the home launcher (Texts/Contacts/… are separate apps). */
+const HOME_SYSTEM = [
+  { id: "contacts", name: "Contacts", icon: "@", view: "contacts", tone: "sys" },
+  { id: "messages", name: "Texts", icon: "✉", view: "messages", tone: "sys", badge: true },
+  { id: "keypad", name: "Phone", icon: "☎", view: "keypad", tone: "sys" },
+  { id: "recents", name: "Recents", icon: "◷", view: "recents", tone: "sys" },
+  { id: "settings", name: "Settings", icon: "⚙", view: "settings", tone: "sys" },
+];
+
+const VIEWS = [
+  "home", "contacts", "messages", "actions", "app", "settings",
+  "recents", "keypad", "thread", "call",
+];
+let currentView = "home";
+let viewStack = [];
+
+function showView(name, opts) {
+  const skipStack = opts && opts.skipStack;
+  const changed = currentView !== name;
+  if (!skipStack && currentView && currentView !== name && name !== "home") {
+    if (viewStack[viewStack.length - 1] !== currentView) viewStack.push(currentView);
+    if (viewStack.length > 12) viewStack.shift();
+  }
+  if (name === "home") viewStack = [];
+  currentView = name;
+
   for (const v of VIEWS) {
-    $("#view-" + v).classList.toggle("active", v === name);
+    const node = $("#view-" + v);
+    if (node) node.classList.toggle("active", v === name);
   }
   for (const btn of document.querySelectorAll(".softkeys [data-nav]")) {
-    btn.classList.toggle("active", btn.dataset.nav === name);
+    const nav = btn.dataset.nav;
+    if (nav === "back") {
+      btn.classList.toggle("active", false);
+      continue;
+    }
+    const on =
+      nav === name ||
+      (name === "thread" && nav === "messages") ||
+      (name === "call" && nav === "keypad") ||
+      (name === "app" && nav === "home") ||
+      (name === "actions" && nav === "home");
+    btn.classList.toggle("active", on);
   }
+  if (name === "home") renderHome();
   if (name === "contacts") renderContacts();
+  if (name === "messages") renderMessages();
+  if (name === "actions") renderActions();
+  if (name === "settings") renderSettings();
   if (name === "recents") renderRecents();
   if (name === "keypad") renderKeypad();
+  if (changed && !(opts && opts.sfx === false)) sfx("ui.click", { target: $("#phone") });
+}
+
+function goBack() {
+  if (currentView === "thread") {
+    showView("messages", { skipStack: true });
+    return;
+  }
+  if (currentView === "call") {
+    showView(viewStack.pop() || "home", { skipStack: true });
+    return;
+  }
+  if (currentView === "app") {
+    showView("home", { skipStack: true });
+    return;
+  }
+  const prev = viewStack.pop();
+  showView(prev || "home", { skipStack: true });
 }
 
 function updateBadge() {
   const n = Object.values(unread).filter(Boolean).length;
   const badge = $("#recents-badge");
-  badge.hidden = n === 0;
-  badge.textContent = String(n);
+  if (badge) {
+    badge.hidden = n === 0;
+    badge.textContent = String(n);
+  }
+  const tb = $("#texts-badge");
+  if (tb) {
+    tb.hidden = n === 0;
+    tb.textContent = String(n);
+  }
+  const homeBadge = $("#home-texts-badge");
+  if (homeBadge) {
+    homeBadge.hidden = n === 0;
+    homeBadge.textContent = String(n);
+  }
 }
 
 function el(tag, cls, text) {
@@ -156,17 +245,411 @@ function bubble(role, text, ts) {
 function renderContacts() {
   const view = $("#view-contacts");
   view.replaceChildren();
-  view.appendChild(el("div", "view-head", "DIRECTORY — ISLA PRIMAVERA"));
+  view.appendChild(el("div", "view-head", "DIRECTORY — call or text"));
   for (const c of CONTACTS) {
-    const row = el("button", "row");
-    row.type = "button";
-    row.dataset.contactId = c.id;
-    row.appendChild(el("span", "r-name", c.name));
-    row.appendChild(el("span", "r-meta", c.role + " — " + c.city));
-    row.appendChild(el("span", "r-hint", c.number + " · " + c.hint));
-    row.addEventListener("click", () => openThread(c.id));
+    const row = el("div", "row row-split");
+    const info = el("button", "row-main");
+    info.type = "button";
+    info.appendChild(el("span", "r-name", c.name));
+    info.appendChild(el("span", "r-meta", c.role + " — " + c.city));
+    info.appendChild(el("span", "r-hint", c.number + " · " + c.hint));
+    info.addEventListener("click", () => openThread(c.id));
+    const actions = el("div", "row-actions");
+    const textBtn = el("button", "mini", "TEXT");
+    textBtn.type = "button";
+    textBtn.addEventListener("click", (e) => { e.stopPropagation(); openThread(c.id); });
+    const callBtn = el("button", "mini mini-call", "CALL");
+    callBtn.type = "button";
+    callBtn.addEventListener("click", (e) => { e.stopPropagation(); startCall(c); });
+    actions.appendChild(textBtn);
+    actions.appendChild(callBtn);
+    row.appendChild(info);
+    row.appendChild(actions);
     view.appendChild(row);
   }
+}
+
+function renderMessages() {
+  const view = $("#view-messages");
+  view.replaceChildren();
+  view.appendChild(el("div", "view-head", "TEXTS — threads"));
+  const keys = Object.keys(threads).sort((a, b) => {
+    const ta = (threads[a] || []).slice(-1)[0];
+    const tb = (threads[b] || []).slice(-1)[0];
+    return String((tb && tb.ts) || "").localeCompare(String((ta && ta.ts) || ""));
+  });
+  if (!keys.length) {
+    view.appendChild(el("div", "empty-note", "No texts yet. Open a contact and send one."));
+    return;
+  }
+  for (const key of keys) {
+    const msgs = threads[key] || [];
+    const last = msgs[msgs.length - 1];
+    const isSpam = key.startsWith("spam:");
+    const contact = isSpam ? null : CONTACTS.find(c => c.id === key);
+    const sp = isSpam ? spamById(key.slice(5)) : null;
+    const row = el("button", "row" + (unread[key] ? " unread" : ""));
+    row.type = "button";
+    row.appendChild(el("span", "r-name",
+      (unread[key] ? "● " : "") + (contact ? contact.name : (sp ? sp.from : key))));
+    row.appendChild(el("span", "r-meta", last
+      ? ((last.role === "you" ? "you: " : "") + String(last.text || "").slice(0, 48))
+      : "empty thread"));
+    row.appendChild(el("span", "r-hint", last && last.ts ? last.ts : "tap to open"));
+    row.addEventListener("click", () => openThread(key));
+    view.appendChild(row);
+  }
+}
+
+// --- HOME launcher + commerce apps ------------------------------------------------
+
+function cartFor(appId) {
+  if (!carts[appId]) carts[appId] = [];
+  return carts[appId];
+}
+
+function cartTotal(appId) {
+  const app = APPS.find(a => a.id === appId);
+  if (!app || !app.items) return 0;
+  let sum = 0;
+  for (const line of cartFor(appId)) {
+    const item = app.items.find(i => i.id === line.id);
+    if (item) sum += item.price * (line.qty || 1);
+  }
+  return Math.round(sum * 100) / 100;
+}
+
+function makeIconTile(opts) {
+  const tile = el("button", "icon-tile" + (opts.tone === "arms" ? " is-arms" : ""));
+  tile.type = "button";
+  tile.title = opts.name;
+  const face = el("span", "icon-face");
+  face.setAttribute("aria-hidden", "true");
+  face.textContent = opts.icon || "?";
+  tile.appendChild(face);
+  tile.appendChild(el("span", "icon-name", opts.name));
+  if (opts.badge) {
+    const b = el("span", "icon-badge", "");
+    b.id = opts.badgeId || "home-texts-badge";
+    b.hidden = true;
+    tile.appendChild(b);
+  }
+  tile.addEventListener("click", opts.onClick);
+  return tile;
+}
+
+function renderHome() {
+  const view = $("#view-home");
+  view.replaceChildren();
+  view.appendChild(el("div", "view-head", "HOME — apps"));
+  if (activeTrip && activeTrip.status === "enroute") {
+    const trip = el("div", "trip-card");
+    trip.appendChild(el("strong", null, "ACTIVE TRIP"));
+    trip.appendChild(el("div", null,
+      `${activeTrip.mode.toUpperCase()} → ${activeTrip.destName} (${activeTrip.region || "?"})`));
+    trip.appendChild(el("div", null, activeTrip.eta || "in progress…"));
+    const stop = el("button", "btn ghost", "CANCEL TRIP");
+    stop.type = "button";
+    stop.style.marginTop = "8px";
+    stop.addEventListener("click", () => {
+      activeTrip = null;
+      persistAll();
+      renderHome();
+    });
+    trip.appendChild(stop);
+    view.appendChild(trip);
+  }
+
+  view.appendChild(el("div", "home-section", "PHONE"));
+  const sys = el("div", "icon-grid");
+  for (const app of HOME_SYSTEM) {
+    sys.appendChild(makeIconTile({
+      name: app.name,
+      icon: app.icon,
+      tone: "sys",
+      badge: !!app.badge,
+      badgeId: app.badge ? "home-texts-badge" : undefined,
+      onClick: () => showView(app.view),
+    }));
+  }
+  view.appendChild(sys);
+
+  view.appendChild(el("div", "home-section", "ISLAND"));
+  const island = el("div", "icon-grid");
+  for (const app of APPS) {
+    island.appendChild(makeIconTile({
+      name: app.name,
+      icon: app.icon || app.name.charAt(0),
+      tone: app.kind === "arms" ? "arms" : "app",
+      onClick: () => openApp(app.id),
+    }));
+  }
+  view.appendChild(island);
+  updateBadge();
+}
+
+/** Legacy ACTIONS deep-link → home launcher. */
+function renderActions() {
+  showView("home", { skipStack: true });
+}
+
+function renderSettings() {
+  const view = $("#view-settings");
+  view.replaceChildren();
+  view.appendChild(el("div", "view-head", "SETTINGS"));
+  const sound = el("button", "row");
+  sound.type = "button";
+  sound.appendChild(el("span", "r-name", soundOn ? "Sound ON" : "Sound OFF"));
+  sound.appendChild(el("span", "r-meta", "tap to toggle beeps"));
+  sound.addEventListener("click", () => {
+    soundOn = !soundOn;
+    save("ip-phone-sound", soundOn);
+    renderSoundToggle();
+    sfx("ui.toggle", { force: true });
+    renderSettings();
+  });
+  view.appendChild(sound);
+  const keypad = el("button", "row");
+  keypad.type = "button";
+  keypad.appendChild(el("span", "r-name", "Keypad"));
+  keypad.appendChild(el("span", "r-meta", "dial a number"));
+  keypad.addEventListener("click", () => showView("keypad"));
+  view.appendChild(keypad);
+  const recents = el("button", "row");
+  recents.type = "button";
+  recents.appendChild(el("span", "r-name", "Call recents"));
+  recents.appendChild(el("span", "r-meta", `${callLog.length} entries`));
+  recents.addEventListener("click", () => showView("recents"));
+  view.appendChild(recents);
+  view.appendChild(el("div", "empty-note",
+    "Food/mart/Amazon deliver. Firearms require a physical storefront visit — use Maps."));
+}
+
+function openApp(appId) {
+  activeAppId = appId;
+  const app = APPS.find(a => a.id === appId);
+  if (!app) return;
+  sfx(app.kind === "maps" ? "ui.click" : "door.open");
+  if (app.kind === "maps") renderMapsApp();
+  else renderCommerceApp(app);
+  showView("app", { sfx: false });
+}
+
+function renderCommerceApp(app) {
+  const view = $("#view-app");
+  view.replaceChildren();
+  const bar = el("div", "app-bar");
+  const back = el("button", "btn ghost", "BACK");
+  back.type = "button";
+  back.addEventListener("click", () => showView("home"));
+  bar.appendChild(back);
+  bar.appendChild(el("span", "app-title", app.name.toUpperCase()));
+  view.appendChild(bar);
+  view.appendChild(el("div", "view-head", app.blurb));
+
+  if (app.inPersonOnly) {
+    const warn = el("div", "shop-warn");
+    warn.textContent =
+      "No remote purchase. Browse the catalog, then go to the storefront in person " +
+      `(${app.storefront.place}). Delivery / phone checkout blocked.`;
+    view.appendChild(warn);
+    const go = el("button", "btn");
+    go.type = "button";
+    go.textContent = "MAPS → GO TO STOREFRONT";
+    go.style.margin = "0 10px 10px";
+    go.addEventListener("click", () => {
+      startTrip({
+        id: "sf-" + app.id,
+        name: app.storefront.place,
+        region: app.storefront.region,
+      }, app.storefront.modeHint || "walk");
+    });
+    view.appendChild(go);
+  }
+
+  for (const item of app.items || []) {
+    const row = el("div", "shop-item");
+    row.appendChild(el("div", "si-name", item.name));
+    row.appendChild(el("div", "si-price", "$" + item.price.toFixed(2)));
+    row.appendChild(el("div", "si-note", item.note || ""));
+    const add = el("button", "si-add", app.inPersonOnly ? "IN STORE" : "ADD");
+    add.type = "button";
+    add.disabled = !!app.inPersonOnly;
+    if (!app.inPersonOnly) {
+      add.addEventListener("click", () => {
+        const cart = cartFor(app.id);
+        const line = cart.find(l => l.id === item.id);
+        if (line) line.qty += 1;
+        else cart.push({ id: item.id, qty: 1 });
+        persistAll();
+        renderCommerceApp(app);
+        showView("app");
+      });
+    }
+    row.appendChild(add);
+    view.appendChild(row);
+  }
+
+  if (!app.inPersonOnly) {
+    const cart = cartFor(app.id);
+    const foot = el("div", "shop-cart");
+    const n = cart.reduce((a, l) => a + (l.qty || 0), 0);
+    foot.textContent = n
+      ? `Cart ${n} · $${cartTotal(app.id).toFixed(2)} · ${app.delivery ? "delivery" : ""}${app.pickup ? (app.delivery ? " / pickup" : "pickup") : ""}`
+      : "Cart empty";
+    view.appendChild(foot);
+    if (n) {
+      const order = el("button", "btn");
+      order.type = "button";
+      order.textContent = app.delivery ? "PLACE ORDER (DELIVER)" : "PLACE ORDER";
+      order.style.margin = "8px 10px";
+      order.addEventListener("click", () => {
+        const conf = {
+          app: app.id,
+          total: cartTotal(app.id),
+          items: cart.slice(),
+          when: todayStr() + " " + nowTime(),
+          via: app.delivery ? "delivery van" : "pickup",
+        };
+        const hist = load("ip-phone-orders", []);
+        hist.unshift(conf);
+        save("ip-phone-orders", hist.slice(0, 40));
+        carts[app.id] = [];
+        persistAll();
+        view.appendChild(el("div", "trip-card",
+          `Order placed · $${conf.total.toFixed(2)} · ${conf.via}. ETA island-time fuzzy.`));
+      });
+      view.appendChild(order);
+      if (app.pickup && app.storefront) {
+        const pickup = el("button", "btn ghost");
+        pickup.type = "button";
+        pickup.textContent = "PICKUP — NAVIGATE TO STORE";
+        pickup.style.margin = "0 10px 10px";
+        pickup.addEventListener("click", () => {
+          startTrip({
+            id: "sf-" + app.id,
+            name: app.storefront.place,
+            region: app.storefront.region,
+          }, app.storefront.modeHint || "drive");
+        });
+        view.appendChild(pickup);
+      }
+    }
+  }
+}
+
+function etaFor(mode) {
+  if (mode === "walk") return "~25–40 min on foot";
+  if (mode === "bus") return "~15–30 min · island bus";
+  return "~8–18 min driving";
+}
+
+function startTrip(dest, mode) {
+  mapMode = mode || mapMode || "walk";
+  activeTrip = {
+    status: "enroute",
+    destId: dest.id,
+    destName: dest.name,
+    region: dest.region,
+    mode: mapMode,
+    eta: etaFor(mapMode),
+    started: todayStr() + " " + nowTime(),
+  };
+  persistAll();
+  renderMapsApp();
+  showView("app");
+}
+
+async function loadMapDestinations() {
+  if (mapDestCache) return mapDestCache;
+  const dests = MAP_FALLBACK.slice();
+  try {
+    for (const rid of ["r01-paradise", "r02-porto-lujuria", "r03-crimson-quay"]) {
+      const res = await fetch("/api/cities/" + rid, { cache: "no-store" });
+      if (!res.ok) continue;
+      const city = await res.json();
+      for (const p of (city.places || []).slice(0, 12)) {
+        dests.push({
+          id: p.id,
+          name: p.name,
+          region: rid,
+          kind: p.kind || "place",
+        });
+      }
+    }
+  } catch {
+    /* offline / no API — fallback list is enough */
+  }
+  mapDestCache = dests;
+  return dests;
+}
+
+function renderMapsApp() {
+  activeAppId = "maps";
+  const view = $("#view-app");
+  view.replaceChildren();
+  const bar = el("div", "app-bar");
+  const back = el("button", "btn ghost", "BACK");
+  back.type = "button";
+  back.addEventListener("click", () => showView("home"));
+  bar.appendChild(back);
+  bar.appendChild(el("span", "app-title", "ISLAND MAPS"));
+  view.appendChild(bar);
+  view.appendChild(el("div", "view-head", "Walk · drive · bus to districts & storefronts"));
+
+  const modes = el("div", "mode-row");
+  for (const m of ["walk", "drive", "bus"]) {
+    const b = el("button", mapMode === m ? "active" : "", m.toUpperCase());
+    b.type = "button";
+    b.addEventListener("click", () => {
+      mapMode = m;
+      persistAll();
+      renderMapsApp();
+      showView("app");
+    });
+    modes.appendChild(b);
+  }
+  view.appendChild(modes);
+
+  if (activeTrip && activeTrip.status === "enroute") {
+    const trip = el("div", "trip-card");
+    trip.appendChild(el("strong", null, "EN ROUTE"));
+    trip.appendChild(el("div", null, ` ${activeTrip.mode} → ${activeTrip.destName}`));
+    trip.appendChild(el("div", null, activeTrip.eta));
+    trip.appendChild(el("div", null, "Characters complete this on the 2D/3D map (routines)."));
+    const done = el("button", "btn");
+    done.type = "button";
+    done.textContent = "ARRIVED";
+    done.style.marginTop = "8px";
+    done.addEventListener("click", () => {
+      activeTrip = Object.assign({}, activeTrip, {
+        status: "arrived",
+        ended: todayStr() + " " + nowTime(),
+      });
+      persistAll();
+      renderMapsApp();
+      showView("app");
+    });
+    trip.appendChild(done);
+    view.appendChild(trip);
+  }
+
+  const listHost = el("div");
+  listHost.appendChild(el("div", "empty-note", "Loading places…"));
+  view.appendChild(listHost);
+  loadMapDestinations().then((dests) => {
+    listHost.replaceChildren();
+    listHost.appendChild(el("div", "view-head", `${dests.length} destinations · mode ${mapMode}`));
+    for (const d of dests) {
+      const row = el("button", "row");
+      row.type = "button";
+      row.appendChild(el("span", "r-name", d.name));
+      row.appendChild(el("span", "r-meta", `${d.region || "?"} · ${d.kind || "place"}`));
+      row.appendChild(el("span", "r-hint", `Go ${mapMode} · ${etaFor(mapMode)}`));
+      row.addEventListener("click", () => startTrip(d, mapMode));
+      listHost.appendChild(row);
+    }
+  });
 }
 
 // --- recents view ------------------------------------------------------------------------
@@ -256,6 +739,7 @@ function renderKeypad() {
     b.textContent = digit;
     if (sub) b.appendChild(el("small", null, sub));
     b.addEventListener("click", () => {
+      sfx("ui.key", { target: $("#phone") });
       if (kpBuffer.length < 7 && /\d/.test(digit)) {
         kpBuffer += digit;
         display.textContent = formatKp(kpBuffer);
@@ -279,6 +763,7 @@ function renderKeypad() {
   dial.addEventListener("click", () => {
     if (kpBuffer.length !== 7) {
       note.textContent = "island numbers are seven digits.";
+      sfx("line.deny");
       return;
     }
     dialNumber(formatKp(kpBuffer));
@@ -334,7 +819,7 @@ function openThread(key) {
   const msgs = threads[key] || [];
   if (!msgs.length) {
     log.appendChild(el("div", "empty-note", contact
-      ? "No calls yet. " + contact.hint + "."
+      ? "No texts yet. Type below — or CALL from the header."
       : "Nothing here."));
   }
   for (const m of msgs) log.appendChild(bubble(m.role === "caller" ? "caller" : "contact", m.text, m.ts || null));
@@ -342,14 +827,47 @@ function openThread(key) {
 
   if (contact) {
     const bar = el("div", "composer");
-    const callBtn = el("button", "btn", "CALL " + contact.number);
+    const input = el("input");
+    input.id = "sms-input";
+    input.placeholder = "text message…";
+    input.maxLength = 280;
+    const send = el("button", "btn", "SEND");
+    send.type = "button";
+    const doSend = () => {
+      const text = input.value.trim();
+      if (!text) return;
+      threads[key] = threads[key] || [];
+      threads[key].push({ role: "caller", text, ts: todayStr() + " " + nowTime() });
+      const hist = threads[key].map(m => ({ role: m.role === "you" ? "caller" : m.role, text: m.text }));
+      try {
+        const reply = Engine.respond(contact, hist, { date: DATE || undefined });
+        if (reply && reply.text) {
+          threads[key].push({
+            role: "contact",
+            text: reply.text,
+            ts: todayStr() + " " + nowTime(),
+          });
+        }
+      } catch {
+        threads[key].push({
+          role: "contact",
+          text: "…",
+          ts: todayStr() + " " + nowTime(),
+        });
+      }
+      persistAll();
+      openThread(key);
+    };
+    send.addEventListener("click", doSend);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") doSend(); });
+    const callBtn = el("button", "btn", "CALL");
     callBtn.type = "button";
     callBtn.id = "btn-call-from-thread";
     callBtn.addEventListener("click", () => startCall(contact));
     const back = el("button", "btn ghost", "BACK");
     back.type = "button";
-    back.addEventListener("click", () => showView("contacts"));
-    bar.append(callBtn, back);
+    back.addEventListener("click", () => showView("messages"));
+    bar.append(input, send, callBtn, back);
     view.appendChild(bar);
   } else if (sp) {
     const lastReply = threads[key].filter(m => m.role === "caller").length;
@@ -451,7 +969,7 @@ function addCallBubble(role, text) {
 function startCall(contact) {
   call = { contact, hist: [], state: "ringing", t0: null, timer: null, outcome: null };
   buildCallView(contact.name, contact.number);
-  showView("call");
+  showView("call", { sfx: false });
   ringback();
   setTimeout(resolveDial, 2600);
 }
@@ -459,16 +977,20 @@ function startCall(contact) {
 function startOperatorCall(number, text, kind) {
   call = { contact: null, number, hist: [], state: "operator", t0: null, timer: null, outcome: kind };
   buildCallView(number, "");
-  showView("call");
+  showView("call", { sfx: false });
+  if (kind === "no-service") sfx("line.deny");
+  else sfx("line.static");
   ringback();
   setTimeout(() => {
     if (!call || call.state !== "operator") return;
     $("#call-id").classList.remove("ringing");
     setCallStatus(kind === "intercept" ? "CONNECTED — OPERATOR" : "OPERATOR", "live");
     addCallBubble("contact", text);
+    if (kind === "no-service") sfx("line.buzz");
     setTimeout(() => {
       if (!call || call.state !== "operator") return;
       setCallStatus("CALL ENDED", "ended");
+      sfx("line.hangup");
       logCall(number, number, kind, null);
       setTimeout(() => { if (!call) showView("keypad"); }, 1800);
     }, 2200);
@@ -531,6 +1053,7 @@ function sendCallMessage() {
 
 function endCall(outcome) {
   if (!call || call.state === "ended") return;
+  sfx("line.hangup");
   if (call.timer) clearInterval(call.timer);
   const durSec = call.t0 ? Math.floor((Date.now() - call.t0) / 1000) : null;
   if (call.contact) {
@@ -578,19 +1101,32 @@ function startClock() {
 }
 
 function boot() {
+  if (params.get("embed") === "1") document.documentElement.classList.add("embed");
   ensureSpam();
   startClock();
+  TableslopSfx.load().then(() => {
+    TableslopSfx.setEnabled(soundOn);
+  }).catch(() => {});
   renderSoundToggle();
   $("#sb-sound").addEventListener("click", () => {
     soundOn = !soundOn;
     save("ip-phone-sound", soundOn);
     renderSoundToggle();
+    sfx("ui.toggle", { force: true });
   });
   for (const btn of document.querySelectorAll(".softkeys [data-nav]")) {
-    btn.addEventListener("click", () => showView(btn.dataset.nav));
+    btn.addEventListener("click", () => {
+      const nav = btn.dataset.nav;
+      if (nav === "back") goBack();
+      else showView(nav);
+    });
   }
   updateBadge();
-  showView("contacts");
+  const start = params.get("view");
+  showView(
+    start === "messages" || start === "contacts" || start === "keypad" ? start : "home",
+    { skipStack: true, sfx: false }
+  );
 
   // test hook: jump straight into a deterministic call for smokes
   const dialId = params.get("dial");

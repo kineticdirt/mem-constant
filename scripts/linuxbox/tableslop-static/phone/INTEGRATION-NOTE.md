@@ -47,3 +47,9 @@ See `campaigns/tropic-gooner/worldbuilding/PHONE.md` § "The LLM slot-in
 contract": replace `respond(contact_id, history[])` per contact with a call
 into the platform's free-first model routing; availability/mood/exchange gates
 stay deterministic. UI unchanged.
+
+## SFX / VFX bank (2026-08-13)
+
+Shared catalog at `/sfx/` (`sfx-manifest.json`, `sfx-bank.js`, `assets/`).
+Phone imports `../sfx/sfx-bank.js`. Turn **SND ON** to hear procedural clicks/keys/ringback/static until real Foley/voice files land in `assets/` + `voice-manifest.json`.
+Radio dial uses `ui.knob` via dynamic import of `/sfx/sfx-bank.js`.
