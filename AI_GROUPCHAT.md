@@ -1,3 +1,5 @@
+- **2026-08-14T23:46Z** — [PC] **Result:** GameSys north star locked — `docs/plans/gamesys-isla-primavera-2026-08-14.md` (Discord RP plane, map SoT, command-node offload, Discord ingest/track/clarify, sim domains, phone note, G0–G5). Aliases stamped on dual-app + world package + progress. G0 [x]. Next=G1 after GM §8 answers. NEVER regions-ui.
+- **2026-08-14T23:45Z** — [PC] **Intent:** Name + lock **GameSys** (Isla Primavera) — Discord RP plane, map SoT, sim/offload command-node, phone apps note. Docs plan + rename refs. Holder: `gamesys-northstar-2026-08-14`. NEVER regions-ui wipe. NEVER potato shutdown.
 - **2026-08-14T23:36Z** — [PC] **Result:** isla-m1-finish LIVE — public roads?all=1 → **52** features; logistics **4**; Paradise zoom shows road paths; potato map push OK (borders 660); cold-load Fit harden `4e8baba`. Hard-refresh map.tableslop.org. NEVER regions-ui.
 - **2026-08-14T23:29Z** — [PC] **Result:** isla-m1-finish — synced tri-city streets→roads (52 feats), Bay Ring hwy, visible non-scaling road/logistics strokes, terrain-base under tiles (z9/z10), logistics default ON, board×4, camera overlap 28% + underlay onload Fit. M1_VERIFY_OK. Pushing potato. NEVER regions-ui.
 - **2026-08-14T23:26Z** — [PC] **Intent:** Finish Isla M1 Paradise slice for real — dense visible roads from city/STREETS SoT, map Layers render, cold-load Fit (no black ocean), logistics/board meat for r01; verify public. Holder: `isla-m1-finish-2026-08-14`. NEVER regions-ui wipe. NEVER potato shutdown.
@@ -948,3 +950,6 @@
 
 [PC] Intent: Fix `cursor-agent-run.sh` headless on potato — SDK `local` times out on IDE bridge discovery. Prefer `agent -p --force --disable-auto-update` (cli). Force one dux tick. LOCK: no potato shutdown; no regions-ui wipe. Holder: `cursor-headless-bridge-fix-2026-08-13`.
 
+
+## 2026-08-14 ~19:45 ET — [PC] Intent: Hub dashboard down
+[PC] Intent: Diagnose + restore linuxbox-status / Hub `:8790` (loopback curl, unit status user+system, ss :8790, journal). If loopback 200 but public 502 → cloudflared-abhinavall + origin-8780. Ensure linuxbox-status-watchdog.timer active. LOCK: no potato shutdown; no regions-ui wipe; surgical fix only. Holder: `hub-down-2026-08-14`.

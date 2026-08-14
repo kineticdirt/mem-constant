@@ -1,12 +1,24 @@
-# tableslop / Isla Primavera — continuous project progress
+# tableslop / GameSys (Isla Primavera) — continuous project progress
+
+> **GameSys:** product name for the Isla Primavera play runtime. North star: `docs/plans/gamesys-isla-primavera-2026-08-14.md`.
 
 **Lane:** `agents/TABLESLOP_PROJECT_TASK.md` · **Manifest:** `projects/tableslop/manifest.json` · **Regions:** `projects/tableslop/regions.json`  
 **Runtime:** potato `linuxbox-tableslop` **:8765** · public `https://map.tableslop.org/`  
-**Dual-app roadmap:** `docs/plans/tableslop-dual-app-roadmap-2026-08-01.md` — App A `:8768` campaigns · App B `:8765` map · Setup→Beta §9  
+**Dual-app roadmap:** `docs/plans/tableslop-dual-app-roadmap-2026-08-01.md` — App A `:8768` campaigns · App B `:8765` **GameSys** map · Setup→Beta §9  
 **Isla WB checklist:** `docs/plans/isla-primavera-wb-finish-checklist-2026-08-01.md`  
 **Profile:** think (free-first) — one `[ ]` per tick when ops/`[ops]` are not blocking.
 
 Tick-sized only (Hub-a/b/c lesson). When all Open children are `[x]`, archive under Done and seed the next slice from the manifest (oldest `writing`/`testing`, skip `deferred`/`blocked`).
+
+## GameSys corridor (G0+)
+
+- [x] **G0 Name lock** (2026-08-14) — `docs/plans/gamesys-isla-primavera-2026-08-14.md` + prior-doc aliases
+- [ ] **G1** Roads as game system v1 (closures ↔ board ↔ travel; tri-city SoT already 52 feats)
+- [ ] **G2** Discord ingest stub (character → GameSys presence)
+- [ ] **G3** Clarify-question path (underspecified RP → one ask)
+- [ ] **G4** Command-node job envelope (potato dispatch → external worker result)
+- [ ] **G5** Phone light apps skeleton (Order + Move honest stubs)
+- [ ] **G6+** NPC/econ/combat/zombies mode — after G5
 
 ## Setup → Beta corridor (S0–S3)
 

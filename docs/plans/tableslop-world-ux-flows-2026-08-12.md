@@ -1,5 +1,8 @@
 # Tableslop Isla Primavera — World UX flows (2026-08-12)
 
+> **GameSys alias:** part of **GameSys** (Isla Primavera). SoT: [`gamesys-isla-primavera-2026-08-14.md`](gamesys-isla-primavera-2026-08-14.md).
+
+
 **Status:** PLAN ONLY — no product code in this delivery.  
 **Role:** `role-ux` (agent-role-cluster)  
 **Product:** Theme B — `map.tableslop.org` (Isla Primavera / tropic-gooner)  

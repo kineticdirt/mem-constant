@@ -1,5 +1,8 @@
 # Tableslop World SoT APIs — plan (2026-08-12)
 
+> **GameSys alias:** part of **GameSys** (Isla Primavera). SoT: [`gamesys-isla-primavera-2026-08-14.md`](gamesys-isla-primavera-2026-08-14.md).
+
+
 **Role:** `role-backend` · **Campaign:** `tropic-gooner` / Isla Primavera  
 **Status:** PLAN ONLY — no `tableslop-server.js` edits in this deliverable  
 **Hard locks:** NEVER wipe / empty / ellipse-stub `campaigns/tropic-gooner/map/regions-ui.json` · **/3d shelved** (2D map = working SoT; height/3d transfer later)  

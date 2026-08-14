@@ -1,5 +1,8 @@
 # Tableslop World — verify / issue-finding plan (2026-08-12)
 
+> **GameSys alias:** part of **GameSys** (Isla Primavera). SoT: [`gamesys-isla-primavera-2026-08-14.md`](gamesys-isla-primavera-2026-08-14.md).
+
+
 **Role:** `role-cicd` · **Scope:** World vertical slice **M1** (2D roads/overlays + phone dial matrix + weather tick + board→World writeback).  
 **Hard locks:** **NEVER** mutate / SCP / regenerate `campaigns/tropic-gooner/map/regions-ui.json`. `/3d` shelved — do not gate M1 on 3D smokes.  
 **Mode:** PLAN ONLY. Do not run long Playwright suites unless a check is trivial (`node` self-check / curl / one assert).  

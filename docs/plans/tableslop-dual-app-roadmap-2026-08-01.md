@@ -1,12 +1,14 @@
 # Tableslop dual-app roadmap (2026-08-01)
 
+> **GameSys alias:** Theme B play runtime is now named **GameSys** (Isla Primavera). SoT: [`gamesys-isla-primavera-2026-08-14.md`](gamesys-isla-primavera-2026-08-14.md). Theme A (campaigns host) stays campaigns.tableslop.org.
+
 **Status:** PLAN ONLY — no product feature implementation in this document’s delivery.  
 **Holder:** `tableslop-recalibrate-setup` (was `tableslop-dual-app-plan`)  
 **Audience:** GM (Wholesome Boi) + PC/laptop implementers + potato Hermes (read, don’t thrash).  
 **Why this exists:** Lock a long-horizon vision for **two Themes under Tableslop** into bite-sized, test-gated phases — so work expands intent instead of patching symptoms on `:8765` / `:8768`. Near-term = **Setup → Beta**, not full launch.
 
 **Related:**  
-`docs/tableslop-linuxbox.md` · `docs/plans/isla-primavera-wb-finish-checklist-2026-08-01.md` · `projects/tableslop/client-first-profile-plan.md` · `docs/plans/discord-campaign-analyze-2026-07-29.md` · `projects/tableslop/manifest.json` · `agents/tableslop-progress.md` · `docs/cloudflare-tunnels-linuxbox.md` · `docs/chars-registry-versioning.md` · `docs/multitask-shared-state-lock.md`
+`docs/plans/gamesys-isla-primavera-2026-08-14.md` · `docs/tableslop-linuxbox.md` · `docs/plans/isla-primavera-wb-finish-checklist-2026-08-01.md` · `projects/tableslop/client-first-profile-plan.md` · `docs/plans/discord-campaign-analyze-2026-07-29.md` · `projects/tableslop/manifest.json` · `agents/tableslop-progress.md` · `docs/cloudflare-tunnels-linuxbox.md` · `docs/chars-registry-versioning.md` · `docs/multitask-shared-state-lock.md`
 
 ---
 

@@ -1,5 +1,7 @@
 # Isla Primavera worldbuilding — finish checklist (2026-08-01)
 
+> **GameSys alias:** setting docs for **GameSys**. SoT: [`gamesys-isla-primavera-2026-08-14.md`](gamesys-isla-primavera-2026-08-14.md).
+
 **Status:** PLAN / inventory — deterministic docs & data only (no LLM citygen).  
 **Parent:** `docs/plans/tableslop-dual-app-roadmap-2026-08-01.md` §9 **S1**.  
 **Chronicle tree:** `campaigns/tropic-gooner/` (Tropic Gooner ∪ Hunter: The Reckoning).  
