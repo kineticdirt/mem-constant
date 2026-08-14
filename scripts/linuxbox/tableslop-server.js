@@ -6734,13 +6734,23 @@ function finishMapStage(stage, markers, profile) {
   restoreCameraFromProfile(profile || loadProfile(), !prefersReducedMotion);
   cameraReady = true;
   scheduleTileUpdate();
+  /* Cold-load black void: bad localStorage camera can sit on ocean while underlay streams.
+     Re-Fit shortly after paint if island is not covering the viewport. */
+  window.setTimeout(function() {
+    const vp = document.getElementById('viewport');
+    const size = mapImageSize();
+    if (!vp || !size) return;
+    if (!cameraShowsMap(camera, vp, size) || camera.scale > 1.15) fitToView(false);
+  }, 120);
   if (tilePyramid) {
     window.setTimeout(function() {
       const layer = document.getElementById('mapTileLayer');
       const loaded = layer
         ? Array.from(layer.querySelectorAll('img')).filter(function(i) { return i.complete && i.naturalWidth > 0; }).length
         : 0;
-      if (loaded < 3) fitToView(false);
+      const vp = document.getElementById('viewport');
+      const size = mapImageSize();
+      if (loaded < 3 || (vp && size && !cameraShowsMap(camera, vp, size))) fitToView(false);
     }, 2500);
   }
 }
