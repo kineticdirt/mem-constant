@@ -21,6 +21,7 @@ const {
 const {
   readRoadsIndex,
   readRoadsRegion,
+  readRoadsAll,
   readLogisticsIndex,
   readLogisticsRoutes,
   readBoardIndex,
@@ -3880,7 +3881,7 @@ function cameraShowsMap(c, vp, size) {
   const overlapH = Math.max(0, Math.min(mapB, vp.clientHeight) - Math.max(cy, 0));
   const overlapArea = overlapW * overlapH;
   const vpArea = Math.max(1, vp.clientWidth * vp.clientHeight);
-  return overlapArea >= vpArea * 0.15;
+  return overlapArea >= vpArea * 0.28;
 }
 
 function zoomAt(factor, clientX, clientY) {
@@ -6172,7 +6173,7 @@ function placeLocalRoads(container, payload) {
   svg.setAttribute('class', 'roads-local-svg');
   svg.setAttribute('viewBox', '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'none');
-  svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+  svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;';
   feats.forEach(function(f) {
     const coords = f.coords || [];
     if (coords.length < 2) return;
@@ -6184,19 +6185,23 @@ function placeLocalRoads(container, payload) {
     pathEl.setAttribute('fill', 'none');
     pathEl.setAttribute('stroke-linecap', 'round');
     pathEl.setAttribute('stroke-linejoin', 'round');
+    /* Screen-px strokes so roads stay visible at Fit (island-wide) zoom. */
+    pathEl.setAttribute('vector-effect', 'non-scaling-stroke');
     const kind = f.kind || 'local';
     if (kind === 'hwy') {
-      pathEl.setAttribute('stroke', '#f0d060');
-      pathEl.setAttribute('stroke-width', '0.55');
+      pathEl.setAttribute('stroke', '#f5d76a');
+      pathEl.setAttribute('stroke-width', '3.2');
     } else if (kind === 'arterial') {
-      pathEl.setAttribute('stroke', '#e8e0c8');
-      pathEl.setAttribute('stroke-width', '0.35');
+      pathEl.setAttribute('stroke', '#f2ebe0');
+      pathEl.setAttribute('stroke-width', '2.4');
     } else {
-      pathEl.setAttribute('stroke', '#c8c0a8');
-      pathEl.setAttribute('stroke-width', '0.22');
+      pathEl.setAttribute('stroke', '#d8d0bc');
+      pathEl.setAttribute('stroke-width', '1.6');
     }
+    pathEl.setAttribute('opacity', kind === 'hwy' ? '0.95' : '0.88');
     pathEl.setAttribute('data-road-id', f.id || '');
     pathEl.setAttribute('data-road-kind', kind);
+    if (f.name) pathEl.setAttribute('data-road-name', f.name);
     svg.appendChild(pathEl);
   });
   container.appendChild(svg);
@@ -6266,8 +6271,11 @@ function placeLogistics(container, routes) {
     pathEl.setAttribute('d', d);
     pathEl.setAttribute('fill', 'none');
     pathEl.setAttribute('stroke', '#e07a3d');
-    pathEl.setAttribute('stroke-width', '0.45');
-    pathEl.setAttribute('stroke-dasharray', '1.2 0.8');
+    pathEl.setAttribute('stroke-width', '2.6');
+    pathEl.setAttribute('stroke-dasharray', '8 5');
+    pathEl.setAttribute('vector-effect', 'non-scaling-stroke');
+    pathEl.setAttribute('opacity', '0.9');
+    if (r.name) pathEl.setAttribute('data-logistics-name', r.name);
     svg.appendChild(pathEl);
   });
   container.appendChild(svg);
@@ -6275,7 +6283,7 @@ function placeLogistics(container, routes) {
 
 async function loadRoadsLocalShard() {
   try {
-    const r = await fetch('/api/world/roads?region_id=r01-paradise', { cache: 'no-store' });
+    const r = await fetch('/api/world/roads?all=1', { cache: 'no-store' });
     if (!r.ok) return null;
     return await r.json();
   } catch (e) { return null; }
@@ -6326,7 +6334,8 @@ function initLayersPanel(profile) {
   btn.hidden = false;
   uiWindVisible = profile.showWind === true;
   uiWaterVisible = profile.showWater === true;
-  uiLogisticsVisible = profile.showLogistics === true;
+  /* Logistics ON by default so bay corridors are visible without digging Layers. */
+  uiLogisticsVisible = profile.showLogistics !== false;
   const swRoads = document.getElementById('layerSwitchRoads');
   const swWind = document.getElementById('layerSwitchWind');
   const swWater = document.getElementById('layerSwitchWater');
@@ -6822,6 +6831,12 @@ function renderMapPyramid(stage, data, profile) {
     };
     img.onload = function() {
       img.style.opacity = '1';
+      /* Underlay decode can finish after a bad restored camera — snap to Fit if island not in view. */
+      const vp = document.getElementById('viewport');
+      const size = mapImageSize();
+      if (vp && size && !cameraShowsMap(camera, vp, size)) fitToView(false);
+      else if (!cameraReady) fitToView(false);
+      scheduleTileUpdate();
     };
     terrainBase.appendChild(img);
   } else {
@@ -9534,7 +9549,10 @@ async function handleRequest(req, res) {
   if (url === "/api/world/roads") {
     try {
       const regionId = (q.searchParams.get("region_id") || "").trim();
-      if (regionId) {
+      const all = q.searchParams.get("all") === "1" || regionId === "all";
+      if (all) {
+        sendJson(res, readRoadsAll(CAMPAIGN_DIR), 200, 0);
+      } else if (regionId) {
         sendJson(res, readRoadsRegion(CAMPAIGN_DIR, regionId), 200, 0);
       } else {
         const idx = readRoadsIndex(CAMPAIGN_DIR);

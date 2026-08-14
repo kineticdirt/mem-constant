@@ -1,1 +1,4 @@
-{"id":"lg-par-ferry-bus-01","modes":["ferry","bus"],"name":"Paradise marina shuttle corridor","region_ids":["r01-paradise"],"coords":[[34.18,55.26],[37.23,57.64],[41.33,60.05]],"updated_at":"2026-08-13T04:34:05Z"}
+{"id":"lg-par-ferry-bus-01","modes":["ferry","bus"],"name":"Paradise marina shuttle corridor","region_ids":["r01-paradise"],"coords":[[34.18,55.26],[37.23,57.64],[41.33,60.05]],"updated_at":"2026-08-14T23:30:00Z"}
+{"id":"lg-bay-ring-bus-01","modes":["bus","freight"],"name":"Bay Ring intercity bus","region_ids":["r01-paradise","r02-porto-lujuria","r03-crimson-quay"],"coords":[[37.35,53.14],[33.29,56.245],[29.23,59.35],[33.495,61.81],[37.76,64.27],[37.555,58.705],[37.35,53.14]],"updated_at":"2026-08-14T23:30:00Z"}
+{"id":"lg-porto-ferry-01","modes":["ferry"],"name":"Lujara docks passenger ferry","region_ids":["r02-porto-lujuria"],"coords":[[37.76,64.27],[36.5,62.0],[34.18,55.26]],"updated_at":"2026-08-14T23:30:00Z"}
+{"id":"lg-quay-freight-01","modes":["freight"],"name":"Crimson Quay freight spur","region_ids":["r03-crimson-quay"],"coords":[[29.23,59.35],[31.0,58.0],[33.5,56.5],[37.35,53.14]],"updated_at":"2026-08-14T23:30:00Z"}

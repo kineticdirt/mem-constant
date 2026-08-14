@@ -62,6 +62,31 @@ function readRoadsRegion(campaignDir, regionId) {
   };
 }
 
+/** Merge every roads shard (focus cities + island corridors). */
+function readRoadsAll(campaignDir) {
+  const index = readRoadsIndex(campaignDir);
+  if (!index) return { version: 0, features: [], error: "roads_missing" };
+  if (index.error) return { version: 0, features: [], error: index.error };
+  const features = [];
+  const seen = new Set();
+  for (const shard of index.shards || []) {
+    const abs = path.join(roadsRoot(campaignDir), shard.path || `shards/${shard.id}.ndjson`);
+    for (const f of readNdjson(abs)) {
+      const id = f && f.id ? String(f.id) : "";
+      if (id && seen.has(id)) continue;
+      if (id) seen.add(id);
+      features.push(f);
+    }
+  }
+  return {
+    version: Number(index.version) || 1,
+    updated_at: index.updated_at || null,
+    region_id: "all",
+    features,
+    shard_count: (index.shards || []).length,
+  };
+}
+
 function readLogisticsIndex(campaignDir) {
   const abs = path.join(campaignDir, "logistics", "index.json");
   if (!fs.existsSync(abs)) return null;
@@ -160,6 +185,7 @@ function readWeatherPhenomenaIndex(campaignDir) {
 module.exports = {
   readRoadsIndex,
   readRoadsRegion,
+  readRoadsAll,
   readLogisticsIndex,
   readLogisticsRoutes,
   readBoardIndex,

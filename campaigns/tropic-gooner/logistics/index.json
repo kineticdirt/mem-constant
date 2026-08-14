@@ -1,13 +1,12 @@
 {
-  "version": 1,
-  "updated_at": "2026-08-13T04:34:05Z",
+  "version": 2,
+  "updated_at": "2026-08-14T23:30:00Z",
   "route_ids": [
-    "lg-par-ferry-bus-01"
+    "lg-par-ferry-bus-01",
+    "lg-bay-ring-bus-01",
+    "lg-porto-ferry-01",
+    "lg-quay-freight-01"
   ],
-  "modes": [
-    "freight",
-    "ferry",
-    "bus"
-  ],
-  "notes": "M1 Paradise corridor only"
+  "modes": ["freight", "ferry", "bus"],
+  "notes": "M1 finish — Paradise + tri-city bay corridors; regions-ui untouched"
 }

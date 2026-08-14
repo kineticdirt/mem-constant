@@ -1,17 +1,38 @@
 {
-  "version": 1,
-  "updated_at": "2026-08-13T04:34:05Z",
+  "version": 2,
+  "updated_at": "2026-08-14T23:29:19.931Z",
   "campaign": "tropic-gooner",
   "shards": [
     {
       "id": "r01-paradise",
       "path": "shards/r01-paradise.ndjson",
-      "feature_count": 8,
-      "bytes": 1937
+      "feature_count": 16,
+      "bytes": 4339
+    },
+    {
+      "id": "r02-porto-lujuria",
+      "path": "shards/r02-porto-lujuria.ndjson",
+      "feature_count": 17,
+      "bytes": 5102
+    },
+    {
+      "id": "r03-crimson-quay",
+      "path": "shards/r03-crimson-quay.ndjson",
+      "feature_count": 18,
+      "bytes": 5240
+    },
+    {
+      "id": "island-corridors",
+      "path": "shards/island-corridors.ndjson",
+      "feature_count": 1,
+      "bytes": 413
     }
   ],
   "region_to_shard": {
-    "r01-paradise": "r01-paradise"
+    "r01-paradise": "r01-paradise",
+    "r02-porto-lujuria": "r02-porto-lujuria",
+    "r03-crimson-quay": "r03-crimson-quay",
+    "island": "island-corridors"
   },
-  "notes": "M1 Paradise ring-0; 2D working SoT; /3d shelved; regions-ui untouched"
+  "notes": "Synced from map/cities streets+landmark spurs; Bay Ring hwy; 2D SoT; /3d shelved; regions-ui untouched"
 }

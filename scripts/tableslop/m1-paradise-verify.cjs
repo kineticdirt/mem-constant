@@ -57,9 +57,19 @@ async function main() {
   const feats = shard.features || [];
   const kinds = new Set(feats.map((f) => f.kind));
   report.push(`r01 features=${feats.length} kinds=${[...kinds].join(",")}`);
-  if (feats.length < 2) fail(errors, "r01 roads shard too thin");
+  if (feats.length < 15) fail(errors, "r01 roads shard too thin after city sync (want >=15)");
   if (!kinds.has("hwy") && !kinds.has("arterial")) fail(errors, "need hwy or arterial class");
   if (!kinds.has("local") && !kinds.has("arterial")) fail(errors, "need local/arterial class");
+
+  const all = require("../linuxbox/tableslop-world-roads.js").readRoadsAll(CAMPAIGN);
+  report.push(`roads all features=${(all.features || []).length} shards=${all.shard_count || "?"}`);
+  if ((all.features || []).length < 40) fail(errors, "all-roads merge too thin (want tri-city + bay ring)");
+
+  const porto = readRoadsRegion(CAMPAIGN, "r02-porto-lujuria");
+  const jack = readRoadsRegion(CAMPAIGN, "r03-crimson-quay");
+  report.push(`porto features=${(porto.features || []).length} jack features=${(jack.features || []).length}`);
+  if ((porto.features || []).length < 8) fail(errors, "porto roads missing");
+  if ((jack.features || []).length < 8) fail(errors, "jackedsonville roads missing");
 
   const ref = path.join(CAMPAIGN, "roads", "meta", "highway-overlay-ref.json");
   if (!fs.existsSync(ref)) fail(errors, "highway-overlay-ref missing");

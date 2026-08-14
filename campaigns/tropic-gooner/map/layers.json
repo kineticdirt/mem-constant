@@ -8,8 +8,8 @@
     "diegetic_clock": "map/diegetic-clock.json"
   },
   "layers": [
+    { "id": "terrain-base", "z": 9, "kind": "raster", "label": "Terrain raster underlay", "toggle": false, "default": true },
     { "id": "terrain-tiles", "z": 10, "kind": "raster-tiles", "label": "Terrain tiles", "toggle": false, "default": true },
-    { "id": "terrain-base", "z": 11, "kind": "raster", "label": "Terrain raster", "toggle": false, "default": false },
     { "id": "bathymetry", "z": 20, "kind": "svg", "label": "Bathymetry", "toggle": true, "default": false, "source": null },
     { "id": "elevation-shade", "z": 21, "kind": "svg", "label": "Elevation", "toggle": true, "default": false, "source": null },
     { "id": "biomes", "z": 22, "kind": "svg", "label": "Biomes", "toggle": true, "default": false, "source": null },

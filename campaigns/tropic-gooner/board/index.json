@@ -1,8 +1,12 @@
 {
-  "version": 1,
-  "updated_at": "2026-08-13T04:34:05Z",
+  "version": 2,
+  "updated_at": "2026-08-14T23:30:00Z",
   "open_thread_ids": [
-    "thr-m1-road-closure-demo"
+    "thr-m1-road-closure-demo",
+    "thr-par-boardwalk-wristband",
+    "thr-bay-ring-diesel",
+    "thr-quay-foundry-smoke"
   ],
-  "resolved_count": 0
+  "resolved_count": 0,
+  "notes": "M1 finish board meat for Paradise + bay ring; regions-ui untouched"
 }
